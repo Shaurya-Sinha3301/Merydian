@@ -1,0 +1,50 @@
+{
+  "optimization_id": "OPT_EDGE_001",
+  "users": ["U1", "U2", "U3"],
+  "candidate_groupings": [
+    [["U1", "U2", "U3"]],
+    [["U1"], ["U2", "U3"]],
+    [["U1", "U2"], ["U3"]]
+  ],
+  "transport_options": [
+    {
+      "leg_id": "FLIGHT_A",
+      "from": "NYC",
+      "to": "LAX",
+      "departure_time": "08:00",
+      "arrival_time": "11:00",
+      "duration_minutes": 300,
+      "cost_per_person": 2000,
+      "reliability_score": 0.95
+    },
+    {
+      "leg_id": "TRAIN_B",
+      "from": "NYC",
+      "to": "LAX",
+      "departure_time": "06:00",
+      "arrival_time": "18:00",
+      "duration_minutes": 720,
+      "cost_per_person": 800,
+      "reliability_score": 0.92
+    },
+    {
+      "leg_id": "CAR_C",
+      "from": "NYC",
+      "to": "LAX",
+      "departure_time": "07:00",
+      "arrival_time": "22:00",
+      "duration_minutes": 900,
+      "cost_per_person": 500,
+      "reliability_score": 0.88
+    }
+  ],
+  "constraints": {
+    "latest_arrival_time": "23:00",
+    "max_cost_per_person": 2500
+  },
+  "weights": {
+    "time": 0.3,
+    "cost": 0.5,
+    "split_penalty": 0.2
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "optimization_id": "OPT_001",
+  "users": ["U1", "U2", "U3", "U4", "U5"],
+  "candidate_groupings": [
+    [["U1", "U2", "U3", "U4", "U5"]],
+    [["U1", "U2", "U3"], ["U4", "U5"]]
+  ],
+  "transport_options": [
+    {
+      "leg_id": "FL_203",
+      "from": "DEL",
+      "to": "BLR",
+      "departure_time": "10:00",
+      "arrival_time": "12:30",
+      "duration_minutes": 150,
+      "cost_per_person": 4500,
+      "reliability_score": 0.92
+    },
+    {
+      "leg_id": "TR_109",
+      "from": "DEL",
+      "to": "BLR",
+      "departure_time": "09:00",
+      "arrival_time": "19:30",
+      "duration_minutes": 630,
+      "cost_per_person": 1800,
+      "reliability_score": 0.97
+    }
+  ],
+  "constraints": {
+    "latest_arrival_time": "22:00",
+    "max_cost_per_person": 5000
+  },
+  "weights": {
+    "time": 0.4,
+    "cost": 0.4,
+    "split_penalty": 0.2
+  }
+}
