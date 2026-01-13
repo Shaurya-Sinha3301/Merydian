@@ -1,0 +1,63 @@
+{
+  "itinerary_id": "BASE_DELHI_2D_3N",
+  "city": "Delhi",
+  "assumptions": {
+    "day_start_time": "09:00",
+    "day_end_time": "19:00",
+    "max_day_minutes": 600,
+    "start_end_location": "LOC_081",
+    "poi_transport_separation": true
+  },
+  "days": [
+    {
+      "day": 1,
+      "start_location": "LOC_081",
+      "end_location": "LOC_081",
+      "pois": [
+        {
+          "sequence": 1,
+          "location_id": "LOC_001",
+          "planned_visit_time_min": 120
+        },
+        {
+          "sequence": 2,
+          "location_id": "LOC_007",
+          "planned_visit_time_min": 60
+        },
+        {
+          "sequence": 3,
+          "location_id": "LOC_002",
+          "planned_visit_time_min": 90
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "start_location": "LOC_081",
+      "end_location": "LOC_081",
+      "pois": [
+        {
+          "sequence": 1,
+          "location_id": "LOC_003",
+          "planned_visit_time_min": 60
+        },
+        {
+          "sequence": 2,
+          "location_id": "LOC_009",
+          "planned_visit_time_min": 90
+        },
+        {
+          "sequence": 3,
+          "location_id": "LOC_004",
+          "planned_visit_time_min": 60
+        }
+      ]
+    }
+  ],
+  "optimization_notes": {
+    "hard_pois_only": true,
+    "transport_selected_by_solver": true,
+    "poi_order_can_change": true,
+    "family_level_customization_supported": true
+  }
+}
