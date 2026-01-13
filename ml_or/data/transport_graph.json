@@ -1,0 +1,902 @@
+[
+  {
+    "edge_id": "EDGE_001",
+    "from": "LOC_021",
+    "to": "LOC_074",
+    "mode": "BUS",
+    "duration_min": 57,
+    "cost": 20,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_002",
+    "from": "LOC_006",
+    "to": "LOC_035",
+    "mode": "CAB",
+    "duration_min": 31,
+    "cost": 20,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_003",
+    "from": "LOC_029",
+    "to": "LOC_025",
+    "mode": "BUS",
+    "duration_min": 48,
+    "cost": 250,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_004",
+    "from": "LOC_063",
+    "to": "LOC_009",
+    "mode": "BUS",
+    "duration_min": 38,
+    "cost": 150,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_005",
+    "from": "LOC_006",
+    "to": "LOC_017",
+    "mode": "BUS",
+    "duration_min": 39,
+    "cost": 250,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_006",
+    "from": "LOC_056",
+    "to": "LOC_041",
+    "mode": "CAB",
+    "duration_min": 14,
+    "cost": 40,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_007",
+    "from": "LOC_017",
+    "to": "LOC_061",
+    "mode": "METRO",
+    "duration_min": 23,
+    "cost": 40,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_008",
+    "from": "LOC_047",
+    "to": "LOC_067",
+    "mode": "BUS",
+    "duration_min": 43,
+    "cost": 20,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_009",
+    "from": "LOC_030",
+    "to": "LOC_064",
+    "mode": "CAB",
+    "duration_min": 57,
+    "cost": 40,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_010",
+    "from": "LOC_063",
+    "to": "LOC_061",
+    "mode": "METRO",
+    "duration_min": 38,
+    "cost": 40,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_011",
+    "from": "LOC_073",
+    "to": "LOC_065",
+    "mode": "AUTO",
+    "duration_min": 19,
+    "cost": 80,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_012",
+    "from": "LOC_076",
+    "to": "LOC_026",
+    "mode": "CAB",
+    "duration_min": 40,
+    "cost": 80,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_013",
+    "from": "LOC_085",
+    "to": "LOC_097",
+    "mode": "CAB",
+    "duration_min": 50,
+    "cost": 20,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_014",
+    "from": "LOC_001",
+    "to": "LOC_084",
+    "mode": "AUTO",
+    "duration_min": 22,
+    "cost": 80,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_015",
+    "from": "LOC_092",
+    "to": "LOC_036",
+    "mode": "BUS",
+    "duration_min": 56,
+    "cost": 150,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_016",
+    "from": "LOC_033",
+    "to": "LOC_077",
+    "mode": "AUTO",
+    "duration_min": 38,
+    "cost": 250,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_017",
+    "from": "LOC_078",
+    "to": "LOC_100",
+    "mode": "AUTO",
+    "duration_min": 36,
+    "cost": 20,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_018",
+    "from": "LOC_087",
+    "to": "LOC_067",
+    "mode": "AUTO",
+    "duration_min": 25,
+    "cost": 20,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_019",
+    "from": "LOC_069",
+    "to": "LOC_031",
+    "mode": "AUTO",
+    "duration_min": 24,
+    "cost": 250,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_020",
+    "from": "LOC_045",
+    "to": "LOC_055",
+    "mode": "CAB",
+    "duration_min": 15,
+    "cost": 40,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_021",
+    "from": "LOC_094",
+    "to": "LOC_044",
+    "mode": "CAB",
+    "duration_min": 49,
+    "cost": 40,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_022",
+    "from": "LOC_095",
+    "to": "LOC_097",
+    "mode": "CAB",
+    "duration_min": 24,
+    "cost": 80,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_023",
+    "from": "LOC_071",
+    "to": "LOC_086",
+    "mode": "CAB",
+    "duration_min": 23,
+    "cost": 150,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_024",
+    "from": "LOC_052",
+    "to": "LOC_073",
+    "mode": "METRO",
+    "duration_min": 39,
+    "cost": 40,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_025",
+    "from": "LOC_013",
+    "to": "LOC_096",
+    "mode": "AUTO",
+    "duration_min": 15,
+    "cost": 150,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_026",
+    "from": "LOC_004",
+    "to": "LOC_033",
+    "mode": "BUS",
+    "duration_min": 22,
+    "cost": 80,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_027",
+    "from": "LOC_056",
+    "to": "LOC_039",
+    "mode": "CAB",
+    "duration_min": 11,
+    "cost": 150,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_028",
+    "from": "LOC_014",
+    "to": "LOC_099",
+    "mode": "AUTO",
+    "duration_min": 17,
+    "cost": 250,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_029",
+    "from": "LOC_016",
+    "to": "LOC_021",
+    "mode": "CAB",
+    "duration_min": 20,
+    "cost": 250,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_030",
+    "from": "LOC_072",
+    "to": "LOC_056",
+    "mode": "AUTO",
+    "duration_min": 54,
+    "cost": 250,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_031",
+    "from": "LOC_044",
+    "to": "LOC_084",
+    "mode": "METRO",
+    "duration_min": 29,
+    "cost": 40,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_032",
+    "from": "LOC_027",
+    "to": "LOC_086",
+    "mode": "METRO",
+    "duration_min": 10,
+    "cost": 250,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_033",
+    "from": "LOC_080",
+    "to": "LOC_045",
+    "mode": "AUTO",
+    "duration_min": 44,
+    "cost": 80,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_034",
+    "from": "LOC_026",
+    "to": "LOC_091",
+    "mode": "BUS",
+    "duration_min": 54,
+    "cost": 250,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_035",
+    "from": "LOC_065",
+    "to": "LOC_034",
+    "mode": "CAB",
+    "duration_min": 20,
+    "cost": 40,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_036",
+    "from": "LOC_014",
+    "to": "LOC_022",
+    "mode": "METRO",
+    "duration_min": 60,
+    "cost": 250,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_037",
+    "from": "LOC_010",
+    "to": "LOC_045",
+    "mode": "CAB",
+    "duration_min": 42,
+    "cost": 20,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_038",
+    "from": "LOC_022",
+    "to": "LOC_012",
+    "mode": "CAB",
+    "duration_min": 58,
+    "cost": 20,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_039",
+    "from": "LOC_084",
+    "to": "LOC_020",
+    "mode": "AUTO",
+    "duration_min": 38,
+    "cost": 250,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_040",
+    "from": "LOC_094",
+    "to": "LOC_088",
+    "mode": "AUTO",
+    "duration_min": 39,
+    "cost": 20,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_041",
+    "from": "LOC_009",
+    "to": "LOC_091",
+    "mode": "METRO",
+    "duration_min": 39,
+    "cost": 250,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_042",
+    "from": "LOC_070",
+    "to": "LOC_007",
+    "mode": "AUTO",
+    "duration_min": 29,
+    "cost": 20,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_043",
+    "from": "LOC_040",
+    "to": "LOC_061",
+    "mode": "METRO",
+    "duration_min": 37,
+    "cost": 40,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_044",
+    "from": "LOC_088",
+    "to": "LOC_044",
+    "mode": "AUTO",
+    "duration_min": 29,
+    "cost": 40,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_045",
+    "from": "LOC_059",
+    "to": "LOC_075",
+    "mode": "CAB",
+    "duration_min": 41,
+    "cost": 20,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_046",
+    "from": "LOC_095",
+    "to": "LOC_049",
+    "mode": "AUTO",
+    "duration_min": 55,
+    "cost": 150,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_047",
+    "from": "LOC_054",
+    "to": "LOC_009",
+    "mode": "CAB",
+    "duration_min": 53,
+    "cost": 20,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_048",
+    "from": "LOC_048",
+    "to": "LOC_069",
+    "mode": "BUS",
+    "duration_min": 21,
+    "cost": 250,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_049",
+    "from": "LOC_049",
+    "to": "LOC_053",
+    "mode": "METRO",
+    "duration_min": 47,
+    "cost": 150,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_050",
+    "from": "LOC_089",
+    "to": "LOC_057",
+    "mode": "BUS",
+    "duration_min": 40,
+    "cost": 250,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_051",
+    "from": "LOC_016",
+    "to": "LOC_079",
+    "mode": "METRO",
+    "duration_min": 22,
+    "cost": 80,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_052",
+    "from": "LOC_078",
+    "to": "LOC_087",
+    "mode": "AUTO",
+    "duration_min": 57,
+    "cost": 80,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_053",
+    "from": "LOC_021",
+    "to": "LOC_091",
+    "mode": "METRO",
+    "duration_min": 13,
+    "cost": 80,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_054",
+    "from": "LOC_033",
+    "to": "LOC_093",
+    "mode": "METRO",
+    "duration_min": 19,
+    "cost": 250,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_055",
+    "from": "LOC_061",
+    "to": "LOC_071",
+    "mode": "BUS",
+    "duration_min": 23,
+    "cost": 80,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_056",
+    "from": "LOC_044",
+    "to": "LOC_096",
+    "mode": "BUS",
+    "duration_min": 16,
+    "cost": 250,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_057",
+    "from": "LOC_074",
+    "to": "LOC_028",
+    "mode": "AUTO",
+    "duration_min": 17,
+    "cost": 150,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_058",
+    "from": "LOC_035",
+    "to": "LOC_064",
+    "mode": "METRO",
+    "duration_min": 38,
+    "cost": 20,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_059",
+    "from": "LOC_046",
+    "to": "LOC_066",
+    "mode": "BUS",
+    "duration_min": 60,
+    "cost": 20,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_060",
+    "from": "LOC_063",
+    "to": "LOC_071",
+    "mode": "BUS",
+    "duration_min": 18,
+    "cost": 80,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_061",
+    "from": "LOC_043",
+    "to": "LOC_076",
+    "mode": "METRO",
+    "duration_min": 11,
+    "cost": 40,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_062",
+    "from": "LOC_017",
+    "to": "LOC_031",
+    "mode": "CAB",
+    "duration_min": 33,
+    "cost": 150,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_063",
+    "from": "LOC_095",
+    "to": "LOC_069",
+    "mode": "BUS",
+    "duration_min": 59,
+    "cost": 40,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_064",
+    "from": "LOC_042",
+    "to": "LOC_076",
+    "mode": "CAB",
+    "duration_min": 45,
+    "cost": 80,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_065",
+    "from": "LOC_012",
+    "to": "LOC_001",
+    "mode": "METRO",
+    "duration_min": 22,
+    "cost": 150,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_066",
+    "from": "LOC_028",
+    "to": "LOC_078",
+    "mode": "AUTO",
+    "duration_min": 51,
+    "cost": 250,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_067",
+    "from": "LOC_046",
+    "to": "LOC_054",
+    "mode": "CAB",
+    "duration_min": 37,
+    "cost": 40,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_068",
+    "from": "LOC_019",
+    "to": "LOC_041",
+    "mode": "CAB",
+    "duration_min": 23,
+    "cost": 80,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_069",
+    "from": "LOC_035",
+    "to": "LOC_057",
+    "mode": "CAB",
+    "duration_min": 26,
+    "cost": 40,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_070",
+    "from": "LOC_081",
+    "to": "LOC_058",
+    "mode": "CAB",
+    "duration_min": 52,
+    "cost": 150,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_071",
+    "from": "LOC_092",
+    "to": "LOC_066",
+    "mode": "AUTO",
+    "duration_min": 18,
+    "cost": 40,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_072",
+    "from": "LOC_039",
+    "to": "LOC_027",
+    "mode": "CAB",
+    "duration_min": 58,
+    "cost": 80,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_073",
+    "from": "LOC_005",
+    "to": "LOC_012",
+    "mode": "BUS",
+    "duration_min": 41,
+    "cost": 80,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_074",
+    "from": "LOC_002",
+    "to": "LOC_023",
+    "mode": "BUS",
+    "duration_min": 54,
+    "cost": 250,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_075",
+    "from": "LOC_090",
+    "to": "LOC_077",
+    "mode": "METRO",
+    "duration_min": 37,
+    "cost": 40,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_076",
+    "from": "LOC_051",
+    "to": "LOC_093",
+    "mode": "AUTO",
+    "duration_min": 47,
+    "cost": 150,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_077",
+    "from": "LOC_034",
+    "to": "LOC_074",
+    "mode": "CAB",
+    "duration_min": 48,
+    "cost": 150,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_078",
+    "from": "LOC_033",
+    "to": "LOC_067",
+    "mode": "BUS",
+    "duration_min": 55,
+    "cost": 40,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_079",
+    "from": "LOC_013",
+    "to": "LOC_040",
+    "mode": "CAB",
+    "duration_min": 32,
+    "cost": 80,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_080",
+    "from": "LOC_078",
+    "to": "LOC_080",
+    "mode": "AUTO",
+    "duration_min": 14,
+    "cost": 250,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_081",
+    "from": "LOC_077",
+    "to": "LOC_085",
+    "mode": "AUTO",
+    "duration_min": 50,
+    "cost": 150,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_082",
+    "from": "LOC_036",
+    "to": "LOC_092",
+    "mode": "METRO",
+    "duration_min": 13,
+    "cost": 40,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_083",
+    "from": "LOC_082",
+    "to": "LOC_059",
+    "mode": "METRO",
+    "duration_min": 35,
+    "cost": 150,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_084",
+    "from": "LOC_018",
+    "to": "LOC_020",
+    "mode": "BUS",
+    "duration_min": 35,
+    "cost": 150,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_085",
+    "from": "LOC_077",
+    "to": "LOC_016",
+    "mode": "BUS",
+    "duration_min": 21,
+    "cost": 80,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_086",
+    "from": "LOC_085",
+    "to": "LOC_033",
+    "mode": "METRO",
+    "duration_min": 29,
+    "cost": 150,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_087",
+    "from": "LOC_014",
+    "to": "LOC_091",
+    "mode": "BUS",
+    "duration_min": 31,
+    "cost": 20,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_088",
+    "from": "LOC_050",
+    "to": "LOC_086",
+    "mode": "CAB",
+    "duration_min": 28,
+    "cost": 150,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_089",
+    "from": "LOC_050",
+    "to": "LOC_067",
+    "mode": "CAB",
+    "duration_min": 20,
+    "cost": 250,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_090",
+    "from": "LOC_069",
+    "to": "LOC_045",
+    "mode": "BUS",
+    "duration_min": 59,
+    "cost": 20,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_091",
+    "from": "LOC_016",
+    "to": "LOC_041",
+    "mode": "METRO",
+    "duration_min": 50,
+    "cost": 40,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_092",
+    "from": "LOC_041",
+    "to": "LOC_033",
+    "mode": "BUS",
+    "duration_min": 49,
+    "cost": 80,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_093",
+    "from": "LOC_001",
+    "to": "LOC_034",
+    "mode": "METRO",
+    "duration_min": 29,
+    "cost": 80,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_094",
+    "from": "LOC_024",
+    "to": "LOC_095",
+    "mode": "AUTO",
+    "duration_min": 18,
+    "cost": 250,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_095",
+    "from": "LOC_077",
+    "to": "LOC_003",
+    "mode": "BUS",
+    "duration_min": 40,
+    "cost": 80,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_096",
+    "from": "LOC_100",
+    "to": "LOC_099",
+    "mode": "AUTO",
+    "duration_min": 49,
+    "cost": 20,
+    "reliability": 0.85
+  },
+  {
+    "edge_id": "EDGE_097",
+    "from": "LOC_012",
+    "to": "LOC_078",
+    "mode": "METRO",
+    "duration_min": 59,
+    "cost": 80,
+    "reliability": 0.95
+  },
+  {
+    "edge_id": "EDGE_098",
+    "from": "LOC_062",
+    "to": "LOC_060",
+    "mode": "CAB",
+    "duration_min": 46,
+    "cost": 40,
+    "reliability": 0.9
+  },
+  {
+    "edge_id": "EDGE_099",
+    "from": "LOC_068",
+    "to": "LOC_079",
+    "mode": "BUS",
+    "duration_min": 31,
+    "cost": 20,
+    "reliability": 0.8
+  },
+  {
+    "edge_id": "EDGE_100",
+    "from": "LOC_098",
+    "to": "LOC_078",
+    "mode": "AUTO",
+    "duration_min": 41,
+    "cost": 80,
+    "reliability": 0.85
+  }
+]

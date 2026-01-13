@@ -1,0 +1,73 @@
+[
+  {
+    "family_id": "FAM_001",
+    "members": 4,
+    "children": 2,
+    "budget_sensitivity": 0.7,
+    "energy_level": 0.5,
+    "interest_vector": {
+      "history": 0.9,
+      "architecture": 0.8,
+      "food": 0.6,
+      "nature": 0.5,
+      "nightlife": 0.1,
+      "shopping": 0.3,
+      "religious": 0.6
+    },
+    "must_visit_locations": [
+      "LOC_001",
+      "LOC_002"
+    ],
+    "never_visit_locations": [
+      "LOC_005"
+    ],
+    "notes": "Family with kids, prefers heritage and calm activities"
+  },
+  {
+    "family_id": "FAM_002",
+    "members": 3,
+    "children": 0,
+    "budget_sensitivity": 0.4,
+    "energy_level": 0.8,
+    "interest_vector": {
+      "history": 0.6,
+      "architecture": 0.6,
+      "food": 0.7,
+      "nature": 0.4,
+      "nightlife": 0.8,
+      "shopping": 0.6,
+      "religious": 0.3
+    },
+    "must_visit_locations": [
+      "LOC_003"
+    ],
+    "never_visit_locations": [
+      "LOC_004"
+    ],
+    "notes": "Young adults, active, interested in nightlife and food"
+  },
+  {
+    "family_id": "FAM_003",
+    "members": 5,
+    "children": 1,
+    "budget_sensitivity": 0.9,
+    "energy_level": 0.4,
+    "interest_vector": {
+      "history": 0.7,
+      "architecture": 0.7,
+      "food": 0.5,
+      "nature": 0.6,
+      "nightlife": 0.0,
+      "shopping": 0.2,
+      "religious": 0.8
+    },
+    "must_visit_locations": [
+      "LOC_004",
+      "LOC_009"
+    ],
+    "never_visit_locations": [
+      "LOC_005"
+    ],
+    "notes": "Budget conscious, prefers religious and peaceful locations"
+  }
+]
