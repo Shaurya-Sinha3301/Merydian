@@ -832,7 +832,7 @@ class ItineraryOptimizer:
         day_index: int = 0,
         max_pois: int = 3,
         time_limit_seconds: int = 60,
-        lambda_divergence: float = 0.3  # Reduced from 0.5 to allow local divergence
+        lambda_divergence: float = 0.05  # Tuned to 0.05 (5 points) to be comparable with satisfaction
     ) -> Optional[Dict]:
         """
         STEP 9A: Optimize itinerary for MULTIPLE families, 1 day, shared POI set.
@@ -1022,6 +1022,9 @@ class ItineraryOptimizer:
             min_pois = min(3, len(candidate_pois))  # At least 3 POIs, or all if less than 3
             poi_visit_sum = sum([x[(fid, poi)] for poi in candidate_pois])
             model.Add(poi_visit_sum >= min_pois)
+        
+        # NOTE: Equal POI count constraint removed - it prevents divergence
+        # and makes problem infeasible when families have conflicting must-visit requirements
         
         # 7. FAMILY-SPECIFIC: Time bounds
         for fid in family_ids:
