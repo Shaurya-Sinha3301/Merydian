@@ -40,10 +40,8 @@
         "must_visit_locations": [
             "LOC_011"
         ],
-        "never_visit_locations": [
-            "LOC_008"
-        ],
-        "notes": "Must visit LOC_011 (branch nightlife), never visit LOC_008 (skeleton)"
+        "never_visit_locations": [],
+        "notes": "Must visit LOC_011 (branch nightlife). Removed never-visit on LOC_008 to allow shared skeleton."
     },
     {
         "family_id": "FAM_003",

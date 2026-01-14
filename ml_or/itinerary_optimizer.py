@@ -1077,8 +1077,14 @@ class ItineraryOptimizer:
             for poi in candidate_pois:
                 sat_score = self.calculate_satisfaction(family, self.locations[poi])
                 sat_scaled = int(sat_score * 100)
+                
+                # PERSONALIZATION BONUS: Reward visiting must-visit locations
+                must_visit_bonus = 0
+                if poi in family.must_visit_locations:
+                    must_visit_bonus = 200  # Significant bonus for must-visit POIs
+                
                 # CRITICAL: Only count satisfaction if POI is visited
-                satisfaction_terms.append(sat_scaled * x[(fid, poi)])
+                satisfaction_terms.append((sat_scaled + must_visit_bonus) * x[(fid, poi)])
         
         total_satisfaction = sum(satisfaction_terms)
         
@@ -1148,8 +1154,8 @@ class ItineraryOptimizer:
         
         coherence_loss = alpha * total_time + beta * total_cost + gamma * total_order_deviation + delta * total_divergence
         
-        # TUNED PARAMETERS (reduced from 30 to allow divergence)
-        lambda_coherence = 10  # Reduced from 30 to balance satisfaction vs coherence
+        # TUNED PARAMETERS
+        lambda_coherence = 2  # Reduced from 10 to make transport cheaper and enable branch POI visits
         
         # STEP 9B′: Objective includes branch penalty
         objective = total_satisfaction - lambda_coherence * coherence_loss - total_branch_penalty
@@ -1239,7 +1245,15 @@ class ItineraryOptimizer:
         for fid in family_ids:
             family_obj = self.family_prefs[fid]
             
-            family_pois = [poi for poi in visited_pois if solver.Value(x[(fid, poi)]) == 1]
+            # BUG FIX: scan ALL candidate POIs, not just shared skeleton order
+            # Branch POIs are not in 'visited_pois' (which is skeleton only)
+            visited_indices = []
+            for poi in candidate_pois:
+                if solver.Value(x[(fid, poi)]) == 1:
+                    visited_indices.append(poi)
+            
+            # Sort by arrival time to correct sequence
+            family_pois = sorted(visited_indices, key=lambda p: solver.Value(arr[(fid, p)]))
             
             total_satisfaction = 0.0
             poi_data = []
