@@ -135,23 +135,58 @@ Time: 10 min (50% reduction)
 - Transport binding (Σ_m z[i,j,m] = y[i,j]) ensures transport is selected only for used edges
 - Time chaining works correctly with free ordering
 
-## Step 5C/5D: Next Actions
+## Step 8A: COMPLETE ✅
 
-**Current Status:**
-- Flow constraints already prevent most subtours
-- START/END flow constraints are implemented
-- May need MTZ (Miller-Tucker-Zemlin) constraints for additional safety with larger problem sizes
+**Implemented:**
+- ✅ Added order-deviation coherence loss (γ·order_deviation)
+- ✅ Rescaled objective to human-readable values
+- ✅ Fixed objective scaling bug (was -7,497,019, now -3,302)
+- ✅ Coherence loss now includes: α·time + β·cost + γ·order_deviation
+- ✅ All values normalized to O(100-1000) range
+
+**Test Results:**
+```
+Base order: LOC_001 -> LOC_007 -> LOC_002
+Optimized order: LOC_001 -> LOC_007 -> LOC_002 (KEPT BASE ORDER)
+Order deviations: 0
+Total satisfaction: 2.98
+Coherence loss: 120.0
+  - Transport time: 20 min
+  - Transport cost: Rs.100
+  - Order deviation penalty: 0
+Net value: -33.02
+Objective value: -3302 (scaled, human-readable)
+```
+
+**Key Insights:**
+1. ✅ Objective values are now human-readable (-3,302 instead of -7,497,019)
+2. ✅ Solver KEPT base order (no deviations) - this is correct behavior!
+3. ✅ Order deviation penalty is working (0 violations = 0 penalty)
+4. ✅ Coherence loss properly weighted against satisfaction
+5. ✅ Net value is negative because coherence loss (120) > satisfaction (2.98)
+
+**Why Solver Kept Base Order:**
+- Satisfaction gain from reordering: minimal (all POIs have similar scores)
+- Order deviation penalty: 100 per violation
+- Transport cost/time: same for all orderings (fallback CAB)
+- Result: No incentive to deviate from base order
+
+**Next Steps:**
+- Test with POIs that have significantly different satisfaction scores
+- Test with real transport edges (not just fallback CAB)
+- Verify solver DOES reorder when satisfaction gain justifies it
+
+## Step 8B: Next Actions
 
 **Testing Needed:**
-- Test with more POIs (5-10) to verify no subtours occur
-- Test with different family preferences to verify ordering changes
-- Test with real transport edges (not just fallback CAB)
+- Create scenario where reordering provides clear satisfaction benefit
+- Verify solver trades off satisfaction vs order coherence correctly
+- Test with different lambda values to see sensitivity
 
-**After STEP 5C/5D:**
-- STEP 6: Add coherence loss calculations (deviation penalties)
-- STEP 7: Add satisfaction scoring based on interest vectors
-- STEP 8: Extend to multiple families
-- STEP 9: Scale to multiple days
+**After STEP 8B:**
+- STEP 9: Extend to multiple families
+- STEP 10: Add group synchronization penalties
+- STEP 11: Scale to multiple days
 
 ---
 

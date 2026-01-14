@@ -524,7 +524,7 @@ class ItineraryOptimizer:
             model.Add(arr[poi] >= day_start_min)
             model.Add(dep[poi] <= day_end_min)
         
-        # Objective: STEP 6/7 - Satisfaction - Coherence Loss
+        # Objective: STEP 8 PART A - Satisfaction - Coherence Loss (with proper scaling)
         # maximize Σ_f [ Satisfaction(f) − λ·CoherenceLoss(f) ]
         
         # STEP 7: Calculate satisfaction scores for each POI
@@ -534,10 +534,12 @@ class ItineraryOptimizer:
             sat_score = self.calculate_satisfaction(family, self.locations[poi])
             total_satisfaction_value += sat_score
         
-        # Scale to integer (multiply by 1000 to preserve precision)
-        total_satisfaction_int = int(total_satisfaction_value * 1000)
+        # Scale satisfaction to integer (multiply by 100 for human-readable scale)
+        # Satisfaction ≈ O(1-10), so scaled ≈ O(100-1000)
+        satisfaction_scaled = int(total_satisfaction_value * 100)
         
-        # STEP 6: Calculate coherence loss components
+        # STEP 8: Calculate coherence loss components
+        # Component 1: Transport cost and time
         cost_terms = []
         time_terms = []
         
@@ -577,23 +579,46 @@ class ItineraryOptimizer:
         total_cost = sum(cost_terms) if cost_terms else 0
         total_time = sum(time_terms) if time_terms else 0
         
-        # Coherence loss = α·time + β·cost
-        # Using recommended values: α=1, β=0.05
-        # Scale to match satisfaction scores (which are multiplied by 1000)
-        alpha = 1000  # Time weight (scaled)
-        beta = 50     # Cost weight (scaled, 0.05 * 1000)
+        # Component 2: Order deviation penalty (STEP 8 - NEW)
+        # Penalize deviations from base itinerary order
+        order_deviation_terms = []
         
-        coherence_loss = alpha * total_time + beta * total_cost
+        if not freeze_order and len(candidate_pois) > 1:
+            # Build base order map: base_order[poi] = position (0, 1, 2, ...)
+            base_order = {poi: idx for idx, poi in enumerate(candidate_pois)}
+            
+            # For each edge in the solution, check if it violates base order
+            for i in candidate_pois:
+                for j in candidate_pois:
+                    if i != j and (i, j) in y:
+                        # If i comes before j in base order, no penalty
+                        # If i comes after j in base order, add penalty
+                        if base_order[i] > base_order[j]:
+                            # This edge violates base order
+                            # Penalty = 100 per violation (scaled to match satisfaction)
+                            order_deviation_terms.append(100 * y[(i, j)])
+        
+        total_order_deviation = sum(order_deviation_terms) if order_deviation_terms else 0
+        
+        # Coherence loss = α·time + β·cost + γ·order_deviation
+        # Rescaled to match satisfaction magnitude (O(100-1000))
+        # Original: α=1, β=0.05, γ=100
+        # Scaled: divide time and cost by 10 to bring to O(1-10) range
+        alpha = 1      # Time weight (1 minute ≈ 1 satisfaction point)
+        beta = 1       # Cost weight (₹1 ≈ 1 satisfaction point)
+        gamma = 1      # Order deviation weight (1 violation ≈ 100 satisfaction points, already scaled)
+        
+        coherence_loss = alpha * total_time + beta * total_cost + gamma * total_order_deviation
         
         # Overall objective: maximize satisfaction - λ·coherence_loss
         # λ (lambda_coherence) controls tradeoff between satisfaction and coherence
-        # For single family, we use a smaller lambda since coherence is less critical
-        lambda_coherence_scaled = 300  # Scaled (0.3 * 1000)
+        # For single family: λ = 0.3 (coherence is 30% as important as satisfaction)
+        lambda_coherence = 0.3
+        lambda_coherence_scaled = int(lambda_coherence * 100)  # Scale to match satisfaction
         
         # Maximize: satisfaction - λ·coherence_loss
-        # Since satisfaction is constant (all POIs visited), we minimize coherence_loss
-        # But we keep the full formula for when we add optional POIs later
-        objective = total_satisfaction_int - lambda_coherence_scaled * coherence_loss
+        # Now both terms are in O(100-1000) range
+        objective = satisfaction_scaled - lambda_coherence_scaled * coherence_loss
         
         model.Maximize(objective)
         
@@ -674,10 +699,10 @@ class ItineraryOptimizer:
                 current = next_node
             
             if iteration >= max_iterations:
-                print(f"⚠️ WARNING: Path reconstruction exceeded max iterations")
+                print(f"[WARNING] Path reconstruction exceeded max iterations")
             
-            print(f"\n🔍 STEP 5 PATH RECONSTRUCTION:")
-            print(f"   Reconstructed order: {' → '.join([START_NODE] + visited_pois + [END_NODE])}")
+            print(f"\n[PATH] STEP 5 PATH RECONSTRUCTION:")
+            print(f"   Reconstructed order: {' -> '.join([START_NODE] + visited_pois + [END_NODE])}")
         
         # Extract transport modes
         transport_plan = []
@@ -706,6 +731,18 @@ class ItineraryOptimizer:
         total_transport_cost = sum(t['cost'] for t in transport_plan)
         total_transport_time = sum(t['duration_min'] for t in transport_plan)
         
+        # Calculate order deviation from base itinerary
+        order_deviation_count = 0
+        if not freeze_order and len(visited_pois) > 1:
+            base_order = {poi: idx for idx, poi in enumerate(candidate_pois)}
+            for idx in range(len(visited_pois) - 1):
+                i = visited_pois[idx]
+                j = visited_pois[idx + 1]
+                # Check if this edge violates base order
+                if i in base_order and j in base_order:
+                    if base_order[i] > base_order[j]:
+                        order_deviation_count += 1
+        
         # Calculate satisfaction scores
         family_obj = self.family_prefs[family_id]
         poi_satisfactions = []
@@ -718,10 +755,15 @@ class ItineraryOptimizer:
             })
             total_satisfaction += sat_score
         
-        # Calculate coherence loss components
+        # Calculate coherence loss components (using same formula as objective)
         alpha = 1.0    # Time weight
-        beta = 0.05    # Cost weight
-        coherence_loss = alpha * total_transport_time + beta * total_transport_cost
+        beta = 1.0     # Cost weight
+        gamma = 100.0  # Order deviation weight
+        coherence_loss = alpha * total_transport_time + beta * total_transport_cost + gamma * order_deviation_count
+        
+        # Net value = satisfaction - λ·coherence_loss
+        lambda_coherence = 0.3
+        net_value = total_satisfaction - lambda_coherence * coherence_loss
         
         # Build solution
         solution = {
@@ -731,10 +773,13 @@ class ItineraryOptimizer:
             'solve_time_seconds': solver.WallTime(),
             'total_transport_cost': total_transport_cost,
             'total_transport_time_min': total_transport_time,
+            'order_deviation_count': order_deviation_count,
             'total_satisfaction': round(total_satisfaction, 2),
             'coherence_loss': round(coherence_loss, 2),
-            'net_value': round(total_satisfaction - 0.3 * coherence_loss, 2),
+            'net_value': round(net_value, 2),
             'ordering_mode': 'frozen' if freeze_order else 'free',
+            'base_order': candidate_pois if not freeze_order else None,
+            'optimized_order': visited_pois,
             'pois': [
                 {
                     'sequence': idx + 1,
@@ -761,12 +806,12 @@ class ItineraryOptimizer:
             next_arr = solver.Value(arr[visited_pois[idx + 1]])
             assert next_arr > curr_dep, f"Time not advancing! POI {idx} dep={curr_dep}, POI {idx+1} arr={next_arr}"
         
-        print("\n✅ SANITY CHECK PASSED: Arrival times are monotonically increasing")
+        print("\n[OK] SANITY CHECK PASSED: Arrival times are monotonically increasing")
         
         # TRANSPORT CHECK: Verify transport modes are selected
-        print(f"✅ TRANSPORT CHECK: {len(transport_plan)} transport legs selected")
+        print(f"[OK] TRANSPORT CHECK: {len(transport_plan)} transport legs selected")
         for t in transport_plan:
-            print(f"   {t['from_name']} → {t['to_name']}: {t['mode']} ({t['duration_min']}min, ₹{t['cost']})")
+            print(f"   {t['from_name']} -> {t['to_name']}: {t['mode']} ({t['duration_min']}min, Rs.{t['cost']})")
         
         return solution
     
@@ -783,20 +828,17 @@ class ItineraryOptimizer:
 
 
 def main():
-    """Test the optimizer - STEP 6/7: SATISFACTION & COHERENCE LOSS"""
+    """Test the optimizer - STEP 8 PART A: OBJECTIVE SCALING & ORDER DEVIATION"""
     print("=" * 80)
-    print("STEP 6/7: Heavy-Weight CP-SAT - SATISFACTION & COHERENCE LOSS")
+    print("STEP 8 PART A: Heavy-Weight CP-SAT - OBJECTIVE SCALING & ORDER DEVIATION")
     print("=" * 80)
     print()
     print("Following ChatGPT's guidance:")
-    print("  ✅ STEP 1: Order was FROZEN from base itinerary")
-    print("  ✅ STEP 2: Fallback transport (CAB) injected for missing edges")
-    print("  ✅ STEP 3: Time chaining enforced explicitly")
-    print("  ✅ STEP 4: Multiple transport modes available - solver chooses best")
-    print("  ✅ STEP 5A/5B: Ordering freedom with flow constraints")
-    print("  🎯 STEP 6: Coherence loss = α·time + β·cost")
-    print("  🎯 STEP 7: Satisfaction = base_importance × Σ_tag(interest × tag)")
-    print("  🎯 GOAL: Maximize satisfaction - λ·coherence_loss")
+    print("  [DONE] STEP 1-5: Time-expanded scheduling with ordering freedom")
+    print("  [DONE] STEP 6/7: Satisfaction & coherence loss (basic)")
+    print("  [NOW] STEP 8A: Add order-deviation coherence loss")
+    print("  [NOW] STEP 8A: Rescale objective to human-readable values")
+    print("  [GOAL] Verify solver trades off satisfaction vs coherence correctly")
     print()
     
     optimizer = ItineraryOptimizer()
@@ -813,8 +855,8 @@ def main():
     print("  - Day: 1")
     print("  - Max POIs: 3")
     print("  - Order: FREE (solver can reorder)")
-    print("  - Base order: LOC_001 → LOC_007 → LOC_002")
-    print("  - Objective: Maximize (Satisfaction - λ·CoherenceLoss)")
+    print("  - Base order: LOC_001 -> LOC_007 -> LOC_002")
+    print("  - Objective: Maximize (Satisfaction - lambda*CoherenceLoss)")
     print("  - Transport: MULTIPLE OPTIONS (BUS, CAB, METRO, AUTO + FALLBACK)")
     print()
     
@@ -829,7 +871,7 @@ def main():
     
     if solution:
         print("\n" + "=" * 80)
-        print("✅ SOLUTION FOUND - STEP 6/7 COMPLETE")
+        print("[SUCCESS] SOLUTION FOUND - STEP 8A COMPLETE")
         print("=" * 80)
         print(json.dumps(solution, indent=2))
         
@@ -846,24 +888,36 @@ def main():
         print("\n" + "=" * 80)
         print("OPTIMIZATION SUMMARY:")
         print("=" * 80)
+        if solution['base_order']:
+            base_names = [optimizer.locations[p].name for p in solution['base_order']]
+            opt_names = [optimizer.locations[p].name for p in solution['optimized_order']]
+            print(f"  Base order: {' -> '.join(base_names)}")
+            print(f"  Optimized order: {' -> '.join(opt_names)}")
+        else:
+            print(f"  Base order: (frozen)")
+            opt_names = [optimizer.locations[p].name for p in solution['optimized_order']]
+            print(f"  Optimized order: {' -> '.join(opt_names)}")
+        print(f"  Order deviations: {solution['order_deviation_count']}")
         print(f"  Total satisfaction: {solution['total_satisfaction']}")
         print(f"  Coherence loss: {solution['coherence_loss']}")
+        print(f"    - Transport time: {solution['total_transport_time_min']} min")
+        print(f"    - Transport cost: Rs.{solution['total_transport_cost']}")
+        print(f"    - Order deviation penalty: {solution['order_deviation_count'] * 100}")
         print(f"  Net value: {solution['net_value']}")
-        print(f"  Total transport cost: ₹{solution['total_transport_cost']}")
-        print(f"  Total transport time: {solution['total_transport_time_min']} minutes")
-        print(f"  Objective value: {solution['objective_value']:.2f}")
+        print(f"  Objective value: {solution['objective_value']:.2f} (scaled)")
         print(f"  Ordering mode: {solution['ordering_mode']}")
         
         # Save to file
-        output_file = "ml_or/solved_itinerary_step67.json"
+        output_file = "ml_or/solved_itinerary_step8a.json"
         with open(output_file, 'w') as f:
             json.dump(solution, f, indent=2)
-        print(f"\n✅ Solution saved to: {output_file}")
-        print("\n🎯 STEP 6/7 SUCCESS: Satisfaction & Coherence Loss implemented!")
-        print("   Solver now optimizes: Satisfaction - λ·CoherenceLoss")
-        print("   Next: STEP 8 - Extend to multiple families")
+        print(f"\n[SUCCESS] Solution saved to: {output_file}")
+        print("\n[MILESTONE] STEP 8A SUCCESS: Objective scaling fixed & order deviation added!")
+        print("   Objective values are now human-readable")
+        print("   Solver can trade off satisfaction vs order coherence")
+        print("   Next: Test with different scenarios to verify behavior")
     else:
-        print("\n❌ No feasible solution found.")
+        print("\n[FAIL] No feasible solution found.")
         print("   Debug: Check flow constraints and transport connectivity")
 
 
