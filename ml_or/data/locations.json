@@ -13,7 +13,8 @@
       "nature",
       "culture"
     ],
-    "base_importance": 0.83
+    "base_importance": 0.83,
+    "role": "SKELETON"
   },
   {
     "location_id": "LOC_002",
@@ -29,7 +30,8 @@
       "budget",
       "history"
     ],
-    "base_importance": 0.79
+    "base_importance": 0.79,
+    "role": "SKELETON"
   },
   {
     "location_id": "LOC_003",
@@ -45,7 +47,8 @@
       "food",
       "shopping"
     ],
-    "base_importance": 0.84
+    "base_importance": 0.84,
+    "role": "SKELETON"
   },
   {
     "location_id": "LOC_004",
@@ -125,7 +128,8 @@
       "religious",
       "nature"
     ],
-    "base_importance": 0.85
+    "base_importance": 0.85,
+    "role": "SKELETON"
   },
   {
     "location_id": "LOC_009",
@@ -157,7 +161,8 @@
       "history",
       "architecture"
     ],
-    "base_importance": 0.63
+    "base_importance": 0.63,
+    "role": "SKELETON"
   },
   {
     "location_id": "LOC_011",
@@ -173,7 +178,8 @@
       "nightlife",
       "shopping"
     ],
-    "base_importance": 0.86
+    "base_importance": 0.86,
+    "role": "BRANCH"
   },
   {
     "location_id": "LOC_012",
@@ -221,7 +227,8 @@
       "religious",
       "nightlife"
     ],
-    "base_importance": 0.84
+    "base_importance": 0.84,
+    "role": "BRANCH"
   },
   {
     "location_id": "LOC_015",

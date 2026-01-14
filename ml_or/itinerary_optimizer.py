@@ -63,6 +63,7 @@ class Location:
     repeatable: bool
     tags: List[str]
     base_importance: float
+    role: str = "SKELETON"  # SKELETON (shared order) or BRANCH (optional per family)
 
 
 @dataclass
@@ -855,16 +856,37 @@ class ItineraryOptimizer:
         if not candidate_pois:
             return None
         
+        # STEP 9B′: Separate POIs by role (SKELETON vs BRANCH)
+        skeleton_pois = []
+        branch_pois = []
+        
+        for poi_id in candidate_pois:
+            loc = self.locations[poi_id]
+            role = getattr(loc, 'role', 'SKELETON')  # Default to SKELETON if not specified
+            
+            if role == 'SKELETON':
+                skeleton_pois.append(poi_id)
+            else:  # BRANCH
+                branch_pois.append(poi_id)
+        
+        print(f"\n[STEP 9B′] POI Classification:")
+        print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")
+        print(f"  - BRANCH POIs ({len(branch_pois)}): {branch_pois}")
+        
         model = cp_model.CpModel()
         
         START_NODE = f"START_DAY_{day_index + 1}"
         END_NODE = f"END_DAY_{day_index + 1}"
-        all_nodes = [START_NODE] + candidate_pois + [END_NODE]
         
-        # SHARED: Ordering variables y[i,j]
+        # STEP 9B′: Shared ordering ONLY for skeleton POIs
+        # Branch POIs do NOT participate in shared ordering
+        skeleton_nodes = [START_NODE] + skeleton_pois + [END_NODE]
+        all_nodes = [START_NODE] + candidate_pois + [END_NODE]  # Keep for compatibility
+        
+        # SHARED: Ordering variables y[i,j] ONLY for skeleton nodes
         y = {}
-        for i in all_nodes:
-            for j in all_nodes:
+        for i in skeleton_nodes:
+            for j in skeleton_nodes:
                 if i != j and j != START_NODE and i != END_NODE:
                     y[(i, j)] = model.NewBoolVar(f'order_{i}_before_{j}')
         
@@ -932,17 +954,18 @@ class ItineraryOptimizer:
                 visit_time = self.locations[poi].avg_visit_time_min
                 model.Add(dep[(fid, poi)] == arr[(fid, poi)] + visit_time)
         
-        # 2. SHARED: Flow constraints
-        for poi in candidate_pois:
-            incoming = [y[(i, poi)] for i in all_nodes if i != poi and (i, poi) in y]
+        # 2. SHARED: Flow constraints (ONLY for skeleton POIs)
+        # Branch POIs do NOT participate in flow constraints
+        for poi in skeleton_pois:
+            incoming = [y[(i, poi)] for i in skeleton_nodes if i != poi and (i, poi) in y]
             if incoming:
                 model.Add(sum(incoming) <= 1)
             
-            outgoing = [y[(poi, j)] for j in all_nodes if j != poi and (poi, j) in y]
+            outgoing = [y[(poi, j)] for j in skeleton_nodes if j != poi and (poi, j) in y]
             if outgoing:
                 model.Add(sum(outgoing) <= 1)
         
-        start_outgoing = [y[(START_NODE, j)] for j in candidate_pois if (START_NODE, j) in y]
+        start_outgoing = [y[(START_NODE, j)] for j in skeleton_pois if (START_NODE, j) in y]
         if start_outgoing:
             model.Add(sum(start_outgoing) == 1)
         
@@ -992,17 +1015,27 @@ class ItineraryOptimizer:
                                         dep[(fid, i)] <= day_end_min
                                     ).OnlyEnforceIf(z[(i, j, edge.mode, edge.edge_id)])
         
-        # 5. FAMILY-SPECIFIC: POI visit edges
+        # 5. FAMILY-SPECIFIC: POI visit edges (ONLY for skeleton POIs)
+        # Skeleton POIs must be in the shared ordering if visited
         for fid in family_ids:
-            for poi in candidate_pois:
-                incoming = [y[(i, poi)] for i in all_nodes if i != poi and (i, poi) in y]
-                outgoing = [y[(poi, j)] for j in all_nodes if j != poi and (poi, j) in y]
+            for poi in skeleton_pois:
+                incoming = [y[(i, poi)] for i in skeleton_nodes if i != poi and (i, poi) in y]
+                outgoing = [y[(poi, j)] for j in skeleton_nodes if j != poi and (poi, j) in y]
                 
                 if incoming and outgoing:
                     model.Add(sum(incoming) == 1).OnlyEnforceIf(x[(fid, poi)])
                     model.Add(sum(outgoing) == 1).OnlyEnforceIf(x[(fid, poi)])
                     model.Add(sum(incoming) == 0).OnlyEnforceIf(x[(fid, poi)].Not())
                     model.Add(sum(outgoing) == 0).OnlyEnforceIf(x[(fid, poi)].Not())
+        
+        # 5B. BRANCH POIs: Time window attachment (NOT in shared ordering)
+        # Branch POIs are attached via time constraints only
+        for fid in family_ids:
+            for branch_poi in branch_pois:
+                # If family visits branch POI, it must fit within day bounds
+                # More sophisticated: could constrain between adjacent skeleton nodes
+                model.Add(arr[(fid, branch_poi)] >= day_start_min).OnlyEnforceIf(x[(fid, branch_poi)])
+                model.Add(dep[(fid, branch_poi)] <= day_end_min).OnlyEnforceIf(x[(fid, branch_poi)])
         
         # 6. FAMILY-SPECIFIC: Must-visit and never-visit constraints
         for fid in family_ids:
@@ -1018,10 +1051,11 @@ class ItineraryOptimizer:
                 if never_visit_poi in candidate_pois:
                     model.Add(x[(fid, never_visit_poi)] == 0)
             
-            # Enforce minimum POI visits (prevent single-POI solutions)
-            min_pois = min(3, len(candidate_pois))  # At least 3 POIs, or all if less than 3
-            poi_visit_sum = sum([x[(fid, poi)] for poi in candidate_pois])
-            model.Add(poi_visit_sum >= min_pois)
+            # STEP 9B′: Ensure families visit at least some skeleton POIs (anchor points)
+            # But don't force ALL skeleton POIs to allow flexibility
+            min_skeleton = min(2, len(skeleton_pois))  # At least 2 skeleton POIs
+            skeleton_visit_sum = sum([x[(fid, poi)] for poi in skeleton_pois])
+            model.Add(skeleton_visit_sum >= min_skeleton)
         
         # NOTE: Equal POI count constraint removed - it prevents divergence
         # and makes problem infeasible when families have conflicting must-visit requirements
@@ -1095,6 +1129,15 @@ class ItineraryOptimizer:
         
         total_divergence = sum(divergence_terms) if divergence_terms else 0
         
+        # STEP 9B′: Branch penalty (discourage excessive branching)
+        branch_penalty_weight = 10  # Tunable: reduced from 50 to allow divergence
+        branch_penalty_terms = []
+        for fid in family_ids:
+            for branch_poi in branch_pois:
+                branch_penalty_terms.append(branch_penalty_weight * x[(fid, branch_poi)])
+        
+        total_branch_penalty = sum(branch_penalty_terms) if branch_penalty_terms else 0
+        
         alpha = 1
         beta = 1
         gamma = 1
@@ -1104,7 +1147,9 @@ class ItineraryOptimizer:
         
         # TUNED PARAMETERS (reduced from 30 to allow divergence)
         lambda_coherence = 10  # Reduced from 30 to balance satisfaction vs coherence
-        objective = total_satisfaction - lambda_coherence * coherence_loss
+        
+        # STEP 9B′: Objective includes branch penalty
+        objective = total_satisfaction - lambda_coherence * coherence_loss - total_branch_penalty
         
         model.Maximize(objective)
         
