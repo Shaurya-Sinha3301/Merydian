@@ -17,6 +17,23 @@
     "role": "SKELETON"
   },
   {
+    "location_id": "LOC_LUNCH",
+    "name": "Connaught Place Restaurants (Lunch)",
+    "type": "RESTAURANT",
+    "category": "HARD_POI",
+    "lat": 28.6315,
+    "lng": 77.2167,
+    "avg_visit_time_min": 60,
+    "cost": 50,
+    "repeatable": true,
+    "tags": [
+      "food",
+      "central"
+    ],
+    "base_importance": 1.0,
+    "role": "SKELETON"
+  },
+  {
     "location_id": "LOC_001",
     "name": "Red Fort 1",
     "type": "POI",

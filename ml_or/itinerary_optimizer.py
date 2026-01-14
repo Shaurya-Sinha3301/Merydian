@@ -956,6 +956,24 @@ class ItineraryOptimizer:
                 arr[(fid, poi)] = model.NewIntVar(day_start_min, day_end_min, f'arr_{fid}_{poi}')
                 dep[(fid, poi)] = model.NewIntVar(day_start_min, day_end_min, f'dep_{fid}_{poi}')
         
+        # STEP 11: Time Window Constraints (Meal Planning)
+        poi_details = {p['location_id']: p for p in day_data['pois']}
+        
+        for poi_id in candidate_pois:
+             details = poi_details.get(poi_id)
+             if details:
+                 # Start Window (e.g. Lunch must start after 12:30)
+                 if 'time_window_start' in details:
+                     min_start = self._time_to_minutes(details['time_window_start'])
+                     for fid in family_ids:
+                         model.Add(arr[(fid, poi_id)] >= min_start)
+                 
+                 # End Window (e.g. Lunch must end before 14:00)
+                 if 'time_window_end' in details:
+                     max_end = self._time_to_minutes(details['time_window_end'])
+                     for fid in family_ids:
+                         model.Add(dep[(fid, poi_id)] <= max_end)
+        
         for fid in family_ids:
             arr[(fid, START_NODE)] = day_start_min
             dep[(fid, START_NODE)] = day_start_min
