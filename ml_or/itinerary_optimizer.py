@@ -1029,7 +1029,9 @@ class ItineraryOptimizer:
         end_in_y.append(y[(START_NODE, END_NODE)])
         model.Add(sum(end_in_y) == 1)
 
-        # 3B. Synchronization Logic (`y` implies order)
+        # 3B. Synchronization Logic (`y` implies order AND strict timing)
+        
+        # A. Sequence Enforcement (Backbone)
         for s1 in skeleton_nodes:
             for s2 in skeleton_nodes:
                 if s1 == s2 or s1 == END_NODE or s2 == START_NODE:
@@ -1037,15 +1039,32 @@ class ItineraryOptimizer:
                 
                 if (s1, s2) in y:
                     for fid in family_ids:
-                        # Synchronization Constraint:
-                        # If s1 -> s2 in skeleton backbone, then s2 must happen AFTER s1
-                        # We use a logical "min travel time" between s1 and s2 (could be 0)
-                        min_logical_gap = 0
-                        # OPTIONAL: use direct edge cost if exists as lower bound?
-                        # For now, strict temporal ordering is enough.
-                        
-                        # Only enforce if y[s1, s2] is active
-                        model.Add(arr[(fid, s2)] >= dep[(fid, s1)] + min_logical_gap).OnlyEnforceIf(y[(s1, s2)])
+                        # If s1 -> s2 in skeleton, s2 must be after s1
+                        model.Add(arr[(fid, s2)] >= dep[(fid, s1)]).OnlyEnforceIf(y[(s1, s2)])
+
+        # B. Strict Time Synchronization (Shared Bus)
+        # All families must arrive at Skeleton POIs at the exact same time
+        # This forces the "faster" family to wait or start later
+        for spi in skeleton_pois:
+            # Get arrival variable for first family
+            base_fid = family_ids[0]
+            base_arr = arr[(base_fid, spi)]
+            
+            for i in range(1, len(family_ids)):
+                other_fid = family_ids[i]
+                other_arr = arr[(other_fid, spi)]
+                
+                # Strict Equality: arr[f1] == arr[f2]
+                # Only enforce if both families actually visit the POI
+                # (Though for Skeleton POIs, they usually all visit)
+                
+                # Create a boolean AND of visits
+                both_visit = model.NewBoolVar(f'sync_{spi}_{base_fid}_{other_fid}')
+                model.AddBoolAnd([x[(base_fid, spi)], x[(other_fid, spi)]]).OnlyEnforceIf(both_visit)
+                model.AddBoolOr([x[(base_fid, spi)].Not(), x[(other_fid, spi)].Not()]).OnlyEnforceIf(both_visit.Not())
+                
+                # Enforce sync
+                model.Add(base_arr == other_arr).OnlyEnforceIf(both_visit)
 
         # 4. FAMILY-SPECIFIC: Physical Time & Transport Constraints
         # For each physical edge traversed (adj[f, i, j]), enforce time and add cost
