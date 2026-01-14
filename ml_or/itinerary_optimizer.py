@@ -1051,11 +1051,13 @@ class ItineraryOptimizer:
                 if never_visit_poi in candidate_pois:
                     model.Add(x[(fid, never_visit_poi)] == 0)
             
-            # STEP 9B′: Ensure families visit at least some skeleton POIs (anchor points)
-            # But don't force ALL skeleton POIs to allow flexibility
-            min_skeleton = min(2, len(skeleton_pois))  # At least 2 skeleton POIs
-            skeleton_visit_sum = sum([x[(fid, poi)] for poi in skeleton_pois])
-            model.Add(skeleton_visit_sum >= min_skeleton)
+            # STEP 9B′: Ensure families visit skeleton POIs (anchor points)
+            # But respect never-visit constraints
+            available_skeleton = [poi for poi in skeleton_pois if poi not in family.never_visit_locations]
+            if available_skeleton:
+                min_skeleton = max(2, len(available_skeleton))  # At least 2, or all available
+                skeleton_visit_sum = sum([x[(fid, poi)] for poi in available_skeleton])
+                model.Add(skeleton_visit_sum >= min_skeleton)
         
         # NOTE: Equal POI count constraint removed - it prevents divergence
         # and makes problem infeasible when families have conflicting must-visit requirements
@@ -1068,16 +1070,17 @@ class ItineraryOptimizer:
         
         # OBJECTIVE
         
-        satisfaction_terms = {}
+        # OBJECTIVE: Satisfaction (ONLY for visited POIs!)
+        satisfaction_terms = []
         for fid in family_ids:
             family = families[fid]
-            total_sat = 0.0
             for poi in candidate_pois:
                 sat_score = self.calculate_satisfaction(family, self.locations[poi])
-                total_sat += sat_score
-            satisfaction_terms[fid] = int(total_sat * 100)
+                sat_scaled = int(sat_score * 100)
+                # CRITICAL: Only count satisfaction if POI is visited
+                satisfaction_terms.append(sat_scaled * x[(fid, poi)])
         
-        total_satisfaction = sum(satisfaction_terms.values())
+        total_satisfaction = sum(satisfaction_terms)
         
         cost_terms = []
         time_terms = []
@@ -1130,7 +1133,7 @@ class ItineraryOptimizer:
         total_divergence = sum(divergence_terms) if divergence_terms else 0
         
         # STEP 9B′: Branch penalty (discourage excessive branching)
-        branch_penalty_weight = 10  # Tunable: reduced from 50 to allow divergence
+        branch_penalty_weight = 0  # TEST: Set to 0 to verify divergence mechanism works
         branch_penalty_terms = []
         for fid in family_ids:
             for branch_poi in branch_pois:
