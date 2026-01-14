@@ -89,6 +89,7 @@ class FamilyPreference:
     interest_vector: Dict[str, float]
     must_visit_locations: List[str]
     never_visit_locations: List[str]
+    pace_preference: str = "moderate"
     notes: str = ""
 
 
