@@ -524,8 +524,20 @@ class ItineraryOptimizer:
             model.Add(arr[poi] >= day_start_min)
             model.Add(dep[poi] <= day_end_min)
         
-        # Objective: STEP 4/5 - Multi-objective (cost + time)
-        # Minimize: w_cost * total_cost + w_time * total_duration
+        # Objective: STEP 6/7 - Satisfaction - Coherence Loss
+        # maximize Σ_f [ Satisfaction(f) − λ·CoherenceLoss(f) ]
+        
+        # STEP 7: Calculate satisfaction scores for each POI
+        # Since all POIs are forced to be visited (x[poi] == 1), we can calculate total satisfaction
+        total_satisfaction_value = 0.0
+        for poi in candidate_pois:
+            sat_score = self.calculate_satisfaction(family, self.locations[poi])
+            total_satisfaction_value += sat_score
+        
+        # Scale to integer (multiply by 1000 to preserve precision)
+        total_satisfaction_int = int(total_satisfaction_value * 1000)
+        
+        # STEP 6: Calculate coherence loss components
         cost_terms = []
         time_terms = []
         
@@ -565,12 +577,25 @@ class ItineraryOptimizer:
         total_cost = sum(cost_terms) if cost_terms else 0
         total_time = sum(time_terms) if time_terms else 0
         
-        # Weights for multi-objective (can be adjusted based on family preferences)
-        w_cost = int(family.budget_sensitivity * 100)  # Higher = more cost-sensitive
-        w_time = int((1 - family.budget_sensitivity) * 100)  # Higher = more time-sensitive
+        # Coherence loss = α·time + β·cost
+        # Using recommended values: α=1, β=0.05
+        # Scale to match satisfaction scores (which are multiplied by 1000)
+        alpha = 1000  # Time weight (scaled)
+        beta = 50     # Cost weight (scaled, 0.05 * 1000)
         
-        # Minimize weighted sum
-        model.Minimize(w_cost * total_cost + w_time * total_time)
+        coherence_loss = alpha * total_time + beta * total_cost
+        
+        # Overall objective: maximize satisfaction - λ·coherence_loss
+        # λ (lambda_coherence) controls tradeoff between satisfaction and coherence
+        # For single family, we use a smaller lambda since coherence is less critical
+        lambda_coherence_scaled = 300  # Scaled (0.3 * 1000)
+        
+        # Maximize: satisfaction - λ·coherence_loss
+        # Since satisfaction is constant (all POIs visited), we minimize coherence_loss
+        # But we keep the full formula for when we add optional POIs later
+        objective = total_satisfaction_int - lambda_coherence_scaled * coherence_loss
+        
+        model.Maximize(objective)
         
         # Solve
         solver = cp_model.CpSolver()
@@ -681,6 +706,23 @@ class ItineraryOptimizer:
         total_transport_cost = sum(t['cost'] for t in transport_plan)
         total_transport_time = sum(t['duration_min'] for t in transport_plan)
         
+        # Calculate satisfaction scores
+        family_obj = self.family_prefs[family_id]
+        poi_satisfactions = []
+        total_satisfaction = 0.0
+        for poi in visited_pois:
+            sat_score = self.calculate_satisfaction(family_obj, self.locations[poi])
+            poi_satisfactions.append({
+                'location_id': poi,
+                'satisfaction_score': round(sat_score, 2)
+            })
+            total_satisfaction += sat_score
+        
+        # Calculate coherence loss components
+        alpha = 1.0    # Time weight
+        beta = 0.05    # Cost weight
+        coherence_loss = alpha * total_transport_time + beta * total_transport_cost
+        
         # Build solution
         solution = {
             'family_id': family_id,
@@ -689,6 +731,9 @@ class ItineraryOptimizer:
             'solve_time_seconds': solver.WallTime(),
             'total_transport_cost': total_transport_cost,
             'total_transport_time_min': total_transport_time,
+            'total_satisfaction': round(total_satisfaction, 2),
+            'coherence_loss': round(coherence_loss, 2),
+            'net_value': round(total_satisfaction - 0.3 * coherence_loss, 2),
             'ordering_mode': 'frozen' if freeze_order else 'free',
             'pois': [
                 {
@@ -699,7 +744,11 @@ class ItineraryOptimizer:
                     'departure_time': self._minutes_to_time(solver.Value(dep[poi])),
                     'visit_duration_min': solver.Value(dep[poi]) - solver.Value(arr[poi]),
                     'arrival_minutes': solver.Value(arr[poi]),  # For debugging
-                    'departure_minutes': solver.Value(dep[poi])  # For debugging
+                    'departure_minutes': solver.Value(dep[poi]),  # For debugging
+                    'satisfaction_score': next(
+                        (s['satisfaction_score'] for s in poi_satisfactions if s['location_id'] == poi),
+                        0.0
+                    )
                 }
                 for idx, poi in enumerate(visited_pois)
             ],
@@ -734,9 +783,9 @@ class ItineraryOptimizer:
 
 
 def main():
-    """Test the optimizer - STEP 5A/5B: ORDERING FREEDOM"""
+    """Test the optimizer - STEP 6/7: SATISFACTION & COHERENCE LOSS"""
     print("=" * 80)
-    print("STEP 5A/5B: Heavy-Weight CP-SAT - ORDERING FREEDOM TEST")
+    print("STEP 6/7: Heavy-Weight CP-SAT - SATISFACTION & COHERENCE LOSS")
     print("=" * 80)
     print()
     print("Following ChatGPT's guidance:")
@@ -744,9 +793,10 @@ def main():
     print("  ✅ STEP 2: Fallback transport (CAB) injected for missing edges")
     print("  ✅ STEP 3: Time chaining enforced explicitly")
     print("  ✅ STEP 4: Multiple transport modes available - solver chooses best")
-    print("  🎯 STEP 5A: Add y[i,j] ordering variables with flow constraints")
-    print("  🎯 STEP 5B: Bind transport to ordering: Σ_m z[i,j,m] = y[i,j]")
-    print("  🎯 GOAL: Allow solver to reorder POIs optimally")
+    print("  ✅ STEP 5A/5B: Ordering freedom with flow constraints")
+    print("  🎯 STEP 6: Coherence loss = α·time + β·cost")
+    print("  🎯 STEP 7: Satisfaction = base_importance × Σ_tag(interest × tag)")
+    print("  🎯 GOAL: Maximize satisfaction - λ·coherence_loss")
     print()
     
     optimizer = ItineraryOptimizer()
@@ -764,6 +814,7 @@ def main():
     print("  - Max POIs: 3")
     print("  - Order: FREE (solver can reorder)")
     print("  - Base order: LOC_001 → LOC_007 → LOC_002")
+    print("  - Objective: Maximize (Satisfaction - λ·CoherenceLoss)")
     print("  - Transport: MULTIPLE OPTIONS (BUS, CAB, METRO, AUTO + FALLBACK)")
     print()
     
@@ -778,7 +829,7 @@ def main():
     
     if solution:
         print("\n" + "=" * 80)
-        print("✅ SOLUTION FOUND - STEP 5A/5B COMPLETE")
+        print("✅ SOLUTION FOUND - STEP 6/7 COMPLETE")
         print("=" * 80)
         print(json.dumps(solution, indent=2))
         
@@ -790,23 +841,27 @@ def main():
             print(f"  {poi_data['sequence']}. {poi_data['location_name']}")
             print(f"     Arrive: {poi_data['arrival_time']} ({poi_data['arrival_minutes']} min)")
             print(f"     Depart: {poi_data['departure_time']} ({poi_data['departure_minutes']} min)")
+            print(f"     Satisfaction: {poi_data['satisfaction_score']}")
         
         print("\n" + "=" * 80)
-        print("TRANSPORT SUMMARY:")
+        print("OPTIMIZATION SUMMARY:")
         print("=" * 80)
+        print(f"  Total satisfaction: {solution['total_satisfaction']}")
+        print(f"  Coherence loss: {solution['coherence_loss']}")
+        print(f"  Net value: {solution['net_value']}")
         print(f"  Total transport cost: ₹{solution['total_transport_cost']}")
         print(f"  Total transport time: {solution['total_transport_time_min']} minutes")
         print(f"  Objective value: {solution['objective_value']:.2f}")
         print(f"  Ordering mode: {solution['ordering_mode']}")
         
         # Save to file
-        output_file = "ml_or/solved_itinerary_step5ab.json"
+        output_file = "ml_or/solved_itinerary_step67.json"
         with open(output_file, 'w') as f:
             json.dump(solution, f, indent=2)
         print(f"\n✅ Solution saved to: {output_file}")
-        print("\n🎯 STEP 5A/5B SUCCESS: Ordering freedom enabled!")
-        print("   Solver can now reorder POIs to minimize cost/time")
-        print("   Next: STEP 5C/5D - Add START/END flow + subtour elimination (MTZ)")
+        print("\n🎯 STEP 6/7 SUCCESS: Satisfaction & Coherence Loss implemented!")
+        print("   Solver now optimizes: Satisfaction - λ·CoherenceLoss")
+        print("   Next: STEP 8 - Extend to multiple families")
     else:
         print("\n❌ No feasible solution found.")
         print("   Debug: Check flow constraints and transport connectivity")
