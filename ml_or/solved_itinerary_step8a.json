@@ -1,0 +1,80 @@
+{
+  "family_id": "FAM_001",
+  "day": 1,
+  "objective_value": -3302.0000000000005,
+  "solve_time_seconds": 0.015423000000000001,
+  "total_transport_cost": 100,
+  "total_transport_time_min": 20,
+  "order_deviation_count": 0,
+  "total_satisfaction": 2.98,
+  "coherence_loss": 120.0,
+  "net_value": -33.02,
+  "ordering_mode": "free",
+  "base_order": [
+    "LOC_001",
+    "LOC_007",
+    "LOC_002"
+  ],
+  "optimized_order": [
+    "LOC_001",
+    "LOC_007",
+    "LOC_002"
+  ],
+  "pois": [
+    {
+      "sequence": 1,
+      "location_id": "LOC_001",
+      "location_name": "Red Fort 1",
+      "arrival_time": "09:00",
+      "departure_time": "09:45",
+      "visit_duration_min": 45,
+      "arrival_minutes": 540,
+      "departure_minutes": 585,
+      "satisfaction_score": 1.04
+    },
+    {
+      "sequence": 2,
+      "location_id": "LOC_007",
+      "location_name": "Jama Masjid 7",
+      "arrival_time": "09:55",
+      "departure_time": "10:40",
+      "visit_duration_min": 45,
+      "arrival_minutes": 595,
+      "departure_minutes": 640,
+      "satisfaction_score": 0.8
+    },
+    {
+      "sequence": 3,
+      "location_id": "LOC_002",
+      "location_name": "Qutub Minar 2",
+      "arrival_time": "10:50",
+      "departure_time": "11:35",
+      "visit_duration_min": 45,
+      "arrival_minutes": 650,
+      "departure_minutes": 695,
+      "satisfaction_score": 1.15
+    }
+  ],
+  "transport": [
+    {
+      "from": "LOC_001",
+      "from_name": "Red Fort 1",
+      "to": "LOC_007",
+      "to_name": "Jama Masjid 7",
+      "mode": "CAB_FALLBACK",
+      "duration_min": 10,
+      "cost": 50,
+      "reliability": 0.85
+    },
+    {
+      "from": "LOC_007",
+      "from_name": "Jama Masjid 7",
+      "to": "LOC_002",
+      "to_name": "Qutub Minar 2",
+      "mode": "CAB_FALLBACK",
+      "duration_min": 10,
+      "cost": 50,
+      "reliability": 0.85
+    }
+  ]
+}

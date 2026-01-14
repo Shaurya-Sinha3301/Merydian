@@ -16,18 +16,38 @@
       "pois": [
         {
           "sequence": 1,
-          "location_id": "LOC_001",
-          "planned_visit_time_min": 120
+          "location_id": "LOC_008",
+          "role": "SKELETON",
+          "planned_visit_time_min": 45,
+          "comment": "Raj Ghat - religious, nature (SKELETON: major monument)"
         },
         {
           "sequence": 2,
-          "location_id": "LOC_007",
-          "planned_visit_time_min": 60
+          "location_id": "LOC_011",
+          "role": "BRANCH",
+          "planned_visit_time_min": 90,
+          "comment": "Red Fort 11 - nightlife, shopping (BRANCH: optional for nightlife lovers)"
         },
         {
           "sequence": 3,
-          "location_id": "LOC_002",
-          "planned_visit_time_min": 90
+          "location_id": "LOC_010",
+          "role": "SKELETON",
+          "planned_visit_time_min": 60,
+          "comment": "Safdarjung Tomb - history, architecture (SKELETON: neutral anchor)"
+        },
+        {
+          "sequence": 4,
+          "location_id": "LOC_014",
+          "role": "BRANCH",
+          "planned_visit_time_min": 45,
+          "comment": "Lotus Temple 14 - religious, nightlife (BRANCH: mixed appeal)"
+        },
+        {
+          "sequence": 5,
+          "location_id": "LOC_003",
+          "role": "SKELETON",
+          "planned_visit_time_min": 45,
+          "comment": "India Gate 3 - food, shopping (SKELETON: meal/regroup point)"
         }
       ]
     },
