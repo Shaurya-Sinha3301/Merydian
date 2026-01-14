@@ -89,6 +89,15 @@
                     "role": "SKELETON",
                     "planned_visit_time_min": 60,
                     "comment": "Purana Qila (Shared - Afternoon)"
+                },
+                {
+                    "sequence": 5,
+                    "location_id": "LOC_DINNER",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 90,
+                    "time_window_start": "19:30",
+                    "time_window_end": "21:00",
+                    "comment": "Day 2 Dinner"
                 }
             ]
         },
