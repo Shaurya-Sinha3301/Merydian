@@ -239,21 +239,21 @@ class ItineraryOptimizer:
         day_index: int = 0,
         max_pois: int = 3,
         time_limit_seconds: int = 30,
-        freeze_order: bool = True,  # STEP 1: Freeze order temporarily
+        freeze_order: bool = False,  # STEP 5: Now allowing reordering
         enable_transport_choice: bool = True  # STEP 4: Enable transport mode selection
     ) -> Optional[Dict]:
         """
         Optimize itinerary for 1 family, 1 day, limited POIs.
         
-        STEP 1: Order is FROZEN from base itinerary (no reordering yet)
-        STEP 4: Transport choice enabled - solver picks best mode per leg
+        STEP 1-4: Order frozen, transport choice enabled
+        STEP 5A/5B: Reintroduce ordering freedom with START/END nodes
         
         Args:
             family_id: Family to optimize for
             day_index: Which day from base itinerary (0-indexed)
             max_pois: Maximum POIs to consider (start with 3)
             time_limit_seconds: Solver time limit
-            freeze_order: If True, use base itinerary order (STEP 1)
+            freeze_order: If True, use base itinerary order; if False, allow reordering (STEP 5)
             enable_transport_choice: If True, allow multiple transport modes (STEP 4)
         
         Returns:
@@ -291,16 +291,33 @@ class ItineraryOptimizer:
         # Create CP-SAT model
         model = cp_model.CpModel()
         
-        # STEP 1: FREEZE ORDER - Use base itinerary sequence
-        # No y[i,j] variables yet - order is fixed
+        # STEP 5: Add START and END dummy nodes (critical for ordering freedom)
+        START_NODE = f"START_DAY_{day_index + 1}"
+        END_NODE = f"END_DAY_{day_index + 1}"
+        
+        # All nodes = START + POIs + END
+        all_nodes = [START_NODE] + candidate_pois + [END_NODE]
         
         # Decision variables
-        # x[i] = 1 if POI i is visited (for now, all must be visited)
+        # x[i] = 1 if POI i is visited
         x = {}
         for poi in candidate_pois:
             x[poi] = model.NewBoolVar(f'visit_{poi}')
-            # STEP 1: Force all POIs to be visited (no choice yet)
+            # STEP 5: Force all POIs to be visited (for now)
+            # Later we can make this optional based on satisfaction scores
             model.Add(x[poi] == 1)
+        
+        # STEP 5A: y[i,j] = 1 if node i is visited before node j (ordering variables)
+        y = {}
+        if not freeze_order:
+            # Reintroduce ordering freedom
+            for i in all_nodes:
+                for j in all_nodes:
+                    if i != j:
+                        # Skip START as destination and END as source
+                        if j == START_NODE or i == END_NODE:
+                            continue
+                        y[(i, j)] = model.NewBoolVar(f'order_{i}_before_{j}')
         
         # arr[i], dep[i] = arrival and departure times at POI i (in minutes from day start)
         arr = {}
@@ -309,33 +326,75 @@ class ItineraryOptimizer:
             arr[poi] = model.NewIntVar(day_start_min, day_end_min, f'arr_{poi}')
             dep[poi] = model.NewIntVar(day_start_min, day_end_min, f'dep_{poi}')
         
+        # START and END have fixed times
+        arr[START_NODE] = day_start_min
+        dep[START_NODE] = day_start_min
+        arr[END_NODE] = day_end_min
+        dep[END_NODE] = day_end_min
+        
         # z[i,j,m] = 1 if transport mode m is used from i to j
-        # Only create for consecutive POIs in fixed order
         z = {}
         transport_modes = {}
         
-        for idx in range(len(candidate_pois) - 1):
-            i = candidate_pois[idx]
-            j = candidate_pois[idx + 1]
-            key = (i, j)
-            
-            # STEP 4: Use real transport edges if available, add fallback if needed
-            if key in self.transport_lookup:
-                # Real transport edges exist
-                transport_modes[key] = self.transport_lookup[key].copy()
-            else:
-                # No real edges - start with empty list
-                transport_modes[key] = []
-            
-            # STEP 2: Always add fallback transport to ensure connectivity
-            fallback_edge = self._create_fallback_transport(i, j)
-            transport_modes[key].append(fallback_edge)
-            
-            # Create decision variables for each transport mode
-            for edge in transport_modes[key]:
-                z[(i, j, edge.mode, edge.edge_id)] = model.NewBoolVar(
-                    f'transport_{i}_{j}_{edge.mode}_{edge.edge_id}'
-                )
+        if freeze_order:
+            # STEP 1-4: Only create for consecutive POIs in fixed order
+            for idx in range(len(candidate_pois) - 1):
+                i = candidate_pois[idx]
+                j = candidate_pois[idx + 1]
+                key = (i, j)
+                
+                # Use real transport edges if available, add fallback
+                if key in self.transport_lookup:
+                    transport_modes[key] = self.transport_lookup[key].copy()
+                else:
+                    transport_modes[key] = []
+                
+                # Always add fallback transport
+                fallback_edge = self._create_fallback_transport(i, j)
+                transport_modes[key].append(fallback_edge)
+                
+                # Create decision variables for each transport mode
+                for edge in transport_modes[key]:
+                    z[(i, j, edge.mode, edge.edge_id)] = model.NewBoolVar(
+                        f'transport_{i}_{j}_{edge.mode}_{edge.edge_id}'
+                    )
+        else:
+            # STEP 5: Create transport variables for all possible edges (including START/END)
+            for i in all_nodes:
+                for j in all_nodes:
+                    if i == j or j == START_NODE or i == END_NODE:
+                        continue
+                    
+                    key = (i, j)
+                    
+                    # For START and END, no real transport needed (logical edges)
+                    if i == START_NODE or j == END_NODE:
+                        # Create a dummy zero-cost, zero-time edge
+                        transport_modes[key] = [TransportEdge(
+                            edge_id=f"LOGICAL_{i}_{j}",
+                            from_loc=i,
+                            to_loc=j,
+                            mode="LOGICAL",
+                            duration_min=0,
+                            cost=0,
+                            reliability=1.0
+                        )]
+                    else:
+                        # Real POI to POI edges
+                        if key in self.transport_lookup:
+                            transport_modes[key] = self.transport_lookup[key].copy()
+                        else:
+                            transport_modes[key] = []
+                        
+                        # Add fallback transport
+                        fallback_edge = self._create_fallback_transport(i, j)
+                        transport_modes[key].append(fallback_edge)
+                    
+                    # Create decision variables
+                    for edge in transport_modes[key]:
+                        z[(i, j, edge.mode, edge.edge_id)] = model.NewBoolVar(
+                            f'transport_{i}_{j}_{edge.mode}_{edge.edge_id}'
+                        )
         
         # Constraints
         
@@ -344,52 +403,164 @@ class ItineraryOptimizer:
             visit_time = self.locations[poi].avg_visit_time_min
             model.Add(dep[poi] == arr[poi] + visit_time)
         
-        # 2. STEP 3/4: Enforce time chaining explicitly (fixed order, multiple transport modes)
-        # For consecutive POIs i -> j: arr[j] >= dep[i] + transport_time
-        for idx in range(len(candidate_pois) - 1):
-            i = candidate_pois[idx]
-            j = candidate_pois[idx + 1]
-            key = (i, j)
+        if freeze_order:
+            # STEP 1-4: Fixed order constraints
+            # 2. Time chaining for consecutive POIs (fixed order, multiple transport modes)
+            for idx in range(len(candidate_pois) - 1):
+                i = candidate_pois[idx]
+                j = candidate_pois[idx + 1]
+                key = (i, j)
+                
+                # Exactly one transport mode must be selected
+                transport_vars = [z[(i, j, edge.mode, edge.edge_id)] for edge in transport_modes[key]]
+                model.Add(sum(transport_vars) == 1)
+                
+                # Time constraint: arr[j] >= dep[i] + selected_transport_duration
+                for edge in transport_modes[key]:
+                    model.Add(
+                        arr[j] >= dep[i] + edge.duration_min
+                    ).OnlyEnforceIf(z[(i, j, edge.mode, edge.edge_id)])
             
-            # Exactly one transport mode must be selected
-            transport_vars = [z[(i, j, edge.mode, edge.edge_id)] for edge in transport_modes[key]]
-            model.Add(sum(transport_vars) == 1)
+            # 3. First POI must start at or after day start
+            model.Add(arr[candidate_pois[0]] >= day_start_min)
             
-            # Time constraint: arr[j] >= dep[i] + selected_transport_duration
-            for edge in transport_modes[key]:
-                # If this mode is selected, enforce time constraint
-                model.Add(
-                    arr[j] >= dep[i] + edge.duration_min
-                ).OnlyEnforceIf(z[(i, j, edge.mode, edge.edge_id)])
+            # 4. Last POI must end before day end
+            model.Add(dep[candidate_pois[-1]] <= day_end_min)
         
-        # 3. First POI must start at or after day start
-        model.Add(arr[candidate_pois[0]] >= day_start_min)
+        else:
+            # STEP 5A: Ordering freedom with flow constraints
+            
+            # 2. STEP 5A: Flow constraints - each POI has at most one predecessor and successor
+            for poi in candidate_pois:
+                # At most one incoming edge (predecessor)
+                incoming = [y[(i, poi)] for i in all_nodes if i != poi and (i, poi) in y]
+                if incoming:
+                    model.Add(sum(incoming) <= 1)
+                
+                # At most one outgoing edge (successor)
+                outgoing = [y[(poi, j)] for j in all_nodes if j != poi and (poi, j) in y]
+                if outgoing:
+                    model.Add(sum(outgoing) <= 1)
+            
+            # 3. START node: exactly one outgoing edge
+            start_outgoing = [y[(START_NODE, j)] for j in candidate_pois if (START_NODE, j) in y]
+            if start_outgoing:
+                model.Add(sum(start_outgoing) == 1)
+            
+            # 4. END node: exactly one incoming edge
+            end_incoming = [y[(i, END_NODE)] for i in candidate_pois if (i, END_NODE) in y]
+            if end_incoming:
+                model.Add(sum(end_incoming) == 1)
+            
+            # 5. STEP 5B: Bind transport to ordering
+            # Σ_m z[i,j,m] = y[i,j]
+            for i in all_nodes:
+                for j in all_nodes:
+                    if i == j or j == START_NODE or i == END_NODE:
+                        continue
+                    
+                    key = (i, j)
+                    if key in transport_modes and (i, j) in y:
+                        transport_vars = [z[(i, j, edge.mode, edge.edge_id)] for edge in transport_modes[key]]
+                        # If edge i->j is used in ordering, exactly one transport mode
+                        model.Add(sum(transport_vars) == 1).OnlyEnforceIf(y[(i, j)])
+                        # If edge i->j is not used, no transport
+                        model.Add(sum(transport_vars) == 0).OnlyEnforceIf(y[(i, j)].Not())
+            
+            # 6. Time chaining: if i before j, then arr[j] >= dep[i] + transport_time
+            for i in all_nodes:
+                for j in all_nodes:
+                    if i == j or j == START_NODE or i == END_NODE:
+                        continue
+                    
+                    if (i, j) not in y:
+                        continue
+                    
+                    key = (i, j)
+                    if key in transport_modes:
+                        for edge in transport_modes[key]:
+                            # If this edge and mode are selected
+                            if (i, j, edge.mode, edge.edge_id) in z:
+                                # Skip logical edges (START/END)
+                                if edge.mode == "LOGICAL":
+                                    continue
+                                
+                                # For real POIs: arr[j] >= dep[i] + duration
+                                if i in candidate_pois and j in candidate_pois:
+                                    model.Add(
+                                        arr[j] >= dep[i] + edge.duration_min
+                                    ).OnlyEnforceIf(z[(i, j, edge.mode, edge.edge_id)])
+                                # For START -> POI: arr[poi] >= day_start
+                                elif i == START_NODE and j in candidate_pois:
+                                    model.Add(
+                                        arr[j] >= day_start_min
+                                    ).OnlyEnforceIf(z[(i, j, edge.mode, edge.edge_id)])
+                                # For POI -> END: dep[poi] <= day_end
+                                elif i in candidate_pois and j == END_NODE:
+                                    model.Add(
+                                        dep[i] <= day_end_min
+                                    ).OnlyEnforceIf(z[(i, j, edge.mode, edge.edge_id)])
+            
+            # 7. If POI is visited, it must have exactly one predecessor and one successor
+            for poi in candidate_pois:
+                incoming = [y[(i, poi)] for i in all_nodes if i != poi and (i, poi) in y]
+                outgoing = [y[(poi, j)] for j in all_nodes if j != poi and (poi, j) in y]
+                
+                if incoming and outgoing:
+                    # If visited: exactly one in and one out
+                    model.Add(sum(incoming) == 1).OnlyEnforceIf(x[poi])
+                    model.Add(sum(outgoing) == 1).OnlyEnforceIf(x[poi])
+                    # If not visited: no edges
+                    model.Add(sum(incoming) == 0).OnlyEnforceIf(x[poi].Not())
+                    model.Add(sum(outgoing) == 0).OnlyEnforceIf(x[poi].Not())
         
-        # 4. Last POI must end before day end
-        model.Add(dep[candidate_pois[-1]] <= day_end_min)
+        # 8. Must-visit constraints (applies to both modes)
+        for must_visit in family.must_visit_locations:
+            if must_visit in candidate_pois:
+                model.Add(x[must_visit] == 1)
         
-        # 5. Must-visit constraints (already enforced by x[poi] == 1)
-        
-        # 6. Time bounds for all POIs
+        # 9. Time bounds for all POIs (applies to both modes)
         for poi in candidate_pois:
             model.Add(arr[poi] >= day_start_min)
             model.Add(dep[poi] <= day_end_min)
         
-        # Objective: STEP 4 - Multi-objective (cost + time)
+        # Objective: STEP 4/5 - Multi-objective (cost + time)
         # Minimize: w_cost * total_cost + w_time * total_duration
         cost_terms = []
         time_terms = []
         
-        for idx in range(len(candidate_pois) - 1):
-            i = candidate_pois[idx]
-            j = candidate_pois[idx + 1]
-            key = (i, j)
-            for edge in transport_modes[key]:
-                cost_int = int(edge.cost)
-                time_int = edge.duration_min
-                
-                cost_terms.append(cost_int * z[(i, j, edge.mode, edge.edge_id)])
-                time_terms.append(time_int * z[(i, j, edge.mode, edge.edge_id)])
+        if freeze_order:
+            # STEP 4: Fixed order - only consecutive POIs
+            for idx in range(len(candidate_pois) - 1):
+                i = candidate_pois[idx]
+                j = candidate_pois[idx + 1]
+                key = (i, j)
+                for edge in transport_modes[key]:
+                    cost_int = int(edge.cost)
+                    time_int = edge.duration_min
+                    
+                    cost_terms.append(cost_int * z[(i, j, edge.mode, edge.edge_id)])
+                    time_terms.append(time_int * z[(i, j, edge.mode, edge.edge_id)])
+        else:
+            # STEP 5: Free ordering - all possible edges
+            for i in all_nodes:
+                for j in all_nodes:
+                    if i == j or j == START_NODE or i == END_NODE:
+                        continue
+                    
+                    key = (i, j)
+                    if key in transport_modes:
+                        for edge in transport_modes[key]:
+                            # Skip logical edges (zero cost/time)
+                            if edge.mode == "LOGICAL":
+                                continue
+                            
+                            cost_int = int(edge.cost)
+                            time_int = edge.duration_min
+                            
+                            if (i, j, edge.mode, edge.edge_id) in z:
+                                cost_terms.append(cost_int * z[(i, j, edge.mode, edge.edge_id)])
+                                time_terms.append(time_int * z[(i, j, edge.mode, edge.edge_id)])
         
         total_cost = sum(cost_terms) if cost_terms else 0
         total_time = sum(time_terms) if time_terms else 0
@@ -410,8 +581,9 @@ class ItineraryOptimizer:
         
         if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
             return self._extract_solution(
-                solver, x, z, arr, dep,
-                candidate_pois, transport_modes, family_id, day_index
+                solver, x, y if not freeze_order else None, z, arr, dep,
+                candidate_pois, transport_modes, family_id, day_index,
+                freeze_order, all_nodes if not freeze_order else None
             )
         else:
             print(f"No feasible solution found. Status: {solver.StatusName(status)}")
@@ -421,18 +593,66 @@ class ItineraryOptimizer:
         self,
         solver: cp_model.CpSolver,
         x: Dict,
+        y: Optional[Dict],
         z: Dict,
         arr: Dict,
         dep: Dict,
         candidate_pois: List[str],
         transport_modes: Dict,
         family_id: str,
-        day_index: int
+        day_index: int,
+        freeze_order: bool = True,
+        all_nodes: Optional[List[str]] = None
     ) -> Dict:
-        """Extract solution from solved model (STEP 1/4: fixed order, transport choice)"""
+        """
+        Extract solution from solved model.
         
-        # POIs are in fixed order from base itinerary
-        visited_pois = candidate_pois  # All are visited in STEP 1
+        STEP 1-4: Fixed order - POIs in base itinerary order
+        STEP 5A/5B: Free order - reconstruct path from y[i,j] variables
+        """
+        
+        if freeze_order:
+            # STEP 1-4: POIs are in fixed order from base itinerary
+            visited_pois = candidate_pois  # All are visited
+        else:
+            # STEP 5A/5B: Reconstruct path from y[i,j] variables
+            # Start from START node and follow edges
+            START_NODE = all_nodes[0]
+            END_NODE = all_nodes[-1]
+            
+            visited_pois = []
+            current = START_NODE
+            
+            # Follow the path from START to END
+            max_iterations = len(candidate_pois) + 2  # Safety limit
+            iteration = 0
+            
+            while current != END_NODE and iteration < max_iterations:
+                iteration += 1
+                
+                # Find next node
+                next_node = None
+                for j in all_nodes:
+                    if current != j and (current, j) in y:
+                        if solver.Value(y[(current, j)]) == 1:
+                            next_node = j
+                            break
+                
+                if next_node is None:
+                    print(f"⚠️ WARNING: No successor found for {current}")
+                    break
+                
+                # Add to path if it's a real POI (not START/END)
+                if next_node != END_NODE:
+                    visited_pois.append(next_node)
+                
+                current = next_node
+            
+            if iteration >= max_iterations:
+                print(f"⚠️ WARNING: Path reconstruction exceeded max iterations")
+            
+            print(f"\n🔍 STEP 5 PATH RECONSTRUCTION:")
+            print(f"   Reconstructed order: {' → '.join([START_NODE] + visited_pois + [END_NODE])}")
         
         # Extract transport modes
         transport_plan = []
@@ -469,6 +689,7 @@ class ItineraryOptimizer:
             'solve_time_seconds': solver.WallTime(),
             'total_transport_cost': total_transport_cost,
             'total_transport_time_min': total_transport_time,
+            'ordering_mode': 'frozen' if freeze_order else 'free',
             'pois': [
                 {
                     'sequence': idx + 1,
@@ -485,7 +706,7 @@ class ItineraryOptimizer:
             'transport': transport_plan
         }
         
-        # STEP 1 SANITY CHECK: Verify monotonic arrival times
+        # SANITY CHECK: Verify monotonic arrival times
         for idx in range(len(visited_pois) - 1):
             curr_dep = solver.Value(dep[visited_pois[idx]])
             next_arr = solver.Value(arr[visited_pois[idx + 1]])
@@ -493,7 +714,7 @@ class ItineraryOptimizer:
         
         print("\n✅ SANITY CHECK PASSED: Arrival times are monotonically increasing")
         
-        # STEP 4 CHECK: Verify transport modes are selected
+        # TRANSPORT CHECK: Verify transport modes are selected
         print(f"✅ TRANSPORT CHECK: {len(transport_plan)} transport legs selected")
         for t in transport_plan:
             print(f"   {t['from_name']} → {t['to_name']}: {t['mode']} ({t['duration_min']}min, ₹{t['cost']})")
@@ -513,17 +734,19 @@ class ItineraryOptimizer:
 
 
 def main():
-    """Test the optimizer - STEP 4: TRANSPORT CHOICE"""
+    """Test the optimizer - STEP 5A/5B: ORDERING FREEDOM"""
     print("=" * 80)
-    print("STEP 4: Heavy-Weight CP-SAT - TRANSPORT CHOICE TEST")
+    print("STEP 5A/5B: Heavy-Weight CP-SAT - ORDERING FREEDOM TEST")
     print("=" * 80)
     print()
     print("Following ChatGPT's guidance:")
-    print("  ✅ STEP 1: Order is FROZEN from base itinerary")
+    print("  ✅ STEP 1: Order was FROZEN from base itinerary")
     print("  ✅ STEP 2: Fallback transport (CAB) injected for missing edges")
     print("  ✅ STEP 3: Time chaining enforced explicitly")
     print("  ✅ STEP 4: Multiple transport modes available - solver chooses best")
-    print("  🎯 GOAL: Verify transport selection based on cost/time tradeoff")
+    print("  🎯 STEP 5A: Add y[i,j] ordering variables with flow constraints")
+    print("  🎯 STEP 5B: Bind transport to ordering: Σ_m z[i,j,m] = y[i,j]")
+    print("  🎯 GOAL: Allow solver to reorder POIs optimally")
     print()
     
     optimizer = ItineraryOptimizer()
@@ -539,7 +762,8 @@ def main():
     print("  - Family: FAM_001")
     print("  - Day: 1")
     print("  - Max POIs: 3")
-    print("  - Order: FIXED (LOC_001 → LOC_007 → LOC_002)")
+    print("  - Order: FREE (solver can reorder)")
+    print("  - Base order: LOC_001 → LOC_007 → LOC_002")
     print("  - Transport: MULTIPLE OPTIONS (BUS, CAB, METRO, AUTO + FALLBACK)")
     print()
     
@@ -547,14 +771,14 @@ def main():
         family_id="FAM_001",
         day_index=0,
         max_pois=3,
-        time_limit_seconds=30,
-        freeze_order=True,  # STEP 1
+        time_limit_seconds=60,  # More time for ordering optimization
+        freeze_order=False,  # STEP 5: Allow reordering
         enable_transport_choice=True  # STEP 4
     )
     
     if solution:
         print("\n" + "=" * 80)
-        print("✅ SOLUTION FOUND - STEP 4 COMPLETE")
+        print("✅ SOLUTION FOUND - STEP 5A/5B COMPLETE")
         print("=" * 80)
         print(json.dumps(solution, indent=2))
         
@@ -573,17 +797,19 @@ def main():
         print(f"  Total transport cost: ₹{solution['total_transport_cost']}")
         print(f"  Total transport time: {solution['total_transport_time_min']} minutes")
         print(f"  Objective value: {solution['objective_value']:.2f}")
+        print(f"  Ordering mode: {solution['ordering_mode']}")
         
         # Save to file
-        output_file = "ml_or/solved_itinerary_step4.json"
+        output_file = "ml_or/solved_itinerary_step5ab.json"
         with open(output_file, 'w') as f:
             json.dump(solution, f, indent=2)
         print(f"\n✅ Solution saved to: {output_file}")
-        print("\n🎯 STEP 4 SUCCESS: Transport modes selected optimally!")
-        print("   Next: STEP 5 - Reintroduce ordering freedom (y[i,j] variables)")
+        print("\n🎯 STEP 5A/5B SUCCESS: Ordering freedom enabled!")
+        print("   Solver can now reorder POIs to minimize cost/time")
+        print("   Next: STEP 5C/5D - Add START/END flow + subtour elimination (MTZ)")
     else:
         print("\n❌ No feasible solution found.")
-        print("   Debug: Check transport connectivity and time constraints")
+        print("   Debug: Check flow constraints and transport connectivity")
 
 
 if __name__ == "__main__":
