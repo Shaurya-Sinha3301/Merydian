@@ -1,0 +1,33 @@
+{
+  "family_id": "FAM_001",
+  "day": 1,
+  "objective_value": 2980.0,
+  "solve_time_seconds": 0.0440052,
+  "pois": [
+    {
+      "sequence": 1,
+      "location_id": "LOC_001",
+      "location_name": "Red Fort 1",
+      "arrival_time": "09:00",
+      "departure_time": "09:45",
+      "visit_duration_min": 45
+    },
+    {
+      "sequence": 2,
+      "location_id": "LOC_007",
+      "location_name": "Jama Masjid 7",
+      "arrival_time": "09:00",
+      "departure_time": "09:45",
+      "visit_duration_min": 45
+    },
+    {
+      "sequence": 3,
+      "location_id": "LOC_002",
+      "location_name": "Qutub Minar 2",
+      "arrival_time": "09:00",
+      "departure_time": "09:45",
+      "visit_duration_min": 45
+    }
+  ],
+  "transport": []
+}
