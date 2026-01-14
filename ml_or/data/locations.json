@@ -34,6 +34,24 @@
     "role": "SKELETON"
   },
   {
+    "location_id": "LOC_DINNER",
+    "name": "Evening Fine Dining (Dinner)",
+    "type": "RESTAURANT",
+    "category": "HARD_POI",
+    "lat": 28.6315,
+    "lng": 77.2167,
+    "avg_visit_time_min": 90,
+    "cost": 150,
+    "repeatable": true,
+    "tags": [
+      "food",
+      "luxury",
+      "nightlife"
+    ],
+    "base_importance": 1.0,
+    "role": "SKELETON"
+  },
+  {
     "location_id": "LOC_001",
     "name": "Red Fort 1",
     "type": "POI",

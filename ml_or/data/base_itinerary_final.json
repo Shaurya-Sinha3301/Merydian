@@ -3,8 +3,8 @@
     "city": "Delhi",
     "assumptions": {
         "day_start_time": "09:00",
-        "day_end_time": "20:00",
-        "max_day_minutes": 660,
+        "day_end_time": "22:00",
+        "max_day_minutes": 780,
         "start_end_location": "LOC_HOTEL",
         "poi_transport_separation": true
     },
@@ -43,6 +43,15 @@
                     "role": "SKELETON",
                     "planned_visit_time_min": 60,
                     "comment": "Safdarjung Tomb (Shared - Afternoon)"
+                },
+                {
+                    "sequence": 5,
+                    "location_id": "LOC_DINNER",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 90,
+                    "time_window_start": "19:30",
+                    "time_window_end": "21:00",
+                    "comment": "Group Dinner (Strict Window)"
                 }
             ]
         },
@@ -110,6 +119,15 @@
                     "role": "SKELETON",
                     "planned_visit_time_min": 45,
                     "comment": "India Gate (Shared)"
+                },
+                {
+                    "sequence": 4,
+                    "location_id": "LOC_DINNER",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 90,
+                    "time_window_start": "19:30",
+                    "time_window_end": "21:00",
+                    "comment": "Farewell Dinner"
                 }
             ]
         }
