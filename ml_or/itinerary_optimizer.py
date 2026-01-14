@@ -89,6 +89,7 @@ class FamilyPreference:
     interest_vector: Dict[str, float]
     must_visit_locations: List[str]
     never_visit_locations: List[str]
+    pace_preference: str = "moderate"
     notes: str = ""
 
 
@@ -827,25 +828,77 @@ class ItineraryOptimizer:
         mins = minutes % 60
         return f"{hours:02d}:{mins:02d}"
 
+    def optimize_trip(
+        self,
+        family_ids: List[str],
+        num_days: int = 3,
+        lambda_divergence: float = 0.05
+    ) -> Dict:
+        """
+        STEP 10: Multi-Day Trip Optimization
+        Loops through days, optimizing one by one.
+        """
+        print(f"\n{'='*80}")
+        print(f"STEP 10: MULTI-DAY TRIP OPTIMIZATION ({num_days} Days)")
+        print(f"{'='*80}\n")
+        
+        trip_solution = {
+            "trip_id": self.base_itinerary.get("itinerary_id", "GENERIC_TRIP"),
+            "families": family_ids,
+            "days": [],
+            "total_trip_cost": 0,
+            "total_trip_time_min": 0,
+        }
+        
+        for day_idx in range(num_days):
+            print(f"\n>>> OPTIMIZING DAY {day_idx + 1} / {num_days} <<<")
+            
+            # Simple assumption: default time limits
+            day_result = self.optimize_multi_family_single_day(
+                family_ids,
+                day_index=day_idx,
+                max_pois=5, # Allow more POIs
+                time_limit_seconds=60,
+                lambda_divergence=lambda_divergence
+            )
+            
+            if day_result:
+                trip_solution["days"].append(day_result)
+                trip_solution["total_trip_cost"] += day_result["total_transport_cost"]
+                trip_solution["total_trip_time_min"] += day_result["total_transport_time_min"]
+                print(f"✅ DAY {day_idx + 1} COMPLETE")
+            else:
+                print(f"❌ DAY {day_idx + 1} FAILED (Infeasible)")
+                break
+                
+        return trip_solution
+
     def optimize_multi_family_single_day(
         self,
         family_ids: List[str] = ["FAM_001", "FAM_002"],
         day_index: int = 0,
         max_pois: int = 3,
         time_limit_seconds: int = 60,
-        lambda_divergence: float = 0.05  # Tuned to 0.05 (5 points) to be comparable with satisfaction
+        lambda_divergence: float = 0.05
     ) -> Optional[Dict]:
         """
-        STEP 9A: Optimize itinerary for MULTIPLE families, 1 day, shared POI set.
-        
-        Key Design:
-        - SHARED: POI set, transport graph, ordering variables y[i,j], flow constraints
-        - FAMILY-SPECIFIC: Visit decisions x[f,i], times arr[f,i]/dep[f,i], satisfaction
-        - COHERENCE: Explicit penalties for family divergence
+        STEP 9/10: Optimize itinerary for MULTIPLE families, 1 day.
+        Supports explicit physical Start/End locations (e.g. Hotel).
         """
         families = {fid: self.family_prefs[fid] for fid in family_ids}
+        
+        # Safe access to day data
+        if day_index >= len(self.base_itinerary['days']):
+            print(f"Error: Day index {day_index} out of range")
+            return None
+            
         day_data = self.base_itinerary['days'][day_index]
         assumptions = self.base_itinerary['assumptions']
+        
+        # STEP 10B: Physical Anchors
+        # Check if day has explicit start/end locations (e.g. LOC_HOTEL)
+        start_loc_id = day_data.get('start_location')
+        end_loc_id = day_data.get('end_location')
         
         day_start_min = self._time_to_minutes(assumptions['day_start_time'])
         day_end_min = self._time_to_minutes(assumptions['day_end_time'])
@@ -856,32 +909,31 @@ class ItineraryOptimizer:
         if not candidate_pois:
             return None
         
-        # STEP 9B′: Separate POIs by role (SKELETON vs BRANCH)
+        # STEP 9B′: Separate POIs by role
         skeleton_pois = []
         branch_pois = []
         
         for poi_id in candidate_pois:
             loc = self.locations[poi_id]
-            role = getattr(loc, 'role', 'SKELETON')  # Default to SKELETON if not specified
-            
+            role = getattr(loc, 'role', 'SKELETON')
             if role == 'SKELETON':
                 skeleton_pois.append(poi_id)
-            else:  # BRANCH
+            else:
                 branch_pois.append(poi_id)
         
-        print(f"\n[STEP 9B′] POI Classification:")
+        print(f"\n[DAY {day_index+1}] POI Classification:")
         print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")
         print(f"  - BRANCH POIs ({len(branch_pois)}): {branch_pois}")
+        if start_loc_id: print(f"  - START ANCHOR: {start_loc_id}")
+        if end_loc_id:   print(f"  - END ANCHOR:   {end_loc_id}")
         
         model = cp_model.CpModel()
         
         START_NODE = f"START_DAY_{day_index + 1}"
         END_NODE = f"END_DAY_{day_index + 1}"
         
-        # STEP 9B′: Shared ordering ONLY for skeleton POIs
-        # Branch POIs do NOT participate in shared ordering
         skeleton_nodes = [START_NODE] + skeleton_pois + [END_NODE]
-        all_nodes = [START_NODE] + candidate_pois + [END_NODE]  # Keep for compatibility
+        all_nodes = [START_NODE] + candidate_pois + [END_NODE]
         
         # SHARED: Ordering variables y[i,j] ONLY for skeleton nodes
         y = {}
@@ -895,7 +947,6 @@ class ItineraryOptimizer:
         for fid in family_ids:
             for poi in candidate_pois:
                 x[(fid, poi)] = model.NewBoolVar(f'visit_{fid}_{poi}')
-                # DO NOT force all POIs - allow families to skip based on preferences
         
         # FAMILY-SPECIFIC: Arrival and departure times
         arr = {}
@@ -905,46 +956,91 @@ class ItineraryOptimizer:
                 arr[(fid, poi)] = model.NewIntVar(day_start_min, day_end_min, f'arr_{fid}_{poi}')
                 dep[(fid, poi)] = model.NewIntVar(day_start_min, day_end_min, f'dep_{fid}_{poi}')
         
+        # STEP 11: Time Window Constraints (Meal Planning)
+        poi_details = {p['location_id']: p for p in day_data['pois']}
+        
+        for poi_id in candidate_pois:
+             details = poi_details.get(poi_id)
+             if details:
+                 # Start Window (e.g. Lunch must start after 12:30)
+                 if 'time_window_start' in details:
+                     min_start = self._time_to_minutes(details['time_window_start'])
+                     for fid in family_ids:
+                         model.Add(arr[(fid, poi_id)] >= min_start)
+                 
+                 # End Window (e.g. Lunch must end before 14:00)
+                 if 'time_window_end' in details:
+                     max_end = self._time_to_minutes(details['time_window_end'])
+                     for fid in family_ids:
+                         model.Add(dep[(fid, poi_id)] <= max_end)
+        
         for fid in family_ids:
             arr[(fid, START_NODE)] = day_start_min
             dep[(fid, START_NODE)] = day_start_min
             arr[(fid, END_NODE)] = day_end_min
             dep[(fid, END_NODE)] = day_end_min
         
-        # SHARED: Transport variables
-        z = {}
-        transport_modes = {}
+        # STEP 9C: Hybrid Synced TSP
+        adj = {}
+        best_transport_edges = {}
         
+        # Pre-calculate best transport edges
         for i in all_nodes:
             for j in all_nodes:
                 if i == j or j == START_NODE or i == END_NODE:
                     continue
                 
                 key = (i, j)
+                best_edge = None
                 
-                if i == START_NODE or j == END_NODE:
-                    transport_modes[key] = [TransportEdge(
-                        edge_id=f"LOGICAL_{i}_{j}",
-                        from_loc=i,
-                        to_loc=j,
-                        mode="LOGICAL",
-                        duration_min=0,
-                        cost=0,
-                        reliability=1.0
-                    )]
-                else:
-                    if key in self.transport_lookup:
-                        transport_modes[key] = self.transport_lookup[key].copy()
+                # Handling Start/End Anchors (Step 10B)
+                source_loc = i
+                target_loc = j
+                
+                is_logical_edge = False
+                
+                if i == START_NODE:
+                    if start_loc_id:
+                        source_loc = start_loc_id # Use physical hotel
                     else:
-                        transport_modes[key] = []
-                    
-                    fallback_edge = self._create_fallback_transport(i, j)
-                    transport_modes[key].append(fallback_edge)
+                        is_logical_edge = True # Legacy behavior
+                        
+                if j == END_NODE:
+                    if end_loc_id:
+                        target_loc = end_loc_id # Use physical hotel
+                    else:
+                        is_logical_edge = True
                 
-                for edge in transport_modes[key]:
-                    z[(i, j, edge.mode, edge.edge_id)] = model.NewBoolVar(
-                        f'transport_{i}_{j}_{edge.mode}_{edge.edge_id}'
+                if is_logical_edge:
+                    best_edge = TransportEdge(
+                        edge_id=f"LOGICAL_{i}_{j}",
+                        from_loc=i, to_loc=j, mode="LOGICAL",
+                        duration_min=0, cost=0, reliability=1.0
                     )
+                else:
+                    # Find real transport
+                    search_key = (source_loc, target_loc)
+                    candidates = []
+                    if search_key in self.transport_lookup:
+                        candidates.extend(self.transport_lookup[search_key])
+                    
+                    # Always allow fallback if explicit transport missing
+                    candidates.append(self._create_fallback_transport(source_loc, target_loc))
+                    
+                    # Select best
+                    best_edge = min(candidates, key=lambda e: e.duration_min * 2 + e.cost)
+                
+                best_transport_edges[key] = best_edge
+        
+        # Create adj variables for all possible transitions
+        for fid in family_ids:
+            for i in all_nodes:
+                for j in all_nodes:
+                    if i == j or j == START_NODE or i == END_NODE:
+                        continue
+                    
+                    # Create variable
+                    adj[(fid, i, j)] = model.NewBoolVar(f'adj_{fid}_{i}_{j}')
         
         # CONSTRAINTS
         
@@ -954,89 +1050,150 @@ class ItineraryOptimizer:
                 visit_time = self.locations[poi].avg_visit_time_min
                 model.Add(dep[(fid, poi)] == arr[(fid, poi)] + visit_time)
         
-        # 2. SHARED: Flow constraints (ONLY for skeleton POIs)
-        # Branch POIs do NOT participate in flow constraints
-        for poi in skeleton_pois:
-            incoming = [y[(i, poi)] for i in skeleton_nodes if i != poi and (i, poi) in y]
-            if incoming:
-                model.Add(sum(incoming) <= 1)
+        # 2. FAMILY-SPECIFIC: Flow Conservation (Standard TSP)
+        # If family visits node i, must have 1 incoming and 1 outgoing edge
+        for fid in family_ids:
+            # For each candidate POI
+            for node in candidate_pois:
+                # Incoming
+                incoming = [adj[(fid, i, node)] for i in all_nodes if i != node and (fid, i, node) in adj]
+                model.Add(sum(incoming) == 1).OnlyEnforceIf(x[(fid, node)])
+                model.Add(sum(incoming) == 0).OnlyEnforceIf(x[(fid, node)].Not())
+                
+                # Outgoing
+                outgoing = [adj[(fid, node, j)] for j in all_nodes if j != node and (fid, node, j) in adj]
+                model.Add(sum(outgoing) == 1).OnlyEnforceIf(x[(fid, node)])
+                model.Add(sum(outgoing) == 0).OnlyEnforceIf(x[(fid, node)].Not())
             
-            outgoing = [y[(poi, j)] for j in skeleton_nodes if j != poi and (poi, j) in y]
-            if outgoing:
-                model.Add(sum(outgoing) <= 1)
-        
-        start_outgoing = [y[(START_NODE, j)] for j in skeleton_pois if (START_NODE, j) in y]
-        if start_outgoing:
+            # Start Node: 1 Outgoing
+            start_outgoing = [adj[(fid, START_NODE, j)] for j in candidate_pois] # Can go to any POI
+            # We assume day always starts? Or only if family visits something? 
+            # Safe assumption: always starts if any POI visited. 
+            # Simplified: Sum(adj[start, j]) == 1 (always active for this problem scope)
             model.Add(sum(start_outgoing) == 1)
-        
-        end_incoming = [y[(i, END_NODE)] for i in candidate_pois if (i, END_NODE) in y]
-        if end_incoming:
+            
+            # End Node: 1 Incoming
+            end_incoming = [adj[(fid, i, END_NODE)] for i in candidate_pois]
             model.Add(sum(end_incoming) == 1)
+
+        # 3. SHARED: Skeleton Ordering Constraints
+        # Keep 'y' variables to enforce shared backbone order
+        # If y[s1, s2] == 1, then for ALL families, arr[s2] >= dep[s1]
+        # This synchronizes the group even if they take side trips defined by 'adj'
         
-        # 3. SHARED: Bind transport to ordering
-        for i in all_nodes:
-            for j in all_nodes:
-                if i == j or j == START_NODE or i == END_NODE:
+        
+        # 3. SHARED: Skeleton Ordering Constraints
+        # Keep 'y' variables to enforce shared backbone order
+        # If y[s1, s2] == 1, then for ALL families, arr[s2] >= dep[s1]
+        
+        # 3A. Enforce Flow Conservation for 'y' (The Backbone)
+        # If a Skeleton POI is visited by ANY family, it must be in the 'y' chain
+        for spi in skeleton_pois:
+            # Check if ANY family visits this skeleton POI
+            is_visited_vars = [x[(fid, spi)] for fid in family_ids]
+            # Create a boolean 'is_active' for the skeleton node
+            is_active = model.NewBoolVar(f'skeleton_active_{spi}')
+            model.Add(sum(is_visited_vars) >= 1).OnlyEnforceIf(is_active)
+            model.Add(sum(is_visited_vars) == 0).OnlyEnforceIf(is_active.Not())
+            
+            # Flow constraints for 'y' based on is_active
+            incoming_y = [y[(i, spi)] for i in skeleton_nodes if i != spi and (i, spi) in y]
+            outgoing_y = [y[(spi, j)] for j in skeleton_nodes if j != spi and (spi, j) in y]
+            
+            if incoming_y and outgoing_y:
+                model.Add(sum(incoming_y) == 1).OnlyEnforceIf(is_active)
+                model.Add(sum(outgoing_y) == 1).OnlyEnforceIf(is_active)
+                model.Add(sum(incoming_y) == 0).OnlyEnforceIf(is_active.Not())
+                model.Add(sum(outgoing_y) == 0).OnlyEnforceIf(is_active.Not())
+        
+        # Start/End flow for y
+        start_out_y = [y[(START_NODE, j)] for j in skeleton_pois if (START_NODE, j) in y]
+        start_out_y.append(y[(START_NODE, END_NODE)]) # Allow direct skip if no skeleton
+        model.Add(sum(start_out_y) == 1)
+        
+        end_in_y = [y[(i, END_NODE)] for i in skeleton_pois if (i, END_NODE) in y]
+        end_in_y.append(y[(START_NODE, END_NODE)])
+        model.Add(sum(end_in_y) == 1)
+
+        # 3B. Synchronization Logic (`y` implies order AND strict timing)
+        
+        # A. Sequence Enforcement (Backbone)
+        for s1 in skeleton_nodes:
+            for s2 in skeleton_nodes:
+                if s1 == s2 or s1 == END_NODE or s2 == START_NODE:
                     continue
                 
-                key = (i, j)
-                if key in transport_modes and (i, j) in y:
-                    transport_vars = [z[(i, j, edge.mode, edge.edge_id)] for edge in transport_modes[key]]
-                    model.Add(sum(transport_vars) == 1).OnlyEnforceIf(y[(i, j)])
-                    model.Add(sum(transport_vars) == 0).OnlyEnforceIf(y[(i, j)].Not())
+                if (s1, s2) in y:
+                    for fid in family_ids:
+                        # If s1 -> s2 in skeleton, s2 must be after s1
+                        model.Add(arr[(fid, s2)] >= dep[(fid, s1)]).OnlyEnforceIf(y[(s1, s2)])
+
+        # B. Strict Time Synchronization (Shared Bus)
+        # All families must arrive at Skeleton POIs at the exact same time
+        # This forces the "faster" family to wait or start later
+        for spi in skeleton_pois:
+            # Get arrival variable for first family
+            base_fid = family_ids[0]
+            base_arr = arr[(base_fid, spi)]
+            
+            for i in range(1, len(family_ids)):
+                other_fid = family_ids[i]
+                other_arr = arr[(other_fid, spi)]
+                
+                # Strict Equality: arr[f1] == arr[f2]
+                # Only enforce if both families actually visit the POI
+                # (Though for Skeleton POIs, they usually all visit)
+                
+                # Create a boolean AND of visits
+                both_visit = model.NewBoolVar(f'sync_{spi}_{base_fid}_{other_fid}')
+                model.AddBoolAnd([x[(base_fid, spi)], x[(other_fid, spi)]]).OnlyEnforceIf(both_visit)
+                model.AddBoolOr([x[(base_fid, spi)].Not(), x[(other_fid, spi)].Not()]).OnlyEnforceIf(both_visit.Not())
+                
+                # Enforce sync
+                model.Add(base_arr == other_arr).OnlyEnforceIf(both_visit)
+
+        # 4. FAMILY-SPECIFIC: Physical Time & Transport Constraints
+        # For each physical edge traversed (adj[f, i, j]), enforce time and add cost
         
-        # 4. FAMILY-SPECIFIC: Time chaining
+        cost_terms = []
+        time_terms = []
+        
         for fid in family_ids:
             for i in all_nodes:
                 for j in all_nodes:
                     if i == j or j == START_NODE or i == END_NODE:
                         continue
                     
-                    if (i, j) not in y:
+                    if (fid, i, j) not in adj:
                         continue
                     
-                    key = (i, j)
-                    if key in transport_modes:
-                        for edge in transport_modes[key]:
-                            if (i, j, edge.mode, edge.edge_id) in z:
-                                if edge.mode == "LOGICAL":
-                                    continue
-                                
-                                if i in candidate_pois and j in candidate_pois:
-                                    model.Add(
-                                        arr[(fid, j)] >= dep[(fid, i)] + edge.duration_min
-                                    ).OnlyEnforceIf(z[(i, j, edge.mode, edge.edge_id)])
-                                elif i == START_NODE and j in candidate_pois:
-                                    model.Add(
-                                        arr[(fid, j)] >= day_start_min
-                                    ).OnlyEnforceIf(z[(i, j, edge.mode, edge.edge_id)])
-                                elif i in candidate_pois and j == END_NODE:
-                                    model.Add(
-                                        dep[(fid, i)] <= day_end_min
-                                    ).OnlyEnforceIf(z[(i, j, edge.mode, edge.edge_id)])
+                    # Physical Time Constraint
+                    best_edge = best_transport_edges.get((i, j))
+                    duration = best_edge.duration_min if best_edge else 0
+                    cost = best_edge.cost if best_edge else 0
+                    
+                    # If adj[f, i, j] is used, travel constraints apply
+                    if i == START_NODE:
+                         model.Add(arr[(fid, j)] >= day_start_min + duration).OnlyEnforceIf(adj[(fid, i, j)])
+                    elif j == END_NODE:
+                         model.Add(day_end_min >= dep[(fid, i)] + duration).OnlyEnforceIf(adj[(fid, i, j)])
+                    else:
+                         model.Add(arr[(fid, j)] >= dep[(fid, i)] + duration).OnlyEnforceIf(adj[(fid, i, j)])
+                    
+                    # Add to objective (Cost & Time)
+                    # We add cost PER FAMILY travel
+                    cost_terms.append(cost * adj[(fid, i, j)])
+                    time_terms.append(duration * adj[(fid, i, j)])
+
+        # 5. REMOVED: Old shared flow constraints for skeleton (replaced by adj + sync)
+        # 5B. REMOVED: Branch POI Time Window Attachment (replaced by adj)
         
-        # 5. FAMILY-SPECIFIC: POI visit edges (ONLY for skeleton POIs)
-        # Skeleton POIs must be in the shared ordering if visited
-        for fid in family_ids:
-            for poi in skeleton_pois:
-                incoming = [y[(i, poi)] for i in skeleton_nodes if i != poi and (i, poi) in y]
-                outgoing = [y[(poi, j)] for j in skeleton_nodes if j != poi and (poi, j) in y]
-                
-                if incoming and outgoing:
-                    model.Add(sum(incoming) == 1).OnlyEnforceIf(x[(fid, poi)])
-                    model.Add(sum(outgoing) == 1).OnlyEnforceIf(x[(fid, poi)])
-                    model.Add(sum(incoming) == 0).OnlyEnforceIf(x[(fid, poi)].Not())
-                    model.Add(sum(outgoing) == 0).OnlyEnforceIf(x[(fid, poi)].Not())
+        total_cost = sum(cost_terms) if cost_terms else 0
+        total_time = sum(time_terms) if time_terms else 0
+        
+        # 6. FAMILY-SPECIFIC: Must-visit and never-visit constraints
         
         # 5B. BRANCH POIs: Time window attachment (NOT in shared ordering)
-        # Branch POIs are attached via time constraints only
-        for fid in family_ids:
-            for branch_poi in branch_pois:
-                # If family visits branch POI, it must fit within day bounds
-                # More sophisticated: could constrain between adjacent skeleton nodes
-                model.Add(arr[(fid, branch_poi)] >= day_start_min).OnlyEnforceIf(x[(fid, branch_poi)])
-                model.Add(dep[(fid, branch_poi)] <= day_end_min).OnlyEnforceIf(x[(fid, branch_poi)])
-        
         # 6. FAMILY-SPECIFIC: Must-visit and never-visit constraints
         for fid in family_ids:
             family = families[fid]
@@ -1077,34 +1234,18 @@ class ItineraryOptimizer:
             for poi in candidate_pois:
                 sat_score = self.calculate_satisfaction(family, self.locations[poi])
                 sat_scaled = int(sat_score * 100)
+                
+                # PERSONALIZATION BONUS: Reward visiting must-visit locations
+                must_visit_bonus = 0
+                if poi in family.must_visit_locations:
+                    must_visit_bonus = 200  # Significant bonus for must-visit POIs
+                
                 # CRITICAL: Only count satisfaction if POI is visited
-                satisfaction_terms.append(sat_scaled * x[(fid, poi)])
+                satisfaction_terms.append((sat_scaled + must_visit_bonus) * x[(fid, poi)])
         
         total_satisfaction = sum(satisfaction_terms)
         
-        cost_terms = []
-        time_terms = []
-        
-        for i in all_nodes:
-            for j in all_nodes:
-                if i == j or j == START_NODE or i == END_NODE:
-                    continue
-                
-                key = (i, j)
-                if key in transport_modes:
-                    for edge in transport_modes[key]:
-                        if edge.mode == "LOGICAL":
-                            continue
-                        
-                        cost_int = int(edge.cost)
-                        time_int = edge.duration_min
-                        
-                        if (i, j, edge.mode, edge.edge_id) in z:
-                            cost_terms.append(cost_int * z[(i, j, edge.mode, edge.edge_id)])
-                            time_terms.append(time_int * z[(i, j, edge.mode, edge.edge_id)])
-        
-        total_cost = sum(cost_terms) if cost_terms else 0
-        total_time = sum(time_terms) if time_terms else 0
+        # Legacy transport cost calculation removed (replaced by adj based total_cost)
         
         base_order = {poi: idx for idx, poi in enumerate(candidate_pois)}
         order_deviation_terms = []
@@ -1148,8 +1289,8 @@ class ItineraryOptimizer:
         
         coherence_loss = alpha * total_time + beta * total_cost + gamma * total_order_deviation + delta * total_divergence
         
-        # TUNED PARAMETERS (reduced from 30 to allow divergence)
-        lambda_coherence = 10  # Reduced from 30 to balance satisfaction vs coherence
+        # TUNED PARAMETERS
+        lambda_coherence = 2  # Reduced from 10 to make transport cheaper and enable branch POI visits
         
         # STEP 9B′: Objective includes branch penalty
         objective = total_satisfaction - lambda_coherence * coherence_loss - total_branch_penalty
@@ -1164,8 +1305,8 @@ class ItineraryOptimizer:
         
         if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
             return self._extract_multi_family_solution(
-                solver, x, y, z, arr, dep,
-                candidate_pois, transport_modes, family_ids, day_index, all_nodes
+                solver, x, y, adj, arr, dep,
+                candidate_pois, best_transport_edges, family_ids, day_index, all_nodes
             )
         else:
             print(f"No feasible solution found. Status: {solver.StatusName(status)}")
@@ -1176,11 +1317,11 @@ class ItineraryOptimizer:
         solver: cp_model.CpSolver,
         x: Dict,
         y: Dict,
-        z: Dict,
+        adj: Dict,
         arr: Dict,
         dep: Dict,
         candidate_pois: List[str],
-        transport_modes: Dict,
+        best_transport_edges: Dict,
         family_ids: List[str],
         day_index: int,
         all_nodes: List[str]
@@ -1214,32 +1355,67 @@ class ItineraryOptimizer:
         
         print(f"\n[PATH] SHARED POI ORDER: {' -> '.join([START_NODE] + visited_pois + [END_NODE])}")
         
-        transport_plan = []
-        for i in range(len(visited_pois) - 1):
-            from_poi = visited_pois[i]
-            to_poi = visited_pois[i + 1]
-            
-            key = (from_poi, to_poi)
-            if key in transport_modes:
-                for edge in transport_modes[key]:
-                    if (from_poi, to_poi, edge.mode, edge.edge_id) in z:
-                        if solver.Value(z[(from_poi, to_poi, edge.mode, edge.edge_id)]) == 1:
-                            transport_plan.append({
-                                'from': from_poi,
-                                'from_name': self.locations[from_poi].name,
-                                'to': to_poi,
-                                'to_name': self.locations[to_poi].name,
-                                'mode': edge.mode,
-                                'duration_min': edge.duration_min,
-                                'cost': edge.cost
-                            })
-                            break
+        print(f"\n[PATH] SHARED POI ORDER: {' -> '.join([START_NODE] + visited_pois + [END_NODE])}")
+        
+        # Aggregated totals from family specifics
+        total_transport_cost = 0
+        total_transport_time = 0
         
         families_data = {}
         for fid in family_ids:
             family_obj = self.family_prefs[fid]
             
-            family_pois = [poi for poi in visited_pois if solver.Value(x[(fid, poi)]) == 1]
+            # STEP 9C: Extract path from adj variables (Hybrid Synced TSP)
+            # Reconstruct the physical path: START -> P1 -> P2 -> ... -> END
+            
+            # Find the starting edge
+            current_node = START_NODE
+            path_nodes = []
+            family_transport = []
+            
+            # Robust extraction loop with safety break
+            safety_counter = 0
+            while current_node != END_NODE and safety_counter < len(all_nodes) + 5:
+                # Find the next node connected by adj[fid, current, next] == 1
+                next_node = None
+                for candidate in all_nodes:
+                    if candidate == current_node or candidate == START_NODE:
+                        continue
+                    
+                    if (fid, current_node, candidate) in adj:
+                        if solver.Value(adj[(fid, current_node, candidate)]) == 1:
+                            next_node = candidate
+                            break
+                
+                if next_node:
+                    # Extract transport details
+                    best_edge = best_transport_edges.get((current_node, next_node))
+                    if best_edge:
+                         # Track totals
+                         total_transport_cost += best_edge.cost
+                         total_transport_time += best_edge.duration_min
+                         
+                         family_transport.append({
+                            'from': current_node,
+                            'from_name': self.locations[current_node].name if current_node in self.locations else current_node,
+                            'to': next_node,
+                            'to_name': self.locations[next_node].name if next_node in self.locations else next_node,
+                            'mode': best_edge.mode,
+                            'duration_min': best_edge.duration_min,
+                            'cost': best_edge.cost
+                         })
+                    
+                    if next_node != END_NODE:
+                        path_nodes.append(next_node)
+                    
+                    current_node = next_node
+                else:
+                    print(f"ERROR: No outgoing edge found for family {fid} at {current_node}")
+                    break
+                
+                safety_counter += 1
+            
+            family_pois = path_nodes
             
             total_satisfaction = 0.0
             poi_data = []
@@ -1260,11 +1436,9 @@ class ItineraryOptimizer:
             families_data[fid] = {
                 'family_id': fid,
                 'total_satisfaction': round(total_satisfaction, 2),
-                'pois': poi_data
+                'pois': poi_data,
+                'transport': family_transport
             }
-        
-        total_transport_cost = sum(t['cost'] for t in transport_plan)
-        total_transport_time = sum(t['duration_min'] for t in transport_plan)
         
         solution = {
             'day': day_index + 1,
@@ -1273,7 +1447,7 @@ class ItineraryOptimizer:
             'shared_poi_order': visited_pois,
             'total_transport_cost': total_transport_cost,
             'total_transport_time_min': total_transport_time,
-            'transport': transport_plan,
+            'transport': [], # Consolidated transport replaced by family-specific
             'families': families_data,
             'num_families': len(family_ids)
         }

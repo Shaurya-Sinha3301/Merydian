@@ -1,0 +1,919 @@
+{
+    "trip_id": "FINAL_DELHI_GRAND_TOUR",
+    "families": [
+        "FAM_A",
+        "FAM_B",
+        "FAM_C"
+    ],
+    "days": [
+        {
+            "day": 1,
+            "objective_value": -2467.01965701902,
+            "solve_time_seconds": 0.0465293,
+            "shared_poi_order": [
+                "LOC_008",
+                "LOC_LUNCH",
+                "LOC_010",
+                "LOC_DINNER"
+            ],
+            "total_transport_cost": 1069.0098285095103,
+            "total_transport_time_min": 184,
+            "transport": [],
+            "families": {
+                "FAM_A": {
+                    "family_id": "FAM_A",
+                    "total_satisfaction": 4.98,
+                    "pois": [
+                        {
+                            "sequence": 1,
+                            "location_id": "LOC_008",
+                            "location_name": "Raj Ghat 8",
+                            "arrival_time": "11:01",
+                            "departure_time": "11:46",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 1.44
+                        },
+                        {
+                            "sequence": 2,
+                            "location_id": "LOC_LUNCH",
+                            "location_name": "Connaught Place Restaurants (Lunch)",
+                            "arrival_time": "12:30",
+                            "departure_time": "13:30",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.2
+                        },
+                        {
+                            "sequence": 3,
+                            "location_id": "LOC_010",
+                            "location_name": "Safdarjung Tomb 10",
+                            "arrival_time": "13:40",
+                            "departure_time": "14:40",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.17
+                        },
+                        {
+                            "sequence": 4,
+                            "location_id": "LOC_DINNER",
+                            "location_name": "Evening Fine Dining (Dinner)",
+                            "arrival_time": "19:30",
+                            "departure_time": "21:00",
+                            "visit_duration_min": 90,
+                            "satisfaction_score": 1.17
+                        }
+                    ],
+                    "transport": [
+                        {
+                            "from": "START_DAY_1",
+                            "from_name": "START_DAY_1",
+                            "to": "LOC_008",
+                            "to_name": "Raj Ghat 8",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 12,
+                            "cost": 78.87068379521867
+                        },
+                        {
+                            "from": "LOC_008",
+                            "from_name": "Raj Ghat 8",
+                            "to": "LOC_LUNCH",
+                            "to_name": "Connaught Place Restaurants (Lunch)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 13,
+                            "cost": 85.5238868225044
+                        },
+                        {
+                            "from": "LOC_LUNCH",
+                            "from_name": "Connaught Place Restaurants (Lunch)",
+                            "to": "LOC_010",
+                            "to_name": "Safdarjung Tomb 10",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_010",
+                            "from_name": "Safdarjung Tomb 10",
+                            "to": "LOC_DINNER",
+                            "to_name": "Evening Fine Dining (Dinner)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_DINNER",
+                            "from_name": "Evening Fine Dining (Dinner)",
+                            "to": "END_DAY_1",
+                            "to_name": "END_DAY_1",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        }
+                    ]
+                },
+                "FAM_B": {
+                    "family_id": "FAM_B",
+                    "total_satisfaction": 6.58,
+                    "pois": [
+                        {
+                            "sequence": 1,
+                            "location_id": "LOC_011",
+                            "location_name": "Red Fort 11",
+                            "arrival_time": "09:17",
+                            "departure_time": "10:47",
+                            "visit_duration_min": 90,
+                            "satisfaction_score": 1.63
+                        },
+                        {
+                            "sequence": 2,
+                            "location_id": "LOC_008",
+                            "location_name": "Raj Ghat 8",
+                            "arrival_time": "11:01",
+                            "departure_time": "11:46",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 0.98
+                        },
+                        {
+                            "sequence": 3,
+                            "location_id": "LOC_LUNCH",
+                            "location_name": "Connaught Place Restaurants (Lunch)",
+                            "arrival_time": "12:30",
+                            "departure_time": "13:30",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.45
+                        },
+                        {
+                            "sequence": 4,
+                            "location_id": "LOC_010",
+                            "location_name": "Safdarjung Tomb 10",
+                            "arrival_time": "13:40",
+                            "departure_time": "14:40",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 0.88
+                        },
+                        {
+                            "sequence": 5,
+                            "location_id": "LOC_DINNER",
+                            "location_name": "Evening Fine Dining (Dinner)",
+                            "arrival_time": "19:30",
+                            "departure_time": "21:00",
+                            "visit_duration_min": 90,
+                            "satisfaction_score": 1.63
+                        }
+                    ],
+                    "transport": [
+                        {
+                            "from": "START_DAY_1",
+                            "from_name": "START_DAY_1",
+                            "to": "LOC_011",
+                            "to_name": "Red Fort 11",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 17,
+                            "cost": 112.28317440232748
+                        },
+                        {
+                            "from": "LOC_011",
+                            "from_name": "Red Fort 11",
+                            "to": "LOC_008",
+                            "to_name": "Raj Ghat 8",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 14,
+                            "cost": 92.41362604923214
+                        },
+                        {
+                            "from": "LOC_008",
+                            "from_name": "Raj Ghat 8",
+                            "to": "LOC_LUNCH",
+                            "to_name": "Connaught Place Restaurants (Lunch)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 13,
+                            "cost": 85.5238868225044
+                        },
+                        {
+                            "from": "LOC_LUNCH",
+                            "from_name": "Connaught Place Restaurants (Lunch)",
+                            "to": "LOC_010",
+                            "to_name": "Safdarjung Tomb 10",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_010",
+                            "from_name": "Safdarjung Tomb 10",
+                            "to": "LOC_DINNER",
+                            "to_name": "Evening Fine Dining (Dinner)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_DINNER",
+                            "from_name": "Evening Fine Dining (Dinner)",
+                            "to": "END_DAY_1",
+                            "to_name": "END_DAY_1",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        }
+                    ]
+                },
+                "FAM_C": {
+                    "family_id": "FAM_C",
+                    "total_satisfaction": 4.89,
+                    "pois": [
+                        {
+                            "sequence": 1,
+                            "location_id": "LOC_008",
+                            "location_name": "Raj Ghat 8",
+                            "arrival_time": "11:01",
+                            "departure_time": "11:46",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 1.27
+                        },
+                        {
+                            "sequence": 2,
+                            "location_id": "LOC_LUNCH",
+                            "location_name": "Connaught Place Restaurants (Lunch)",
+                            "arrival_time": "12:30",
+                            "departure_time": "13:30",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.3
+                        },
+                        {
+                            "sequence": 3,
+                            "location_id": "LOC_010",
+                            "location_name": "Safdarjung Tomb 10",
+                            "arrival_time": "13:40",
+                            "departure_time": "14:40",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 0.95
+                        },
+                        {
+                            "sequence": 4,
+                            "location_id": "LOC_DINNER",
+                            "location_name": "Evening Fine Dining (Dinner)",
+                            "arrival_time": "19:30",
+                            "departure_time": "21:00",
+                            "visit_duration_min": 90,
+                            "satisfaction_score": 1.37
+                        }
+                    ],
+                    "transport": [
+                        {
+                            "from": "START_DAY_1",
+                            "from_name": "START_DAY_1",
+                            "to": "LOC_008",
+                            "to_name": "Raj Ghat 8",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 12,
+                            "cost": 78.87068379521867
+                        },
+                        {
+                            "from": "LOC_008",
+                            "from_name": "Raj Ghat 8",
+                            "to": "LOC_LUNCH",
+                            "to_name": "Connaught Place Restaurants (Lunch)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 13,
+                            "cost": 85.5238868225044
+                        },
+                        {
+                            "from": "LOC_LUNCH",
+                            "from_name": "Connaught Place Restaurants (Lunch)",
+                            "to": "LOC_010",
+                            "to_name": "Safdarjung Tomb 10",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_010",
+                            "from_name": "Safdarjung Tomb 10",
+                            "to": "LOC_DINNER",
+                            "to_name": "Evening Fine Dining (Dinner)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_DINNER",
+                            "from_name": "Evening Fine Dining (Dinner)",
+                            "to": "END_DAY_1",
+                            "to_name": "END_DAY_1",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        }
+                    ]
+                }
+            },
+            "num_families": 3
+        },
+        {
+            "day": 2,
+            "objective_value": -3349.3272294116814,
+            "solve_time_seconds": 0.050822000000000006,
+            "shared_poi_order": [
+                "LOC_009",
+                "LOC_015",
+                "LOC_016",
+                "LOC_LUNCH",
+                "LOC_DINNER"
+            ],
+            "total_transport_cost": 1295.6636147058405,
+            "total_transport_time_min": 216,
+            "transport": [],
+            "families": {
+                "FAM_A": {
+                    "family_id": "FAM_A",
+                    "total_satisfaction": 5.77,
+                    "pois": [
+                        {
+                            "sequence": 1,
+                            "location_id": "LOC_009",
+                            "location_name": "Purana Qila 9",
+                            "arrival_time": "09:15",
+                            "departure_time": "10:15",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.06
+                        },
+                        {
+                            "sequence": 2,
+                            "location_id": "LOC_015",
+                            "location_name": "Humayun Tomb 15",
+                            "arrival_time": "10:25",
+                            "departure_time": "11:10",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 0.76
+                        },
+                        {
+                            "sequence": 3,
+                            "location_id": "LOC_016",
+                            "location_name": "Akshardham 16",
+                            "arrival_time": "11:24",
+                            "departure_time": "12:24",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.58
+                        },
+                        {
+                            "sequence": 4,
+                            "location_id": "LOC_LUNCH",
+                            "location_name": "Connaught Place Restaurants (Lunch)",
+                            "arrival_time": "13:00",
+                            "departure_time": "14:00",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.2
+                        },
+                        {
+                            "sequence": 5,
+                            "location_id": "LOC_DINNER",
+                            "location_name": "Evening Fine Dining (Dinner)",
+                            "arrival_time": "19:30",
+                            "departure_time": "21:00",
+                            "visit_duration_min": 90,
+                            "satisfaction_score": 1.17
+                        }
+                    ],
+                    "transport": [
+                        {
+                            "from": "START_DAY_2",
+                            "from_name": "START_DAY_2",
+                            "to": "LOC_009",
+                            "to_name": "Purana Qila 9",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 15,
+                            "cost": 96.52737714746934
+                        },
+                        {
+                            "from": "LOC_009",
+                            "from_name": "Purana Qila 9",
+                            "to": "LOC_015",
+                            "to_name": "Humayun Tomb 15",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 61.974745030369796
+                        },
+                        {
+                            "from": "LOC_015",
+                            "from_name": "Humayun Tomb 15",
+                            "to": "LOC_016",
+                            "to_name": "Akshardham 16",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 14,
+                            "cost": 92.49313663097357
+                        },
+                        {
+                            "from": "LOC_016",
+                            "from_name": "Akshardham 16",
+                            "to": "LOC_LUNCH",
+                            "to_name": "Connaught Place Restaurants (Lunch)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 14,
+                            "cost": 89.44394737936065
+                        },
+                        {
+                            "from": "LOC_LUNCH",
+                            "from_name": "Connaught Place Restaurants (Lunch)",
+                            "to": "LOC_DINNER",
+                            "to_name": "Evening Fine Dining (Dinner)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_DINNER",
+                            "from_name": "Evening Fine Dining (Dinner)",
+                            "to": "END_DAY_2",
+                            "to_name": "END_DAY_2",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        }
+                    ]
+                },
+                "FAM_B": {
+                    "family_id": "FAM_B",
+                    "total_satisfaction": 5.11,
+                    "pois": [
+                        {
+                            "sequence": 1,
+                            "location_id": "LOC_009",
+                            "location_name": "Purana Qila 9",
+                            "arrival_time": "09:15",
+                            "departure_time": "10:15",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 0.84
+                        },
+                        {
+                            "sequence": 2,
+                            "location_id": "LOC_015",
+                            "location_name": "Humayun Tomb 15",
+                            "arrival_time": "10:25",
+                            "departure_time": "11:10",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 1.19
+                        },
+                        {
+                            "sequence": 3,
+                            "location_id": "LOC_LUNCH",
+                            "location_name": "Connaught Place Restaurants (Lunch)",
+                            "arrival_time": "13:00",
+                            "departure_time": "14:00",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.45
+                        },
+                        {
+                            "sequence": 4,
+                            "location_id": "LOC_DINNER",
+                            "location_name": "Evening Fine Dining (Dinner)",
+                            "arrival_time": "19:30",
+                            "departure_time": "21:00",
+                            "visit_duration_min": 90,
+                            "satisfaction_score": 1.63
+                        }
+                    ],
+                    "transport": [
+                        {
+                            "from": "START_DAY_2",
+                            "from_name": "START_DAY_2",
+                            "to": "LOC_009",
+                            "to_name": "Purana Qila 9",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 15,
+                            "cost": 96.52737714746934
+                        },
+                        {
+                            "from": "LOC_009",
+                            "from_name": "Purana Qila 9",
+                            "to": "LOC_015",
+                            "to_name": "Humayun Tomb 15",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 61.974745030369796
+                        },
+                        {
+                            "from": "LOC_015",
+                            "from_name": "Humayun Tomb 15",
+                            "to": "LOC_LUNCH",
+                            "to_name": "Connaught Place Restaurants (Lunch)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 25,
+                            "cost": 156.28308015165453
+                        },
+                        {
+                            "from": "LOC_LUNCH",
+                            "from_name": "Connaught Place Restaurants (Lunch)",
+                            "to": "LOC_DINNER",
+                            "to_name": "Evening Fine Dining (Dinner)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_DINNER",
+                            "from_name": "Evening Fine Dining (Dinner)",
+                            "to": "END_DAY_2",
+                            "to_name": "END_DAY_2",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        }
+                    ]
+                },
+                "FAM_C": {
+                    "family_id": "FAM_C",
+                    "total_satisfaction": 5.92,
+                    "pois": [
+                        {
+                            "sequence": 1,
+                            "location_id": "LOC_009",
+                            "location_name": "Purana Qila 9",
+                            "arrival_time": "09:15",
+                            "departure_time": "10:15",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 0.91
+                        },
+                        {
+                            "sequence": 2,
+                            "location_id": "LOC_015",
+                            "location_name": "Humayun Tomb 15",
+                            "arrival_time": "10:25",
+                            "departure_time": "11:10",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 0.95
+                        },
+                        {
+                            "sequence": 3,
+                            "location_id": "LOC_016",
+                            "location_name": "Akshardham 16",
+                            "arrival_time": "11:24",
+                            "departure_time": "12:24",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.4
+                        },
+                        {
+                            "sequence": 4,
+                            "location_id": "LOC_LUNCH",
+                            "location_name": "Connaught Place Restaurants (Lunch)",
+                            "arrival_time": "13:00",
+                            "departure_time": "14:00",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.3
+                        },
+                        {
+                            "sequence": 5,
+                            "location_id": "LOC_DINNER",
+                            "location_name": "Evening Fine Dining (Dinner)",
+                            "arrival_time": "19:30",
+                            "departure_time": "21:00",
+                            "visit_duration_min": 90,
+                            "satisfaction_score": 1.37
+                        }
+                    ],
+                    "transport": [
+                        {
+                            "from": "START_DAY_2",
+                            "from_name": "START_DAY_2",
+                            "to": "LOC_009",
+                            "to_name": "Purana Qila 9",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 15,
+                            "cost": 96.52737714746934
+                        },
+                        {
+                            "from": "LOC_009",
+                            "from_name": "Purana Qila 9",
+                            "to": "LOC_015",
+                            "to_name": "Humayun Tomb 15",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 61.974745030369796
+                        },
+                        {
+                            "from": "LOC_015",
+                            "from_name": "Humayun Tomb 15",
+                            "to": "LOC_016",
+                            "to_name": "Akshardham 16",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 14,
+                            "cost": 92.49313663097357
+                        },
+                        {
+                            "from": "LOC_016",
+                            "from_name": "Akshardham 16",
+                            "to": "LOC_LUNCH",
+                            "to_name": "Connaught Place Restaurants (Lunch)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 14,
+                            "cost": 89.44394737936065
+                        },
+                        {
+                            "from": "LOC_LUNCH",
+                            "from_name": "Connaught Place Restaurants (Lunch)",
+                            "to": "LOC_DINNER",
+                            "to_name": "Evening Fine Dining (Dinner)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_DINNER",
+                            "from_name": "Evening Fine Dining (Dinner)",
+                            "to": "END_DAY_2",
+                            "to_name": "END_DAY_2",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        }
+                    ]
+                }
+            },
+            "num_families": 3
+        },
+        {
+            "day": 3,
+            "objective_value": -1020.8457905606326,
+            "solve_time_seconds": 0.0363722,
+            "shared_poi_order": [
+                "LOC_012",
+                "LOC_LUNCH",
+                "LOC_003",
+                "LOC_DINNER"
+            ],
+            "total_transport_cost": 1062.9228952803164,
+            "total_transport_time_min": 183,
+            "transport": [],
+            "families": {
+                "FAM_A": {
+                    "family_id": "FAM_A",
+                    "total_satisfaction": 4.28,
+                    "pois": [
+                        {
+                            "sequence": 1,
+                            "location_id": "LOC_012",
+                            "location_name": "Qutub Minar 12",
+                            "arrival_time": "09:16",
+                            "departure_time": "10:16",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 0.78
+                        },
+                        {
+                            "sequence": 2,
+                            "location_id": "LOC_LUNCH",
+                            "location_name": "Connaught Place Restaurants (Lunch)",
+                            "arrival_time": "12:30",
+                            "departure_time": "13:30",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.2
+                        },
+                        {
+                            "sequence": 3,
+                            "location_id": "LOC_003",
+                            "location_name": "India Gate 3",
+                            "arrival_time": "13:40",
+                            "departure_time": "14:25",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 1.13
+                        },
+                        {
+                            "sequence": 4,
+                            "location_id": "LOC_DINNER",
+                            "location_name": "Evening Fine Dining (Dinner)",
+                            "arrival_time": "19:30",
+                            "departure_time": "21:00",
+                            "visit_duration_min": 90,
+                            "satisfaction_score": 1.17
+                        }
+                    ],
+                    "transport": [
+                        {
+                            "from": "START_DAY_3",
+                            "from_name": "START_DAY_3",
+                            "to": "LOC_012",
+                            "to_name": "Qutub Minar 12",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 16,
+                            "cost": 105.43187744807675
+                        },
+                        {
+                            "from": "LOC_012",
+                            "from_name": "Qutub Minar 12",
+                            "to": "LOC_LUNCH",
+                            "to_name": "Connaught Place Restaurants (Lunch)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 15,
+                            "cost": 98.87575431202868
+                        },
+                        {
+                            "from": "LOC_LUNCH",
+                            "from_name": "Connaught Place Restaurants (Lunch)",
+                            "to": "LOC_003",
+                            "to_name": "India Gate 3",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_003",
+                            "from_name": "India Gate 3",
+                            "to": "LOC_DINNER",
+                            "to_name": "Evening Fine Dining (Dinner)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_DINNER",
+                            "from_name": "Evening Fine Dining (Dinner)",
+                            "to": "END_DAY_3",
+                            "to_name": "END_DAY_3",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        }
+                    ]
+                },
+                "FAM_B": {
+                    "family_id": "FAM_B",
+                    "total_satisfaction": 5.6,
+                    "pois": [
+                        {
+                            "sequence": 1,
+                            "location_id": "LOC_012",
+                            "location_name": "Qutub Minar 12",
+                            "arrival_time": "09:16",
+                            "departure_time": "10:16",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 0.96
+                        },
+                        {
+                            "sequence": 2,
+                            "location_id": "LOC_LUNCH",
+                            "location_name": "Connaught Place Restaurants (Lunch)",
+                            "arrival_time": "12:30",
+                            "departure_time": "13:30",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.45
+                        },
+                        {
+                            "sequence": 3,
+                            "location_id": "LOC_003",
+                            "location_name": "India Gate 3",
+                            "arrival_time": "13:40",
+                            "departure_time": "14:25",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 1.55
+                        },
+                        {
+                            "sequence": 4,
+                            "location_id": "LOC_DINNER",
+                            "location_name": "Evening Fine Dining (Dinner)",
+                            "arrival_time": "19:30",
+                            "departure_time": "21:00",
+                            "visit_duration_min": 90,
+                            "satisfaction_score": 1.63
+                        }
+                    ],
+                    "transport": [
+                        {
+                            "from": "START_DAY_3",
+                            "from_name": "START_DAY_3",
+                            "to": "LOC_012",
+                            "to_name": "Qutub Minar 12",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 16,
+                            "cost": 105.43187744807675
+                        },
+                        {
+                            "from": "LOC_012",
+                            "from_name": "Qutub Minar 12",
+                            "to": "LOC_LUNCH",
+                            "to_name": "Connaught Place Restaurants (Lunch)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 15,
+                            "cost": 98.87575431202868
+                        },
+                        {
+                            "from": "LOC_LUNCH",
+                            "from_name": "Connaught Place Restaurants (Lunch)",
+                            "to": "LOC_003",
+                            "to_name": "India Gate 3",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_003",
+                            "from_name": "India Gate 3",
+                            "to": "LOC_DINNER",
+                            "to_name": "Evening Fine Dining (Dinner)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_DINNER",
+                            "from_name": "Evening Fine Dining (Dinner)",
+                            "to": "END_DAY_3",
+                            "to_name": "END_DAY_3",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        }
+                    ]
+                },
+                "FAM_C": {
+                    "family_id": "FAM_C",
+                    "total_satisfaction": 4.87,
+                    "pois": [
+                        {
+                            "sequence": 1,
+                            "location_id": "LOC_012",
+                            "location_name": "Qutub Minar 12",
+                            "arrival_time": "09:16",
+                            "departure_time": "10:16",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 0.9
+                        },
+                        {
+                            "sequence": 2,
+                            "location_id": "LOC_LUNCH",
+                            "location_name": "Connaught Place Restaurants (Lunch)",
+                            "arrival_time": "12:30",
+                            "departure_time": "13:30",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.3
+                        },
+                        {
+                            "sequence": 3,
+                            "location_id": "LOC_003",
+                            "location_name": "India Gate 3",
+                            "arrival_time": "13:40",
+                            "departure_time": "14:25",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 1.3
+                        },
+                        {
+                            "sequence": 4,
+                            "location_id": "LOC_DINNER",
+                            "location_name": "Evening Fine Dining (Dinner)",
+                            "arrival_time": "19:30",
+                            "departure_time": "21:00",
+                            "visit_duration_min": 90,
+                            "satisfaction_score": 1.37
+                        }
+                    ],
+                    "transport": [
+                        {
+                            "from": "START_DAY_3",
+                            "from_name": "START_DAY_3",
+                            "to": "LOC_012",
+                            "to_name": "Qutub Minar 12",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 16,
+                            "cost": 105.43187744807675
+                        },
+                        {
+                            "from": "LOC_012",
+                            "from_name": "Qutub Minar 12",
+                            "to": "LOC_LUNCH",
+                            "to_name": "Connaught Place Restaurants (Lunch)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 15,
+                            "cost": 98.87575431202868
+                        },
+                        {
+                            "from": "LOC_LUNCH",
+                            "from_name": "Connaught Place Restaurants (Lunch)",
+                            "to": "LOC_003",
+                            "to_name": "India Gate 3",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_003",
+                            "from_name": "India Gate 3",
+                            "to": "LOC_DINNER",
+                            "to_name": "Evening Fine Dining (Dinner)",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_DINNER",
+                            "from_name": "Evening Fine Dining (Dinner)",
+                            "to": "END_DAY_3",
+                            "to_name": "END_DAY_3",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        }
+                    ]
+                }
+            },
+            "num_families": 3
+        }
+    ],
+    "total_trip_cost": 3427.596338495667,
+    "total_trip_time_min": 583
+}
