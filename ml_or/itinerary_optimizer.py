@@ -828,25 +828,77 @@ class ItineraryOptimizer:
         mins = minutes % 60
         return f"{hours:02d}:{mins:02d}"
 
+    def optimize_trip(
+        self,
+        family_ids: List[str],
+        num_days: int = 3,
+        lambda_divergence: float = 0.05
+    ) -> Dict:
+        """
+        STEP 10: Multi-Day Trip Optimization
+        Loops through days, optimizing one by one.
+        """
+        print(f"\n{'='*80}")
+        print(f"STEP 10: MULTI-DAY TRIP OPTIMIZATION ({num_days} Days)")
+        print(f"{'='*80}\n")
+        
+        trip_solution = {
+            "trip_id": self.base_itinerary.get("itinerary_id", "GENERIC_TRIP"),
+            "families": family_ids,
+            "days": [],
+            "total_trip_cost": 0,
+            "total_trip_time_min": 0,
+        }
+        
+        for day_idx in range(num_days):
+            print(f"\n>>> OPTIMIZING DAY {day_idx + 1} / {num_days} <<<")
+            
+            # Simple assumption: default time limits
+            day_result = self.optimize_multi_family_single_day(
+                family_ids,
+                day_index=day_idx,
+                max_pois=5, # Allow more POIs
+                time_limit_seconds=60,
+                lambda_divergence=lambda_divergence
+            )
+            
+            if day_result:
+                trip_solution["days"].append(day_result)
+                trip_solution["total_trip_cost"] += day_result["total_transport_cost"]
+                trip_solution["total_trip_time_min"] += day_result["total_transport_time_min"]
+                print(f"✅ DAY {day_idx + 1} COMPLETE")
+            else:
+                print(f"❌ DAY {day_idx + 1} FAILED (Infeasible)")
+                break
+                
+        return trip_solution
+
     def optimize_multi_family_single_day(
         self,
         family_ids: List[str] = ["FAM_001", "FAM_002"],
         day_index: int = 0,
         max_pois: int = 3,
         time_limit_seconds: int = 60,
-        lambda_divergence: float = 0.05  # Tuned to 0.05 (5 points) to be comparable with satisfaction
+        lambda_divergence: float = 0.05
     ) -> Optional[Dict]:
         """
-        STEP 9A: Optimize itinerary for MULTIPLE families, 1 day, shared POI set.
-        
-        Key Design:
-        - SHARED: POI set, transport graph, ordering variables y[i,j], flow constraints
-        - FAMILY-SPECIFIC: Visit decisions x[f,i], times arr[f,i]/dep[f,i], satisfaction
-        - COHERENCE: Explicit penalties for family divergence
+        STEP 9/10: Optimize itinerary for MULTIPLE families, 1 day.
+        Supports explicit physical Start/End locations (e.g. Hotel).
         """
         families = {fid: self.family_prefs[fid] for fid in family_ids}
+        
+        # Safe access to day data
+        if day_index >= len(self.base_itinerary['days']):
+            print(f"Error: Day index {day_index} out of range")
+            return None
+            
         day_data = self.base_itinerary['days'][day_index]
         assumptions = self.base_itinerary['assumptions']
+        
+        # STEP 10B: Physical Anchors
+        # Check if day has explicit start/end locations (e.g. LOC_HOTEL)
+        start_loc_id = day_data.get('start_location')
+        end_loc_id = day_data.get('end_location')
         
         day_start_min = self._time_to_minutes(assumptions['day_start_time'])
         day_end_min = self._time_to_minutes(assumptions['day_end_time'])
@@ -857,32 +909,31 @@ class ItineraryOptimizer:
         if not candidate_pois:
             return None
         
-        # STEP 9B′: Separate POIs by role (SKELETON vs BRANCH)
+        # STEP 9B′: Separate POIs by role
         skeleton_pois = []
         branch_pois = []
         
         for poi_id in candidate_pois:
             loc = self.locations[poi_id]
-            role = getattr(loc, 'role', 'SKELETON')  # Default to SKELETON if not specified
-            
+            role = getattr(loc, 'role', 'SKELETON')
             if role == 'SKELETON':
                 skeleton_pois.append(poi_id)
-            else:  # BRANCH
+            else:
                 branch_pois.append(poi_id)
         
-        print(f"\n[STEP 9B′] POI Classification:")
+        print(f"\n[DAY {day_index+1}] POI Classification:")
         print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")
         print(f"  - BRANCH POIs ({len(branch_pois)}): {branch_pois}")
+        if start_loc_id: print(f"  - START ANCHOR: {start_loc_id}")
+        if end_loc_id:   print(f"  - END ANCHOR:   {end_loc_id}")
         
         model = cp_model.CpModel()
         
         START_NODE = f"START_DAY_{day_index + 1}"
         END_NODE = f"END_DAY_{day_index + 1}"
         
-        # STEP 9B′: Shared ordering ONLY for skeleton POIs
-        # Branch POIs do NOT participate in shared ordering
         skeleton_nodes = [START_NODE] + skeleton_pois + [END_NODE]
-        all_nodes = [START_NODE] + candidate_pois + [END_NODE]  # Keep for compatibility
+        all_nodes = [START_NODE] + candidate_pois + [END_NODE]
         
         # SHARED: Ordering variables y[i,j] ONLY for skeleton nodes
         y = {}
@@ -896,7 +947,6 @@ class ItineraryOptimizer:
         for fid in family_ids:
             for poi in candidate_pois:
                 x[(fid, poi)] = model.NewBoolVar(f'visit_{fid}_{poi}')
-                # DO NOT force all POIs - allow families to skip based on preferences
         
         # FAMILY-SPECIFIC: Arrival and departure times
         arr = {}
@@ -913,14 +963,10 @@ class ItineraryOptimizer:
             dep[(fid, END_NODE)] = day_end_min
         
         # STEP 9C: Hybrid Synced TSP
-        # 1. Family-Specific Routing Variables (adj)
-        # adj[fid, i, j] = 1 if family fid physically travels i -> j
-        
         adj = {}
-        best_transport_edges = {}  # Pre-calculated best edge for (i, j)
+        best_transport_edges = {}
         
-        # Pre-calculate best transport edges to avoid variable explosion
-        # We assume families take the "best" available transport for any leg
+        # Pre-calculate best transport edges
         for i in all_nodes:
             for j in all_nodes:
                 if i == j or j == START_NODE or i == END_NODE:
@@ -929,20 +975,41 @@ class ItineraryOptimizer:
                 key = (i, j)
                 best_edge = None
                 
-                if i == START_NODE or j == END_NODE:
+                # Handling Start/End Anchors (Step 10B)
+                source_loc = i
+                target_loc = j
+                
+                is_logical_edge = False
+                
+                if i == START_NODE:
+                    if start_loc_id:
+                        source_loc = start_loc_id # Use physical hotel
+                    else:
+                        is_logical_edge = True # Legacy behavior
+                        
+                if j == END_NODE:
+                    if end_loc_id:
+                        target_loc = end_loc_id # Use physical hotel
+                    else:
+                        is_logical_edge = True
+                
+                if is_logical_edge:
                     best_edge = TransportEdge(
                         edge_id=f"LOGICAL_{i}_{j}",
                         from_loc=i, to_loc=j, mode="LOGICAL",
                         duration_min=0, cost=0, reliability=1.0
                     )
                 else:
+                    # Find real transport
+                    search_key = (source_loc, target_loc)
                     candidates = []
-                    if key in self.transport_lookup:
-                        candidates.extend(self.transport_lookup[key])
-                    candidates.append(self._create_fallback_transport(i, j))
+                    if search_key in self.transport_lookup:
+                        candidates.extend(self.transport_lookup[search_key])
                     
-                    # Select best by weighted score (time * 2 + cost)
-                    # This hardcodes the preference for speed/efficiency inside the edge selection
+                    # Always allow fallback if explicit transport missing
+                    candidates.append(self._create_fallback_transport(source_loc, target_loc))
+                    
+                    # Select best
                     best_edge = min(candidates, key=lambda e: e.duration_min * 2 + e.cost)
                 
                 best_transport_edges[key] = best_edge

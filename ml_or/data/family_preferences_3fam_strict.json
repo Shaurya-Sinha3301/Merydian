@@ -16,12 +16,13 @@
             "religious": 0.9
         },
         "must_visit_locations": [
-            "LOC_008"
+            "LOC_008",
+            "LOC_016"
         ],
         "never_visit_locations": [
             "LOC_011"
         ],
-        "notes": "Budget sensitive. History buff. HATES Red Fort."
+        "notes": "Budget sensitive. History buff. HATES Red Fort. LOVES Akshardham."
     },
     {
         "family_id": "FAM_B",
@@ -42,8 +43,10 @@
         "must_visit_locations": [
             "LOC_011"
         ],
-        "never_visit_locations": [],
-        "notes": "Time sensitive/Rich. Loves Nightlife. Must visit Red Fort (Branch)."
+        "never_visit_locations": [
+            "LOC_016"
+        ],
+        "notes": "Time sensitive. Loves Nightlife. Must Red Fort. Hates Akshardham."
     },
     {
         "family_id": "FAM_C",
@@ -62,9 +65,7 @@
             "religious": 0.5
         },
         "must_visit_locations": [],
-        "never_visit_locations": [
-            "LOC_011"
-        ],
-        "notes": "Neutral family. Also skipping Red Fort."
+        "never_visit_locations": [],
+        "notes": "Neutral family. Consenting to whatever."
     }
 ]
