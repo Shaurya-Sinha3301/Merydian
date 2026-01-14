@@ -2,7 +2,7 @@
   "family_id": "FAM_001",
   "day": 1,
   "objective_value": -3302.0000000000005,
-  "solve_time_seconds": 0.0229986,
+  "solve_time_seconds": 0.015423000000000001,
   "total_transport_cost": 100,
   "total_transport_time_min": 20,
   "order_deviation_count": 0,
