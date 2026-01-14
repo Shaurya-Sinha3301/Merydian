@@ -832,7 +832,7 @@ class ItineraryOptimizer:
         day_index: int = 0,
         max_pois: int = 3,
         time_limit_seconds: int = 60,
-        lambda_divergence: float = 0.5
+        lambda_divergence: float = 0.3  # Reduced from 0.5 to allow local divergence
     ) -> Optional[Dict]:
         """
         STEP 9A: Optimize itinerary for MULTIPLE families, 1 day, shared POI set.
@@ -873,7 +873,7 @@ class ItineraryOptimizer:
         for fid in family_ids:
             for poi in candidate_pois:
                 x[(fid, poi)] = model.NewBoolVar(f'visit_{fid}_{poi}')
-                model.Add(x[(fid, poi)] == 1)
+                # DO NOT force all POIs - allow families to skip based on preferences
         
         # FAMILY-SPECIFIC: Arrival and departure times
         arr = {}
@@ -1004,7 +1004,21 @@ class ItineraryOptimizer:
                     model.Add(sum(incoming) == 0).OnlyEnforceIf(x[(fid, poi)].Not())
                     model.Add(sum(outgoing) == 0).OnlyEnforceIf(x[(fid, poi)].Not())
         
-        # 6. FAMILY-SPECIFIC: Time bounds
+        # 6. FAMILY-SPECIFIC: Must-visit and never-visit constraints
+        for fid in family_ids:
+            family = families[fid]
+            
+            # Enforce must-visit locations
+            for must_visit_poi in family.must_visit_locations:
+                if must_visit_poi in candidate_pois:
+                    model.Add(x[(fid, must_visit_poi)] == 1)
+            
+            # Enforce never-visit locations
+            for never_visit_poi in family.never_visit_locations:
+                if never_visit_poi in candidate_pois:
+                    model.Add(x[(fid, never_visit_poi)] == 0)
+        
+        # 7. FAMILY-SPECIFIC: Time bounds
         for fid in family_ids:
             for poi in candidate_pois:
                 model.Add(arr[(fid, poi)] >= day_start_min)
@@ -1080,7 +1094,8 @@ class ItineraryOptimizer:
         
         coherence_loss = alpha * total_time + beta * total_cost + gamma * total_order_deviation + delta * total_divergence
         
-        lambda_coherence = 30
+        # TUNED PARAMETERS (reduced from 30 to allow divergence)
+        lambda_coherence = 10  # Reduced from 30 to balance satisfaction vs coherence
         objective = total_satisfaction - lambda_coherence * coherence_loss
         
         model.Maximize(objective)
