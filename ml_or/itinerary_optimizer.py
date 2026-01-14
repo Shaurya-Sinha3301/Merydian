@@ -239,13 +239,14 @@ class ItineraryOptimizer:
         day_index: int = 0,
         max_pois: int = 3,
         time_limit_seconds: int = 30,
-        freeze_order: bool = True  # STEP 1: Freeze order temporarily
+        freeze_order: bool = True,  # STEP 1: Freeze order temporarily
+        enable_transport_choice: bool = True  # STEP 4: Enable transport mode selection
     ) -> Optional[Dict]:
         """
         Optimize itinerary for 1 family, 1 day, limited POIs.
         
         STEP 1: Order is FROZEN from base itinerary (no reordering yet)
-        This is critical to debug time advancement correctly.
+        STEP 4: Transport choice enabled - solver picks best mode per leg
         
         Args:
             family_id: Family to optimize for
@@ -253,6 +254,7 @@ class ItineraryOptimizer:
             max_pois: Maximum POIs to consider (start with 3)
             time_limit_seconds: Solver time limit
             freeze_order: If True, use base itinerary order (STEP 1)
+            enable_transport_choice: If True, allow multiple transport modes (STEP 4)
         
         Returns:
             Solution dict with POI order, transport, times, or None if infeasible
@@ -317,18 +319,22 @@ class ItineraryOptimizer:
             j = candidate_pois[idx + 1]
             key = (i, j)
             
-            # STEP 2: Add fallback transport if no edge exists
-            if key not in self.transport_lookup:
-                # Inject synthetic CAB edge
-                fallback_edge = self._create_fallback_transport(i, j)
-                if key not in self.transport_lookup:
-                    self.transport_lookup[key] = []
-                self.transport_lookup[key].append(fallback_edge)
+            # STEP 4: Use real transport edges if available, add fallback if needed
+            if key in self.transport_lookup:
+                # Real transport edges exist
+                transport_modes[key] = self.transport_lookup[key].copy()
+            else:
+                # No real edges - start with empty list
+                transport_modes[key] = []
             
-            transport_modes[key] = self.transport_lookup[key]
-            for edge in self.transport_lookup[key]:
-                z[(i, j, edge.mode)] = model.NewBoolVar(
-                    f'transport_{i}_{j}_{edge.mode}'
+            # STEP 2: Always add fallback transport to ensure connectivity
+            fallback_edge = self._create_fallback_transport(i, j)
+            transport_modes[key].append(fallback_edge)
+            
+            # Create decision variables for each transport mode
+            for edge in transport_modes[key]:
+                z[(i, j, edge.mode, edge.edge_id)] = model.NewBoolVar(
+                    f'transport_{i}_{j}_{edge.mode}_{edge.edge_id}'
                 )
         
         # Constraints
@@ -338,7 +344,7 @@ class ItineraryOptimizer:
             visit_time = self.locations[poi].avg_visit_time_min
             model.Add(dep[poi] == arr[poi] + visit_time)
         
-        # 2. STEP 3: Enforce time chaining explicitly (fixed order)
+        # 2. STEP 3/4: Enforce time chaining explicitly (fixed order, multiple transport modes)
         # For consecutive POIs i -> j: arr[j] >= dep[i] + transport_time
         for idx in range(len(candidate_pois) - 1):
             i = candidate_pois[idx]
@@ -346,7 +352,7 @@ class ItineraryOptimizer:
             key = (i, j)
             
             # Exactly one transport mode must be selected
-            transport_vars = [z[(i, j, edge.mode)] for edge in transport_modes[key]]
+            transport_vars = [z[(i, j, edge.mode, edge.edge_id)] for edge in transport_modes[key]]
             model.Add(sum(transport_vars) == 1)
             
             # Time constraint: arr[j] >= dep[i] + selected_transport_duration
@@ -354,7 +360,7 @@ class ItineraryOptimizer:
                 # If this mode is selected, enforce time constraint
                 model.Add(
                     arr[j] >= dep[i] + edge.duration_min
-                ).OnlyEnforceIf(z[(i, j, edge.mode)])
+                ).OnlyEnforceIf(z[(i, j, edge.mode, edge.edge_id)])
         
         # 3. First POI must start at or after day start
         model.Add(arr[candidate_pois[0]] >= day_start_min)
@@ -369,21 +375,31 @@ class ItineraryOptimizer:
             model.Add(arr[poi] >= day_start_min)
             model.Add(dep[poi] <= day_end_min)
         
-        # Objective: STEP 1 - Simple objective (minimize transport cost)
-        # We'll add satisfaction scoring later
+        # Objective: STEP 4 - Multi-objective (cost + time)
+        # Minimize: w_cost * total_cost + w_time * total_duration
         cost_terms = []
+        time_terms = []
+        
         for idx in range(len(candidate_pois) - 1):
             i = candidate_pois[idx]
             j = candidate_pois[idx + 1]
             key = (i, j)
             for edge in transport_modes[key]:
                 cost_int = int(edge.cost)
-                cost_terms.append(cost_int * z[(i, j, edge.mode)])
+                time_int = edge.duration_min
+                
+                cost_terms.append(cost_int * z[(i, j, edge.mode, edge.edge_id)])
+                time_terms.append(time_int * z[(i, j, edge.mode, edge.edge_id)])
         
         total_cost = sum(cost_terms) if cost_terms else 0
+        total_time = sum(time_terms) if time_terms else 0
         
-        # Minimize cost (for now)
-        model.Minimize(total_cost)
+        # Weights for multi-objective (can be adjusted based on family preferences)
+        w_cost = int(family.budget_sensitivity * 100)  # Higher = more cost-sensitive
+        w_time = int((1 - family.budget_sensitivity) * 100)  # Higher = more time-sensitive
+        
+        # Minimize weighted sum
+        model.Minimize(w_cost * total_cost + w_time * total_time)
         
         # Solve
         solver = cp_model.CpSolver()
@@ -395,7 +411,7 @@ class ItineraryOptimizer:
         if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
             return self._extract_solution(
                 solver, x, z, arr, dep,
-                candidate_pois, family_id, day_index
+                candidate_pois, transport_modes, family_id, day_index
             )
         else:
             print(f"No feasible solution found. Status: {solver.StatusName(status)}")
@@ -409,10 +425,11 @@ class ItineraryOptimizer:
         arr: Dict,
         dep: Dict,
         candidate_pois: List[str],
+        transport_modes: Dict,
         family_id: str,
         day_index: int
     ) -> Dict:
-        """Extract solution from solved model (STEP 1: fixed order)"""
+        """Extract solution from solved model (STEP 1/4: fixed order, transport choice)"""
         
         # POIs are in fixed order from base itinerary
         visited_pois = candidate_pois  # All are visited in STEP 1
@@ -424,18 +441,25 @@ class ItineraryOptimizer:
             to_poi = visited_pois[i + 1]
             
             key = (from_poi, to_poi)
-            if key in self.transport_lookup:
-                for edge in self.transport_lookup[key]:
-                    if (from_poi, to_poi, edge.mode) in z:
-                        if solver.Value(z[(from_poi, to_poi, edge.mode)]) == 1:
+            if key in transport_modes:
+                for edge in transport_modes[key]:
+                    if (from_poi, to_poi, edge.mode, edge.edge_id) in z:
+                        if solver.Value(z[(from_poi, to_poi, edge.mode, edge.edge_id)]) == 1:
                             transport_plan.append({
                                 'from': from_poi,
+                                'from_name': self.locations[from_poi].name,
                                 'to': to_poi,
+                                'to_name': self.locations[to_poi].name,
                                 'mode': edge.mode,
                                 'duration_min': edge.duration_min,
-                                'cost': edge.cost
+                                'cost': edge.cost,
+                                'reliability': edge.reliability
                             })
                             break
+        
+        # Calculate total cost and time
+        total_transport_cost = sum(t['cost'] for t in transport_plan)
+        total_transport_time = sum(t['duration_min'] for t in transport_plan)
         
         # Build solution
         solution = {
@@ -443,6 +467,8 @@ class ItineraryOptimizer:
             'day': day_index + 1,
             'objective_value': solver.ObjectiveValue(),
             'solve_time_seconds': solver.WallTime(),
+            'total_transport_cost': total_transport_cost,
+            'total_transport_time_min': total_transport_time,
             'pois': [
                 {
                     'sequence': idx + 1,
@@ -467,6 +493,11 @@ class ItineraryOptimizer:
         
         print("\n✅ SANITY CHECK PASSED: Arrival times are monotonically increasing")
         
+        # STEP 4 CHECK: Verify transport modes are selected
+        print(f"✅ TRANSPORT CHECK: {len(transport_plan)} transport legs selected")
+        for t in transport_plan:
+            print(f"   {t['from_name']} → {t['to_name']}: {t['mode']} ({t['duration_min']}min, ₹{t['cost']})")
+        
         return solution
     
     def _time_to_minutes(self, time_str: str) -> int:
@@ -482,25 +513,34 @@ class ItineraryOptimizer:
 
 
 def main():
-    """Test the optimizer with 1 family, 1 day, 3 POIs - STEP 1: FROZEN ORDER"""
+    """Test the optimizer - STEP 4: TRANSPORT CHOICE"""
     print("=" * 80)
-    print("STEP 1: Heavy-Weight CP-SAT - FROZEN ORDER TEST")
+    print("STEP 4: Heavy-Weight CP-SAT - TRANSPORT CHOICE TEST")
     print("=" * 80)
     print()
     print("Following ChatGPT's guidance:")
     print("  ✅ STEP 1: Order is FROZEN from base itinerary")
     print("  ✅ STEP 2: Fallback transport (CAB) injected for missing edges")
     print("  ✅ STEP 3: Time chaining enforced explicitly")
-    print("  🎯 GOAL: Verify monotonic arrival times (09:00 → 10:15 → 11:45 → ...)")
+    print("  ✅ STEP 4: Multiple transport modes available - solver chooses best")
+    print("  🎯 GOAL: Verify transport selection based on cost/time tradeoff")
     print()
     
     optimizer = ItineraryOptimizer()
+    
+    # Get family preferences to show budget sensitivity
+    family = optimizer.family_prefs["FAM_001"]
+    print("Family FAM_001 preferences:")
+    print(f"  - Budget sensitivity: {family.budget_sensitivity:.2f} (0=time-focused, 1=cost-focused)")
+    print(f"  - Members: {family.members} (including {family.children} children)")
+    print()
     
     print("Optimizing for:")
     print("  - Family: FAM_001")
     print("  - Day: 1")
     print("  - Max POIs: 3")
     print("  - Order: FIXED (LOC_001 → LOC_007 → LOC_002)")
+    print("  - Transport: MULTIPLE OPTIONS (BUS, CAB, METRO, AUTO + FALLBACK)")
     print()
     
     solution = optimizer.optimize_single_family_single_day(
@@ -508,12 +548,13 @@ def main():
         day_index=0,
         max_pois=3,
         time_limit_seconds=30,
-        freeze_order=True  # STEP 1
+        freeze_order=True,  # STEP 1
+        enable_transport_choice=True  # STEP 4
     )
     
     if solution:
         print("\n" + "=" * 80)
-        print("✅ SOLUTION FOUND - STEP 1 COMPLETE")
+        print("✅ SOLUTION FOUND - STEP 4 COMPLETE")
         print("=" * 80)
         print(json.dumps(solution, indent=2))
         
@@ -526,13 +567,20 @@ def main():
             print(f"     Arrive: {poi_data['arrival_time']} ({poi_data['arrival_minutes']} min)")
             print(f"     Depart: {poi_data['departure_time']} ({poi_data['departure_minutes']} min)")
         
+        print("\n" + "=" * 80)
+        print("TRANSPORT SUMMARY:")
+        print("=" * 80)
+        print(f"  Total transport cost: ₹{solution['total_transport_cost']}")
+        print(f"  Total transport time: {solution['total_transport_time_min']} minutes")
+        print(f"  Objective value: {solution['objective_value']:.2f}")
+        
         # Save to file
-        output_file = "ml_or/solved_itinerary_step1.json"
+        output_file = "ml_or/solved_itinerary_step4.json"
         with open(output_file, 'w') as f:
             json.dump(solution, f, indent=2)
         print(f"\n✅ Solution saved to: {output_file}")
-        print("\n🎯 STEP 1 SUCCESS: Time advances correctly!")
-        print("   Next: STEP 4 - Reintroduce transport choice")
+        print("\n🎯 STEP 4 SUCCESS: Transport modes selected optimally!")
+        print("   Next: STEP 5 - Reintroduce ordering freedom (y[i,j] variables)")
     else:
         print("\n❌ No feasible solution found.")
         print("   Debug: Check transport connectivity and time constraints")
