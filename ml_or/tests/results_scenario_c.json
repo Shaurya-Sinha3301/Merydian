@@ -1,70 +1,41 @@
 {
   "day": 1,
-  "objective_value": 5.999999999994543,
-  "solve_time_seconds": 0.0196487,
+  "objective_value": 712.0,
+  "solve_time_seconds": 0.0225367,
   "shared_poi_order": [
-    "LOC_001",
-    "LOC_002"
+    "LOC_011"
   ],
-  "total_transport_cost": 50,
-  "total_transport_time_min": 10,
-  "transport": [
-    {
-      "from": "LOC_001",
-      "from_name": "Red Fort 1",
-      "to": "LOC_002",
-      "to_name": "Qutub Minar 2",
-      "mode": "CAB_FALLBACK",
-      "duration_min": 10,
-      "cost": 50
-    }
-  ],
+  "total_transport_cost": 0,
+  "total_transport_time_min": 0,
+  "transport": [],
   "families": {
     "FAM_001": {
       "family_id": "FAM_001",
-      "total_satisfaction": 2.18,
+      "total_satisfaction": 1.03,
       "pois": [
         {
           "sequence": 1,
-          "location_id": "LOC_001",
-          "location_name": "Red Fort 1",
+          "location_id": "LOC_011",
+          "location_name": "Red Fort 11",
           "arrival_time": "09:00",
-          "departure_time": "09:45",
-          "visit_duration_min": 45,
-          "satisfaction_score": 1.04
-        },
-        {
-          "sequence": 2,
-          "location_id": "LOC_002",
-          "location_name": "Qutub Minar 2",
-          "arrival_time": "09:55",
-          "departure_time": "10:40",
-          "visit_duration_min": 45,
-          "satisfaction_score": 1.15
+          "departure_time": "10:30",
+          "visit_duration_min": 90,
+          "satisfaction_score": 1.03
         }
       ]
     },
     "FAM_002": {
       "family_id": "FAM_002",
-      "total_satisfaction": 2.02,
+      "total_satisfaction": 1.46,
       "pois": [
         {
           "sequence": 1,
-          "location_id": "LOC_001",
-          "location_name": "Red Fort 1",
+          "location_id": "LOC_011",
+          "location_name": "Red Fort 11",
           "arrival_time": "09:00",
-          "departure_time": "09:45",
-          "visit_duration_min": 45,
-          "satisfaction_score": 1.0
-        },
-        {
-          "sequence": 2,
-          "location_id": "LOC_002",
-          "location_name": "Qutub Minar 2",
-          "arrival_time": "09:55",
-          "departure_time": "10:40",
-          "visit_duration_min": 45,
-          "satisfaction_score": 1.03
+          "departure_time": "10:30",
+          "visit_duration_min": 90,
+          "satisfaction_score": 1.46
         }
       ]
     }

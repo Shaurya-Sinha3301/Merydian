@@ -1017,6 +1017,11 @@ class ItineraryOptimizer:
             for never_visit_poi in family.never_visit_locations:
                 if never_visit_poi in candidate_pois:
                     model.Add(x[(fid, never_visit_poi)] == 0)
+            
+            # Enforce minimum POI visits (prevent single-POI solutions)
+            min_pois = min(3, len(candidate_pois))  # At least 3 POIs, or all if less than 3
+            poi_visit_sum = sum([x[(fid, poi)] for poi in candidate_pois])
+            model.Add(poi_visit_sum >= min_pois)
         
         # 7. FAMILY-SPECIFIC: Time bounds
         for fid in family_ids:
