@@ -173,20 +173,11 @@ class ItineraryOptimizer:
             lookup[key].append(edge)
         return lookup
     
-    def _create_fallback_transport(self, from_loc: str, to_loc: str) -> TransportEdge:
-        """
-        STEP 2: Create synthetic CAB transport when no edge exists.
-        
-        Uses Haversine distance to estimate:
-        - Duration: distance / 25 km/h (conservative city speed)
-        - Cost: distance * 15 per km
-        """
+    
+    def _haversine_distance(self, loc1: Location, loc2: Location) -> float:
+        """Calculate Haversine distance in km between two locations"""
         import math
         
-        loc1 = self.locations[from_loc]
-        loc2 = self.locations[to_loc]
-        
-        # Haversine distance in km
         lat1, lon1 = math.radians(loc1.lat), math.radians(loc1.lng)
         lat2, lon2 = math.radians(loc2.lat), math.radians(loc2.lng)
         
@@ -195,7 +186,20 @@ class ItineraryOptimizer:
         
         a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
         c = 2 * math.asin(math.sqrt(a))
-        distance_km = 6371 * c  # Earth radius in km
+        return 6371 * c  # Earth radius in km
+
+    def _create_fallback_transport(self, from_loc: str, to_loc: str) -> TransportEdge:
+        """
+        STEP 2: Create synthetic CAB transport when no edge exists.
+        
+        Uses Haversine distance to estimate:
+        - Duration: distance / 25 km/h (conservative city speed)
+        - Cost: distance * 15 per km
+        """
+        loc1 = self.locations[from_loc]
+        loc2 = self.locations[to_loc]
+        
+        distance_km = self._haversine_distance(loc1, loc2)
         
         # Estimate duration and cost
         duration_min = int(distance_km / 25 * 60)  # 25 km/h city speed
@@ -210,6 +214,90 @@ class ItineraryOptimizer:
             cost=max(50, cost),  # Minimum 50 cost
             reliability=0.85  # Reasonable reliability
         )
+            
+    def expand_branch_pois_for_day(
+        self,
+        day_index: int,
+        family_ids: List[str],
+        skeleton_filter: List[str],
+        base_pois_filter: List[str],
+        max_total_branch: int = 5,
+        radius_km: float = 5.0
+    ) -> List[str]:
+        """
+        STEP 15: Dynamically find candidate Branch POIs from locations.json
+        
+        Logic:
+        1. Calculate centroid of Skeleton POIs
+        2. Filter locations within radius_km
+        3. Score by family interests
+        4. Return top unique candidates
+        """
+        if not skeleton_filter:
+            return []
+            
+        # 1. Calculate Skeleton Centroid
+        lat_sum = 0.0
+        lng_sum = 0.0
+        for poi in skeleton_filter:
+            loc = self.locations[poi]
+            lat_sum += loc.lat
+            lng_sum += loc.lng
+            
+        center_lat = lat_sum / len(skeleton_filter)
+        center_lng = lng_sum / len(skeleton_filter)
+        
+        # Dummy location for center
+        center_loc = Location(
+            location_id="CENTER", name="Center", type="DUMMY", category="DUMMY",
+            lat=center_lat, lng=center_lng, avg_visit_time_min=0, cost=0,
+            repeatable=False, tags=[], base_importance=0, role="DUMMY"
+        )
+        
+        candidates = []
+        
+        # 2 & 3. Scan all locations
+        for loc_id, loc in self.locations.items():
+            # Skip if already in base plan
+            if loc_id in base_pois_filter:
+                continue
+            
+            # Skip disallowed types/categories if needed (optional)
+            if loc.category == "HOTEL": 
+                continue
+                
+            # Geo Filter
+            dist = self._haversine_distance(center_loc, loc)
+            if dist > radius_km:
+                continue
+                
+            # Preference Scoring
+            max_score = 0.0
+            
+            for fid in family_ids:
+                fam = self.family_prefs[fid]
+                if loc_id in fam.never_visit_locations:
+                    max_score = -1
+                    break
+                
+                score = self.calculate_satisfaction(fam, loc)
+                if score > max_score:
+                    max_score = score
+            
+            if max_score > 0:
+                candidates.append((loc_id, max_score))
+        
+        # 4. Rank and Cap
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        
+        # Take top N uniquely
+        final_list = [c[0] for c in candidates[:max_total_branch]]
+        
+        print(f"[EXPANSION] Found {len(final_list)} extra candidates near Skeleton centroid ({center_lat:.4f}, {center_lng:.4f})")
+        if final_list:
+            print(f"            Ids: {final_list}")
+            
+        return final_list
     
     def calculate_satisfaction(
         self,
@@ -921,9 +1009,46 @@ class ItineraryOptimizer:
             else:
                 branch_pois.append(poi_id)
         
-        print(f"\n[DAY {day_index+1}] POI Classification:")
+        print(f"\n[DAY {day_index+1}] POI Classification (Before Expansion):")
         print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")
         print(f"  - BRANCH POIs ({len(branch_pois)}): {branch_pois}")
+        
+        # STEP 15: Preference-Driven Branch Expansion
+        # Expand candidates from locations.json
+        expanded_pois = self.expand_branch_pois_for_day(
+            day_index=day_index,
+            family_ids=family_ids,
+            skeleton_filter=skeleton_pois,
+            base_pois_filter=base_pois, # Exclude anything already in base plan
+            max_total_branch=5, # Cap expansion
+            radius_km=5.0
+        )
+        
+        # Merge and Cap
+        # Note: We append expanded POIs to candidate_pois. 
+        # Since they are not in skeleton_pois, they are implicitly treated as BRANCH role
+        # equivalent once we set their role attribute dynamically or handle them as non-skeleton.
+        
+        original_count = len(candidate_pois)
+        for new_poi in expanded_pois:
+            if new_poi not in candidate_pois:
+                candidate_pois.append(new_poi)
+                branch_pois.append(new_poi)
+                # DYNAMICALY PATCH ROLE
+                if hasattr(self.locations[new_poi], 'role'):
+                     self.locations[new_poi].role = 'BRANCH'
+        
+        # Safety Cap (Exponential complexity protection)
+        MAX_TOTAL_CANDIDATES = 12
+        if len(candidate_pois) > MAX_TOTAL_CANDIDATES:
+             print(f"[WARNING] Pruning candidates from {len(candidate_pois)} to {MAX_TOTAL_CANDIDATES}")
+             candidate_pois = candidate_pois[:MAX_TOTAL_CANDIDATES]
+             
+        print(f"\n[DAY {day_index+1}] POI Classification (After Expansion):")
+        print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")
+        print(f"  - BRANCH POIs ({len(branch_pois)}): {branch_pois}")
+        print(f"  - TOTAL CANDIDATES: {len(candidate_pois)}")
+        
         if start_loc_id: print(f"  - START ANCHOR: {start_loc_id}")
         if end_loc_id:   print(f"  - END ANCHOR:   {end_loc_id}")
         
@@ -1212,9 +1337,10 @@ class ItineraryOptimizer:
             # But respect never-visit constraints
             available_skeleton = [poi for poi in skeleton_pois if poi not in family.never_visit_locations]
             if available_skeleton:
-                min_skeleton = max(2, len(available_skeleton))  # At least 2, or all available
+                # FIX: Don't force 2 if only 1 exists
+                desired_skeleton_visits = len(available_skeleton) 
                 skeleton_visit_sum = sum([x[(fid, poi)] for poi in available_skeleton])
-                model.Add(skeleton_visit_sum >= min_skeleton)
+                model.Add(skeleton_visit_sum >= desired_skeleton_visits)
         
         # NOTE: Equal POI count constraint removed - it prevents divergence
         # and makes problem infeasible when families have conflicting must-visit requirements
