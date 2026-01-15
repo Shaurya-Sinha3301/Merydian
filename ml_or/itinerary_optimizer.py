@@ -996,13 +996,28 @@ class ItineraryOptimizer:
         max_pois: int = 3,
         time_limit_seconds: int = 60,
         lambda_divergence: float = 0.05,
-        visited_history: Dict[str, set] = None # STEP 16: Added argument
+        visited_history: Dict[str, set] = None, # STEP 16: Added argument
+        override_start_state: Dict[str, Dict] = None, # STEP 7: Real-Time Start {fid: {'loc': id, 'time': min}}
+        forced_constraints: Dict[str, Dict] = None # STEP 7: Real-Time Constraints {fid: {'force_visit': [], 'force_skip': []}}
     ) -> Optional[Dict]:
         """
         STEP 9/10: Optimize itinerary for MULTIPLE families, 1 day.
         Supports explicit physical Start/End locations (e.g. Hotel).
+        Supports Real-Time Snapshot Solving via overrides.
         """
         families = {fid: self.family_prefs[fid] for fid in family_ids}
+        
+        # STEP 7: Real-Time Constraint Pre-Processing
+        # If user forces a visit to a POI that isn't in the candidate list,
+        # we MUST add it to the candidate list for this day.
+        # This effectively makes it a "Branch" POI injected by the user.
+        rt_forced_candidates = set()
+        if forced_constraints:
+            for fid, reqs in forced_constraints.items():
+                 for f_poi in reqs.get('force_visit', []):
+                     rt_forced_candidates.add(f_poi)
+
+
         
         # Safe access to day data
         if day_index >= len(self.base_itinerary['days']):
@@ -1031,12 +1046,37 @@ class ItineraryOptimizer:
         branch_pois = []
         
         for poi_id in candidate_pois:
+            # STEP 7: Pruning Past Skeletons
+            # If a Skeleton POI has been visited by ALL families, it belongs to the past.
+            # We must remove it to prevent "Ghost Precedence" constraints (forcing us to visit it again after start time).
+            is_global_history = True
+            if visited_history:
+                for fid in family_ids:
+                    if fid not in visited_history or poi_id not in visited_history[fid]:
+                        is_global_history = False
+                        break
+            else:
+                 is_global_history = False
+                 
             loc = self.locations[poi_id]
             role = getattr(loc, 'role', 'SKELETON')
+            
+            if role == 'SKELETON' and is_global_history:
+                print(f"  [REAL-TIME] Pruning Past Skeleton: {poi_id} (Already visited by all)")
+                continue
+
             if role == 'SKELETON':
                 skeleton_pois.append(poi_id)
             else:
                 branch_pois.append(poi_id)
+            
+            # Re-build filtered candidates list implicitly? 
+            # No, 'candidate_pois' is the source list. We need to construct a new list.
+        
+        # Determine actual surviving candidates based on the split above
+        # (Wait, we need to update candidate_pois to match skeleton_pois + branch_pois)
+        candidate_pois = skeleton_pois + branch_pois
+
         
         print(f"\n[DAY {day_index+1}] POI Classification (Before Expansion):")
         print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")
@@ -1057,6 +1097,15 @@ class ItineraryOptimizer:
         # Note: We append expanded POIs to candidate_pois. 
         # Since they are not in skeleton_pois, they are implicitly treated as BRANCH role
         # equivalent once we set their role attribute dynamically or handle them as non-skeleton.
+        
+        # STEP 7: Inject Forced Candidates
+        if rt_forced_candidates:
+             print(f"  [REAL-TIME] Injecting forced candidates: {rt_forced_candidates}")
+             for rt_poi in rt_forced_candidates:
+                 if rt_poi not in candidate_pois:
+                     candidate_pois.append(rt_poi)
+                     branch_pois.append(rt_poi)
+
         
         original_count = len(candidate_pois)
         for new_poi in expanded_pois:
@@ -1108,15 +1157,29 @@ class ItineraryOptimizer:
                     for past_poi in visited_history[fid]:
                         if past_poi in candidate_pois:
                             # EXEMPTION: If it is a skeleton POI for this day, allow revisit (mandatory)
-                            if past_poi in skeleton_pois:
+                            # UNLESS we are in Snapshot Mode (override_start_state), in which case "Visited" means "Done today", so we MUST ban it.
+                            is_snapshot = (override_start_state is not None)
+                            if past_poi in skeleton_pois and not is_snapshot:
                                 # print(f"DEBUG: {past_poi} is SKELETON on Day {day_index+1}, exempt from ban.")
                                 continue
+
                                 
                             loc_def = self.locations[past_poi]
                             if not loc_def.repeatable:
                                 # Ban revisit
                                 # print(f"  [CONSTRAINT] {fid} cannot revisit {loc_def.name} ({past_poi}) (Day {day_index+1})")
                                 banned_pois[fid].add(past_poi)
+
+        # STEP 7: Real-Time Manual Constraints (Force Skip)
+        if forced_constraints:
+            for fid in family_ids:
+                if fid in forced_constraints:
+                    # FORCE SKIP
+                    for skip_poi in forced_constraints[fid].get('force_skip', []):
+                         if skip_poi in candidate_pois:
+                             print(f"  [REAL-TIME] {fid} FORCE SKIP: {skip_poi}")
+                             banned_pois[fid].add(skip_poi)
+
 
         x = {}
         for fid in family_ids:
@@ -1141,18 +1204,44 @@ class ItineraryOptimizer:
         
         for poi_id in candidate_pois:
              details = poi_details.get(poi_id)
-             if details:
-                 # Start Window (e.g. Lunch must start after 12:30)
-                 if 'time_window_start' in details:
-                     min_start = self._time_to_minutes(details['time_window_start'])
-                     for fid in family_ids:
-                         model.Add(arr[(fid, poi_id)] >= min_start)
+             # TIME WINDOWS
+             # If details is None (e.g. Injected Branch POI), assume no constraints.
+             if not details:
+                 continue
                  
-                 # End Window (e.g. Lunch must end before 14:00)
-                 if 'time_window_end' in details:
-                     max_end = self._time_to_minutes(details['time_window_end'])
-                     for fid in family_ids:
-                         model.Add(dep[(fid, poi_id)] <= max_end)
+             # STEP 7: Relaxation - If this is the current location, ignore windows
+
+
+             # Start Window (e.g. Lunch must start after 12:30)
+             if 'time_window_start' in details:
+                 min_start = self._time_to_minutes(details['time_window_start'])
+                 for fid in family_ids:
+                     # Check override
+                     skip_window = False
+                     if override_start_state and fid in override_start_state:
+                         if override_start_state[fid].get('loc') == poi_id:
+                             skip_window = True
+                     
+                     if not skip_window:
+                        model.Add(arr[(fid, poi_id)] >= min_start)
+                     else:
+                        print(f"  [REAL-TIME] Skipping Window START for {poi_id} (Current Loc)")
+
+             # End Window (e.g. Lunch must end by 14:00)
+             if 'time_window_end' in details:
+                 max_end = self._time_to_minutes(details['time_window_end'])
+                 for fid in family_ids:
+                     # Check override
+                     skip_window = False
+                     if override_start_state and fid in override_start_state:
+                         if override_start_state[fid].get('loc') == poi_id:
+                             skip_window = True
+                             
+                     if not skip_window:
+                        model.Add(dep[(fid, poi_id)] <= max_end)
+                     else:
+                        print(f"  [REAL-TIME] Skipping Window END for {poi_id} (Current Loc)")
+
         
         for fid in family_ids:
             arr[(fid, START_NODE)] = day_start_min
@@ -1177,6 +1266,45 @@ class ItineraryOptimizer:
                 source_loc = i
                 target_loc = j
                 
+                def get_travel_cost(from_node, to_node, family_id):
+                    # STEP 7: Real-Time Start Location Override
+                    # If we are starting mid-day from a specific location, the "START_NODE"
+                    # should effectively BE that location.
+                    # Logic: If from_node == START_NODE and to_node == override_start_loc: cost = 0
+                    #        If from_node == START_NODE and to_node != override_start_loc: cost = INF (Force start at override)
+                    
+                    if override_start_state and family_id in override_start_state:
+                        ov_loc = override_start_state[family_id].get('loc')
+                        if from_node == START_NODE:
+                            if to_node == ov_loc:
+                                return 0, 0 # Zero cost to be where you already are
+                            elif to_node == END_NODE:
+                                 return 0, 0 # Allow immediate end if needed
+                            else:
+                                return 5000, 500 # Soft Ban (High Cost) instead of 99999
+
+                    
+                    # Normal Logic
+                    if from_node == START_NODE:
+                        # Distance from Hotel/Start Anchor
+                        r_start = start_loc_id if start_loc_id else "LOC_HOTEL" # Default fallback
+                        return self.transport_manager.get_travel_cost(r_start, to_node)
+                    elif to_node == END_NODE:
+                         r_end = end_loc_id if end_loc_id else "LOC_HOTEL"
+                         return self.transport_manager.get_travel_cost(from_node, r_end)
+                    else:
+                         return self.transport_manager.get_travel_cost(from_node, to_node)
+
+                # STEP 7: Apply Start Time Override
+                if override_start_state:
+                     for fid in family_ids:
+                         if fid in override_start_state:
+                             ov_time = override_start_state[fid].get('time')
+                             # Force departure from start node to be >= override time
+                             model.Add(dep[(fid, START_NODE)] >= ov_time)
+                             # Also update arr? Virtual Start Node arrival doesn't matter, but dep does.
+                             
+                # Minimize Total Transport Cost
                 is_logical_edge = False
                 
                 if i == START_NODE:
@@ -1378,10 +1506,27 @@ class ItineraryOptimizer:
         for fid in family_ids:
             family = families[fid]
             
-            # Enforce must-visit locations
-            for must_visit_poi in family.must_visit_locations:
-                if must_visit_poi in candidate_pois:
-                    model.Add(x[(fid, must_visit_poi)] == 1)
+            # 3. Must Visit (e.g. "must_visit": ["LOC_001"])
+            prefs = self.family_prefs[fid] # Access raw preferences object
+            # FIX: FamilyPreference is a dataclass, not a dict
+            must_visits = set(prefs.must_visit_locations)
+            
+            # STEP 7: Real-Time Force Visit
+            if forced_constraints and fid in forced_constraints:
+                forced_adds = forced_constraints[fid].get('force_visit', [])
+                for f_poi in forced_adds:
+                    if f_poi in candidate_pois:
+                        # Ensure it's not banned (Conflict resolution: Force Visit wins over History, but check feasibility)
+                        if f_poi in banned_pois[fid]:
+                             print(f"  [WARNING] Force Visit {f_poi} conflicts with Ban/History. Unbanning.")
+                             banned_pois[fid].remove(f_poi)
+                        must_visits.add(f_poi)
+                        print(f"  [REAL-TIME] {fid} FORCE VISIT: {f_poi}")
+
+            for mv_poi in must_visits:
+                if mv_poi in candidate_pois and mv_poi not in banned_pois[fid]:
+                    model.Add(x[(fid, mv_poi)] == 1)
+
             
             # Enforce never-visit locations
             for never_visit_poi in family.never_visit_locations:
