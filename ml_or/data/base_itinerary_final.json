@@ -32,7 +32,7 @@
                 },
                 {
                     "sequence": 3,
-                    "location_id": "LOC_011",
+                    "location_id": "LOC_001",
                     "role": "BRANCH",
                     "planned_visit_time_min": 90,
                     "comment": "Red Fort (Branch - Day 1 Conflict)"
@@ -62,14 +62,14 @@
             "pois": [
                 {
                     "sequence": 1,
-                    "location_id": "LOC_015",
+                    "location_id": "LOC_005",
                     "role": "SKELETON",
                     "planned_visit_time_min": 60,
                     "comment": "Humayun Tomb (Shared - Morning)"
                 },
                 {
                     "sequence": 2,
-                    "location_id": "LOC_016",
+                    "location_id": "LOC_006",
                     "role": "BRANCH",
                     "planned_visit_time_min": 120,
                     "comment": "Akshardham (Branch - Day 2 Conflict)"
@@ -108,7 +108,7 @@
             "pois": [
                 {
                     "sequence": 1,
-                    "location_id": "LOC_012",
+                    "location_id": "LOC_002",
                     "role": "SKELETON",
                     "planned_visit_time_min": 60,
                     "comment": "Qutub Minar (Shared)"

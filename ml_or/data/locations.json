@@ -1,1601 +1,519 @@
 [
-  {
-    "location_id": "LOC_HOTEL",
-    "name": "The Imperial Hotel (Connaught Place)",
-    "type": "HOTEL",
-    "category": "HARD_POI",
-    "lat": 28.6266,
-    "lng": 77.2184,
-    "avg_visit_time_min": 0,
-    "cost": 0,
-    "repeatable": true,
-    "tags": [
-      "luxury",
-      "central"
-    ],
-    "base_importance": 1.0,
-    "role": "SKELETON"
-  },
-  {
-    "location_id": "LOC_LUNCH",
-    "name": "Connaught Place Restaurants (Lunch)",
-    "type": "RESTAURANT",
-    "category": "HARD_POI",
-    "lat": 28.6315,
-    "lng": 77.2167,
-    "avg_visit_time_min": 60,
-    "cost": 50,
-    "repeatable": true,
-    "tags": [
-      "food",
-      "central"
-    ],
-    "base_importance": 1.0,
-    "role": "SKELETON"
-  },
-  {
-    "location_id": "LOC_DINNER",
-    "name": "Evening Fine Dining (Dinner)",
-    "type": "RESTAURANT",
-    "category": "HARD_POI",
-    "lat": 28.6315,
-    "lng": 77.2167,
-    "avg_visit_time_min": 90,
-    "cost": 150,
-    "repeatable": true,
-    "tags": [
-      "food",
-      "luxury",
-      "nightlife"
-    ],
-    "base_importance": 1.0,
-    "role": "SKELETON"
-  },
-  {
-    "location_id": "LOC_001",
-    "name": "Red Fort 1",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.651448,
-    "lng": 77.194082,
-    "avg_visit_time_min": 45,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "nature",
-      "culture"
-    ],
-    "base_importance": 0.83,
-    "role": "SKELETON"
-  },
-  {
-    "location_id": "LOC_002",
-    "name": "Qutub Minar 2",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.665802,
-    "lng": 77.180063,
-    "avg_visit_time_min": 45,
-    "cost": 0,
-    "repeatable": false,
-    "tags": [
-      "budget",
-      "history"
-    ],
-    "base_importance": 0.79,
-    "role": "SKELETON"
-  },
-  {
-    "location_id": "LOC_003",
-    "name": "India Gate 3",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.660043,
-    "lng": 77.216381,
-    "avg_visit_time_min": 45,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "food",
-      "shopping"
-    ],
-    "base_importance": 0.84,
-    "role": "SKELETON"
-  },
-  {
-    "location_id": "LOC_004",
-    "name": "Lotus Temple 4",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.53902,
-    "lng": 77.263652,
-    "avg_visit_time_min": 120,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "culture",
-      "nature"
-    ],
-    "base_importance": 0.84
-  },
-  {
-    "location_id": "LOC_005",
-    "name": "Humayun Tomb 5",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.673723,
-    "lng": 77.167852,
-    "avg_visit_time_min": 60,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "nature",
-      "architecture"
-    ],
-    "base_importance": 0.73
-  },
-  {
-    "location_id": "LOC_006",
-    "name": "Akshardham 6",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.599879,
-    "lng": 77.150625,
-    "avg_visit_time_min": 120,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "nightlife",
-      "culture"
-    ],
-    "base_importance": 0.73
-  },
-  {
-    "location_id": "LOC_007",
-    "name": "Jama Masjid 7",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.639686,
-    "lng": 77.171004,
-    "avg_visit_time_min": 45,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "budget",
-      "nightlife"
-    ],
-    "base_importance": 0.76
-  },
-  {
-    "location_id": "LOC_008",
-    "name": "Raj Ghat 8",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.583341,
-    "lng": 77.196648,
-    "avg_visit_time_min": 45,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "religious",
-      "nature"
-    ],
-    "base_importance": 0.85,
-    "role": "SKELETON"
-  },
-  {
-    "location_id": "LOC_009",
-    "name": "Purana Qila 9",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.607399,
-    "lng": 77.156208,
-    "avg_visit_time_min": 60,
-    "cost": 100,
-    "repeatable": false,
-    "tags": [
-      "history",
-      "luxury"
-    ],
-    "base_importance": 0.73
-  },
-  {
-    "location_id": "LOC_010",
-    "name": "Safdarjung Tomb 10",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.64301,
-    "lng": 77.208924,
-    "avg_visit_time_min": 60,
-    "cost": 0,
-    "repeatable": false,
-    "tags": [
-      "history",
-      "architecture"
-    ],
-    "base_importance": 0.63,
-    "role": "SKELETON"
-  },
-  {
-    "location_id": "LOC_011",
-    "name": "Red Fort 11",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.568689,
-    "lng": 77.257494,
-    "avg_visit_time_min": 90,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "nightlife",
-      "shopping"
-    ],
-    "base_importance": 0.86,
-    "role": "BRANCH"
-  },
-  {
-    "location_id": "LOC_012",
-    "name": "Qutub Minar 12",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.662569,
-    "lng": 77.159171,
-    "avg_visit_time_min": 60,
-    "cost": 100,
-    "repeatable": false,
-    "tags": [
-      "nightlife",
-      "nature"
-    ],
-    "base_importance": 0.6
-  },
-  {
-    "location_id": "LOC_013",
-    "name": "India Gate 13",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.627417,
-    "lng": 77.254395,
-    "avg_visit_time_min": 90,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "culture",
-      "luxury"
-    ],
-    "base_importance": 0.89
-  },
-  {
-    "location_id": "LOC_014",
-    "name": "Lotus Temple 14",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.523982,
-    "lng": 77.14414,
-    "avg_visit_time_min": 45,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "religious",
-      "nightlife"
-    ],
-    "base_importance": 0.84,
-    "role": "BRANCH"
-  },
-  {
-    "location_id": "LOC_015",
-    "name": "Humayun Tomb 15",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.580172,
-    "lng": 77.127411,
-    "avg_visit_time_min": 45,
-    "cost": 100,
-    "repeatable": false,
-    "tags": [
-      "nightlife",
-      "food"
-    ],
-    "base_importance": 0.61
-  },
-  {
-    "location_id": "LOC_016",
-    "name": "Akshardham 16",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.629782,
-    "lng": 77.155635,
-    "avg_visit_time_min": 60,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "nature",
-      "religious"
-    ],
-    "base_importance": 0.93
-  },
-  {
-    "location_id": "LOC_017",
-    "name": "Jama Masjid 17",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.561104,
-    "lng": 77.180271,
-    "avg_visit_time_min": 60,
-    "cost": 100,
-    "repeatable": false,
-    "tags": [
-      "architecture",
-      "nightlife"
-    ],
-    "base_importance": 0.76
-  },
-  {
-    "location_id": "LOC_018",
-    "name": "Raj Ghat 18",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.586731,
-    "lng": 77.138364,
-    "avg_visit_time_min": 60,
-    "cost": 100,
-    "repeatable": false,
-    "tags": [
-      "budget",
-      "nature"
-    ],
-    "base_importance": 0.89
-  },
-  {
-    "location_id": "LOC_019",
-    "name": "Purana Qila 19",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.676898,
-    "lng": 77.264126,
-    "avg_visit_time_min": 90,
-    "cost": 100,
-    "repeatable": false,
-    "tags": [
-      "luxury",
-      "history"
-    ],
-    "base_importance": 0.78
-  },
-  {
-    "location_id": "LOC_020",
-    "name": "Safdarjung Tomb 20",
-    "type": "POI",
-    "category": "HARD_POI",
-    "lat": 28.628296,
-    "lng": 77.140968,
-    "avg_visit_time_min": 45,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "history",
-      "culture"
-    ],
-    "base_importance": 0.93
-  },
-  {
-    "location_id": "LOC_021",
-    "name": "Red Fort 21",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.580349,
-    "lng": 77.241918,
-    "avg_visit_time_min": 45,
-    "cost": 100,
-    "repeatable": false,
-    "tags": [
-      "nightlife",
-      "shopping"
-    ],
-    "base_importance": 0.79
-  },
-  {
-    "location_id": "LOC_022",
-    "name": "Qutub Minar 22",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.59497,
-    "lng": 77.21155,
-    "avg_visit_time_min": 120,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "nature",
-      "history"
-    ],
-    "base_importance": 0.75
-  },
-  {
-    "location_id": "LOC_023",
-    "name": "India Gate 23",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.585218,
-    "lng": 77.263988,
-    "avg_visit_time_min": 120,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "budget",
-      "shopping"
-    ],
-    "base_importance": 0.65
-  },
-  {
-    "location_id": "LOC_024",
-    "name": "Lotus Temple 24",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.554592,
-    "lng": 77.130856,
-    "avg_visit_time_min": 90,
-    "cost": 100,
-    "repeatable": false,
-    "tags": [
-      "nightlife",
-      "luxury"
-    ],
-    "base_importance": 0.86
-  },
-  {
-    "location_id": "LOC_025",
-    "name": "Humayun Tomb 25",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.57283,
-    "lng": 77.236158,
-    "avg_visit_time_min": 120,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "nature",
-      "shopping"
-    ],
-    "base_importance": 0.94
-  },
-  {
-    "location_id": "LOC_026",
-    "name": "Akshardham 26",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.66816,
-    "lng": 77.271613,
-    "avg_visit_time_min": 120,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "religious",
-      "culture"
-    ],
-    "base_importance": 0.91
-  },
-  {
-    "location_id": "LOC_027",
-    "name": "Jama Masjid 27",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.658568,
-    "lng": 77.138433,
-    "avg_visit_time_min": 45,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "culture",
-      "nightlife"
-    ],
-    "base_importance": 0.89
-  },
-  {
-    "location_id": "LOC_028",
-    "name": "Raj Ghat 28",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.579543,
-    "lng": 77.223257,
-    "avg_visit_time_min": 90,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "luxury",
-      "budget"
-    ],
-    "base_importance": 0.61
-  },
-  {
-    "location_id": "LOC_029",
-    "name": "Purana Qila 29",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.585944,
-    "lng": 77.269435,
-    "avg_visit_time_min": 90,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "architecture",
-      "nature"
-    ],
-    "base_importance": 0.85
-  },
-  {
-    "location_id": "LOC_030",
-    "name": "Safdarjung Tomb 30",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.644812,
-    "lng": 77.205555,
-    "avg_visit_time_min": 90,
-    "cost": 0,
-    "repeatable": false,
-    "tags": [
-      "luxury",
-      "nature"
-    ],
-    "base_importance": 0.93
-  },
-  {
-    "location_id": "LOC_031",
-    "name": "Red Fort 31",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.587939,
-    "lng": 77.195506,
-    "avg_visit_time_min": 120,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "budget",
-      "history"
-    ],
-    "base_importance": 0.81
-  },
-  {
-    "location_id": "LOC_032",
-    "name": "Qutub Minar 32",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.57798,
-    "lng": 77.210616,
-    "avg_visit_time_min": 60,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "religious",
-      "budget"
-    ],
-    "base_importance": 0.81
-  },
-  {
-    "location_id": "LOC_033",
-    "name": "India Gate 33",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.595227,
-    "lng": 77.160117,
-    "avg_visit_time_min": 90,
-    "cost": 0,
-    "repeatable": false,
-    "tags": [
-      "religious",
-      "shopping"
-    ],
-    "base_importance": 0.71
-  },
-  {
-    "location_id": "LOC_034",
-    "name": "Lotus Temple 34",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.541435,
-    "lng": 77.196578,
-    "avg_visit_time_min": 45,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "nature",
-      "luxury"
-    ],
-    "base_importance": 0.86
-  },
-  {
-    "location_id": "LOC_035",
-    "name": "Humayun Tomb 35",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.633095,
-    "lng": 77.271034,
-    "avg_visit_time_min": 45,
-    "cost": 100,
-    "repeatable": false,
-    "tags": [
-      "history",
-      "nature"
-    ],
-    "base_importance": 0.93
-  },
-  {
-    "location_id": "LOC_036",
-    "name": "Akshardham 36",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.668678,
-    "lng": 77.259602,
-    "avg_visit_time_min": 45,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "shopping",
-      "nature"
-    ],
-    "base_importance": 0.76
-  },
-  {
-    "location_id": "LOC_037",
-    "name": "Jama Masjid 37",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.669943,
-    "lng": 77.239248,
-    "avg_visit_time_min": 120,
-    "cost": 20,
-    "repeatable": false,
-    "tags": [
-      "shopping",
-      "budget"
-    ],
-    "base_importance": 0.65
-  },
-  {
-    "location_id": "LOC_038",
-    "name": "Raj Ghat 38",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.530166,
-    "lng": 77.226187,
-    "avg_visit_time_min": 60,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "history",
-      "shopping"
-    ],
-    "base_importance": 0.64
-  },
-  {
-    "location_id": "LOC_039",
-    "name": "Purana Qila 39",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.630706,
-    "lng": 77.193034,
-    "avg_visit_time_min": 120,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "religious",
-      "architecture"
-    ],
-    "base_importance": 0.75
-  },
-  {
-    "location_id": "LOC_040",
-    "name": "Safdarjung Tomb 40",
-    "type": "POI",
-    "category": "SOFT_POI",
-    "lat": 28.58237,
-    "lng": 77.164779,
-    "avg_visit_time_min": 90,
-    "cost": 50,
-    "repeatable": false,
-    "tags": [
-      "nature",
-      "culture"
-    ],
-    "base_importance": 0.64
-  },
-  {
-    "location_id": "LOC_041",
-    "name": "Karim's 1",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.5509,
-    "lng": 77.254783,
-    "avg_visit_time_min": 30,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.7
-  },
-  {
-    "location_id": "LOC_042",
-    "name": "Saravana Bhavan 2",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.533737,
-    "lng": 77.261529,
-    "avg_visit_time_min": 45,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.67
-  },
-  {
-    "location_id": "LOC_043",
-    "name": "Bukhara 3",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.528565,
-    "lng": 77.228159,
-    "avg_visit_time_min": 45,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.76
-  },
-  {
-    "location_id": "LOC_044",
-    "name": "Indian Accent 4",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.533878,
-    "lng": 77.139395,
-    "avg_visit_time_min": 45,
-    "cost": 400,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.67
-  },
-  {
-    "location_id": "LOC_045",
-    "name": "Haldiram 5",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.553006,
-    "lng": 77.146197,
-    "avg_visit_time_min": 45,
-    "cost": 600,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.66
-  },
-  {
-    "location_id": "LOC_046",
-    "name": "Parikrama 6",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.666466,
-    "lng": 77.215209,
-    "avg_visit_time_min": 60,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.74
-  },
-  {
-    "location_id": "LOC_047",
-    "name": "Gulati 7",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.556287,
-    "lng": 77.212125,
-    "avg_visit_time_min": 45,
-    "cost": 600,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.77
-  },
-  {
-    "location_id": "LOC_048",
-    "name": "Moti Mahal 8",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.579358,
-    "lng": 77.216301,
-    "avg_visit_time_min": 30,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.6
-  },
-  {
-    "location_id": "LOC_049",
-    "name": "Social 9",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.679712,
-    "lng": 77.238803,
-    "avg_visit_time_min": 45,
-    "cost": 600,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.77
-  },
-  {
-    "location_id": "LOC_050",
-    "name": "Barbeque Nation 10",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.584509,
-    "lng": 77.184556,
-    "avg_visit_time_min": 30,
-    "cost": 400,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.68
-  },
-  {
-    "location_id": "LOC_051",
-    "name": "Karim's 11",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.639947,
-    "lng": 77.127761,
-    "avg_visit_time_min": 30,
-    "cost": 600,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.55
-  },
-  {
-    "location_id": "LOC_052",
-    "name": "Saravana Bhavan 12",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.523929,
-    "lng": 77.12204,
-    "avg_visit_time_min": 60,
-    "cost": 600,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.64
-  },
-  {
-    "location_id": "LOC_053",
-    "name": "Bukhara 13",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.665219,
-    "lng": 77.274424,
-    "avg_visit_time_min": 60,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.7
-  },
-  {
-    "location_id": "LOC_054",
-    "name": "Indian Accent 14",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.63452,
-    "lng": 77.162124,
-    "avg_visit_time_min": 45,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.63
-  },
-  {
-    "location_id": "LOC_055",
-    "name": "Haldiram 15",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.563578,
-    "lng": 77.165387,
-    "avg_visit_time_min": 60,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.67
-  },
-  {
-    "location_id": "LOC_056",
-    "name": "Parikrama 16",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.634093,
-    "lng": 77.129761,
-    "avg_visit_time_min": 30,
-    "cost": 600,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.69
-  },
-  {
-    "location_id": "LOC_057",
-    "name": "Gulati 17",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.625161,
-    "lng": 77.219424,
-    "avg_visit_time_min": 30,
-    "cost": 400,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.7
-  },
-  {
-    "location_id": "LOC_058",
-    "name": "Moti Mahal 18",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.53473,
-    "lng": 77.263188,
-    "avg_visit_time_min": 30,
-    "cost": 400,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.64
-  },
-  {
-    "location_id": "LOC_059",
-    "name": "Social 19",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.610544,
-    "lng": 77.240836,
-    "avg_visit_time_min": 60,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.79
-  },
-  {
-    "location_id": "LOC_060",
-    "name": "Barbeque Nation 20",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.57746,
-    "lng": 77.135698,
-    "avg_visit_time_min": 30,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.72
-  },
-  {
-    "location_id": "LOC_061",
-    "name": "Karim's 21",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.630373,
-    "lng": 77.130321,
-    "avg_visit_time_min": 30,
-    "cost": 400,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.53
-  },
-  {
-    "location_id": "LOC_062",
-    "name": "Saravana Bhavan 22",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.622295,
-    "lng": 77.25451,
-    "avg_visit_time_min": 60,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.62
-  },
-  {
-    "location_id": "LOC_063",
-    "name": "Bukhara 23",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.600206,
-    "lng": 77.266508,
-    "avg_visit_time_min": 45,
-    "cost": 400,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.52
-  },
-  {
-    "location_id": "LOC_064",
-    "name": "Indian Accent 24",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.635525,
-    "lng": 77.247969,
-    "avg_visit_time_min": 30,
-    "cost": 400,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.72
-  },
-  {
-    "location_id": "LOC_065",
-    "name": "Haldiram 25",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.562059,
-    "lng": 77.200132,
-    "avg_visit_time_min": 60,
-    "cost": 400,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.71
-  },
-  {
-    "location_id": "LOC_066",
-    "name": "Parikrama 26",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.546562,
-    "lng": 77.199797,
-    "avg_visit_time_min": 45,
-    "cost": 400,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.56
-  },
-  {
-    "location_id": "LOC_067",
-    "name": "Gulati 27",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.637435,
-    "lng": 77.27105,
-    "avg_visit_time_min": 30,
-    "cost": 600,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.79
-  },
-  {
-    "location_id": "LOC_068",
-    "name": "Moti Mahal 28",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.611537,
-    "lng": 77.124704,
-    "avg_visit_time_min": 30,
-    "cost": 400,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.77
-  },
-  {
-    "location_id": "LOC_069",
-    "name": "Social 29",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.678579,
-    "lng": 77.2706,
-    "avg_visit_time_min": 60,
-    "cost": 600,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.57
-  },
-  {
-    "location_id": "LOC_070",
-    "name": "Barbeque Nation 30",
-    "type": "RESTAURANT",
-    "category": "UTILITY_POI",
-    "lat": 28.576269,
-    "lng": 77.165487,
-    "avg_visit_time_min": 45,
-    "cost": 250,
-    "repeatable": true,
-    "tags": [
-      "food"
-    ],
-    "base_importance": 0.58
-  },
-  {
-    "location_id": "LOC_071",
-    "name": "The Oberoi 1",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.627922,
-    "lng": 77.131878,
-    "avg_visit_time_min": 0,
-    "cost": 4000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.61
-  },
-  {
-    "location_id": "LOC_072",
-    "name": "Taj Palace 2",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.616933,
-    "lng": 77.233281,
-    "avg_visit_time_min": 0,
-    "cost": 8000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.58
-  },
-  {
-    "location_id": "LOC_073",
-    "name": "Leela Palace 3",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.620019,
-    "lng": 77.126633,
-    "avg_visit_time_min": 0,
-    "cost": 2000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.53
-  },
-  {
-    "location_id": "LOC_074",
-    "name": "ITC Maurya 4",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.599101,
-    "lng": 77.178888,
-    "avg_visit_time_min": 0,
-    "cost": 8000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.62
-  },
-  {
-    "location_id": "LOC_075",
-    "name": "Radisson Blu 5",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.620967,
-    "lng": 77.182334,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.54
-  },
-  {
-    "location_id": "LOC_076",
-    "name": "Budget Inn 6",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.580154,
-    "lng": 77.264253,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.57
-  },
-  {
-    "location_id": "LOC_077",
-    "name": "City Stay 7",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.652962,
-    "lng": 77.274981,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.65
-  },
-  {
-    "location_id": "LOC_078",
-    "name": "Hotel Pearl 8",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.566833,
-    "lng": 77.262306,
-    "avg_visit_time_min": 0,
-    "cost": 8000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.76
-  },
-  {
-    "location_id": "LOC_079",
-    "name": "Metro View 9",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.521142,
-    "lng": 77.208165,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.59
-  },
-  {
-    "location_id": "LOC_080",
-    "name": "Urban Nest 10",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.535197,
-    "lng": 77.262195,
-    "avg_visit_time_min": 0,
-    "cost": 4000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.71
-  },
-  {
-    "location_id": "LOC_081",
-    "name": "The Oberoi 11",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.63038,
-    "lng": 77.279873,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.84
-  },
-  {
-    "location_id": "LOC_082",
-    "name": "Taj Palace 12",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.570087,
-    "lng": 77.240013,
-    "avg_visit_time_min": 0,
-    "cost": 2000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.51
-  },
-  {
-    "location_id": "LOC_083",
-    "name": "Leela Palace 13",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.614823,
-    "lng": 77.17669,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.68
-  },
-  {
-    "location_id": "LOC_084",
-    "name": "ITC Maurya 14",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.661404,
-    "lng": 77.219892,
-    "avg_visit_time_min": 0,
-    "cost": 8000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.84
-  },
-  {
-    "location_id": "LOC_085",
-    "name": "Radisson Blu 15",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.675777,
-    "lng": 77.18872,
-    "avg_visit_time_min": 0,
-    "cost": 8000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.54
-  },
-  {
-    "location_id": "LOC_086",
-    "name": "Budget Inn 16",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.541379,
-    "lng": 77.173867,
-    "avg_visit_time_min": 0,
-    "cost": 2000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.75
-  },
-  {
-    "location_id": "LOC_087",
-    "name": "City Stay 17",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.549608,
-    "lng": 77.270304,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.63
-  },
-  {
-    "location_id": "LOC_088",
-    "name": "Hotel Pearl 18",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.625044,
-    "lng": 77.190404,
-    "avg_visit_time_min": 0,
-    "cost": 8000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.59
-  },
-  {
-    "location_id": "LOC_089",
-    "name": "Metro View 19",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.572993,
-    "lng": 77.186944,
-    "avg_visit_time_min": 0,
-    "cost": 4000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.68
-  },
-  {
-    "location_id": "LOC_090",
-    "name": "Urban Nest 20",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.640885,
-    "lng": 77.164676,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.72
-  },
-  {
-    "location_id": "LOC_091",
-    "name": "The Oberoi 21",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.626508,
-    "lng": 77.190241,
-    "avg_visit_time_min": 0,
-    "cost": 8000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.71
-  },
-  {
-    "location_id": "LOC_092",
-    "name": "Taj Palace 22",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.58237,
-    "lng": 77.131666,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.56
-  },
-  {
-    "location_id": "LOC_093",
-    "name": "Leela Palace 23",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.52576,
-    "lng": 77.197592,
-    "avg_visit_time_min": 0,
-    "cost": 8000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.79
-  },
-  {
-    "location_id": "LOC_094",
-    "name": "ITC Maurya 24",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.546323,
-    "lng": 77.159797,
-    "avg_visit_time_min": 0,
-    "cost": 4000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.55
-  },
-  {
-    "location_id": "LOC_095",
-    "name": "Radisson Blu 25",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.659138,
-    "lng": 77.21097,
-    "avg_visit_time_min": 0,
-    "cost": 2000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.69
-  },
-  {
-    "location_id": "LOC_096",
-    "name": "Budget Inn 26",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.590418,
-    "lng": 77.279462,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.79
-  },
-  {
-    "location_id": "LOC_097",
-    "name": "City Stay 27",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.583897,
-    "lng": 77.272616,
-    "avg_visit_time_min": 0,
-    "cost": 8000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.84
-  },
-  {
-    "location_id": "LOC_098",
-    "name": "Hotel Pearl 28",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.613637,
-    "lng": 77.233434,
-    "avg_visit_time_min": 0,
-    "cost": 12000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.7
-  },
-  {
-    "location_id": "LOC_099",
-    "name": "Metro View 29",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.590505,
-    "lng": 77.211605,
-    "avg_visit_time_min": 0,
-    "cost": 2000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.65
-  },
-  {
-    "location_id": "LOC_100",
-    "name": "Urban Nest 30",
-    "type": "HOTEL",
-    "category": "UTILITY_POI",
-    "lat": 28.580783,
-    "lng": 77.187243,
-    "avg_visit_time_min": 0,
-    "cost": 4000,
-    "repeatable": true,
-    "tags": [
-      "hotel"
-    ],
-    "base_importance": 0.84
-  }
+    {
+        "location_id": "LOC_001",
+        "name": "Red Fort 1",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.651448,
+        "lng": 77.194082,
+        "avg_visit_time_min": 45,
+        "cost": 50,
+        "repeatable": false,
+        "tags": [
+            "nature",
+            "culture"
+        ],
+        "base_importance": 0.83,
+        "role": "SKELETON"
+    },
+    {
+        "location_id": "LOC_002",
+        "name": "Qutub Minar 2",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.665802,
+        "lng": 77.180063,
+        "avg_visit_time_min": 45,
+        "cost": 0,
+        "repeatable": false,
+        "tags": [
+            "budget",
+            "history"
+        ],
+        "base_importance": 0.79,
+        "role": "SKELETON"
+    },
+    {
+        "location_id": "LOC_003",
+        "name": "India Gate 3",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.660043,
+        "lng": 77.216381,
+        "avg_visit_time_min": 45,
+        "cost": 20,
+        "repeatable": false,
+        "tags": [
+            "food",
+            "shopping"
+        ],
+        "base_importance": 0.84,
+        "role": "SKELETON"
+    },
+    {
+        "location_id": "LOC_004",
+        "name": "Lotus Temple 4",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.53902,
+        "lng": 77.263652,
+        "avg_visit_time_min": 120,
+        "cost": 20,
+        "repeatable": false,
+        "tags": [
+            "culture",
+            "nature"
+        ],
+        "base_importance": 0.84
+    },
+    {
+        "location_id": "LOC_005",
+        "name": "Humayun Tomb 5",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.673723,
+        "lng": 77.167852,
+        "avg_visit_time_min": 60,
+        "cost": 20,
+        "repeatable": false,
+        "tags": [
+            "nature",
+            "architecture"
+        ],
+        "base_importance": 0.73
+    },
+    {
+        "location_id": "LOC_006",
+        "name": "Akshardham 6",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.599879,
+        "lng": 77.150625,
+        "avg_visit_time_min": 120,
+        "cost": 50,
+        "repeatable": false,
+        "tags": [
+            "nightlife",
+            "culture"
+        ],
+        "base_importance": 0.73
+    },
+    {
+        "location_id": "LOC_007",
+        "name": "Jama Masjid 7",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.639686,
+        "lng": 77.171004,
+        "avg_visit_time_min": 45,
+        "cost": 50,
+        "repeatable": false,
+        "tags": [
+            "budget",
+            "nightlife"
+        ],
+        "base_importance": 0.76
+    },
+    {
+        "location_id": "LOC_008",
+        "name": "Raj Ghat 8",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.583341,
+        "lng": 77.196648,
+        "avg_visit_time_min": 45,
+        "cost": 20,
+        "repeatable": false,
+        "tags": [
+            "religious",
+            "nature"
+        ],
+        "base_importance": 0.85,
+        "role": "SKELETON"
+    },
+    {
+        "location_id": "LOC_009",
+        "name": "Purana Qila 9",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.607399,
+        "lng": 77.156208,
+        "avg_visit_time_min": 60,
+        "cost": 100,
+        "repeatable": false,
+        "tags": [
+            "history",
+            "luxury"
+        ],
+        "base_importance": 0.73
+    },
+    {
+        "location_id": "LOC_010",
+        "name": "Safdarjung Tomb 10",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.64301,
+        "lng": 77.208924,
+        "avg_visit_time_min": 60,
+        "cost": 0,
+        "repeatable": false,
+        "tags": [
+            "history",
+            "architecture"
+        ],
+        "base_importance": 0.63,
+        "role": "SKELETON"
+    },
+    {
+        "location_id": "LOC_041",
+        "name": "Karim's 1",
+        "type": "RESTAURANT",
+        "category": "UTILITY_POI",
+        "lat": 28.5509,
+        "lng": 77.254783,
+        "avg_visit_time_min": 30,
+        "cost": 250,
+        "repeatable": true,
+        "tags": [
+            "food"
+        ],
+        "base_importance": 0.7
+    },
+    {
+        "location_id": "LOC_042",
+        "name": "Saravana Bhavan 2",
+        "type": "RESTAURANT",
+        "category": "UTILITY_POI",
+        "lat": 28.533737,
+        "lng": 77.261529,
+        "avg_visit_time_min": 45,
+        "cost": 250,
+        "repeatable": true,
+        "tags": [
+            "food"
+        ],
+        "base_importance": 0.67
+    },
+    {
+        "location_id": "LOC_043",
+        "name": "Bukhara 3",
+        "type": "RESTAURANT",
+        "category": "UTILITY_POI",
+        "lat": 28.528565,
+        "lng": 77.228159,
+        "avg_visit_time_min": 45,
+        "cost": 250,
+        "repeatable": true,
+        "tags": [
+            "food"
+        ],
+        "base_importance": 0.76
+    },
+    {
+        "location_id": "LOC_044",
+        "name": "Indian Accent 4",
+        "type": "RESTAURANT",
+        "category": "UTILITY_POI",
+        "lat": 28.533878,
+        "lng": 77.139395,
+        "avg_visit_time_min": 45,
+        "cost": 400,
+        "repeatable": true,
+        "tags": [
+            "food"
+        ],
+        "base_importance": 0.67
+    },
+    {
+        "location_id": "LOC_045",
+        "name": "Haldiram 5",
+        "type": "RESTAURANT",
+        "category": "UTILITY_POI",
+        "lat": 28.553006,
+        "lng": 77.146197,
+        "avg_visit_time_min": 45,
+        "cost": 600,
+        "repeatable": true,
+        "tags": [
+            "food"
+        ],
+        "base_importance": 0.66
+    },
+    {
+        "location_id": "LOC_046",
+        "name": "Parikrama 6",
+        "type": "RESTAURANT",
+        "category": "UTILITY_POI",
+        "lat": 28.666466,
+        "lng": 77.215209,
+        "avg_visit_time_min": 60,
+        "cost": 250,
+        "repeatable": true,
+        "tags": [
+            "food"
+        ],
+        "base_importance": 0.74
+    },
+    {
+        "location_id": "LOC_047",
+        "name": "Gulati 7",
+        "type": "RESTAURANT",
+        "category": "UTILITY_POI",
+        "lat": 28.556287,
+        "lng": 77.212125,
+        "avg_visit_time_min": 45,
+        "cost": 600,
+        "repeatable": true,
+        "tags": [
+            "food"
+        ],
+        "base_importance": 0.77
+    },
+    {
+        "location_id": "LOC_048",
+        "name": "Moti Mahal 8",
+        "type": "RESTAURANT",
+        "category": "UTILITY_POI",
+        "lat": 28.579358,
+        "lng": 77.216301,
+        "avg_visit_time_min": 30,
+        "cost": 250,
+        "repeatable": true,
+        "tags": [
+            "food"
+        ],
+        "base_importance": 0.6
+    },
+    {
+        "location_id": "LOC_049",
+        "name": "Social 9",
+        "type": "RESTAURANT",
+        "category": "UTILITY_POI",
+        "lat": 28.679712,
+        "lng": 77.238803,
+        "avg_visit_time_min": 45,
+        "cost": 600,
+        "repeatable": true,
+        "tags": [
+            "food"
+        ],
+        "base_importance": 0.77
+    },
+    {
+        "location_id": "LOC_050",
+        "name": "Barbeque Nation 10",
+        "type": "RESTAURANT",
+        "category": "UTILITY_POI",
+        "lat": 28.584509,
+        "lng": 77.184556,
+        "avg_visit_time_min": 30,
+        "cost": 400,
+        "repeatable": true,
+        "tags": [
+            "food"
+        ],
+        "base_importance": 0.68
+    },
+    {
+        "location_id": "LOC_071",
+        "name": "The Oberoi 1",
+        "type": "HOTEL",
+        "category": "UTILITY_POI",
+        "lat": 28.627922,
+        "lng": 77.131878,
+        "avg_visit_time_min": 0,
+        "cost": 4000,
+        "repeatable": true,
+        "tags": [
+            "hotel"
+        ],
+        "base_importance": 0.61
+    },
+    {
+        "location_id": "LOC_072",
+        "name": "Taj Palace 2",
+        "type": "HOTEL",
+        "category": "UTILITY_POI",
+        "lat": 28.616933,
+        "lng": 77.233281,
+        "avg_visit_time_min": 0,
+        "cost": 8000,
+        "repeatable": true,
+        "tags": [
+            "hotel"
+        ],
+        "base_importance": 0.58
+    },
+    {
+        "location_id": "LOC_073",
+        "name": "Leela Palace 3",
+        "type": "HOTEL",
+        "category": "UTILITY_POI",
+        "lat": 28.620019,
+        "lng": 77.126633,
+        "avg_visit_time_min": 0,
+        "cost": 2000,
+        "repeatable": true,
+        "tags": [
+            "hotel"
+        ],
+        "base_importance": 0.53
+    },
+    {
+        "location_id": "LOC_074",
+        "name": "ITC Maurya 4",
+        "type": "HOTEL",
+        "category": "UTILITY_POI",
+        "lat": 28.599101,
+        "lng": 77.178888,
+        "avg_visit_time_min": 0,
+        "cost": 8000,
+        "repeatable": true,
+        "tags": [
+            "hotel"
+        ],
+        "base_importance": 0.62
+    },
+    {
+        "location_id": "LOC_075",
+        "name": "Radisson Blu 5",
+        "type": "HOTEL",
+        "category": "UTILITY_POI",
+        "lat": 28.620967,
+        "lng": 77.182334,
+        "avg_visit_time_min": 0,
+        "cost": 12000,
+        "repeatable": true,
+        "tags": [
+            "hotel"
+        ],
+        "base_importance": 0.54
+    },
+    {
+        "location_id": "LOC_076",
+        "name": "Budget Inn 6",
+        "type": "HOTEL",
+        "category": "UTILITY_POI",
+        "lat": 28.580154,
+        "lng": 77.264253,
+        "avg_visit_time_min": 0,
+        "cost": 12000,
+        "repeatable": true,
+        "tags": [
+            "hotel"
+        ],
+        "base_importance": 0.57
+    },
+    {
+        "location_id": "LOC_077",
+        "name": "City Stay 7",
+        "type": "HOTEL",
+        "category": "UTILITY_POI",
+        "lat": 28.652962,
+        "lng": 77.274981,
+        "avg_visit_time_min": 0,
+        "cost": 12000,
+        "repeatable": true,
+        "tags": [
+            "hotel"
+        ],
+        "base_importance": 0.65
+    },
+    {
+        "location_id": "LOC_078",
+        "name": "Hotel Pearl 8",
+        "type": "HOTEL",
+        "category": "UTILITY_POI",
+        "lat": 28.566833,
+        "lng": 77.262306,
+        "avg_visit_time_min": 0,
+        "cost": 8000,
+        "repeatable": true,
+        "tags": [
+            "hotel"
+        ],
+        "base_importance": 0.76
+    },
+    {
+        "location_id": "LOC_079",
+        "name": "Metro View 9",
+        "type": "HOTEL",
+        "category": "UTILITY_POI",
+        "lat": 28.521142,
+        "lng": 77.208165,
+        "avg_visit_time_min": 0,
+        "cost": 12000,
+        "repeatable": true,
+        "tags": [
+            "hotel"
+        ],
+        "base_importance": 0.59
+    },
+    {
+        "location_id": "LOC_080",
+        "name": "Urban Nest 10",
+        "type": "HOTEL",
+        "category": "UTILITY_POI",
+        "lat": 28.535197,
+        "lng": 77.262195,
+        "avg_visit_time_min": 0,
+        "cost": 4000,
+        "repeatable": true,
+        "tags": [
+            "hotel"
+        ],
+        "base_importance": 0.71
+    },
+    {
+        "location_id": "LOC_DINNER",
+        "name": "Evening Fine Dining (Dinner)",
+        "type": "RESTAURANT",
+        "category": "HARD_POI",
+        "lat": 28.6315,
+        "lng": 77.2167,
+        "avg_visit_time_min": 90,
+        "cost": 150,
+        "repeatable": true,
+        "tags": [
+            "food",
+            "luxury",
+            "nightlife"
+        ],
+        "base_importance": 1.0,
+        "role": "SKELETON"
+    },
+    {
+        "location_id": "LOC_HOTEL",
+        "name": "The Imperial Hotel (Connaught Place)",
+        "type": "HOTEL",
+        "category": "HARD_POI",
+        "lat": 28.6266,
+        "lng": 77.2184,
+        "avg_visit_time_min": 0,
+        "cost": 0,
+        "repeatable": true,
+        "tags": [
+            "luxury",
+            "central"
+        ],
+        "base_importance": 1.0,
+        "role": "SKELETON"
+    },
+    {
+        "location_id": "LOC_LUNCH",
+        "name": "Connaught Place Restaurants (Lunch)",
+        "type": "RESTAURANT",
+        "category": "HARD_POI",
+        "lat": 28.6315,
+        "lng": 77.2167,
+        "avg_visit_time_min": 60,
+        "cost": 50,
+        "repeatable": true,
+        "tags": [
+            "food",
+            "central"
+        ],
+        "base_importance": 1.0,
+        "role": "SKELETON"
+    }
 ]

@@ -20,7 +20,7 @@
             "LOC_016"
         ],
         "never_visit_locations": [
-            "LOC_011"
+            "LOC_001"
         ],
         "notes": "Budget sensitive. History buff. HATES Red Fort. LOVES Akshardham."
     },
@@ -41,10 +41,10 @@
             "religious": 0.1
         },
         "must_visit_locations": [
-            "LOC_011"
+            "LOC_001"
         ],
         "never_visit_locations": [
-            "LOC_016"
+            "LOC_006"
         ],
         "notes": "Time sensitive. Loves Nightlife. Must Red Fort. Hates Akshardham."
     },

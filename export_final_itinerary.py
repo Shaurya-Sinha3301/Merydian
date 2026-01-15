@@ -31,9 +31,29 @@ def export_itinerary():
         with open(output_path, 'w') as f:
             json.dump(trip_result, f, indent=4)
             
-        print(f"\n✅ Successfully exported itinerary to: {output_path}")
+        print(f"\nSuccessfully exported itinerary to: {output_path}")
         print(f"   Trip ID: {trip_result['trip_id']}")
         print(f"   Total Cost: {trip_result['total_trip_cost']}")
+        
+        # Readable Print Logic
+        print("\n" + "="*60)
+        print("FINAL OPTIMIZED ITINERARY (3 DAYS)")
+        print("="*60)
+        
+        for day in trip_result['days']:
+            print(f"\n>>>> DAY {day['day']} <<<<")
+            print(f"Shared POI Order: {day.get('shared_poi_order', [])}")
+            print("-" * 40)
+            
+            for fid, fam_data in day['families'].items():
+                print(f"  {fid}:")
+                for poi in fam_data['pois']:
+                    loc_name = poi.get('location_name', 'Unknown')
+                    t_arr = poi.get('arrival_time', '??:??')
+                    t_dep = poi.get('departure_time', '??:??')
+                    print(f"    - {t_arr}-{t_dep}: {loc_name}")
+            print("="*60)
+            
     else:
         print("\n❌ Optimization Failed. No file exported.")
 

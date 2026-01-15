@@ -173,20 +173,11 @@ class ItineraryOptimizer:
             lookup[key].append(edge)
         return lookup
     
-    def _create_fallback_transport(self, from_loc: str, to_loc: str) -> TransportEdge:
-        """
-        STEP 2: Create synthetic CAB transport when no edge exists.
-        
-        Uses Haversine distance to estimate:
-        - Duration: distance / 25 km/h (conservative city speed)
-        - Cost: distance * 15 per km
-        """
+    
+    def _haversine_distance(self, loc1: Location, loc2: Location) -> float:
+        """Calculate Haversine distance in km between two locations"""
         import math
         
-        loc1 = self.locations[from_loc]
-        loc2 = self.locations[to_loc]
-        
-        # Haversine distance in km
         lat1, lon1 = math.radians(loc1.lat), math.radians(loc1.lng)
         lat2, lon2 = math.radians(loc2.lat), math.radians(loc2.lng)
         
@@ -195,7 +186,20 @@ class ItineraryOptimizer:
         
         a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
         c = 2 * math.asin(math.sqrt(a))
-        distance_km = 6371 * c  # Earth radius in km
+        return 6371 * c  # Earth radius in km
+
+    def _create_fallback_transport(self, from_loc: str, to_loc: str) -> TransportEdge:
+        """
+        STEP 2: Create synthetic CAB transport when no edge exists.
+        
+        Uses Haversine distance to estimate:
+        - Duration: distance / 25 km/h (conservative city speed)
+        - Cost: distance * 15 per km
+        """
+        loc1 = self.locations[from_loc]
+        loc2 = self.locations[to_loc]
+        
+        distance_km = self._haversine_distance(loc1, loc2)
         
         # Estimate duration and cost
         duration_min = int(distance_km / 25 * 60)  # 25 km/h city speed
@@ -210,6 +214,90 @@ class ItineraryOptimizer:
             cost=max(50, cost),  # Minimum 50 cost
             reliability=0.85  # Reasonable reliability
         )
+            
+    def expand_branch_pois_for_day(
+        self,
+        day_index: int,
+        family_ids: List[str],
+        skeleton_filter: List[str],
+        base_pois_filter: List[str],
+        max_total_branch: int = 5,
+        radius_km: float = 5.0
+    ) -> List[str]:
+        """
+        STEP 15: Dynamically find candidate Branch POIs from locations.json
+        
+        Logic:
+        1. Calculate centroid of Skeleton POIs
+        2. Filter locations within radius_km
+        3. Score by family interests
+        4. Return top unique candidates
+        """
+        if not skeleton_filter:
+            return []
+            
+        # 1. Calculate Skeleton Centroid
+        lat_sum = 0.0
+        lng_sum = 0.0
+        for poi in skeleton_filter:
+            loc = self.locations[poi]
+            lat_sum += loc.lat
+            lng_sum += loc.lng
+            
+        center_lat = lat_sum / len(skeleton_filter)
+        center_lng = lng_sum / len(skeleton_filter)
+        
+        # Dummy location for center
+        center_loc = Location(
+            location_id="CENTER", name="Center", type="DUMMY", category="DUMMY",
+            lat=center_lat, lng=center_lng, avg_visit_time_min=0, cost=0,
+            repeatable=False, tags=[], base_importance=0, role="DUMMY"
+        )
+        
+        candidates = []
+        
+        # 2 & 3. Scan all locations
+        for loc_id, loc in self.locations.items():
+            # Skip if already in base plan
+            if loc_id in base_pois_filter:
+                continue
+            
+            # Skip disallowed types/categories if needed (optional)
+            if loc.category == "HOTEL": 
+                continue
+                
+            # Geo Filter
+            dist = self._haversine_distance(center_loc, loc)
+            if dist > radius_km:
+                continue
+                
+            # Preference Scoring
+            max_score = 0.0
+            
+            for fid in family_ids:
+                fam = self.family_prefs[fid]
+                if loc_id in fam.never_visit_locations:
+                    max_score = -1
+                    break
+                
+                score = self.calculate_satisfaction(fam, loc)
+                if score > max_score:
+                    max_score = score
+            
+            if max_score > 0:
+                candidates.append((loc_id, max_score))
+        
+        # 4. Rank and Cap
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        
+        # Take top N uniquely
+        final_list = [c[0] for c in candidates[:max_total_branch]]
+        
+        print(f"[EXPANSION] Found {len(final_list)} extra candidates near Skeleton centroid ({center_lat:.4f}, {center_lng:.4f})")
+        if final_list:
+            print(f"            Ids: {final_list}")
+            
+        return final_list
     
     def calculate_satisfaction(
         self,
@@ -300,6 +388,19 @@ class ItineraryOptimizer:
         # All nodes = START + POIs + END
         all_nodes = [START_NODE] + candidate_pois + [END_NODE]
         
+        # STEP 16 DEBUG:
+        if day_index == 1: # Day 2 (0-indexed)
+             print(f"DEBUG_DAY2: Visited History Keys: {list(visited_history.keys()) if visited_history else 'None'}")
+             if visited_history:
+                 for f, h in visited_history.items():
+                     print(f"DEBUG_DAY2: History for {f}: {h}")
+             print(f"DEBUG_DAY2: Skeleton POIs: {skeleton_pois}")
+             print(f"DEBUG_DAY2: Candidate POIs (first 10): {candidate_pois[:10]}")
+             if 'LOC_010' in candidate_pois:
+                 print("DEBUG_DAY2: LOC_010 IS in candidate_pois")
+             else:
+                 print("DEBUG_DAY2: LOC_010 is NOT in candidate_pois")
+
         # Decision variables
         # x[i] = 1 if POI i is visited
         x = {}
@@ -525,6 +626,9 @@ class ItineraryOptimizer:
         for poi in candidate_pois:
             model.Add(arr[poi] >= day_start_min)
             model.Add(dep[poi] <= day_end_min)
+        
+        # STEP 16 LOGIC MOVED TO MULTI-FAMILY METHOD
+        # (This block was misplaced and is now removed)
         
         # Objective: STEP 8 PART A - Satisfaction - Coherence Loss (with proper scaling)
         # maximize Σ_f [ Satisfaction(f) − λ·CoherenceLoss(f) ]
@@ -850,6 +954,9 @@ class ItineraryOptimizer:
             "total_trip_time_min": 0,
         }
         
+        # STEP 16: Initialize visited history for multi-day tracking
+        visited_history: Dict[str, set] = {fid: set() for fid in family_ids}
+        
         for day_idx in range(num_days):
             print(f"\n>>> OPTIMIZING DAY {day_idx + 1} / {num_days} <<<")
             
@@ -859,16 +966,25 @@ class ItineraryOptimizer:
                 day_index=day_idx,
                 max_pois=5, # Allow more POIs
                 time_limit_seconds=60,
-                lambda_divergence=lambda_divergence
+                lambda_divergence=lambda_divergence,
+                visited_history=visited_history # STEP 16: Pass history
             )
             
             if day_result:
                 trip_solution["days"].append(day_result)
                 trip_solution["total_trip_cost"] += day_result["total_transport_cost"]
                 trip_solution["total_trip_time_min"] += day_result["total_transport_time_min"]
-                print(f"✅ DAY {day_idx + 1} COMPLETE")
+                
+                # STEP 16: Update History (Restored)
+                for fid, fam_data in day_result['families'].items():
+                    for poi in fam_data['pois']:
+                        pid = poi['location_id']
+                        if visited_history and fid in visited_history:
+                             visited_history[fid].add(pid)
+                             
+                print(f"DAY {day_idx + 1} COMPLETE")
             else:
-                print(f"❌ DAY {day_idx + 1} FAILED (Infeasible)")
+                print(f"DAY {day_idx + 1} FAILED (Infeasible)")
                 break
                 
         return trip_solution
@@ -879,7 +995,8 @@ class ItineraryOptimizer:
         day_index: int = 0,
         max_pois: int = 3,
         time_limit_seconds: int = 60,
-        lambda_divergence: float = 0.05
+        lambda_divergence: float = 0.05,
+        visited_history: Dict[str, set] = None # STEP 16: Added argument
     ) -> Optional[Dict]:
         """
         STEP 9/10: Optimize itinerary for MULTIPLE families, 1 day.
@@ -921,9 +1038,46 @@ class ItineraryOptimizer:
             else:
                 branch_pois.append(poi_id)
         
-        print(f"\n[DAY {day_index+1}] POI Classification:")
+        print(f"\n[DAY {day_index+1}] POI Classification (Before Expansion):")
         print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")
         print(f"  - BRANCH POIs ({len(branch_pois)}): {branch_pois}")
+        
+        # STEP 15: Preference-Driven Branch Expansion
+        # Expand candidates from locations.json
+        expanded_pois = self.expand_branch_pois_for_day(
+            day_index=day_index,
+            family_ids=family_ids,
+            skeleton_filter=skeleton_pois,
+            base_pois_filter=base_pois, # Exclude anything already in base plan
+            max_total_branch=5, # Cap expansion
+            radius_km=5.0
+        )
+        
+        # Merge and Cap
+        # Note: We append expanded POIs to candidate_pois. 
+        # Since they are not in skeleton_pois, they are implicitly treated as BRANCH role
+        # equivalent once we set their role attribute dynamically or handle them as non-skeleton.
+        
+        original_count = len(candidate_pois)
+        for new_poi in expanded_pois:
+            if new_poi not in candidate_pois:
+                candidate_pois.append(new_poi)
+                branch_pois.append(new_poi)
+                # DYNAMICALY PATCH ROLE
+                if hasattr(self.locations[new_poi], 'role'):
+                     self.locations[new_poi].role = 'BRANCH'
+        
+        # Safety Cap (Exponential complexity protection)
+        MAX_TOTAL_CANDIDATES = 12
+        if len(candidate_pois) > MAX_TOTAL_CANDIDATES:
+             print(f"[WARNING] Pruning candidates from {len(candidate_pois)} to {MAX_TOTAL_CANDIDATES}")
+             candidate_pois = candidate_pois[:MAX_TOTAL_CANDIDATES]
+             
+        print(f"\n[DAY {day_index+1}] POI Classification (After Expansion):")
+        print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")
+        print(f"  - BRANCH POIs ({len(branch_pois)}): {branch_pois}")
+        print(f"  - TOTAL CANDIDATES: {len(candidate_pois)}")
+        
         if start_loc_id: print(f"  - START ANCHOR: {start_loc_id}")
         if end_loc_id:   print(f"  - END ANCHOR:   {end_loc_id}")
         
@@ -943,10 +1097,36 @@ class ItineraryOptimizer:
                     y[(i, j)] = model.NewBoolVar(f'order_{i}_before_{j}')
         
         # FAMILY-SPECIFIC: Visit decisions x[f,i]
+        
+        # STEP 16: Enforce Global Repeatability (Applied to x)
+        # Banned POIs will just have x implied to 0 (or forced)
+        banned_pois = {fid: set() for fid in family_ids}
+        
+        if visited_history:
+            for fid in family_ids:
+                if fid in visited_history:
+                    for past_poi in visited_history[fid]:
+                        if past_poi in candidate_pois:
+                            # EXEMPTION: If it is a skeleton POI for this day, allow revisit (mandatory)
+                            if past_poi in skeleton_pois:
+                                # print(f"DEBUG: {past_poi} is SKELETON on Day {day_index+1}, exempt from ban.")
+                                continue
+                                
+                            loc_def = self.locations[past_poi]
+                            if not loc_def.repeatable:
+                                # Ban revisit
+                                # print(f"  [CONSTRAINT] {fid} cannot revisit {loc_def.name} ({past_poi}) (Day {day_index+1})")
+                                banned_pois[fid].add(past_poi)
+
         x = {}
         for fid in family_ids:
             for poi in candidate_pois:
                 x[(fid, poi)] = model.NewBoolVar(f'visit_{fid}_{poi}')
+                
+                # Apply Ban
+                if poi in banned_pois[fid]:
+                    model.Add(x[(fid, poi)] == 0)
+        # (Duplicate loop removed)
         
         # FAMILY-SPECIFIC: Arrival and departure times
         arr = {}
@@ -1212,9 +1392,10 @@ class ItineraryOptimizer:
             # But respect never-visit constraints
             available_skeleton = [poi for poi in skeleton_pois if poi not in family.never_visit_locations]
             if available_skeleton:
-                min_skeleton = max(2, len(available_skeleton))  # At least 2, or all available
+                # FIX: Don't force 2 if only 1 exists
+                desired_skeleton_visits = len(available_skeleton) 
                 skeleton_visit_sum = sum([x[(fid, poi)] for poi in available_skeleton])
-                model.Add(skeleton_visit_sum >= min_skeleton)
+                model.Add(skeleton_visit_sum >= desired_skeleton_visits)
         
         # NOTE: Equal POI count constraint removed - it prevents divergence
         # and makes problem infeasible when families have conflicting must-visit requirements
