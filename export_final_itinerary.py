@@ -31,7 +31,7 @@ def export_itinerary():
         with open(output_path, 'w') as f:
             json.dump(trip_result, f, indent=4)
             
-        print(f"\n✅ Successfully exported itinerary to: {output_path}")
+        print(f"\nSuccessfully exported itinerary to: {output_path}")
         print(f"   Trip ID: {trip_result['trip_id']}")
         print(f"   Total Cost: {trip_result['total_trip_cost']}")
         

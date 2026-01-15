@@ -388,6 +388,19 @@ class ItineraryOptimizer:
         # All nodes = START + POIs + END
         all_nodes = [START_NODE] + candidate_pois + [END_NODE]
         
+        # STEP 16 DEBUG:
+        if day_index == 1: # Day 2 (0-indexed)
+             print(f"DEBUG_DAY2: Visited History Keys: {list(visited_history.keys()) if visited_history else 'None'}")
+             if visited_history:
+                 for f, h in visited_history.items():
+                     print(f"DEBUG_DAY2: History for {f}: {h}")
+             print(f"DEBUG_DAY2: Skeleton POIs: {skeleton_pois}")
+             print(f"DEBUG_DAY2: Candidate POIs (first 10): {candidate_pois[:10]}")
+             if 'LOC_010' in candidate_pois:
+                 print("DEBUG_DAY2: LOC_010 IS in candidate_pois")
+             else:
+                 print("DEBUG_DAY2: LOC_010 is NOT in candidate_pois")
+
         # Decision variables
         # x[i] = 1 if POI i is visited
         x = {}
@@ -613,6 +626,9 @@ class ItineraryOptimizer:
         for poi in candidate_pois:
             model.Add(arr[poi] >= day_start_min)
             model.Add(dep[poi] <= day_end_min)
+        
+        # STEP 16 LOGIC MOVED TO MULTI-FAMILY METHOD
+        # (This block was misplaced and is now removed)
         
         # Objective: STEP 8 PART A - Satisfaction - Coherence Loss (with proper scaling)
         # maximize Σ_f [ Satisfaction(f) − λ·CoherenceLoss(f) ]
@@ -938,6 +954,9 @@ class ItineraryOptimizer:
             "total_trip_time_min": 0,
         }
         
+        # STEP 16: Initialize visited history for multi-day tracking
+        visited_history: Dict[str, set] = {fid: set() for fid in family_ids}
+        
         for day_idx in range(num_days):
             print(f"\n>>> OPTIMIZING DAY {day_idx + 1} / {num_days} <<<")
             
@@ -947,16 +966,25 @@ class ItineraryOptimizer:
                 day_index=day_idx,
                 max_pois=5, # Allow more POIs
                 time_limit_seconds=60,
-                lambda_divergence=lambda_divergence
+                lambda_divergence=lambda_divergence,
+                visited_history=visited_history # STEP 16: Pass history
             )
             
             if day_result:
                 trip_solution["days"].append(day_result)
                 trip_solution["total_trip_cost"] += day_result["total_transport_cost"]
                 trip_solution["total_trip_time_min"] += day_result["total_transport_time_min"]
-                print(f"✅ DAY {day_idx + 1} COMPLETE")
+                
+                # STEP 16: Update History (Restored)
+                for fid, fam_data in day_result['families'].items():
+                    for poi in fam_data['pois']:
+                        pid = poi['location_id']
+                        if visited_history and fid in visited_history:
+                             visited_history[fid].add(pid)
+                             
+                print(f"DAY {day_idx + 1} COMPLETE")
             else:
-                print(f"❌ DAY {day_idx + 1} FAILED (Infeasible)")
+                print(f"DAY {day_idx + 1} FAILED (Infeasible)")
                 break
                 
         return trip_solution
@@ -967,7 +995,8 @@ class ItineraryOptimizer:
         day_index: int = 0,
         max_pois: int = 3,
         time_limit_seconds: int = 60,
-        lambda_divergence: float = 0.05
+        lambda_divergence: float = 0.05,
+        visited_history: Dict[str, set] = None # STEP 16: Added argument
     ) -> Optional[Dict]:
         """
         STEP 9/10: Optimize itinerary for MULTIPLE families, 1 day.
@@ -1068,10 +1097,36 @@ class ItineraryOptimizer:
                     y[(i, j)] = model.NewBoolVar(f'order_{i}_before_{j}')
         
         # FAMILY-SPECIFIC: Visit decisions x[f,i]
+        
+        # STEP 16: Enforce Global Repeatability (Applied to x)
+        # Banned POIs will just have x implied to 0 (or forced)
+        banned_pois = {fid: set() for fid in family_ids}
+        
+        if visited_history:
+            for fid in family_ids:
+                if fid in visited_history:
+                    for past_poi in visited_history[fid]:
+                        if past_poi in candidate_pois:
+                            # EXEMPTION: If it is a skeleton POI for this day, allow revisit (mandatory)
+                            if past_poi in skeleton_pois:
+                                # print(f"DEBUG: {past_poi} is SKELETON on Day {day_index+1}, exempt from ban.")
+                                continue
+                                
+                            loc_def = self.locations[past_poi]
+                            if not loc_def.repeatable:
+                                # Ban revisit
+                                # print(f"  [CONSTRAINT] {fid} cannot revisit {loc_def.name} ({past_poi}) (Day {day_index+1})")
+                                banned_pois[fid].add(past_poi)
+
         x = {}
         for fid in family_ids:
             for poi in candidate_pois:
                 x[(fid, poi)] = model.NewBoolVar(f'visit_{fid}_{poi}')
+                
+                # Apply Ban
+                if poi in banned_pois[fid]:
+                    model.Add(x[(fid, poi)] == 0)
+        # (Duplicate loop removed)
         
         # FAMILY-SPECIFIC: Arrival and departure times
         arr = {}
