@@ -925,15 +925,10 @@ class ItineraryOptimizer:
         """
         STEP 10: Multi-Day Trip Optimization
         Loops through days, optimizing one by one.
-        STEP 16: Adds global history tracking to prevent non-repeatable visits.
         """
         print(f"\n{'='*80}")
-        print(f"STEP 10/16: MULTI-DAY TRIP OPTIMIZATION ({num_days} Days)")
+        print(f"STEP 10: MULTI-DAY TRIP OPTIMIZATION ({num_days} Days)")
         print(f"{'='*80}\n")
-        
-        # STEP 16: Init History Tracker
-        # visited_history[fid] = set(visited_poi_ids)
-        visited_history = {fid: set() for fid in family_ids}
         
         trip_solution = {
             "trip_id": self.base_itinerary.get("itinerary_id", "GENERIC_TRIP"),
@@ -952,21 +947,13 @@ class ItineraryOptimizer:
                 day_index=day_idx,
                 max_pois=5, # Allow more POIs
                 time_limit_seconds=60,
-                lambda_divergence=lambda_divergence,
-                visited_history=visited_history # STEP 16: Pass history
+                lambda_divergence=lambda_divergence
             )
             
             if day_result:
                 trip_solution["days"].append(day_result)
                 trip_solution["total_trip_cost"] += day_result["total_transport_cost"]
                 trip_solution["total_trip_time_min"] += day_result["total_transport_time_min"]
-                
-                # STEP 16: Update History
-                for fid, fam_data in day_result['families'].items():
-                    for poi in fam_data['pois']:
-                        pid = poi['location_id']
-                        visited_history[fid].add(pid)
-                        
                 print(f"✅ DAY {day_idx + 1} COMPLETE")
             else:
                 print(f"❌ DAY {day_idx + 1} FAILED (Infeasible)")
@@ -980,8 +967,7 @@ class ItineraryOptimizer:
         day_index: int = 0,
         max_pois: int = 3,
         time_limit_seconds: int = 60,
-        lambda_divergence: float = 0.05,
-        visited_history: Dict[str, set] = None # STEP 16
+        lambda_divergence: float = 0.05
     ) -> Optional[Dict]:
         """
         STEP 9/10: Optimize itinerary for MULTIPLE families, 1 day.
@@ -1012,20 +998,16 @@ class ItineraryOptimizer:
             return None
         
         # STEP 9B′: Separate POIs by role
-        # FIX: Do not rely on loc.role which defaults to SKELETON.
-        # Logic: POIs in the base itinerary for this day are SKELETON (Mandatory).
-        #        POIs added via expansion are BRANCH (Optional).
+        skeleton_pois = []
+        branch_pois = []
         
-        # base_pois contains the IDs from the base itinerary json
-        # We treat THEM as the Skeleton.
-        skeleton_pois = [p for p in base_pois if p in candidate_pois]
-        
-        # Everything else in candidate_pois is a Branch
-        branch_pois = [p for p in candidate_pois if p not in skeleton_pois]
-        
-        print(f"  Day {day_index+1} Candidates: {len(candidate_pois)} total")
-        print(f"  -> Skeleton (Mandatory): {len(skeleton_pois)} {skeleton_pois}")
-        print(f"  -> Branch (Optional): {len(branch_pois)} {branch_pois}")
+        for poi_id in candidate_pois:
+            loc = self.locations[poi_id]
+            role = getattr(loc, 'role', 'SKELETON')
+            if role == 'SKELETON':
+                skeleton_pois.append(poi_id)
+            else:
+                branch_pois.append(poi_id)
         
         print(f"\n[DAY {day_index+1}] POI Classification (Before Expansion):")
         print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")
@@ -1052,9 +1034,9 @@ class ItineraryOptimizer:
             if new_poi not in candidate_pois:
                 candidate_pois.append(new_poi)
                 branch_pois.append(new_poi)
-                # DYNAMICALY PATCH ROLE - REMOVED!
-                # Do NOT mutate global state. The optimizer logic below treats 
-                # anything in branch_pois list as a branch anyway.
+                # DYNAMICALY PATCH ROLE
+                if hasattr(self.locations[new_poi], 'role'):
+                     self.locations[new_poi].role = 'BRANCH'
         
         # Safety Cap (Exponential complexity protection)
         MAX_TOTAL_CANDIDATES = 12
@@ -1342,44 +1324,14 @@ class ItineraryOptimizer:
             family = families[fid]
             
             # Enforce must-visit locations
-            # FIX: Only enforce must-visit if NOT already visited!
-            # Otherwise, if it was visited yesterday, we don't want to force it again today
-            # (unless it's repeatable, but "must visit" usually implies "at least once")
             for must_visit_poi in family.must_visit_locations:
                 if must_visit_poi in candidate_pois:
-                    # Check history
-                    already_visited = False
-                    if visited_history and fid in visited_history:
-                        if must_visit_poi in visited_history[fid]:
-                            already_visited = True
-                    
-                    # Only force visit if NOT already visited
-                    if not already_visited:
-                        print(f"  [CONSTRAINT] {fid} MUST visit {self.locations[must_visit_poi].name} (Day {day_index+1})")
-                        model.Add(x[(fid, must_visit_poi)] == 1)
-                    else:
-                        print(f"  [INFO] {fid} has already met Must-Visit for {self.locations[must_visit_poi].name}")
+                    model.Add(x[(fid, must_visit_poi)] == 1)
             
             # Enforce never-visit locations
             for never_visit_poi in family.never_visit_locations:
                 if never_visit_poi in candidate_pois:
                     model.Add(x[(fid, never_visit_poi)] == 0)
-            
-            # STEP 16: Enforce Global Repeatability
-            # If visited in previous days AND not repeatable, enforce x=0
-            # FIX: Do NOT ban it if it is a mandatory Skeleton for TODAY
-            if visited_history and fid in visited_history:
-                for past_poi in visited_history[fid]:
-                    if past_poi in candidate_pois:
-                         # EXEMPTION: If it is a skeleton POI for this day, allow revisit (mandatory)
-                        if past_poi in skeleton_pois:
-                            continue
-                            
-                        loc_def = self.locations[past_poi]
-                        if not loc_def.repeatable:
-                            # Ban revisit (Only for Branch or non-skeleton base items)
-                            print(f"  [CONSTRAINT] {fid} cannot revisit {loc_def.name} (Day {day_index+1})")
-                            model.Add(x[(fid, past_poi)] == 0)
             
             # STEP 9B′: Ensure families visit skeleton POIs (anchor points)
             # But respect never-visit constraints
