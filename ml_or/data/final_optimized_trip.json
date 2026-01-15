@@ -9,7 +9,7 @@
         {
             "day": 1,
             "objective_value": -2347.3674237063383,
-            "solve_time_seconds": 0.0845538,
+            "solve_time_seconds": 0.09558620000000001,
             "shared_poi_order": [
                 "LOC_008",
                 "LOC_LUNCH",
@@ -29,8 +29,8 @@
                             "sequence": 1,
                             "location_id": "LOC_008",
                             "location_name": "Raj Ghat 8",
-                            "arrival_time": "09:13",
-                            "departure_time": "09:58",
+                            "arrival_time": "09:12",
+                            "departure_time": "09:57",
                             "visit_duration_min": 45,
                             "satisfaction_score": 1.44
                         },
@@ -38,37 +38,37 @@
                             "sequence": 2,
                             "location_id": "LOC_LUNCH",
                             "location_name": "Connaught Place Restaurants (Lunch)",
-                            "arrival_time": "12:31",
-                            "departure_time": "13:31",
+                            "arrival_time": "12:30",
+                            "departure_time": "13:30",
                             "visit_duration_min": 60,
                             "satisfaction_score": 1.2
                         },
                         {
                             "sequence": 3,
-                            "location_id": "LOC_010",
-                            "location_name": "Safdarjung Tomb 10",
-                            "arrival_time": "15:46",
-                            "departure_time": "16:46",
-                            "visit_duration_min": 60,
-                            "satisfaction_score": 1.17
+                            "location_id": "LOC_003",
+                            "location_name": "India Gate 3",
+                            "arrival_time": "13:40",
+                            "departure_time": "14:25",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 1.13
                         },
                         {
                             "sequence": 4,
                             "location_id": "LOC_046",
                             "location_name": "Parikrama 6",
-                            "arrival_time": "16:56",
-                            "departure_time": "17:56",
+                            "arrival_time": "14:35",
+                            "departure_time": "15:35",
                             "visit_duration_min": 60,
                             "satisfaction_score": 1.04
                         },
                         {
                             "sequence": 5,
-                            "location_id": "LOC_003",
-                            "location_name": "India Gate 3",
-                            "arrival_time": "18:06",
-                            "departure_time": "18:51",
-                            "visit_duration_min": 45,
-                            "satisfaction_score": 1.13
+                            "location_id": "LOC_010",
+                            "location_name": "Safdarjung Tomb 10",
+                            "arrival_time": "16:40",
+                            "departure_time": "17:40",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 1.17
                         },
                         {
                             "sequence": 6,
@@ -102,24 +102,6 @@
                         {
                             "from": "LOC_LUNCH",
                             "from_name": "Connaught Place Restaurants (Lunch)",
-                            "to": "LOC_010",
-                            "to_name": "Safdarjung Tomb 10",
-                            "mode": "CAB_FALLBACK",
-                            "duration_min": 10,
-                            "cost": 50
-                        },
-                        {
-                            "from": "LOC_010",
-                            "from_name": "Safdarjung Tomb 10",
-                            "to": "LOC_046",
-                            "to_name": "Parikrama 6",
-                            "mode": "CAB_FALLBACK",
-                            "duration_min": 10,
-                            "cost": 50
-                        },
-                        {
-                            "from": "LOC_046",
-                            "from_name": "Parikrama 6",
                             "to": "LOC_003",
                             "to_name": "India Gate 3",
                             "mode": "CAB_FALLBACK",
@@ -129,6 +111,24 @@
                         {
                             "from": "LOC_003",
                             "from_name": "India Gate 3",
+                            "to": "LOC_046",
+                            "to_name": "Parikrama 6",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_046",
+                            "from_name": "Parikrama 6",
+                            "to": "LOC_010",
+                            "to_name": "Safdarjung Tomb 10",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_010",
+                            "from_name": "Safdarjung Tomb 10",
                             "to": "LOC_DINNER",
                             "to_name": "Evening Fine Dining (Dinner)",
                             "mode": "CAB_FALLBACK",
@@ -154,8 +154,8 @@
                             "sequence": 1,
                             "location_id": "LOC_008",
                             "location_name": "Raj Ghat 8",
-                            "arrival_time": "09:13",
-                            "departure_time": "09:58",
+                            "arrival_time": "09:12",
+                            "departure_time": "09:57",
                             "visit_duration_min": 45,
                             "satisfaction_score": 0.98
                         },
@@ -163,46 +163,46 @@
                             "sequence": 2,
                             "location_id": "LOC_LUNCH",
                             "location_name": "Connaught Place Restaurants (Lunch)",
-                            "arrival_time": "12:31",
-                            "departure_time": "13:31",
+                            "arrival_time": "12:30",
+                            "departure_time": "13:30",
                             "visit_duration_min": 60,
                             "satisfaction_score": 1.45
                         },
                         {
                             "sequence": 3,
-                            "location_id": "LOC_001",
-                            "location_name": "Red Fort 1",
-                            "arrival_time": "13:41",
-                            "departure_time": "14:26",
+                            "location_id": "LOC_003",
+                            "location_name": "India Gate 3",
+                            "arrival_time": "13:40",
+                            "departure_time": "14:25",
                             "visit_duration_min": 45,
-                            "satisfaction_score": 0.91
+                            "satisfaction_score": 1.55
                         },
                         {
                             "sequence": 4,
                             "location_id": "LOC_046",
                             "location_name": "Parikrama 6",
-                            "arrival_time": "14:36",
-                            "departure_time": "15:36",
+                            "arrival_time": "14:35",
+                            "departure_time": "15:35",
                             "visit_duration_min": 60,
                             "satisfaction_score": 1.41
                         },
                         {
                             "sequence": 5,
-                            "location_id": "LOC_010",
-                            "location_name": "Safdarjung Tomb 10",
-                            "arrival_time": "15:46",
-                            "departure_time": "16:46",
-                            "visit_duration_min": 60,
-                            "satisfaction_score": 0.88
+                            "location_id": "LOC_001",
+                            "location_name": "Red Fort 1",
+                            "arrival_time": "15:45",
+                            "departure_time": "16:30",
+                            "visit_duration_min": 45,
+                            "satisfaction_score": 0.91
                         },
                         {
                             "sequence": 6,
-                            "location_id": "LOC_003",
-                            "location_name": "India Gate 3",
-                            "arrival_time": "16:56",
-                            "departure_time": "17:41",
-                            "visit_duration_min": 45,
-                            "satisfaction_score": 1.55
+                            "location_id": "LOC_010",
+                            "location_name": "Safdarjung Tomb 10",
+                            "arrival_time": "16:40",
+                            "departure_time": "17:40",
+                            "visit_duration_min": 60,
+                            "satisfaction_score": 0.88
                         },
                         {
                             "sequence": 7,
@@ -236,33 +236,6 @@
                         {
                             "from": "LOC_LUNCH",
                             "from_name": "Connaught Place Restaurants (Lunch)",
-                            "to": "LOC_001",
-                            "to_name": "Red Fort 1",
-                            "mode": "CAB_FALLBACK",
-                            "duration_min": 10,
-                            "cost": 50
-                        },
-                        {
-                            "from": "LOC_001",
-                            "from_name": "Red Fort 1",
-                            "to": "LOC_046",
-                            "to_name": "Parikrama 6",
-                            "mode": "CAB_FALLBACK",
-                            "duration_min": 10,
-                            "cost": 50
-                        },
-                        {
-                            "from": "LOC_046",
-                            "from_name": "Parikrama 6",
-                            "to": "LOC_010",
-                            "to_name": "Safdarjung Tomb 10",
-                            "mode": "CAB_FALLBACK",
-                            "duration_min": 10,
-                            "cost": 50
-                        },
-                        {
-                            "from": "LOC_010",
-                            "from_name": "Safdarjung Tomb 10",
                             "to": "LOC_003",
                             "to_name": "India Gate 3",
                             "mode": "CAB_FALLBACK",
@@ -272,6 +245,33 @@
                         {
                             "from": "LOC_003",
                             "from_name": "India Gate 3",
+                            "to": "LOC_046",
+                            "to_name": "Parikrama 6",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_046",
+                            "from_name": "Parikrama 6",
+                            "to": "LOC_001",
+                            "to_name": "Red Fort 1",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_001",
+                            "from_name": "Red Fort 1",
+                            "to": "LOC_010",
+                            "to_name": "Safdarjung Tomb 10",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_010",
+                            "from_name": "Safdarjung Tomb 10",
                             "to": "LOC_DINNER",
                             "to_name": "Evening Fine Dining (Dinner)",
                             "mode": "CAB_FALLBACK",
@@ -297,8 +297,8 @@
                             "sequence": 1,
                             "location_id": "LOC_008",
                             "location_name": "Raj Ghat 8",
-                            "arrival_time": "09:13",
-                            "departure_time": "09:58",
+                            "arrival_time": "09:12",
+                            "departure_time": "09:57",
                             "visit_duration_min": 45,
                             "satisfaction_score": 1.27
                         },
@@ -306,8 +306,8 @@
                             "sequence": 2,
                             "location_id": "LOC_LUNCH",
                             "location_name": "Connaught Place Restaurants (Lunch)",
-                            "arrival_time": "12:31",
-                            "departure_time": "13:31",
+                            "arrival_time": "12:30",
+                            "departure_time": "13:30",
                             "visit_duration_min": 60,
                             "satisfaction_score": 1.3
                         },
@@ -315,35 +315,35 @@
                             "sequence": 3,
                             "location_id": "LOC_001",
                             "location_name": "Red Fort 1",
-                            "arrival_time": "13:41",
-                            "departure_time": "14:26",
+                            "arrival_time": "13:40",
+                            "departure_time": "14:25",
                             "visit_duration_min": 45,
                             "satisfaction_score": 1.04
                         },
                         {
                             "sequence": 4,
-                            "location_id": "LOC_010",
-                            "location_name": "Safdarjung Tomb 10",
-                            "arrival_time": "15:46",
-                            "departure_time": "16:46",
+                            "location_id": "LOC_046",
+                            "location_name": "Parikrama 6",
+                            "arrival_time": "14:35",
+                            "departure_time": "15:35",
                             "visit_duration_min": 60,
-                            "satisfaction_score": 0.95
+                            "satisfaction_score": 1.18
                         },
                         {
                             "sequence": 5,
-                            "location_id": "LOC_046",
-                            "location_name": "Parikrama 6",
-                            "arrival_time": "16:56",
-                            "departure_time": "17:56",
+                            "location_id": "LOC_010",
+                            "location_name": "Safdarjung Tomb 10",
+                            "arrival_time": "16:40",
+                            "departure_time": "17:40",
                             "visit_duration_min": 60,
-                            "satisfaction_score": 1.18
+                            "satisfaction_score": 0.95
                         },
                         {
                             "sequence": 6,
                             "location_id": "LOC_003",
                             "location_name": "India Gate 3",
-                            "arrival_time": "18:06",
-                            "departure_time": "18:51",
+                            "arrival_time": "17:50",
+                            "departure_time": "18:35",
                             "visit_duration_min": 45,
                             "satisfaction_score": 1.3
                         },
@@ -388,15 +388,6 @@
                         {
                             "from": "LOC_001",
                             "from_name": "Red Fort 1",
-                            "to": "LOC_010",
-                            "to_name": "Safdarjung Tomb 10",
-                            "mode": "CAB_FALLBACK",
-                            "duration_min": 10,
-                            "cost": 50
-                        },
-                        {
-                            "from": "LOC_010",
-                            "from_name": "Safdarjung Tomb 10",
                             "to": "LOC_046",
                             "to_name": "Parikrama 6",
                             "mode": "CAB_FALLBACK",
@@ -406,6 +397,15 @@
                         {
                             "from": "LOC_046",
                             "from_name": "Parikrama 6",
+                            "to": "LOC_010",
+                            "to_name": "Safdarjung Tomb 10",
+                            "mode": "CAB_FALLBACK",
+                            "duration_min": 10,
+                            "cost": 50
+                        },
+                        {
+                            "from": "LOC_010",
+                            "from_name": "Safdarjung Tomb 10",
                             "to": "LOC_003",
                             "to_name": "India Gate 3",
                             "mode": "CAB_FALLBACK",
@@ -438,7 +438,7 @@
         {
             "day": 2,
             "objective_value": -3789.4715027611023,
-            "solve_time_seconds": 1.4361911,
+            "solve_time_seconds": 1.7210013000000002,
             "shared_poi_order": [
                 "LOC_LUNCH",
                 "LOC_005",
@@ -759,7 +759,7 @@
         {
             "day": 3,
             "objective_value": -270.0,
-            "solve_time_seconds": 0.0512509,
+            "solve_time_seconds": 0.0794029,
             "shared_poi_order": [
                 "LOC_LUNCH",
                 "LOC_DINNER"
@@ -776,8 +776,8 @@
                             "sequence": 1,
                             "location_id": "LOC_LUNCH",
                             "location_name": "Connaught Place Restaurants (Lunch)",
-                            "arrival_time": "12:30",
-                            "departure_time": "13:30",
+                            "arrival_time": "13:00",
+                            "departure_time": "14:00",
                             "visit_duration_min": 60,
                             "satisfaction_score": 1.2
                         },
@@ -829,8 +829,8 @@
                             "sequence": 1,
                             "location_id": "LOC_LUNCH",
                             "location_name": "Connaught Place Restaurants (Lunch)",
-                            "arrival_time": "12:30",
-                            "departure_time": "13:30",
+                            "arrival_time": "13:00",
+                            "departure_time": "14:00",
                             "visit_duration_min": 60,
                             "satisfaction_score": 1.45
                         },
@@ -882,8 +882,8 @@
                             "sequence": 1,
                             "location_id": "LOC_LUNCH",
                             "location_name": "Connaught Place Restaurants (Lunch)",
-                            "arrival_time": "12:30",
-                            "departure_time": "13:30",
+                            "arrival_time": "13:00",
+                            "departure_time": "14:00",
                             "visit_duration_min": 60,
                             "satisfaction_score": 1.3
                         },

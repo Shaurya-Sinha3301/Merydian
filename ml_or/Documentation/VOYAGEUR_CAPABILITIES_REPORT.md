@@ -23,6 +23,10 @@ The Voyageur Optimizer is a specialized AI agent designed to solve the **Multi-F
     - *Example*: "Dinner MUST happen between 19:30 and 21:00".
 - **Physical Reality**: Uses real-world travel times and costs (Metro vs Cab) derived from a Transport Graph.
 
+### D. Multi-Day Intelligence
+-   **History Tracking**: Remembers what families visited on Day 1 to prevent generic repetitions on Day 2 or 3.
+-   **Global Repeatability**: Enforces `repeatable=False` logic across the entire trip duration.
+
 ### C. Economic Reliability
 - **Budget Sensitivity**: Respects each family's budget multiplier. Will drop expensive optional POIs for budget-conscious families.
 - **Wait vs Pay**: Can calculate if it's "cheaper" (in utility) for a family to wait for 1 hour than to pay entrance fees for a site they dislike.

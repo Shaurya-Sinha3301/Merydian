@@ -1,59 +1,76 @@
-# 🔄 Voyageur Engine: Data Flow Report
+# 🔄 Voyageur Data Flow Report
 
-**Target**: `ml_or/itinerary_optimizer.py`
-**Purpose**: Explain how input JSON files trigger specific logic in the solver.
-
----
-
-## 1. The Inputs (Supply Side)
-
-### A. `locations.json` (The "World")
-*Static database of places.*
-- **Role in Solver**: Defines the "Nodes" in the graph.
-- **Key Fields**:
-    - `avg_visit_time_min` → Used in constraint: `dep[i] == arr[i] + visit_time`.
-    - `tags` (e.g., "history") → Used in Objective: `Satisfaction = Importance * (1 + InterestMatch)`.
-    - `cost` → Tracks spending against budget.
-    - `role` ("SKELETON" vs "BRANCH") → Determines if Sync logic applies.
-
-### B. `transport_graph.json` (The "Roads")
-*Static connectivity graph.*
-- **Role in Solver**: Defines the "Edges" and their weights.
-- **Key Fields**:
-    - `duration_min` → Used in constraint: `arr[j] >= dep[i] + duration`.
-    - `cost` → Used in Objective: `CoherenceLoss += cost * beta`.
-    - `mode` ("CAB", "METRO") → Informational for the final itinerary.
-- **Fallback**: If no edge exists, the optimizer generates a "FALLBACK_CAB" edge based on Haversine distance.
+**Version**: 1.0
+**Date**: January 15, 2026
 
 ---
 
-## 2. The Inputs (Demand Side)
+## 1. High-Level Data Lifecycle
 
-### C. `base_itinerary_final.json` (The "Plan")
-*The architectural blueprint of the trip.*
-- **Role in Solver**: Sets the scope (Days, Candidates, Anchors).
-- **Key Fields**:
-    - `start/end_location` (e.g., "LOC_HOTEL") → Sets `arr[START]`, `dep[END]`.
-    - `pois` List → The subset of `functions.json` to consider for *this* day.
-    - `time_window_start/end` → **Hard Constraint**: `arr[poi] >= start`, `dep[poi] <= end`.
+The system transforms **User Intent** (Preferences) + **World Knowledge** (Locations) into an **Optimized Schedule**.
 
-### D. `family_preferences_3fam_strict.json` (The "Users")
-*The personalities traveling.*
-- **Role in Solver**: The optimization weights.
-- **Key Fields**:
-    - `interest_vector` → Multiplier for Satisfaction score.
-    - `budget_sensitivity` → Affects how much `cost` penalizes the objective.
-    - `must_visit_locations` → **Hard Constraint**: `x[poi] == 1`.
-    - `never_visit_locations` → **Hard Constraint**: `x[poi] == 0`.
+```mermaid
+graph TD
+    A[Static Data Layer] --> B[Runtime Optimization Layer]
+    B --> C[Persistence Layer]
+    C --> B
+    B --> D[Output Layer]
+```
 
 ---
 
-## 3. The Output
+## 2. Static Data Ingress (Inputs)
 
-### E. `final_optimized_trip.json`
-*The solved state.*
-- Contains the optimal values for:
-    - **Who** visited **What** (`x` variable).
-    - **When** (`arr`, `dep` variables).
-    - **How** (`transport` modes selected).
-    - **Why** (Satisfaction scores provided).
+Files loaded at startup:
+
+1.  **`locations.json`**: Physical world database.
+    *   *Contains*: ID, Name, Lat/Lng, Cost, Repeatable Flag.
+2.  **`transport_graph.json`**: Travel physics.
+    *   *Contains*: Time/Cost matrix between locations.
+3.  **`family_preferences.json`**: User Constraints.
+    *   *Contains*: Budgets, Interests (Tags), Must-Visit Lists.
+4.  **`base_itinerary.json`**: Structural Skeleton.
+    *   *Contains*: Day start/end times, Skeleton POIs (Lunch, Dinner).
+
+---
+
+## 3. The Runtime Loop (Day-by-Day)
+
+For each DAY (1..N):
+
+### Step A: Dynamic Expansion
+*   **Input**: `locations.json` (Full DB), Skeleton List.
+*   **Process**:
+    *   Finds candidates near Skeleton POIs.
+    *   Filters by family interests.
+*   **Output**: `candidate_pois` (List of ~10-15 IDs).
+
+### Step B: The Solver (Core)
+*   **Input**: `candidate_pois`, `family_preferences`, `transport_graph`, **`visited_history`**.
+*   **Logic**:
+    *   Builds CP-SAT model.
+    *   Applies constraints: Time Windows, Sync, **History Ban**.
+*   **Output**: `day_result` (Optimal path for all families for THIS day).
+
+---
+
+## 4. The History Loop (Persistence)
+
+Crucial for Multi-Day consistency (Step 16).
+
+1.  **Start Trip**: `visited_history = {}`
+2.  **Optimize Day 1**:
+    *   Result: Fam A visits [Red Fort, Safdarjung Tomb].
+3.  **Update History**: `visited_history['FAM_A'].add('LOC_001', 'LOC_010')`
+4.  **Optimize Day 2**:
+    *   *Input Check*: Is 'LOC_010' in `visited_history`? -> **YES**.
+    *   *Constraint*: `x['LOC_010'] == 0` (BANNED).
+    *   Result: Fam A visits [Humayun Tomb] instead.
+
+---
+
+## 5. Output Layer
+
+**`final_optimized_trip.json`**
+*   A hierarchical JSON object containing the full schedule, costs, satisfaction scores, and transport details for every family for every day.
+*   Ready for frontend rendering or LLM summarization.
