@@ -9,7 +9,7 @@
         {
             "day": 1,
             "objective_value": -455.0,
-            "solve_time_seconds": 0.41322380000000003,
+            "solve_time_seconds": 0.38268830000000004,
             "shared_poi_order": [
                 "LOC_008",
                 "LOC_LUNCH",
@@ -38,8 +38,8 @@
                             "sequence": 2,
                             "location_id": "LOC_HOTEL",
                             "location_name": "The Imperial Hotel (Connaught Place)",
-                            "arrival_time": "10:47",
-                            "departure_time": "10:47",
+                            "arrival_time": "12:18",
+                            "departure_time": "12:18",
                             "visit_duration_min": 0,
                             "satisfaction_score": 1.0
                         },
@@ -56,8 +56,8 @@
                             "sequence": 4,
                             "location_id": "LOC_003",
                             "location_name": "India Gate 3",
-                            "arrival_time": "13:52",
-                            "departure_time": "14:37",
+                            "arrival_time": "14:22",
+                            "departure_time": "15:07",
                             "visit_duration_min": 45,
                             "satisfaction_score": 1.13
                         },
@@ -65,8 +65,8 @@
                             "sequence": 5,
                             "location_id": "LOC_046",
                             "location_name": "Parikrama 6",
-                            "arrival_time": "14:49",
-                            "departure_time": "15:49",
+                            "arrival_time": "15:19",
+                            "departure_time": "16:19",
                             "visit_duration_min": 60,
                             "satisfaction_score": 1.04
                         },
@@ -74,8 +74,8 @@
                             "sequence": 6,
                             "location_id": "LOC_002",
                             "location_name": "Qutub Minar 2",
-                            "arrival_time": "15:59",
-                            "departure_time": "16:44",
+                            "arrival_time": "16:29",
+                            "departure_time": "17:14",
                             "visit_duration_min": 45,
                             "satisfaction_score": 1.15
                         },
@@ -83,8 +83,8 @@
                             "sequence": 7,
                             "location_id": "LOC_010",
                             "location_name": "Safdarjung Tomb 10",
-                            "arrival_time": "18:07",
-                            "departure_time": "19:07",
+                            "arrival_time": "18:09",
+                            "departure_time": "19:09",
                             "visit_duration_min": 60,
                             "satisfaction_score": 1.17
                         },
@@ -253,8 +253,8 @@
                             "sequence": 8,
                             "location_id": "LOC_010",
                             "location_name": "Safdarjung Tomb 10",
-                            "arrival_time": "18:07",
-                            "departure_time": "19:07",
+                            "arrival_time": "18:09",
+                            "departure_time": "19:09",
                             "visit_duration_min": 60,
                             "satisfaction_score": 0.88
                         },
@@ -414,8 +414,8 @@
                             "sequence": 6,
                             "location_id": "LOC_001",
                             "location_name": "Red Fort 1",
-                            "arrival_time": "16:09",
-                            "departure_time": "16:54",
+                            "arrival_time": "16:11",
+                            "departure_time": "16:56",
                             "visit_duration_min": 45,
                             "satisfaction_score": 1.04
                         },
@@ -423,8 +423,8 @@
                             "sequence": 7,
                             "location_id": "LOC_002",
                             "location_name": "Qutub Minar 2",
-                            "arrival_time": "17:12",
-                            "departure_time": "17:57",
+                            "arrival_time": "17:14",
+                            "departure_time": "17:59",
                             "visit_duration_min": 45,
                             "satisfaction_score": 0.99
                         },
@@ -432,8 +432,8 @@
                             "sequence": 8,
                             "location_id": "LOC_010",
                             "location_name": "Safdarjung Tomb 10",
-                            "arrival_time": "18:07",
-                            "departure_time": "19:07",
+                            "arrival_time": "18:09",
+                            "departure_time": "19:09",
                             "visit_duration_min": 60,
                             "satisfaction_score": 0.95
                         },
@@ -546,7 +546,7 @@
         {
             "day": 2,
             "objective_value": -2039.0,
-            "solve_time_seconds": 0.11674540000000001,
+            "solve_time_seconds": 0.08297550000000001,
             "shared_poi_order": [
                 "LOC_005",
                 "LOC_LUNCH",
@@ -734,21 +734,21 @@
                         },
                         {
                             "sequence": 4,
-                            "location_id": "LOC_050",
-                            "location_name": "Barbeque Nation 10",
-                            "arrival_time": "14:34",
-                            "departure_time": "15:04",
-                            "visit_duration_min": 30,
-                            "satisfaction_score": 1.29
-                        },
-                        {
-                            "sequence": 5,
                             "location_id": "LOC_009",
                             "location_name": "Purana Qila 9",
                             "arrival_time": "15:29",
                             "departure_time": "16:29",
                             "visit_duration_min": 60,
                             "satisfaction_score": 0.84
+                        },
+                        {
+                            "sequence": 5,
+                            "location_id": "LOC_050",
+                            "location_name": "Barbeque Nation 10",
+                            "arrival_time": "16:54",
+                            "departure_time": "17:24",
+                            "visit_duration_min": 30,
+                            "satisfaction_score": 1.29
                         },
                         {
                             "sequence": 6,
@@ -791,29 +791,29 @@
                         {
                             "from": "LOC_LUNCH",
                             "from_name": "Connaught Place Restaurants (Lunch)",
-                            "to": "LOC_050",
-                            "to_name": "Barbeque Nation 10",
-                            "mode": "BUS",
-                            "duration_min": 34,
-                            "cost": 35
-                        },
-                        {
-                            "from": "LOC_050",
-                            "from_name": "Barbeque Nation 10",
                             "to": "LOC_009",
                             "to_name": "Purana Qila 9",
+                            "mode": "BUS",
+                            "duration_min": 35,
+                            "cost": 37
+                        },
+                        {
+                            "from": "LOC_009",
+                            "from_name": "Purana Qila 9",
+                            "to": "LOC_050",
+                            "to_name": "Barbeque Nation 10",
                             "mode": "BUS",
                             "duration_min": 25,
                             "cost": 23
                         },
                         {
-                            "from": "LOC_009",
-                            "from_name": "Purana Qila 9",
+                            "from": "LOC_050",
+                            "from_name": "Barbeque Nation 10",
                             "to": "LOC_DINNER",
                             "to_name": "Evening Fine Dining (Dinner)",
                             "mode": "BUS",
-                            "duration_min": 35,
-                            "cost": 37
+                            "duration_min": 34,
+                            "cost": 35
                         },
                         {
                             "from": "LOC_DINNER",
@@ -843,8 +843,8 @@
                             "sequence": 2,
                             "location_id": "LOC_007",
                             "location_name": "Jama Masjid 7",
-                            "arrival_time": "11:47",
-                            "departure_time": "12:32",
+                            "arrival_time": "10:40",
+                            "departure_time": "11:25",
                             "visit_duration_min": 45,
                             "satisfaction_score": 0.95
                         },
@@ -975,7 +975,7 @@
         {
             "day": 3,
             "objective_value": 823.0,
-            "solve_time_seconds": 0.0422376,
+            "solve_time_seconds": 0.031001200000000003,
             "shared_poi_order": [
                 "LOC_LUNCH",
                 "LOC_DINNER"

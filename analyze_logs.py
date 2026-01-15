@@ -1,8 +1,5 @@
-
-import os
-
 def analyze():
-    log_file = "debug_infeasible.txt"
+    log_file = "verify_dupe.txt"
     # UTF-16 LE is standard for PowerShell redirection on Windows
     encodings = ['utf-16', 'utf-8', 'cp1252']
     
@@ -20,32 +17,34 @@ def analyze():
         print("Failed to read file with any encoding")
         return
 
-    print("--- LOG ANALYSIS START ---")
+    print("--- DUPLICATION CHECK START ---")
     
-    # Check if Day 3 Failed
-    if "DAY 3 FAILED" in content:
-        print("CONFIRMED: DAY 3 FAILED (Infeasible)")
-    else:
-        print("STATUS: Day 3 seemingly passed?")
-
-    # Extract Day 2 Visits
     lines = content.split('\n')
-    day2_started = False
-    for line in lines:
-        if ">>>> DAY 2 <<<<" in line:
-            day2_started = True
-            print(">>> STARTING DAY 2 LOGS")
-        if ">>>> DAY 3 <<<<" in line:
-            day2_started = False
-            print(">>> END OF DAY 2 LOGS")
-            
-        if day2_started:
-            # Check for Qutub Minar
-            if "Qutub Minar" in line or "LOC_002" in line:
-                print(f"MATCH: {line.strip()}")
-            # Check for Lotus Temple
-            if "Lotus Temple" in line or "LOC_004" in line:
-                print(f"MATCH: {line.strip()}")
+    in_day_3 = False
+    in_fam_c = False
+    fam_c_lines = []
 
-if __name__ == "__main__":
-    analyze()
+    for line in lines:
+        if ">>>> DAY 3 <<<<" in line:
+            in_day_3 = True
+            print("Found DAY 3 block")
+        if ">>>> DAY 4 <<<<" in line or "Final Optimization Status" in line:
+            in_day_3 = False
+            
+        if in_day_3:
+            if "FAM_C:" in line:
+                in_fam_c = True
+                print("Found FAM_C block in Day 3")
+            elif "FAM_A:" in line or "FAM_B:" in line:
+                in_fam_c = False
+            
+            if in_fam_c and "Parikrama" in line:
+                print(f"  > Found Parikrama visit: {line.strip()}")
+                fam_c_lines.append(line.strip())
+
+    if len(fam_c_lines) > 1:
+        print(f"⚠️  DUPLICATION DETECTED: Parikrama appears {len(fam_c_lines)} times for FAM_C Day 3!")
+    elif len(fam_c_lines) == 1:
+         print("✅  No duplication: Parikrama appears exactly once.")
+    else:
+         print("❓  Parikrama not found in FAM_C Day 3.")
