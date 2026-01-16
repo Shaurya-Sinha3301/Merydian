@@ -1,7 +1,7 @@
 [
     {
         "location_id": "LOC_001",
-        "name": "Red Fort 1",
+        "name": "Red Fort",
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.651448,
@@ -18,7 +18,7 @@
     },
     {
         "location_id": "LOC_002",
-        "name": "Qutub Minar 2",
+        "name": "Qutub Minar",
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.665802,
@@ -35,7 +35,7 @@
     },
     {
         "location_id": "LOC_003",
-        "name": "India Gate 3",
+        "name": "India Gate",
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.660043,
@@ -52,7 +52,7 @@
     },
     {
         "location_id": "LOC_004",
-        "name": "Lotus Temple 4",
+        "name": "Lotus Temple",
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.53902,
@@ -68,7 +68,7 @@
     },
     {
         "location_id": "LOC_005",
-        "name": "Humayun Tomb 5",
+        "name": "Humayun Tomb",
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.673723,
@@ -84,7 +84,7 @@
     },
     {
         "location_id": "LOC_006",
-        "name": "Akshardham 6",
+        "name": "Akshardham",
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.599879,
@@ -100,7 +100,7 @@
     },
     {
         "location_id": "LOC_007",
-        "name": "Jama Masjid 7",
+        "name": "Jama Masjid",
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.639686,
@@ -116,7 +116,7 @@
     },
     {
         "location_id": "LOC_008",
-        "name": "Raj Ghat 8",
+        "name": "Raj Ghat",
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.583341,
@@ -133,7 +133,7 @@
     },
     {
         "location_id": "LOC_009",
-        "name": "Purana Qila 9",
+        "name": "Purana Qila",
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.607399,
@@ -149,7 +149,7 @@
     },
     {
         "location_id": "LOC_010",
-        "name": "Safdarjung Tomb 10",
+        "name": "Safdarjung Tomb",
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.64301,
@@ -166,7 +166,7 @@
     },
     {
         "location_id": "LOC_041",
-        "name": "Karim's 1",
+        "name": "Karim's",
         "type": "RESTAURANT",
         "category": "UTILITY_POI",
         "lat": 28.5509,
@@ -181,7 +181,7 @@
     },
     {
         "location_id": "LOC_042",
-        "name": "Saravana Bhavan 2",
+        "name": "Saravana Bhavan",
         "type": "RESTAURANT",
         "category": "UTILITY_POI",
         "lat": 28.533737,
@@ -196,7 +196,7 @@
     },
     {
         "location_id": "LOC_043",
-        "name": "Bukhara 3",
+        "name": "Bukhara",
         "type": "RESTAURANT",
         "category": "UTILITY_POI",
         "lat": 28.528565,
@@ -211,7 +211,7 @@
     },
     {
         "location_id": "LOC_044",
-        "name": "Indian Accent 4",
+        "name": "Indian Accent",
         "type": "RESTAURANT",
         "category": "UTILITY_POI",
         "lat": 28.533878,
@@ -226,7 +226,7 @@
     },
     {
         "location_id": "LOC_045",
-        "name": "Haldiram 5",
+        "name": "Haldiram",
         "type": "RESTAURANT",
         "category": "UTILITY_POI",
         "lat": 28.553006,
@@ -241,7 +241,7 @@
     },
     {
         "location_id": "LOC_046",
-        "name": "Parikrama 6",
+        "name": "Parikrama",
         "type": "RESTAURANT",
         "category": "UTILITY_POI",
         "lat": 28.666466,
@@ -256,7 +256,7 @@
     },
     {
         "location_id": "LOC_047",
-        "name": "Gulati 7",
+        "name": "Gulati",
         "type": "RESTAURANT",
         "category": "UTILITY_POI",
         "lat": 28.556287,
@@ -271,7 +271,7 @@
     },
     {
         "location_id": "LOC_048",
-        "name": "Moti Mahal 8",
+        "name": "Moti Mahal",
         "type": "RESTAURANT",
         "category": "UTILITY_POI",
         "lat": 28.579358,
@@ -286,7 +286,7 @@
     },
     {
         "location_id": "LOC_049",
-        "name": "Social 9",
+        "name": "Social",
         "type": "RESTAURANT",
         "category": "UTILITY_POI",
         "lat": 28.679712,
@@ -301,7 +301,7 @@
     },
     {
         "location_id": "LOC_050",
-        "name": "Barbeque Nation 10",
+        "name": "Barbeque Nation",
         "type": "RESTAURANT",
         "category": "UTILITY_POI",
         "lat": 28.584509,
@@ -316,7 +316,7 @@
     },
     {
         "location_id": "LOC_071",
-        "name": "The Oberoi 1",
+        "name": "The Oberoi",
         "type": "HOTEL",
         "category": "UTILITY_POI",
         "lat": 28.627922,
@@ -331,7 +331,7 @@
     },
     {
         "location_id": "LOC_072",
-        "name": "Taj Palace 2",
+        "name": "Taj Palace",
         "type": "HOTEL",
         "category": "UTILITY_POI",
         "lat": 28.616933,
@@ -346,7 +346,7 @@
     },
     {
         "location_id": "LOC_073",
-        "name": "Leela Palace 3",
+        "name": "Leela Palace",
         "type": "HOTEL",
         "category": "UTILITY_POI",
         "lat": 28.620019,
@@ -361,7 +361,7 @@
     },
     {
         "location_id": "LOC_074",
-        "name": "ITC Maurya 4",
+        "name": "ITC Maurya",
         "type": "HOTEL",
         "category": "UTILITY_POI",
         "lat": 28.599101,
@@ -376,7 +376,7 @@
     },
     {
         "location_id": "LOC_075",
-        "name": "Radisson Blu 5",
+        "name": "Radisson Blu",
         "type": "HOTEL",
         "category": "UTILITY_POI",
         "lat": 28.620967,
@@ -391,7 +391,7 @@
     },
     {
         "location_id": "LOC_076",
-        "name": "Budget Inn 6",
+        "name": "Budget Inn",
         "type": "HOTEL",
         "category": "UTILITY_POI",
         "lat": 28.580154,
@@ -406,7 +406,7 @@
     },
     {
         "location_id": "LOC_077",
-        "name": "City Stay 7",
+        "name": "City Stay",
         "type": "HOTEL",
         "category": "UTILITY_POI",
         "lat": 28.652962,
@@ -421,7 +421,7 @@
     },
     {
         "location_id": "LOC_078",
-        "name": "Hotel Pearl 8",
+        "name": "Hotel Pearl",
         "type": "HOTEL",
         "category": "UTILITY_POI",
         "lat": 28.566833,
@@ -436,7 +436,7 @@
     },
     {
         "location_id": "LOC_079",
-        "name": "Metro View 9",
+        "name": "Metro View",
         "type": "HOTEL",
         "category": "UTILITY_POI",
         "lat": 28.521142,
@@ -451,7 +451,7 @@
     },
     {
         "location_id": "LOC_080",
-        "name": "Urban Nest 10",
+        "name": "Urban Nest",
         "type": "HOTEL",
         "category": "UTILITY_POI",
         "lat": 28.535197,
@@ -539,7 +539,7 @@
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.5727,
-        "lng": 77.2090,
+        "lng": 77.209,
         "avg_visit_time_min": 90,
         "cost": 100,
         "repeatable": false,
@@ -580,7 +580,7 @@
             "history",
             "culture"
         ],
-        "base_importance": 0.80
+        "base_importance": 0.8
     },
     {
         "location_id": "LOC_015",
@@ -620,8 +620,8 @@
         "name": "Khan Market",
         "type": "POI",
         "category": "HARD_POI",
-        "lat": 28.6000,
-        "lng": 77.2270,
+        "lat": 28.6,
+        "lng": 77.227,
         "avg_visit_time_min": 90,
         "cost": 1000,
         "repeatable": false,
@@ -638,7 +638,7 @@
         "type": "POI",
         "category": "HARD_POI",
         "lat": 28.6261,
-        "lng": 77.2250,
+        "lng": 77.225,
         "avg_visit_time_min": 45,
         "cost": 0,
         "repeatable": false,
@@ -662,7 +662,7 @@
             "nature",
             "romantic"
         ],
-        "base_importance": 0.70
+        "base_importance": 0.7
     },
     {
         "location_id": "LOC_020",
