@@ -13,26 +13,20 @@ scenario_data = {
         "FAM_C": {"loc": "LOC_LUNCH", "time": "13:00"}
     },
     "visited_history": {
-        "FAM_A": ["LOC_001", "LOC_008"], # Red Fort, Raj Ghat
-        "FAM_B": ["LOC_001", "LOC_008"],
-        "FAM_C": ["LOC_001", "LOC_008"]
+        "FAM_A": ["LOC_008"], # Raj Ghat
+        "FAM_B": ["LOC_008"],
+        "FAM_C": ["LOC_008"]
     },
-
     "user_requests": {
         "FAM_A": {
-             "force_visit": ["LOC_004"], # Lotus Temple (Group Decision)
-             "force_skip": []
-        },
-        "FAM_B": {
-             "force_visit": ["LOC_004"],
+             "force_visit": [],
              "force_skip": []
         },
         "FAM_C": {
-             "force_visit": ["LOC_004"], 
-             "force_skip": []
+             "force_visit": ["LOC_004"], # Lotus Temple
+             "force_skip": [] # Example: ["LOC_003"] if they wanted to skip India Gate
         }
     }
-
 }
 
 OUTPUT_PATH = "ml_or/data/demo_scenario.json"

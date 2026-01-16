@@ -515,5 +515,169 @@
         ],
         "base_importance": 1.0,
         "role": "SKELETON"
+    },
+    {
+        "location_id": "LOC_011",
+        "name": "Hauz Khas Village",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.5534,
+        "lng": 77.1944,
+        "avg_visit_time_min": 120,
+        "cost": 500,
+        "repeatable": false,
+        "tags": [
+            "nightlife",
+            "culture",
+            "history"
+        ],
+        "base_importance": 0.78
+    },
+    {
+        "location_id": "LOC_012",
+        "name": "Dilli Haat INA",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.5727,
+        "lng": 77.2090,
+        "avg_visit_time_min": 90,
+        "cost": 100,
+        "repeatable": false,
+        "tags": [
+            "shopping",
+            "food",
+            "culture"
+        ],
+        "base_importance": 0.82
+    },
+    {
+        "location_id": "LOC_013",
+        "name": "Lodhi Gardens",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.5933,
+        "lng": 77.2197,
+        "avg_visit_time_min": 60,
+        "cost": 0,
+        "repeatable": false,
+        "tags": [
+            "nature",
+            "history"
+        ],
+        "base_importance": 0.85
+    },
+    {
+        "location_id": "LOC_014",
+        "name": "National Museum",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.6118,
+        "lng": 77.2193,
+        "avg_visit_time_min": 120,
+        "cost": 50,
+        "repeatable": false,
+        "tags": [
+            "history",
+            "culture"
+        ],
+        "base_importance": 0.80
+    },
+    {
+        "location_id": "LOC_015",
+        "name": "Chandni Chowk",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.6506,
+        "lng": 77.2303,
+        "avg_visit_time_min": 120,
+        "cost": 200,
+        "repeatable": false,
+        "tags": [
+            "shopping",
+            "food",
+            "history"
+        ],
+        "base_importance": 0.88
+    },
+    {
+        "location_id": "LOC_016",
+        "name": "Sarojini Nagar Market",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.5758,
+        "lng": 77.1984,
+        "avg_visit_time_min": 90,
+        "cost": 200,
+        "repeatable": false,
+        "tags": [
+            "shopping",
+            "budget"
+        ],
+        "base_importance": 0.75
+    },
+    {
+        "location_id": "LOC_017",
+        "name": "Khan Market",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.6000,
+        "lng": 77.2270,
+        "avg_visit_time_min": 90,
+        "cost": 1000,
+        "repeatable": false,
+        "tags": [
+            "shopping",
+            "luxury",
+            "food"
+        ],
+        "base_importance": 0.72
+    },
+    {
+        "location_id": "LOC_018",
+        "name": "Agrasen ki Baoli",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.6261,
+        "lng": 77.2250,
+        "avg_visit_time_min": 45,
+        "cost": 0,
+        "repeatable": false,
+        "tags": [
+            "history",
+            "architecture"
+        ],
+        "base_importance": 0.81
+    },
+    {
+        "location_id": "LOC_019",
+        "name": "Garden of Five Senses",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.5135,
+        "lng": 77.1983,
+        "avg_visit_time_min": 90,
+        "cost": 100,
+        "repeatable": false,
+        "tags": [
+            "nature",
+            "romantic"
+        ],
+        "base_importance": 0.70
+    },
+    {
+        "location_id": "LOC_020",
+        "name": "National Gallery of Modern Art",
+        "type": "POI",
+        "category": "HARD_POI",
+        "lat": 28.6105,
+        "lng": 77.2345,
+        "avg_visit_time_min": 90,
+        "cost": 50,
+        "repeatable": false,
+        "tags": [
+            "art",
+            "culture"
+        ],
+        "base_importance": 0.76
     }
 ]
