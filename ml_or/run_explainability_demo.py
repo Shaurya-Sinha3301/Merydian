@@ -34,9 +34,9 @@ def main():
         family_prefs_file=str(data_dir / "family_preferences_3fam_strict.json")
     )
     
-    # Run for 1 day, 2 families
+    # Run for 1 day, 3 families
     solution = optimizer.optimize_multi_family_single_day(
-        family_ids=["FAM_A", "FAM_B"],
+        family_ids=["FAM_A", "FAM_B", "FAM_C"],
         day_index=0,
         max_pois=5,
         time_limit_seconds=30,
@@ -78,20 +78,20 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
     
     # Save Optimized Solution
-    solution_path = output_dir / "optimized_solution.json"
+    solution_path = output_dir / "optimized_solution_3fam.json"
     with open(solution_path, "w") as f:
         json.dump(solution, f, indent=2)
     print(f"\n[OK] Saved optimized solution to: {solution_path}")
     
     # Save Decision Traces
-    traces_path = output_dir / "decision_traces.json"
+    traces_path = output_dir / "decision_traces_3fam.json"
     with open(traces_path, "w") as f:
         # Convert dict keys to strings for JSON compatibility
         json.dump({str(k): v for k, v in decision_traces.items()}, f, indent=2)
     print(f"[OK] Saved decision traces to: {traces_path}")
     
     # Save Enriched Diffs
-    diffs_path = output_dir / "enriched_diffs.json"
+    diffs_path = output_dir / "enriched_diffs_3fam.json"
     with open(diffs_path, "w") as f:
         # Flatten structure for JSON
         output = {}
@@ -101,7 +101,7 @@ def main():
     print(f"[OK] Saved enriched diffs to: {diffs_path}")
     
     # Save Final Payloads (for LLM)
-    payloads_path = output_dir / "llm_payloads.json"
+    payloads_path = output_dir / "llm_payloads_3fam.json"
     with open(payloads_path, "w") as f:
         json.dump(payloads, f, indent=2)
     print(f"[OK] Saved LLM payloads to: {payloads_path}")
