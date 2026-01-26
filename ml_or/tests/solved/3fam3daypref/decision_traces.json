@@ -272,15 +272,15 @@
       "family": "ALL",
       "day": 1,
       "selected_pois": [
-        "LOC_DINNER",
-        "LOC_013",
-        "LOC_LUNCH",
-        "LOC_046",
         "LOC_001",
+        "LOC_008",
+        "LOC_046",
+        "LOC_013",
         "LOC_018",
         "LOC_010",
+        "LOC_DINNER",
         "LOC_003",
-        "LOC_008"
+        "LOC_LUNCH"
       ],
       "objective_breakdown": {
         "total_satisfaction": 0,
@@ -637,11 +637,11 @@
       "family": "ALL",
       "day": 2,
       "selected_pois": [
-        "LOC_DINNER",
-        "LOC_LUNCH",
-        "LOC_009",
+        "LOC_006",
         "LOC_005",
-        "LOC_006"
+        "LOC_DINNER",
+        "LOC_009",
+        "LOC_LUNCH"
       ],
       "objective_breakdown": {
         "total_satisfaction": 0,
@@ -1011,9 +1011,9 @@
       "family": "ALL",
       "day": 3,
       "selected_pois": [
-        "LOC_DINNER",
         "LOC_LUNCH",
-        "LOC_046"
+        "LOC_046",
+        "LOC_DINNER"
       ],
       "objective_breakdown": {
         "total_satisfaction": 0,

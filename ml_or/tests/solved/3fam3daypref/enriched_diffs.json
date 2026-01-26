@@ -12,8 +12,9 @@
           "gain": 1.09
         },
         "cost_delta": {
-          "extra_cost": 50,
-          "currency": "INR"
+          "extra_cost": 43.0,
+          "currency": "INR",
+          "transport_cost": -7.0
         }
       }
     ]

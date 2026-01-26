@@ -11,8 +11,9 @@
       "SHARED_ANCHOR_REQUIRED"
     ],
     "cost_delta": {
-      "extra_cost": 50,
-      "currency": "INR"
+      "extra_cost": 43.0,
+      "currency": "INR",
+      "transport_cost": -7.0
     },
     "satisfaction_delta": {
       "gain": 1.09

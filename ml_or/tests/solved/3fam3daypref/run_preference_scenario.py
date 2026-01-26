@@ -109,13 +109,14 @@ def main():
     print("\n[STEP 6] Running Delta Engine...")
     delta_engine = DeltaEngine()
     
-    # NOTE: We need to enhance delta engine to work with two optimized solutions
-    # For now, we'll pass the decision traces and locations
-    # The delta engine will need to be modified to accept baseline_solution
+    # Enhanced delta engine now accepts both baseline and new solutions
+    # to calculate accurate transport cost deltas
     enriched_diffs = delta_engine.compute_deltas(
         tagged_diffs, 
         decision_traces, 
-        optimizer.locations
+        optimizer.locations,
+        baseline_solution=baseline_solution,  # Pass baseline for transport comparison
+        new_solution=new_solution              # Pass new solution for transport comparison
     )
     
     # --- 7. Run Payload Builder ---
