@@ -17,7 +17,7 @@
     *   No repeat visits (check "Step 16" logic).
     *   Reasonable costs.
 
-### B. Dynamic Branch Expansion (Step 15)
+### B. Dynamic Branch Expansion
 *   **Concept**: You do NOT need to hardcode every minor stop.
 *   **Mechanism**: The engine automatically queries `locations.json` for POIs near the Skeleton anchors.
 *   **Action**: If a day looks empty, ensure the Skeleton POIs have valid lat/lngs so the radius search works.
@@ -39,9 +39,8 @@
 ---
 
 ## 3. Project Status (v1.0)
-*   **Step 1-14**: Core routing, multi-family sync, meal windows. (DONE)
-*   **Step 15**: Dynamic Branch Expansion. (DONE)
-*   **Step 16**: Global Repeatability & History Tracking. (DONE)
+*   **Core Engine**: Routing, Multi-Family Sync, Meal Windows. (DONE)
+*   **Advanced Features**: Dynamic Branch Expansion (Radius Search), Global Repeatability. (DONE)
 
 **Next Steps**:
 *   Visualization (Map generation).

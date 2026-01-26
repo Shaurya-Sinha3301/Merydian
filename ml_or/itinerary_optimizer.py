@@ -123,6 +123,9 @@ class ItineraryOptimizer:
         self.delta = 0.5      # Desync duration weight
         self.lambda_coherence = 0.3  # Overall coherence loss weight
         
+        # DECISION TRACE COLLECTOR (Non-LLM Authority Layer)
+        self.decision_traces = {}  # Key: f"{day_index}" -> Trace Dict
+        
     def _load_locations(self, filepath: str) -> Dict[str, Location]:
         """Load locations from JSON"""
         with open(filepath, 'r') as f:
@@ -996,7 +999,8 @@ class ItineraryOptimizer:
         max_pois: int = 3,
         time_limit_seconds: int = 60,
         lambda_divergence: float = 0.05,
-        visited_history: Dict[str, set] = None # STEP 16: Added argument
+        visited_history: Dict[str, set] = None, # STEP 16: Added argument
+        enable_trace: bool = True  # NEW: Enable decision tracing
     ) -> Optional[Dict]:
         """
         STEP 9/10: Optimize itinerary for MULTIPLE families, 1 day.
@@ -1081,6 +1085,30 @@ class ItineraryOptimizer:
         if start_loc_id: print(f"  - START ANCHOR: {start_loc_id}")
         if end_loc_id:   print(f"  - END ANCHOR:   {end_loc_id}")
         
+        # TRACE: A. Candidate POIs
+        if enable_trace:
+            self.decision_traces[day_index] = {
+                "candidates": [],
+                "constraints": [],
+                "outcome": None
+            }
+            # Log candidates per family (simplified as candidates are shared but scores differ)
+            for fid in family_ids:
+                fam_defaults = []
+                for pid in candidate_pois:
+                    loc = self.locations[pid]
+                    fam_defaults.append({
+                        "poi_id": pid,
+                        "interest_score": self.calculate_satisfaction(families[fid], loc), # Raw score
+                        "role": getattr(loc, 'role', 'BRANCH') if pid not in skeleton_pois else 'SKELETON',
+                         # Estimate cost (optional, skipping for MV)
+                    })
+                self.decision_traces[day_index]["candidates"].append({
+                    "family": fid,
+                    "day": day_index + 1,
+                    "candidates": fam_defaults
+                })
+
         model = cp_model.CpModel()
         
         START_NODE = f"START_DAY_{day_index + 1}"
@@ -1117,6 +1145,12 @@ class ItineraryOptimizer:
                                 # Ban revisit
                                 # print(f"  [CONSTRAINT] {fid} cannot revisit {loc_def.name} ({past_poi}) (Day {day_index+1})")
                                 banned_pois[fid].add(past_poi)
+                                if enable_trace:
+                                    self.decision_traces[day_index]["constraints"].append({
+                                        "constraint_id": f"HISTORY_BAN_{fid}_{past_poi}",
+                                        "type": "HISTORY_BAN",
+                                        "applies_to": {"family": fid, "poi": past_poi}
+                                    })
 
         x = {}
         for fid in family_ids:
@@ -1147,12 +1181,24 @@ class ItineraryOptimizer:
                      min_start = self._time_to_minutes(details['time_window_start'])
                      for fid in family_ids:
                          model.Add(arr[(fid, poi_id)] >= min_start)
+                         if enable_trace:
+                             self.decision_traces[day_index]["constraints"].append({
+                                 "constraint_id": f"TIME_START_{poi_id}",
+                                 "type": "HARD_TIME_WINDOW",
+                                 "applies_to": {"family": fid, "poi": poi_id}
+                             })
                  
                  # End Window (e.g. Lunch must end before 14:00)
                  if 'time_window_end' in details:
                      max_end = self._time_to_minutes(details['time_window_end'])
                      for fid in family_ids:
                          model.Add(dep[(fid, poi_id)] <= max_end)
+                         if enable_trace:
+                             self.decision_traces[day_index]["constraints"].append({
+                                 "constraint_id": f"TIME_END_{poi_id}",
+                                 "type": "HARD_TIME_WINDOW",
+                                 "applies_to": {"family": fid, "poi": poi_id}
+                             })
         
         for fid in family_ids:
             arr[(fid, START_NODE)] = day_start_min
@@ -1485,10 +1531,28 @@ class ItineraryOptimizer:
         status = solver.Solve(model)
         
         if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
-            return self._extract_multi_family_solution(
+            solution = self._extract_multi_family_solution(
                 solver, x, y, adj, arr, dep,
                 candidate_pois, best_transport_edges, family_ids, day_index, all_nodes
             )
+            
+            # TRACE: C. Solver Outcome
+            if enable_trace and solution:
+                outcome = {
+                    "family": "ALL", # Joint optimization
+                    "day": day_index + 1,
+                    "selected_pois": list(set([p['location_id'] for fam in solution['families'].values() for p in fam['pois']])),
+                    "objective_breakdown": {
+                        "total_satisfaction": solution.get('total_satisfaction', 0),
+                        "coherence_loss": solution.get('coherence_loss', 0),
+                        "net_value": solution.get('net_value', 0)
+                    }
+                }
+                # Find rejected eligible POIs
+                outcome["rejected_eligible_pois"] = [p for p in candidate_pois if p not in outcome["selected_pois"]]
+                self.decision_traces[day_index]["outcome"] = outcome
+                
+            return solution
         else:
             print(f"No feasible solution found. Status: {solver.StatusName(status)}")
             return None
