@@ -1,0 +1,22 @@
+[
+  {
+    "family": "FAM_B",
+    "day": 2,
+    "change_type": "POI_ADDED",
+    "poi": {
+      "id": "LOC_006",
+      "name": "Akshardham"
+    },
+    "causal_tags": [
+      "SHARED_ANCHOR_REQUIRED"
+    ],
+    "cost_delta": {
+      "extra_cost": 50,
+      "currency": "INR"
+    },
+    "satisfaction_delta": {
+      "gain": 1.09
+    },
+    "audience": "TRAVEL_AGENT"
+  }
+]

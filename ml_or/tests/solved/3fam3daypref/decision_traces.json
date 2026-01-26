@@ -1,0 +1,1033 @@
+{
+  "0": {
+    "candidates": [
+      {
+        "family": "FAM_A",
+        "day": 1,
+        "candidates": [
+          {
+            "poi_id": "LOC_008",
+            "interest_score": 1.4449999999999998,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_LUNCH",
+            "interest_score": 1.2,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_001",
+            "interest_score": 1.0374999999999999,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_010",
+            "interest_score": 1.1655,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_DINNER",
+            "interest_score": 1.1666666666666667,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_003",
+            "interest_score": 1.1340000000000001,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_018",
+            "interest_score": 1.4985000000000002,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_015",
+            "interest_score": 1.3493333333333333,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_013",
+            "interest_score": 1.4449999999999998,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_046",
+            "interest_score": 1.036,
+            "role": "BRANCH"
+          }
+        ]
+      },
+      {
+        "family": "FAM_B",
+        "day": 1,
+        "candidates": [
+          {
+            "poi_id": "LOC_008",
+            "interest_score": 0.9774999999999999,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_LUNCH",
+            "interest_score": 1.45,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_001",
+            "interest_score": 0.913,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_010",
+            "interest_score": 0.8819999999999999,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_DINNER",
+            "interest_score": 1.6333333333333333,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_003",
+            "interest_score": 1.554,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_018",
+            "interest_score": 1.134,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_015",
+            "interest_score": 1.4666666666666666,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_013",
+            "interest_score": 1.0625,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_046",
+            "interest_score": 1.406,
+            "role": "BRANCH"
+          }
+        ]
+      },
+      {
+        "family": "FAM_C",
+        "day": 1,
+        "candidates": [
+          {
+            "poi_id": "LOC_008",
+            "interest_score": 1.275,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_LUNCH",
+            "interest_score": 1.3,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_001",
+            "interest_score": 1.0374999999999999,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_010",
+            "interest_score": 0.9450000000000001,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_DINNER",
+            "interest_score": 1.3666666666666667,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_003",
+            "interest_score": 1.302,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_018",
+            "interest_score": 1.215,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_015",
+            "interest_score": 1.3493333333333333,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_013",
+            "interest_score": 1.275,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_046",
+            "interest_score": 1.184,
+            "role": "BRANCH"
+          }
+        ]
+      }
+    ],
+    "constraints": [
+      {
+        "constraint_id": "TIME_START_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_DINNER"
+        }
+      }
+    ],
+    "outcome": {
+      "family": "ALL",
+      "day": 1,
+      "selected_pois": [
+        "LOC_DINNER",
+        "LOC_013",
+        "LOC_LUNCH",
+        "LOC_046",
+        "LOC_001",
+        "LOC_018",
+        "LOC_010",
+        "LOC_003",
+        "LOC_008"
+      ],
+      "objective_breakdown": {
+        "total_satisfaction": 0,
+        "coherence_loss": 0,
+        "net_value": 0
+      },
+      "rejected_eligible_pois": [
+        "LOC_015"
+      ]
+    }
+  },
+  "1": {
+    "candidates": [
+      {
+        "family": "FAM_A",
+        "day": 2,
+        "candidates": [
+          {
+            "poi_id": "LOC_005",
+            "interest_score": 1.2045,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_006",
+            "interest_score": 0.7665,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_LUNCH",
+            "interest_score": 1.2,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_009",
+            "interest_score": 1.0585,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_DINNER",
+            "interest_score": 1.1666666666666667,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_003",
+            "interest_score": 1.1340000000000001,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_018",
+            "interest_score": 1.4985000000000002,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_050",
+            "interest_score": 0.952,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_010",
+            "interest_score": 1.1655,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_014",
+            "interest_score": 1.16,
+            "role": "BRANCH"
+          }
+        ]
+      },
+      {
+        "family": "FAM_B",
+        "day": 2,
+        "candidates": [
+          {
+            "poi_id": "LOC_005",
+            "interest_score": 0.9855,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_006",
+            "interest_score": 1.095,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_LUNCH",
+            "interest_score": 1.45,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_009",
+            "interest_score": 0.8394999999999999,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_DINNER",
+            "interest_score": 1.6333333333333333,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_003",
+            "interest_score": 1.554,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_018",
+            "interest_score": 1.134,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_050",
+            "interest_score": 1.292,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_010",
+            "interest_score": 0.8819999999999999,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_014",
+            "interest_score": 0.9199999999999999,
+            "role": "BRANCH"
+          }
+        ]
+      },
+      {
+        "family": "FAM_C",
+        "day": 2,
+        "candidates": [
+          {
+            "poi_id": "LOC_005",
+            "interest_score": 1.095,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_006",
+            "interest_score": 0.9125,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_LUNCH",
+            "interest_score": 1.3,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_009",
+            "interest_score": 0.9125,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_DINNER",
+            "interest_score": 1.3666666666666667,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_003",
+            "interest_score": 1.302,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_018",
+            "interest_score": 1.215,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_050",
+            "interest_score": 1.088,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_010",
+            "interest_score": 0.9450000000000001,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_014",
+            "interest_score": 1.0,
+            "role": "BRANCH"
+          }
+        ]
+      }
+    ],
+    "constraints": [
+      {
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_018",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_018"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_010",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_010"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_003",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_003"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_018",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_018"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_010",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_010"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_003",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_003"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_018",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_018"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_010",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_010"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_003",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_003"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_DINNER"
+        }
+      }
+    ],
+    "outcome": {
+      "family": "ALL",
+      "day": 2,
+      "selected_pois": [
+        "LOC_DINNER",
+        "LOC_LUNCH",
+        "LOC_009",
+        "LOC_005",
+        "LOC_006"
+      ],
+      "objective_breakdown": {
+        "total_satisfaction": 0,
+        "coherence_loss": 0,
+        "net_value": 0
+      },
+      "rejected_eligible_pois": [
+        "LOC_003",
+        "LOC_018",
+        "LOC_050",
+        "LOC_010",
+        "LOC_014"
+      ]
+    }
+  },
+  "2": {
+    "candidates": [
+      {
+        "family": "FAM_A",
+        "day": 3,
+        "candidates": [
+          {
+            "poi_id": "LOC_LUNCH",
+            "interest_score": 1.2,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_046",
+            "interest_score": 1.036,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_003",
+            "interest_score": 1.1340000000000001,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_DINNER",
+            "interest_score": 1.1666666666666667,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_018",
+            "interest_score": 1.4985000000000002,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_015",
+            "interest_score": 1.3493333333333333,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_013",
+            "interest_score": 1.4449999999999998,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_010",
+            "interest_score": 1.1655,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_014",
+            "interest_score": 1.16,
+            "role": "BRANCH"
+          }
+        ]
+      },
+      {
+        "family": "FAM_B",
+        "day": 3,
+        "candidates": [
+          {
+            "poi_id": "LOC_LUNCH",
+            "interest_score": 1.45,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_046",
+            "interest_score": 1.406,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_003",
+            "interest_score": 1.554,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_DINNER",
+            "interest_score": 1.6333333333333333,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_018",
+            "interest_score": 1.134,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_015",
+            "interest_score": 1.4666666666666666,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_013",
+            "interest_score": 1.0625,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_010",
+            "interest_score": 0.8819999999999999,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_014",
+            "interest_score": 0.9199999999999999,
+            "role": "BRANCH"
+          }
+        ]
+      },
+      {
+        "family": "FAM_C",
+        "day": 3,
+        "candidates": [
+          {
+            "poi_id": "LOC_LUNCH",
+            "interest_score": 1.3,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_046",
+            "interest_score": 1.184,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_003",
+            "interest_score": 1.302,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_DINNER",
+            "interest_score": 1.3666666666666667,
+            "role": "SKELETON"
+          },
+          {
+            "poi_id": "LOC_018",
+            "interest_score": 1.215,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_015",
+            "interest_score": 1.3493333333333333,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_013",
+            "interest_score": 1.275,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_010",
+            "interest_score": 0.9450000000000001,
+            "role": "BRANCH"
+          },
+          {
+            "poi_id": "LOC_014",
+            "interest_score": 1.0,
+            "role": "BRANCH"
+          }
+        ]
+      }
+    ],
+    "constraints": [
+      {
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_013",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_013"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_018",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_018"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_010",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_010"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_003",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_003"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_013",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_013"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_018",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_018"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_010",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_010"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_003",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_003"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_013",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_013"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_018",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_018"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_010",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_010"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_003",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_003"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_LUNCH",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_LUNCH"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_START_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_DINNER"
+        }
+      },
+      {
+        "constraint_id": "TIME_END_LOC_DINNER",
+        "type": "HARD_TIME_WINDOW",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_DINNER"
+        }
+      }
+    ],
+    "outcome": {
+      "family": "ALL",
+      "day": 3,
+      "selected_pois": [
+        "LOC_DINNER",
+        "LOC_LUNCH",
+        "LOC_046"
+      ],
+      "objective_breakdown": {
+        "total_satisfaction": 0,
+        "coherence_loss": 0,
+        "net_value": 0
+      },
+      "rejected_eligible_pois": [
+        "LOC_003",
+        "LOC_018",
+        "LOC_015",
+        "LOC_013",
+        "LOC_010",
+        "LOC_014"
+      ]
+    }
+  }
+}
