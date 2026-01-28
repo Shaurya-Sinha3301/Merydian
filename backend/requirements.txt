@@ -6,3 +6,6 @@ python-multipart
 pydantic-settings
 email-validator
 httpx
+sqlmodel
+celery[redis]
+redis
