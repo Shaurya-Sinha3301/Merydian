@@ -32,7 +32,7 @@ const TripSummaryCard = ({ tripData }: TripSummaryCardProps) => {
   const currentStatus = statusConfig[tripData.status];
 
   return (
-    <div className="neu-flat rounded-3xl shadow-neu-md p-6">
+    <div className="bg-card shadow-sm border border-neutral-100 rounded-3xl p-6">
       <div className="flex items-start justify-between mb-6">
         <div>
           <h2 className="text-2xl font-semibold text-foreground mb-1">{tripData.destination}</h2>
@@ -47,7 +47,7 @@ const TripSummaryCard = ({ tripData }: TripSummaryCardProps) => {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="flex items-center space-x-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl neu-convex bg-primary/10">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
             <Icon name="CalendarIcon" size={20} className="text-primary" variant="solid" />
           </div>
           <div>
@@ -57,8 +57,8 @@ const TripSummaryCard = ({ tripData }: TripSummaryCardProps) => {
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl neu-convex bg-success/10">
-            <Icon name="CurrencyDollarIcon" size={20} className="text-success" variant="solid" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-success/10">
+            <Icon name="CurrencyDollarIcon" size={20} className="text-secondary" variant="solid" />
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Total Cost</p>
@@ -67,7 +67,7 @@ const TripSummaryCard = ({ tripData }: TripSummaryCardProps) => {
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl neu-convex bg-accent/10">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10">
             <Icon name="UserGroupIcon" size={20} className="text-accent" variant="solid" />
           </div>
           <div>
@@ -77,7 +77,7 @@ const TripSummaryCard = ({ tripData }: TripSummaryCardProps) => {
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl neu-convex bg-secondary/10">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10">
             <Icon name="CalculatorIcon" size={20} className="text-secondary" variant="solid" />
           </div>
           <div>
@@ -91,19 +91,19 @@ const TripSummaryCard = ({ tripData }: TripSummaryCardProps) => {
         <h3 className="text-sm font-medium text-foreground mb-3">Group Composition</h3>
         <div className="flex flex-wrap gap-3">
           {tripData.groupSize.adults > 0 && (
-            <div className="flex items-center space-x-2 px-4 py-2 neu-button rounded-2xl">
+            <div className="flex items-center space-x-2 px-4 py-2 bg-neutral-50 border border-neutral-100 rounded-2xl">
               <Icon name="UserIcon" size={16} className="text-foreground" />
               <span className="text-sm text-foreground">{tripData.groupSize.adults} Adults</span>
             </div>
           )}
           {tripData.groupSize.children > 0 && (
-            <div className="flex items-center space-x-2 px-4 py-2 neu-button rounded-2xl">
+            <div className="flex items-center space-x-2 px-4 py-2 bg-neutral-50 border border-neutral-100 rounded-2xl">
               <Icon name="UserIcon" size={16} className="text-foreground" />
               <span className="text-sm text-foreground">{tripData.groupSize.children} Children</span>
             </div>
           )}
           {tripData.groupSize.seniors > 0 && (
-            <div className="flex items-center space-x-2 px-4 py-2 neu-button rounded-2xl">
+            <div className="flex items-center space-x-2 px-4 py-2 bg-neutral-50 border border-neutral-100 rounded-2xl">
               <Icon name="UserIcon" size={16} className="text-foreground" />
               <span className="text-sm text-foreground">{tripData.groupSize.seniors} Seniors</span>
             </div>

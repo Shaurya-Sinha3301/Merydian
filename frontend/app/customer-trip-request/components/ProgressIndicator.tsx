@@ -43,7 +43,7 @@ const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicatorProps) 
   const progress = (currentStep / totalSteps) * 100;
 
   return (
-    <div className="neu-flat border-b border-border/50">
+    <div className="bg-white/80 backdrop-blur-md border-b border-neutral-200 sticky top-16 z-40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
         {/* Desktop Progress */}
         <div className="hidden md:block">
@@ -57,13 +57,12 @@ const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicatorProps) 
                 <div key={step.id} className="flex items-center flex-1">
                   <div className="flex items-center">
                     <div
-                      className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-smooth ${
-                        isCompleted
-                          ? 'bg-success text-success-foreground shadow-neu-sm'
+                      className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300 ${isCompleted
+                          ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200'
                           : isCurrent
-                          ? 'bg-primary text-primary-foreground shadow-neu-md'
-                          : 'neu-flat text-muted-foreground'
-                      }`}
+                            ? 'bg-primary text-primary-foreground shadow-md shadow-neutral-300 ring-4 ring-primary/10'
+                            : 'bg-white text-neutral-400 border border-neutral-200 shadow-sm'
+                        }`}
                     >
                       {isCompleted ? (
                         <Icon name="CheckIcon" size={24} variant="solid" />
@@ -73,9 +72,8 @@ const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicatorProps) 
                     </div>
                     <div className="ml-3">
                       <div
-                        className={`text-sm font-medium ${
-                          isCurrent ? 'text-foreground' : 'text-muted-foreground'
-                        }`}
+                        className={`text-sm font-medium ${isCurrent ? 'text-foreground' : 'text-muted-foreground'
+                          }`}
                       >
                         {step.label}
                       </div>
@@ -84,11 +82,10 @@ const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicatorProps) 
                   </div>
                   {!isLast && (
                     <div className="flex-1 mx-4">
-                      <div className="h-1 neu-pressed rounded-full relative overflow-hidden">
+                      <div className="h-1 bg-neutral-100 rounded-full relative overflow-hidden">
                         <div
-                          className={`h-full transition-smooth ${
-                            isCompleted ? 'bg-success' : 'bg-transparent'
-                          }`}
+                          className={`h-full transition-all duration-500 ease-out ${isCompleted ? 'bg-emerald-500' : 'bg-transparent'
+                            }`}
                         />
                       </div>
                     </div>

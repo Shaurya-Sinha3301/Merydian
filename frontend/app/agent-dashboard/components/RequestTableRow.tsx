@@ -38,7 +38,7 @@ interface RequestTableRowProps {
 
 const RequestTableRow = ({ request, onQuickAction }: RequestTableRowProps) => {
   const totalTravelers = request.groupSize.adults + request.groupSize.children + request.groupSize.seniors;
-  
+
   const priorityConfig = {
     high: 'text-destructive',
     medium: 'text-warning',
@@ -64,10 +64,9 @@ const RequestTableRow = ({ request, onQuickAction }: RequestTableRowProps) => {
       {/* Priority Indicator */}
       <td className="px-4 py-4">
         <div className="flex items-center justify-center">
-          <div className={`h-2 w-2 rounded-full ${
-            request.priority === 'high' ? 'bg-destructive' :
-            request.priority === 'medium'? 'bg-warning' : 'bg-muted-foreground'
-          }`} />
+          <div className={`h-2 w-2 rounded-full ${request.priority === 'high' ? 'bg-destructive' :
+            request.priority === 'medium' ? 'bg-warning' : 'bg-muted-foreground'
+            }`} />
         </div>
       </td>
 
@@ -111,7 +110,7 @@ const RequestTableRow = ({ request, onQuickAction }: RequestTableRowProps) => {
       {/* Budget Range */}
       <td className="px-4 py-4">
         <div className="flex flex-col">
-          <span className="text-sm font-medium text-foreground">
+          <span className="text-sm font-bold text-blue-600">
             {formatCurrency(request.budgetRange.min)} - {formatCurrency(request.budgetRange.max)}
           </span>
           <span className="caption text-xs text-muted-foreground">Per person</span>
@@ -133,10 +132,9 @@ const RequestTableRow = ({ request, onQuickAction }: RequestTableRowProps) => {
         <div className="flex items-center space-x-2">
           <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
             <div
-              className={`h-full transition-smooth ${
-                request.confidenceScore >= 80 ? 'bg-success' :
-                request.confidenceScore >= 60 ? 'bg-warning': 'bg-destructive'
-              }`}
+              className={`h-full transition-smooth ${request.confidenceScore >= 80 ? 'bg-success' :
+                request.confidenceScore >= 60 ? 'bg-warning' : 'bg-destructive'
+                }`}
               style={{ width: `${request.confidenceScore}%` }}
             />
           </div>

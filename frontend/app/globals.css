@@ -11,6 +11,7 @@
   --font-sans: var(--font-dm-sans);
   --font-serif: var(--font-crimson-text);
   --font-mono: var(--font-geist-mono);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -19,11 +20,13 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -40,6 +43,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -48,167 +52,205 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* Custom colors for TravelAgent Hub */
-  --color-teal-50: #f0fdfa;
-  --color-teal-100: #ccfbf1;
-  --color-teal-200: #99f6e4;
-  --color-teal-300: #5eead4;
-  --color-teal-400: #2dd4bf;
-  --color-teal-500: #14b8a6;
-  --color-teal-600: #0d9488;
-  --color-teal-700: #0f766e;
-  --color-teal-800: #115e59;
-  --color-teal-900: #134e4a;
-
-  --color-coral-50: #fff7ed;
-  --color-coral-100: #ffedd5;
-  --color-coral-200: #fed7aa;
-  --color-coral-300: #fdba74;
-  --color-coral-400: #fb923c;
-  --color-coral-500: #f97316;
-  --color-coral-600: #ea580c;
-  --color-coral-700: #c2410c;
-  --color-coral-800: #9a3412;
-  --color-coral-900: #7c2d12;
-
-  --color-amber-50: #fffbeb;
-  --color-amber-100: #fef3c7;
-  --color-amber-200: #fde68a;
-  --color-amber-300: #fcd34d;
-  --color-amber-400: #fbbf24;
-  --color-amber-500: #f59e0b;
-  --color-amber-600: #d97706;
-  --color-amber-700: #b45309;
-  --color-amber-800: #92400e;
-  --color-amber-900: #78350f;
-}
-
-:root {
-  --radius: 0.625rem;
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.028 261.692);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.028 261.692);
-  --primary: oklch(0.21 0.034 264.665);
-  --primary-foreground: oklch(0.985 0.002 247.839);
-  --secondary: oklch(0.967 0.003 264.542);
-  --secondary-foreground: oklch(0.21 0.034 264.665);
-  --muted: oklch(0.967 0.003 264.542);
-  --muted-foreground: oklch(0.551 0.027 264.364);
-  --accent: oklch(0.967 0.003 264.542);
-  --accent-foreground: oklch(0.21 0.034 264.665);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.928 0.006 264.531);
-  --input: oklch(0.928 0.006 264.531);
-  --ring: oklch(0.707 0.022 261.325);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0.002 247.839);
-  --sidebar-foreground: oklch(0.13 0.028 261.692);
-  --sidebar-primary: oklch(0.21 0.034 264.665);
-  --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-accent: oklch(0.967 0.003 264.542);
-  --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
-  --sidebar-border: oklch(0.928 0.006 264.531);
-  --sidebar-ring: oklch(0.707 0.022 261.325);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.13 0.028 261.692);
-}
-
-.dark {
-  --background: oklch(0.13 0.028 261.692);
-  --foreground: oklch(0.985 0.002 247.839);
-  --card: oklch(0.21 0.034 264.665);
-  --card-foreground: oklch(0.985 0.002 247.839);
-  --popover: oklch(0.21 0.034 264.665);
-  --popover-foreground: oklch(0.985 0.002 247.839);
-  --primary: oklch(0.928 0.006 264.531);
-  --primary-foreground: oklch(0.21 0.034 264.665);
-  --secondary: oklch(0.278 0.033 256.848);
-  --secondary-foreground: oklch(0.985 0.002 247.839);
-  --muted: oklch(0.278 0.033 256.848);
-  --muted-foreground: oklch(0.707 0.022 261.325);
-  --accent: oklch(0.278 0.033 256.848);
-  --accent-foreground: oklch(0.985 0.002 247.839);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.034 264.665);
-  --sidebar-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-accent: oklch(0.278 0.033 256.848);
-  --sidebar-accent-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  /* Neumorphic Custom Colors */
+  --color-neu-base: #E4EBF5;
+  --color-neu-light: #FFFFFF;
+  --color-neu-dark: #A3B1C6;
 }
 
 @layer base {
+  :root {
+    /* Color Combo 08 - Clean Light Grey (Reference Image Match) */
+    --background: #F3F4F6;
+    /* Light Grey (Tailwind Gray-100) */
+    --foreground: #111827;
+    /* Very Dark Grey (Gray-900) */
+
+    --card: #FFFFFF;
+    /* Pure White Cards */
+    --card-foreground: #111827;
+
+    --popover: #FFFFFF;
+    --popover-foreground: #111827;
+
+    --primary: #111827;
+    /* Black (Gray-900) per user request */
+    --primary-foreground: #FFFFFF;
+
+    --secondary: #F9FAFB;
+    /* Very Light Grey */
+    --secondary-foreground: #111827;
+
+    --muted: #E5E7EB;
+    /* Gray-200 */
+    --muted-foreground: #6B7280;
+    /* Gray-500 */
+
+    --accent: #FFFFFF;
+    --accent-foreground: #111827;
+
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+
+    --border: #E5E7EB;
+    --input: #E5E7EB;
+    --ring: #10B981;
+
+    --radius: 1rem;
+    /* More rounded (16px) */
+
+    --chart-1: #10B981;
+    --chart-2: #F97316;
+    /* Orange */
+    --chart-3: #111827;
+    --chart-4: #F3F4F6;
+    --chart-5: #6B7280;
+
+    /* Variable for Shadcn/Tailwind usage */
+    --sidebar: #F3F4F6;
+    /* Matches background */
+    --sidebar-foreground: #111827;
+    --sidebar-primary: #10B981;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #FFFFFF;
+    --sidebar-accent-foreground: #111827;
+    --sidebar-border: #E5E7EB;
+    --sidebar-ring: #10B981;
+
+    /* Neumorphic Custom Colors - Clean Light */
+    --color-neu-base: #F3F4F6;
+    --color-neu-light: #FFFFFF;
+    --color-neu-dark: #D1D5DB;
+    /* Gray-300 shadows */
+  }
+
+  .dark {
+    /* Dark Neumorphic Base */
+    --background: #2D3748;
+    --foreground: #E2E8F0;
+
+    --card: #2D3748;
+    --card-foreground: #E2E8F0;
+
+    --popover: #2D3748;
+    --popover-foreground: #E2E8F0;
+
+    --primary: #6B93D6;
+    --primary-foreground: #FFFFFF;
+
+    --secondary: #4A5568;
+    --secondary-foreground: #E2E8F0;
+
+    --muted: #374151;
+    --muted-foreground: #9CA3AF;
+
+    --accent: #F6AD7B;
+    --accent-foreground: #FFFFFF;
+
+    --destructive: #E88A8A;
+    --destructive-foreground: #FFFFFF;
+
+    --border: #374151;
+    --input: #374151;
+    --ring: #6B93D6;
+
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+
+    --sidebar: #2D3748;
+    --sidebar-foreground: #E2E8F0;
+    --sidebar-primary: #488 0.243 264.376;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #374151;
+    --sidebar-accent-foreground: #E2E8F0;
+    --sidebar-border: #374151;
+    --sidebar-ring: #6B93D6;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
-/* Custom styles for TravelAgent Hub */
-.pill-nav {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 100px;
-  padding: 12px 28px;
-}
+@layer utilities {
 
-.hero-title {
-  font-size: clamp(3rem, 8vw, 8rem);
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  font-family: var(--font-crimson-text);
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-/* Animations */
-@keyframes progress {
-  from {
-    width: 0%;
-  }
-  to {
-    width: 100%;
-  }
-}
-
-.animate-progress {
-  animation: progress 2s ease-in-out infinite;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .pill-nav {
-    padding: 10px 20px;
+  /* Neumorphic Utilities - Clean Light */
+  .neu-flat {
+    background: var(--background);
+    box-shadow: none;
+    /* Reference image is very flat, mostly white cards */
   }
 
-  .hero-title {
-    font-size: clamp(2.5rem, 10vw, 4rem);
-    line-height: 1;
+  .neu-pressed {
+    background: #E5E7EB;
+    /* Darker grey for active state if needed */
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .neu-raised {
+    background: var(--card);
+    /* White card */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .neu-concave {
+    /* Not really used in this flat style, defaulting to simple active */
+    background: #FFFFFF;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+
+  .neu-convex {
+    background: linear-gradient(145deg, #E1E7EE, #B9C1C9);
+    box-shadow: 6px 6px 12px #AAB4BE, -6px -6px 12px #F0F4F8;
+  }
+
+  .neu-button {
+    background: var(--background);
+    color: var(--foreground);
+    box-shadow: 6px 6px 12px #AAB4BE, -6px -6px 12px #F0F4F8;
+    transition: all 0.2s ease;
+  }
+
+  .neu-button:hover {
+    box-shadow: 9px 9px 18px #9DA7B1, -9px -9px 18px #FFFFFF;
+    transform: translateY(-2px);
+    color: var(--primary);
+    /* Hover text becomes Teal */
+  }
+
+  .neu-button:active {
+    box-shadow: inset 4px 4px 8px #AAB4BE, inset -4px -4px 8px #F0F4F8;
+    transform: translateY(0);
+  }
+
+  .dark .neu-flat {
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(45, 45, 45, 0.3);
+  }
+
+  .dark .neu-pressed {
+    box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -4px -4px 8px rgba(45, 45, 45, 0.3);
+  }
+
+  .dark .neu-raised {
+    box-shadow: 9px 9px 16px rgba(0, 0, 0, 0.6), -9px -9px 16px rgba(45, 45, 45, 0.3);
+  }
+
+  .dark .neu-button {
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(45, 45, 45, 0.3);
+  }
+
+  .dark .neu-button:hover {
+    box-shadow: 9px 9px 16px rgba(0, 0, 0, 0.6), -9px -9px 16px rgba(45, 45, 45, 0.3);
+  }
+
+  .dark .neu-button:active {
+    box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -4px -4px 8px rgba(45, 45, 45, 0.3);
   }
 }

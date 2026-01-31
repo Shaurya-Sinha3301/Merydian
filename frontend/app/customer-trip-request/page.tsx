@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import CustomerNavigation from '@/components/common/CustomerNavigation';
+
 import CustomerProgressIndicator from '@/components/common/CustomerProgressIndicator';
 import TripRequestInteractive from './components/TripRequestInteractive';
 
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function CustomerTripRequestPage() {
   return (
     <div className="min-h-screen bg-background">
-      <CustomerNavigation />
+
       <CustomerProgressIndicator currentStatus="draft" />
       <TripRequestInteractive />
     </div>

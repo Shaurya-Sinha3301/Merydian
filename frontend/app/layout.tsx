@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Crimson_Text } from "next/font/google";
 import "./globals.css";
 import "./source_styles.css";
+import { FloatingNavbar } from "@/components/ui/FloatingNavbar";
 
 
 const dmSans = DM_Sans({
@@ -34,9 +35,14 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       </head>
       <body
-        className={`${dmSans.variable} ${crimsonText.variable} bg-neutral-50 text-neutral-900 font-sans antialiased selection:bg-teal-100`}
+        className={`${dmSans.variable} ${crimsonText.variable} font-sans antialiased selection:bg-teal-100 bg-background text-foreground`}
       >
-        {children}
+        <div className="relative z-50">
+          <FloatingNavbar />
+        </div>
+        <main className="pt-16">
+          {children}
+        </main>
       </body>
     </html>
   );

@@ -22,11 +22,11 @@ interface CostBreakdownPanelProps {
   hasModifications: boolean;
 }
 
-const CostBreakdownPanel = ({ 
-  costItems, 
-  originalMargin, 
+const CostBreakdownPanel = ({
+  costItems,
+  originalMargin,
   modifiedMargin,
-  hasModifications 
+  hasModifications
 }: CostBreakdownPanelProps) => {
   const getDeltaColor = (delta: number) => {
     if (delta > 0) return 'text-destructive';
@@ -57,7 +57,7 @@ const CostBreakdownPanel = ({
               {hasModifications && (
                 <>
                   <Icon name="ArrowRightIcon" size={14} className="text-muted-foreground" />
-                  <span className="data-text text-foreground font-medium">${item.modified.toFixed(2)}</span>
+                  <span className="data-text text-blue-600 font-bold">${item.modified.toFixed(2)}</span>
                   <span className={`data-text text-xs flex items-center space-x-1 ${getDeltaColor(item.delta)}`}>
                     <Icon name={getDeltaIcon(item.delta) as any} size={12} />
                     <span>${Math.abs(item.delta).toFixed(2)}</span>
@@ -116,7 +116,7 @@ const CostBreakdownPanel = ({
             <div className="flex items-center justify-between text-sm font-semibold pt-2 border-t border-border">
               <span className="text-foreground">Customer Price</span>
               <div className="flex items-center space-x-2">
-                <span className="data-text text-foreground">${modifiedMargin.customerPrice.toFixed(2)}</span>
+                <span className="data-text text-blue-600 font-bold">${modifiedMargin.customerPrice.toFixed(2)}</span>
                 <span className={`data-text text-xs flex items-center space-x-1 ${getDeltaColor(modifiedMargin.customerPrice - originalMargin.customerPrice)}`}>
                   <Icon name={getDeltaIcon(modifiedMargin.customerPrice - originalMargin.customerPrice) as any} size={12} />
                   <span>${Math.abs(modifiedMargin.customerPrice - originalMargin.customerPrice).toFixed(2)}</span>
@@ -126,7 +126,7 @@ const CostBreakdownPanel = ({
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Margin</span>
               <div className="flex items-center space-x-2">
-                <span className={`data-text ${modifiedMargin.marginPercentage >= originalMargin.marginPercentage ? 'text-success' : 'text-destructive'}`}>
+                <span className={`data-text font-bold ${modifiedMargin.marginPercentage >= originalMargin.marginPercentage ? 'text-emerald-600' : 'text-rose-500'}`}>
                   {modifiedMargin.marginPercentage.toFixed(1)}%
                 </span>
                 <span className={`data-text text-xs ${getDeltaColor(modifiedMargin.marginPercentage - originalMargin.marginPercentage)}`}>

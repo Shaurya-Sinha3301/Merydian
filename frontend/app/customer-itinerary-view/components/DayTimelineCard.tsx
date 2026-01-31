@@ -34,13 +34,13 @@ const DayTimelineCard = ({
   onToggleExpand,
 }: DayTimelineCardProps) => {
   return (
-    <div className="neu-flat rounded-3xl overflow-hidden transition-smooth">
+    <div className="bg-card rounded-3xl overflow-hidden transition-all shadow-sm border border-neutral-100 hover:shadow-md">
       <button
         onClick={onToggleExpand}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/30 transition-smooth"
+        className="w-full px-6 py-4 flex items-center justify-between hover:bg-neutral-50 transition-colors"
       >
         <div className="flex items-center space-x-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-neu-sm">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
             <span className="text-lg font-semibold">{dayNumber}</span>
           </div>
           <div className="text-left">
@@ -64,19 +64,19 @@ const DayTimelineCard = ({
       </button>
 
       {isExpanded && (
-        <div className="border-t border-border/50">
+        <div className="border-t border-neutral-100">
           <div className="p-6 space-y-6">
             {activities.map((activity, index) => (
               <div key={activity.id}>
                 <div className="flex flex-col md:flex-row gap-4">
-                  <div className="relative w-full md:w-48 h-48 rounded-2xl overflow-hidden flex-shrink-0 shadow-neu-sm">
+                  <div className="relative w-full md:w-48 h-48 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm border border-neutral-100">
                     <AppImage
                       src={activity.image}
                       alt={activity.alt}
                       className="w-full h-full object-cover"
                     />
                     {activity.isMustVisit && (
-                      <div className="absolute top-2 right-2 px-3 py-1.5 bg-accent text-accent-foreground rounded-2xl text-xs font-medium shadow-neu-sm">
+                      <div className="absolute top-2 right-2 px-3 py-1.5 bg-black text-white rounded-full text-xs font-medium shadow-sm">
                         Must Visit
                       </div>
                     )}
@@ -99,7 +99,7 @@ const DayTimelineCard = ({
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-muted-foreground">Cost</p>
-                        <p className="text-lg font-semibold text-success">
+                        <p className="text-lg font-semibold text-black">
                           ${activity.cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </div>
@@ -114,7 +114,7 @@ const DayTimelineCard = ({
                           {activity.highlights.map((highlight, idx) => (
                             <span
                               key={idx}
-                              className="px-2 py-1 bg-muted text-foreground text-xs rounded-md"
+                              className="px-2 py-1 bg-neutral-100 border border-neutral-200 text-foreground text-xs rounded-lg"
                             >
                               {highlight}
                             </span>
@@ -133,7 +133,7 @@ const DayTimelineCard = ({
                 )}
 
                 {index < activities.length - 1 && (
-                  <div className="border-b border-border my-6" />
+                  <div className="border-b border-neutral-100 my-6" />
                 )}
               </div>
             ))}

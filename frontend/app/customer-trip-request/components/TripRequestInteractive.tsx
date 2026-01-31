@@ -72,7 +72,7 @@ const TripRequestInteractive = () => {
 
   useEffect(() => {
     if (!isHydrated) return;
-    
+
     const totalTravelers = formData.adults + formData.children + formData.seniors;
     const currentPreferencesCount = formData.travelerPreferences.length;
 
@@ -202,7 +202,7 @@ const TripRequestInteractive = () => {
       <ProgressIndicator currentStep={currentStep} totalSteps={4} />
 
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="neu-flat rounded-3xl p-6 md:p-8">
+        <div className="bg-card shadow-sm border border-neutral-100 rounded-3xl p-6 md:p-8">
           {/* Step 1: Basic Details */}
           {currentStep === 1 && (
             <div className="space-y-6">

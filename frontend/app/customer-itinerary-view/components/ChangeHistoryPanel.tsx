@@ -44,7 +44,7 @@ const ChangeHistoryPanel = ({ history, isExpanded, onToggleExpand }: ChangeHisto
     <div className="bg-card rounded-lg border border-border shadow-elevation-2 overflow-hidden">
       <button
         onClick={onToggleExpand}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/50 transition-smooth"
+        className="w-full px-6 py-4 flex items-center justify-between hover:bg-neutral-50 transition-colors"
       >
         <div className="flex items-center space-x-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/10">

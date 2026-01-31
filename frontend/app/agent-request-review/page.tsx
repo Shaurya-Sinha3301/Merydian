@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import AgentNavigation from '@/components/common/AgentNavigation';
+
 import AgentWorkflowTabs from '@/components/common/AgentWorkflowTabs';
 import NavigationBreadcrumbs from '@/components/common/NavigationBreadcrumbs';
 import AgentRequestReviewInteractive from './components/AgentRequestReviewInteractive';
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function AgentRequestReviewPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AgentNavigation />
+
       <AgentWorkflowTabs requestId="TR-2026-0142" />
       <NavigationBreadcrumbs
         requestContext={{

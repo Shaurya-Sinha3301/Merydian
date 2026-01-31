@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
-import AgentNavigation from '@/components/common/AgentNavigation';
+
+
 import NavigationBreadcrumbs from '@/components/common/NavigationBreadcrumbs';
+import { Sidebar } from '@/components/ui/Sidebar';
 import AgentDashboardInteractive from './components/AgentDashboardInteractive';
 
 export const metadata: Metadata = {
@@ -10,10 +12,12 @@ export const metadata: Metadata = {
 
 export default function AgentDashboardPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <AgentNavigation />
-      <NavigationBreadcrumbs />
-      <AgentDashboardInteractive />
+    <div className="flex bg-background h-[calc(100vh-4rem)] overflow-hidden">
+      <Sidebar />
+      <main className="flex-1 p-8 overflow-y-auto">
+        <NavigationBreadcrumbs />
+        <AgentDashboardInteractive />
+      </main>
     </div>
   );
 }

@@ -10,9 +10,10 @@ interface MetricCardProps {
     isPositive: boolean;
   };
   color: 'primary' | 'success' | 'warning' | 'accent';
+  valueClassName?: string; // New prop for custom value color
 }
 
-const MetricCard = ({ title, value, subtitle, icon, trend, color }: MetricCardProps) => {
+const MetricCard = ({ title, value, subtitle, icon, trend, color, valueClassName }: MetricCardProps) => {
   const colorClasses = {
     primary: 'bg-primary/10 text-primary',
     success: 'bg-success/10 text-success',
@@ -21,17 +22,17 @@ const MetricCard = ({ title, value, subtitle, icon, trend, color }: MetricCardPr
   };
 
   return (
-    <div className="neu-flat rounded-3xl p-6 transition-smooth hover:shadow-neu-md">
+    <div className="bg-card shadow-sm border border-neutral-100 rounded-3xl p-6 transition-all hover:shadow-md">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="caption text-sm text-muted-foreground mb-1">{title}</p>
-          <h3 className="text-3xl font-semibold text-foreground mb-1">{value}</h3>
+          <h3 className={cn("text-3xl font-semibold mb-1", valueClassName || "text-foreground")}>{value}</h3>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
           {trend && (
-            <div className={`flex items-center space-x-1 mt-2 ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
-              <Icon 
-                name={trend.isPositive ? 'ArrowTrendingUpIcon' : 'ArrowTrendingDownIcon'} 
-                size={16} 
+            <div className={`flex items-center space-x-1 mt-2 ${trend.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+              <Icon
+                name={trend.isPositive ? 'ArrowTrendingUpIcon' : 'ArrowTrendingDownIcon'}
+                size={16}
                 variant="solid"
               />
               <span className="text-xs font-medium">{trend.value}</span>
@@ -45,6 +46,8 @@ const MetricCard = ({ title, value, subtitle, icon, trend, color }: MetricCardPr
     </div>
   );
 };
+
+import { cn } from '@/lib/utils';
 
 interface DashboardMetricsProps {
   metrics: {
@@ -66,6 +69,7 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
         icon="ClipboardDocumentListIcon"
         color="warning"
         trend={{ value: '+3 today', isPositive: true }}
+        valueClassName="text-blue-600" // Subtle Blue
       />
       <MetricCard
         title="In Review"
@@ -73,6 +77,7 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
         subtitle="Currently processing"
         icon="ClockIcon"
         color="primary"
+        valueClassName="text-foreground"
       />
       <MetricCard
         title="Completion Rate"
@@ -81,6 +86,7 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
         icon="CheckCircleIcon"
         color="success"
         trend={{ value: '+5.2%', isPositive: true }}
+        valueClassName="text-emerald-600" // Subtle Green
       />
       <MetricCard
         title="Revenue Projection"
@@ -89,6 +95,7 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
         icon="CurrencyDollarIcon"
         color="accent"
         trend={{ value: '+12.4%', isPositive: true }}
+        valueClassName="text-blue-600" // Subtle Blue
       />
     </div>
   );
