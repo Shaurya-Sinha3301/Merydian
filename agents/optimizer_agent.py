@@ -6,6 +6,7 @@ import logging
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional
+from datetime import datetime
 
 from .config import Config
 
@@ -22,6 +23,9 @@ class OptimizerAgent:
         """Initialize the Optimizer Agent."""
         self.ml_or_dir = Config.ML_OR_DIR
         self.test_data_dir = Config.TEST_DATA_DIR
+        self.agents_dir = Config.AGENTS_DIR
+        self.output_dir = self.agents_dir / "tests"
+        self.output_dir.mkdir(exist_ok=True)
         logger.info("OptimizerAgent initialized")
     
     def run(
@@ -46,21 +50,30 @@ class OptimizerAgent:
         """
         logger.info("Running optimizer...")
         
+        # Create timestamped output directory
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        run_dir = self.output_dir / f"run_{timestamp}"
+        run_dir.mkdir(exist_ok=True)
+        logger.info(f"Saving results to: {run_dir}")
+        
         # For demo purposes, we'll use the existing test data
         # In production, this would call your actual optimizer code
         
+        # Copy demo files to output directory for demonstration of the pipeline
         # TODO: Integrate with actual optimizer
-        # For now, return paths to existing demo files
+        import shutil
         result = {
-            "optimized_solution": self.test_data_dir / "optimized_solution.json",
-            "decision_traces": self.test_data_dir / "decision_traces.json",
-            "enriched_diffs": self.test_data_dir / "enriched_diffs.json"
+            "optimized_solution": run_dir / "optimized_solution.json",
+            "decision_traces": run_dir / "decision_traces.json",
+            "enriched_diffs": run_dir / "enriched_diffs.json"
         }
         
-        # Verify files exist
-        for key, path in result.items():
-            if not path.exists():
-                logger.warning(f"{key} not found at {path}")
+        # Copy files from demo data
+        for key, dest_path in result.items():
+            src_path = self.test_data_dir / f"{dest_path.name}"
+            if src_path.exists():
+                shutil.copy(src_path, dest_path)
+                logger.info(f"Copied {key} to {dest_path}")
         
         logger.info("Optimizer completed successfully")
         return result

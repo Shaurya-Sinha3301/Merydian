@@ -32,10 +32,10 @@ class Config:
     @classmethod
     def validate(cls):
         """Validate that required configuration is present."""
-        if not cls.GEMINI_API_KEY or cls.GEMINI_API_KEY == "your_api_key_here":
+        if not cls.GEMINI_API_KEY or cls.GEMINI_API_KEY in ["your_api_key_here", "demo_mode", ""]:
             raise ValueError(
-                "GEMINI_API_KEY not set in .env file. "
-                "Please add your Google Gemini API key."
+                "GEMINI_API_KEY not set or is a placeholder. "
+                "Please set a valid Google Gemini API key in the .env file."
             )
         
         return True
