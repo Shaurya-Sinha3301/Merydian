@@ -43,9 +43,12 @@ The engine operates in a day-by-day loop (`optimize_trip` in `itinerary_optimize
 ## 3. Key Architectural Components
 
 ### A. The "Ghost Node" Model (Dynamic Branching)
-Instead of hardcoding every possible stop, the system uses a **Candidate Pool**:
+Instead of hardcoding every possible stop, the system uses a **Candidate Pool** (See `expand_branch_pois_for_day`):
 -   **Skeleton**: Hardcoded anchors (e.g., Qutub Minar, Lunch).
--   **Candidates**: A pool of ~10 nearby locations dynamically fetched from the database.
+-   **Candidates**: A pool of nearby locations dynamically fetched from `locations.json`.
+    -   **Radius Search**: Finds POIs within **5.0 km** of the day's Skeleton Centroid.
+    -   **Safety Cap**: Limits total candidates to **12** to prevent solver explosion.
+    -   **Scoring**: Ranks potential branches by `interest_vector` match vs. family profile.
 -   **Selection**: The solver *chooses* which candidates to visit (setting `x=1`) and which to ignore (`x=0`).
 
 ### B. The "Common Bus" Constraint (Synchronization)
@@ -55,10 +58,12 @@ To ensure families don't drift apart permanently:
 -   Between anchors, families traverse independent "Branch" paths.
 
 ### C. The "Memory" Layer (Repeatability)
-To prevent "Groundhog Day" scenarios:
+To prevent "Zombie Visits" (generic POIs re-appearing on subsequent days):
 -   **State**: `visited_history` persists across the `optimize_trip` loop.
--   **Check**: At the start of Day N optimization, checks if candidate $P$ is in `visited_history`.
--   **Action**: If found AND `repeatable=False`, strict ban (`x=0`).
+-   **Logic**:
+    1.  At start of Day N, engine checks if candidate $P$ is in `visited_history`.
+    2.  If found AND `loc.repeatable is False`: Strict ban (`x[fam, poi] == 0`).
+    3.  **Exception**: "Skeleton" POIs are allowed to repeat if explicitly mandated by the base itinerary.
 
 ---
 
