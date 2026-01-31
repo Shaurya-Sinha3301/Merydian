@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { DM_Sans, Crimson_Text } from "next/font/google";
 import "./globals.css";
+import "./source_styles.css";
+
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
