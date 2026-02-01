@@ -108,29 +108,29 @@
             "pois": [
                 {
                     "sequence": 1,
-                    "location_id": "LOC_002",
-                    "role": "SKELETON",
-                    "planned_visit_time_min": 60,
-                    "comment": "Qutub Minar (Shared)"
-                },
-                {
-                    "sequence": 2,
                     "location_id": "LOC_LUNCH",
                     "role": "SKELETON",
                     "planned_visit_time_min": 60,
-                    "time_window_start": "12:30",
-                    "time_window_end": "14:00",
+                    "time_window_start": "13:00",
+                    "time_window_end": "14:30",
                     "comment": "Farewell Lunch"
                 },
                 {
                     "sequence": 3,
+                    "location_id": "LOC_046",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 60,
+                    "comment": "Parikrama (Shared - Scenic View)"
+                },
+                {
+                    "sequence": 4,
                     "location_id": "LOC_003",
                     "role": "SKELETON",
                     "planned_visit_time_min": 45,
                     "comment": "India Gate (Shared)"
                 },
                 {
-                    "sequence": 4,
+                    "sequence": 5,
                     "location_id": "LOC_DINNER",
                     "role": "SKELETON",
                     "planned_visit_time_min": 90,

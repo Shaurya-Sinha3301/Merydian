@@ -1,0 +1,186 @@
+{
+  "FAM_A": {
+    "1": [
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_003",
+        "causal_tags": [],
+        "satisfaction_delta": {
+          "gain": 1.13
+        },
+        "cost_delta": {
+          "extra_cost": 20,
+          "currency": "INR"
+        }
+      },
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_046",
+        "causal_tags": [],
+        "satisfaction_delta": {
+          "gain": 1.04
+        },
+        "cost_delta": {
+          "extra_cost": 250,
+          "currency": "INR"
+        }
+      },
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_013",
+        "causal_tags": [
+          "INTEREST_VECTOR_DOMINANCE"
+        ],
+        "satisfaction_delta": {
+          "gain": 1.44
+        },
+        "cost_delta": {
+          "extra_cost": 0,
+          "currency": "INR"
+        }
+      },
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_018",
+        "causal_tags": [
+          "INTEREST_VECTOR_DOMINANCE"
+        ],
+        "satisfaction_delta": {
+          "gain": 1.5
+        },
+        "cost_delta": {
+          "extra_cost": 0,
+          "currency": "INR"
+        }
+      },
+      {
+        "type": "POI_REMOVED",
+        "poi": "LOC_001",
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "satisfaction_delta": {
+          "loss": 1.04
+        },
+        "cost_delta": {
+          "saved_cost": 50,
+          "currency": "INR"
+        }
+      }
+    ]
+  },
+  "FAM_B": {
+    "1": [
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_003",
+        "causal_tags": [
+          "INTEREST_VECTOR_DOMINANCE"
+        ],
+        "satisfaction_delta": {
+          "gain": 1.55
+        },
+        "cost_delta": {
+          "extra_cost": 20,
+          "currency": "INR"
+        }
+      },
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_046",
+        "causal_tags": [
+          "INTEREST_VECTOR_DOMINANCE"
+        ],
+        "satisfaction_delta": {
+          "gain": 1.41
+        },
+        "cost_delta": {
+          "extra_cost": 250,
+          "currency": "INR"
+        }
+      },
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_013",
+        "causal_tags": [],
+        "satisfaction_delta": {
+          "gain": 1.06
+        },
+        "cost_delta": {
+          "extra_cost": 0,
+          "currency": "INR"
+        }
+      },
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_018",
+        "causal_tags": [],
+        "satisfaction_delta": {
+          "gain": 1.13
+        },
+        "cost_delta": {
+          "extra_cost": 0,
+          "currency": "INR"
+        }
+      }
+    ]
+  },
+  "FAM_C": {
+    "1": [
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_003",
+        "causal_tags": [
+          "INTEREST_VECTOR_DOMINANCE"
+        ],
+        "satisfaction_delta": {
+          "gain": 1.3
+        },
+        "cost_delta": {
+          "extra_cost": 20,
+          "currency": "INR"
+        }
+      },
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_046",
+        "causal_tags": [],
+        "satisfaction_delta": {
+          "gain": 1.18
+        },
+        "cost_delta": {
+          "extra_cost": 250,
+          "currency": "INR"
+        }
+      },
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_013",
+        "causal_tags": [
+          "INTEREST_VECTOR_DOMINANCE"
+        ],
+        "satisfaction_delta": {
+          "gain": 1.27
+        },
+        "cost_delta": {
+          "extra_cost": 0,
+          "currency": "INR"
+        }
+      },
+      {
+        "type": "POI_ADDED",
+        "poi": "LOC_018",
+        "causal_tags": [
+          "INTEREST_VECTOR_DOMINANCE"
+        ],
+        "satisfaction_delta": {
+          "gain": 1.22
+        },
+        "cost_delta": {
+          "extra_cost": 0,
+          "currency": "INR"
+        }
+      }
+    ]
+  }
+}
