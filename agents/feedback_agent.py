@@ -5,10 +5,9 @@ Uses Google Gemini to parse free-form text and extract meaningful events.
 import logging
 import json
 from typing import Optional
-from google import genai
 
 from .config import Config
-from .rate_limiter import rate_limiter
+from .llm_client import get_llm_client
 from .schemas import FeedbackEvent, EventType, ConfidenceLevel
 
 logger = logging.getLogger(__name__)
@@ -31,10 +30,10 @@ class FeedbackAgent:
             self.model = None
             return
             
-        self.client = genai.Client(api_key=Config.GEMINI_API_KEY)
-        self.model_name = Config.GEMINI_MODEL
+        self.client = get_llm_client()
+        self.model_name = Config.GROQ_MODEL
         self.demo_mode = False
-        logger.info(f"FeedbackAgent initialized with model: {Config.GEMINI_MODEL}")
+        logger.info(f"FeedbackAgent initialized with model: {Config.GROQ_MODEL}")
     
     def parse(self, user_input: str, context: Optional[dict] = None) -> FeedbackEvent:
         """
@@ -53,17 +52,16 @@ class FeedbackAgent:
             return self._demo_parse(user_input, context)
         
         try:
-            # Use global rate limiter to coordinate with other agents
-            rate_limiter.wait_if_needed("FeedbackAgent")
-            
             prompt = self._build_prompt(user_input, context)
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt
-            )
             
-            # Extract JSON from response
-            response_text = response.text.strip()
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0,
+            )
+            response_text = response.choices[0].message.content.strip()
             
             # Remove markdown code blocks if present
             if response_text.startswith("```"):

@@ -5,10 +5,9 @@ Uses Google Gemini to generate natural language explanations.
 import logging
 import json
 from typing import Dict, Any, List
-from google import genai
 
 from .config import Config
-from .rate_limiter import rate_limiter
+from .llm_client import get_llm_client
 from .schemas import AgentExplanation
 
 logger = logging.getLogger(__name__)
@@ -31,10 +30,10 @@ class ExplainabilityAgent:
             self.model = None
             return
             
-        self.client = genai.Client(api_key=Config.GEMINI_API_KEY)
-        self.model_name = Config.GEMINI_MODEL
+        self.client = get_llm_client()
+        self.model_name = Config.GROQ_MODEL
         self.demo_mode = False
-        logger.info(f"ExplainabilityAgent initialized with model: {Config.GEMINI_MODEL}")
+        logger.info(f"ExplainabilityAgent initialized with model: {Config.GROQ_MODEL}")
     
     def explain(self, payload: Dict[str, Any]) -> AgentExplanation:
         """
@@ -52,15 +51,16 @@ class ExplainabilityAgent:
             return self._demo_explain(payload)
         
         try:
-            # Use global rate limiter to coordinate with other agents
-            rate_limiter.wait_if_needed("ExplainabilityAgent")
-            
             prompt = self._build_prompt(payload)
-            response = self.client.models.generate_content(
+            
+            response = self.client.chat.completions.create(
                 model=self.model_name,
-                contents=prompt
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0,
             )
-            summary = response.text.strip()
+            summary = response.choices[0].message.content.strip()
             
             return AgentExplanation(
                 summary=summary,

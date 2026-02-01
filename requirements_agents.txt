@@ -1,7 +1,7 @@
 # Agent System Dependencies
 
-# Google Gemini API Client
-google-generativeai>=0.3.0
+# LLM Provider (Groq with Llama 3)
+groq>=0.4.0
 
 # Environment Variable Management
 python-dotenv>=1.0.0

@@ -16,9 +16,9 @@ load_dotenv(ENV_PATH)
 class Config:
     """Centralized configuration for the agent system."""
     
-    # Gemini API Configuration
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
+    # LLM Configuration (Groq)
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
     
     # Agent System Configuration
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
@@ -32,10 +32,10 @@ class Config:
     @classmethod
     def validate(cls):
         """Validate that required configuration is present."""
-        if not cls.GEMINI_API_KEY or cls.GEMINI_API_KEY in ["your_api_key_here", "demo_mode", ""]:
+        if not cls.GROQ_API_KEY or cls.GROQ_API_KEY in ["your_api_key_here", "demo_mode", ""]:
             raise ValueError(
-                "GEMINI_API_KEY not set or is a placeholder. "
-                "Please set a valid Google Gemini API key in the .env file."
+                "GROQ_API_KEY not set or is a placeholder. "
+                "Please set a valid Groq API key in the .env file."
             )
         
         return True
