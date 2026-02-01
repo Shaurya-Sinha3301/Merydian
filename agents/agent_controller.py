@@ -3,6 +3,7 @@ Agent Controller - Orchestrates all agents in a deterministic flow.
 This is the conductor that coordinates the entire agent system.
 """
 import logging
+import time
 from typing import Dict, Any, Optional
 from pathlib import Path
 
@@ -193,7 +194,11 @@ class AgentController:
             if result['explanations']:
                 print(f"Explanations Generated: {len(result['explanations'])}")
             
-            input("\nPress Enter to continue to next scenario...")
+            # Don't wait after the last scenario
+            if i < len(scenarios):
+                print("\n⏱️  Waiting 35 seconds before next scenario (free tier rate limiting)...")
+                time.sleep(35)  # Ensure we stay within 2 RPM globally
+                print("Ready for next scenario!\n")
         
         print("\n" + "=" * 80)
         print("DEMO COMPLETED")

@@ -4,11 +4,11 @@ Uses Google Gemini to generate natural language explanations.
 """
 import logging
 import json
-import time
 from typing import Dict, Any, List
 from google import genai
 
 from .config import Config
+from .rate_limiter import rate_limiter
 from .schemas import AgentExplanation
 
 logger = logging.getLogger(__name__)
@@ -34,8 +34,6 @@ class ExplainabilityAgent:
         self.client = genai.Client(api_key=Config.GEMINI_API_KEY)
         self.model_name = Config.GEMINI_MODEL
         self.demo_mode = False
-        self.last_request_time = 0
-        self.min_request_interval = 30  # 30 seconds between requests (free tier: 2 RPM)
         logger.info(f"ExplainabilityAgent initialized with model: {Config.GEMINI_MODEL}")
     
     def explain(self, payload: Dict[str, Any]) -> AgentExplanation:
@@ -54,16 +52,10 @@ class ExplainabilityAgent:
             return self._demo_explain(payload)
         
         try:
-            # Rate limiting for free tier (2 requests per minute)
-            time_since_last = time.time() - self.last_request_time
-            if time_since_last < self.min_request_interval:
-                wait_time = self.min_request_interval - time_since_last
-                logger.info(f"Rate limiting: waiting {wait_time:.1f}s before API call...")
-                time.sleep(wait_time)
+            # Use global rate limiter to coordinate with other agents
+            rate_limiter.wait_if_needed("ExplainabilityAgent")
             
             prompt = self._build_prompt(payload)
-            self.last_request_time = time.time()
-            
             response = self.client.models.generate_content(
                 model=self.model_name,
                 contents=prompt
