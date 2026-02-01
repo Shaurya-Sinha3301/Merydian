@@ -25,7 +25,7 @@ export default function Home() {
                 <span className="font-bold text-xl text-foreground group-hover:text-primary transition-colors">Agent Dashboard</span>
                 <p className="text-sm text-foreground/60 mt-2">Manage trips, view stats, and handle tasks.</p>
               </Link>
-              <Link href="/agent-itinerary-editor" className="neu-button group p-6 rounded-2xl flex flex-col transition-all hover:-translate-y-1">
+              <Link href="/optimizer" className="neu-button group p-6 rounded-2xl flex flex-col transition-all hover:-translate-y-1">
                 <span className="font-bold text-xl text-foreground group-hover:text-primary transition-colors">Itinerary Editor</span>
                 <p className="text-sm text-foreground/60 mt-2">Create and modify detailed trip plans.</p>
               </Link>

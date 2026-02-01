@@ -5,3 +5,8 @@ passlib[bcrypt]
 python-multipart
 pydantic-settings
 email-validator
+sqlmodel
+redis
+psycopg2-binary
+pytest
+pytest-asyncio

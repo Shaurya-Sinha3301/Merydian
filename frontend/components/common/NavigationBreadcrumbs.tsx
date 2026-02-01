@@ -44,7 +44,7 @@ const NavigationBreadcrumbs = ({
       });
     }
 
-    if (pathname.includes('/agent-itinerary-editor')) {
+    if (pathname.includes('/optimizer')) {
       if (requestContext?.customerName) {
         breadcrumbs.push({
           label: requestContext.customerName,
@@ -53,7 +53,7 @@ const NavigationBreadcrumbs = ({
       }
       breadcrumbs.push({
         label: requestContext?.destination || 'Edit Itinerary',
-        path: '/agent-itinerary-editor',
+        path: '/optimizer',
         icon: 'PencilSquareIcon',
       });
     }

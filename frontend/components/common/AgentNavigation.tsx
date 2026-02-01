@@ -28,7 +28,7 @@ const AgentNavigation = ({ className = '' }: AgentNavigationProps) => {
     },
     {
       label: 'Edit Itineraries',
-      path: '/agent-itinerary-editor',
+      path: '/optimizer',
       icon: 'PencilSquareIcon',
       description: 'Modify and optimize itineraries',
     },
@@ -57,11 +57,10 @@ const AgentNavigation = ({ className = '' }: AgentNavigationProps) => {
               <Link
                 key={item.path}
                 href={item.path}
-                className={`group relative flex items-center space-x-2 rounded-md px-4 py-2 text-sm font-medium transition-smooth ${
-                  isActive(item.path)
+                className={`group relative flex items-center space-x-2 rounded-md px-4 py-2 text-sm font-medium transition-smooth ${isActive(item.path)
                     ? 'bg-primary text-primary-foreground'
                     : 'text-foreground hover:bg-muted hover:text-foreground'
-                }`}
+                  }`}
               >
                 <Icon name={item.icon as any} size={20} variant={isActive(item.path) ? 'solid' : 'outline'} />
                 <span>{item.label}</span>
@@ -92,11 +91,10 @@ const AgentNavigation = ({ className = '' }: AgentNavigationProps) => {
                 key={item.path}
                 href={item.path}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex items-center space-x-3 rounded-md px-3 py-3 text-base font-medium transition-smooth ${
-                  isActive(item.path)
+                className={`flex items-center space-x-3 rounded-md px-3 py-3 text-base font-medium transition-smooth ${isActive(item.path)
                     ? 'bg-primary text-primary-foreground'
                     : 'text-foreground hover:bg-muted'
-                }`}
+                  }`}
               >
                 <Icon name={item.icon as any} size={24} variant={isActive(item.path) ? 'solid' : 'outline'} />
                 <div className="flex flex-col">
