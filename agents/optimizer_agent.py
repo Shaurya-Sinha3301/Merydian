@@ -65,7 +65,8 @@ class OptimizerAgent:
         result = {
             "optimized_solution": run_dir / "optimized_solution.json",
             "decision_traces": run_dir / "decision_traces.json",
-            "enriched_diffs": run_dir / "enriched_diffs.json"
+            "enriched_diffs": run_dir / "enriched_diffs.json",
+            "llm_payloads": run_dir / "llm_payloads.json"
         }
         
         # Copy files from demo data
