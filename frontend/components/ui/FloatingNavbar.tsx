@@ -5,13 +5,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-    { name: "Agent Portal", link: "/agent-dashboard" },
-    { name: "Customer Portal", link: "/customer-trip-request" },
-];
+
 
 export function FloatingNavbar({ className }: { className?: string }) {
     const pathname = usePathname();
+
+    // Determine current portal name based on path
+    const isAgent = pathname.startsWith("/agent-");
+    const isCustomer = pathname.startsWith("/customer-");
+    const portalName = isAgent ? "Agent Portal" : isCustomer ? "Customer Portal" : "";
 
     return (
         <div className={cn("fixed top-0 inset-x-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-white/20 shadow-sm", className)}>
@@ -26,25 +28,24 @@ export function FloatingNavbar({ className }: { className?: string }) {
                     </span>
                 </Link>
 
-                {/* Middle: Modular Links */}
+                {/* Middle: Links + Portal Name */}
                 <div className="hidden md:flex items-center gap-8">
-                    {navItems.map((item, idx) => {
-                        const isActive = pathname.startsWith(item.link);
-                        return (
-                            <Link
-                                key={`link=${idx}`}
-                                href={item.link}
-                                className={cn(
-                                    "text-sm font-medium transition-all hover:text-primary relative py-1",
-                                    isActive
-                                        ? "text-primary font-semibold after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full"
-                                        : "text-foreground/70 decoration-transparent"
-                                )}
-                            >
-                                {item.name}
-                            </Link>
-                        );
-                    })}
+                    <Link href="/about" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+                        About Us
+                    </Link>
+                    <Link href="/contact" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+                        Contact Us
+                    </Link>
+
+                    {/* Dynamic Portal Name */}
+                    {portalName && (
+                        <div className="h-4 w-px bg-neutral-300 mx-2" />
+                    )}
+                    {portalName && (
+                        <span className="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
+                            {portalName}
+                        </span>
+                    )}
                 </div>
 
                 {/* Right: CTA Button */}

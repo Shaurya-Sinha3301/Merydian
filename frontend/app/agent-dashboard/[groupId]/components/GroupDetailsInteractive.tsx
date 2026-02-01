@@ -1,0 +1,188 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import Icon from '@/components/ui/AppIcon';
+import NavigationBreadcrumbs from '@/components/common/NavigationBreadcrumbs';
+import { Sidebar } from '@/components/ui/Sidebar';
+import { Map, MapMarker, MapTileLayer } from '@/components/ui/map';
+
+// Mock data for a specific group (in real app, fetch by ID)
+const groupDetails = {
+    id: 'GRP-2026-001',
+    name: 'The Johnson Family Group',
+    status: 'Active',
+    dates: 'Mar 15 - Mar 22, 2026',
+    destination: 'Paris, France',
+    totalTravelers: 12,
+    satisfactionScore: 88,
+    optimizationStatus: 'Optimized',
+    families: [
+        { id: 'FAM-001', name: 'Johnson Core', members: 4, satisfaction: 90, status: 'Confirmed' },
+        { id: 'FAM-002', name: 'Smith Cousins', members: 3, satisfaction: 85, status: 'Pending Review' },
+        { id: 'FAM-003', name: 'Grandparents', members: 2, satisfaction: 95, status: 'Confirmed' },
+        { id: 'FAM-004', name: 'Friends', members: 3, satisfaction: 82, status: 'Confirmed' },
+    ],
+    nextDestinations: [
+        { name: 'Eiffel Tower', time: '10:00 AM', date: 'Mar 16' },
+        { name: 'Louvre Museum', time: '2:00 PM', date: 'Mar 16' },
+        { name: 'Seine Cruise', time: '6:30 PM', date: 'Mar 17' },
+    ],
+    coordinates: { lat: 48.8566, lng: 2.3522 } // Paris
+};
+
+export default function GroupDetailsInteractive() {
+    const params = useParams();
+    // const { groupId } = params; // Use this to fetch real data
+
+    return (
+        <div className="flex bg-background h-[calc(100vh-4rem)] overflow-hidden">
+            <Sidebar />
+            <main className="flex-1 p-8 overflow-y-auto">
+                <NavigationBreadcrumbs />
+
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <h1 className="text-3xl font-bold font-heading text-foreground">{groupDetails.name}</h1>
+                            <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full uppercase tracking-wide">
+                                {groupDetails.status}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                                <Icon name="CalendarIcon" size={16} />
+                                {groupDetails.dates}
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Icon name="MapPinIcon" size={16} />
+                                {groupDetails.destination}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 mt-4 md:mt-0">
+                        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-neutral-200 rounded-lg shadow-sm hover:bg-neutral-50 transition-colors font-medium text-sm">
+                            <Icon name="ChatBubbleLeftRightIcon" size={18} />
+                            Contact Lead
+                        </button>
+                        <Link href="/optimizer" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg shadow-md hover:bg-primary/90 transition-transform active:scale-95 font-bold text-sm">
+                            <Icon name="AdjustmentsHorizontalIcon" size={18} />
+                            Optimize Itinerary
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                    {/* Left Column: Stats & Families */}
+                    <div className="lg:col-span-1 space-y-6">
+
+                        {/* Stats Cards (Neuromorphic-ish) */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-5 bg-white rounded-2xl shadow-[4px_4px_10px_rgba(0,0,0,0.05),-4px_-4px_10px_rgba(255,255,255,0.8)] border border-white/50">
+                                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Total Travelers</p>
+                                <div className="flex items-end gap-2">
+                                    <span className="text-3xl font-bold text-foreground">{groupDetails.totalTravelers}</span>
+                                    <Icon name="UserGroupIcon" className="w-6 h-6 text-primary mb-1" />
+                                </div>
+                            </div>
+                            <div className="p-5 bg-white rounded-2xl shadow-[4px_4px_10px_rgba(0,0,0,0.05),-4px_-4px_10px_rgba(255,255,255,0.8)] border border-white/50">
+                                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Satisfaction</p>
+                                <div className="flex items-end gap-2">
+                                    <span className="text-3xl font-bold text-emerald-600">{groupDetails.satisfactionScore}%</span>
+                                    <Icon name="FaceSmileIcon" className="w-6 h-6 text-emerald-500 mb-1" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Families List */}
+                        <div className="bg-white rounded-2xl shadow-[4px_4px_10px_rgba(0,0,0,0.05)] border border-neutral-100 overflow-hidden">
+                            <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
+                                <h3 className="font-bold text-lg">Families ({groupDetails.families.length})</h3>
+                                <button className="text-xs font-semibold text-primary hover:underline">View All</button>
+                            </div>
+                            <div className="divide-y divide-neutral-50">
+                                {groupDetails.families.map((family) => (
+                                    <div key={family.id} className="p-4 hover:bg-neutral-50 transition-colors cursor-pointer group">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{family.name}</span>
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${family.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                                                {family.status}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                            <span>{family.members} members</span>
+                                            <span>Sat: <span className="text-foreground font-medium">{family.satisfaction}%</span></span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* AI Insights / Constraints */}
+                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-5 border border-indigo-100">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Icon name="SparklesIcon" className="text-indigo-600 w-5 h-5" />
+                                <h3 className="font-bold text-indigo-900">AI Insights</h3>
+                            </div>
+                            <p className="text-sm text-indigo-800 leading-relaxed">
+                                The optimization model suggests reordering Day 3 activities to reduce travel time by <strong>15%</strong>. Weather forecast for outdoor events is favorable.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Map & Itinerary Preview */}
+                    <div className="lg:col-span-2 space-y-6">
+
+                        {/* Map View */}
+                        <div className="bg-white rounded-2xl shadow-[4px_4px_10px_rgba(0,0,0,0.05)] border border-neutral-100 overflow-hidden h-[400px] relative z-0">
+                            <Map
+                                center={[groupDetails.coordinates.lat, groupDetails.coordinates.lng]}
+                                zoom={12}
+                                className="h-full w-full"
+                            >
+                                <MapTileLayer
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    attribution="&copy; OpenStreetMap contributors"
+                                />
+                                <MapMarker
+                                    position={[groupDetails.coordinates.lat, groupDetails.coordinates.lng]}
+                                >
+                                    <div className="p-2 bg-white rounded-lg shadow-sm border border-neutral-100">
+                                        <p className="font-bold text-xs text-foreground">{groupDetails.destination}</p>
+                                    </div>
+                                </MapMarker>
+                            </Map>
+                        </div>
+
+                        {/* Next Destinations */}
+                        <div className="bg-white rounded-2xl shadow-[4px_4px_10px_rgba(0,0,0,0.05)] border border-neutral-100 p-6">
+                            <h3 className="font-bold text-lg mb-4">Upcoming Schedule</h3>
+                            <div className="space-y-4">
+                                {groupDetails.nextDestinations.map((dest, idx) => (
+                                    <div key={idx} className="flex items-start gap-4 p-3 rounded-xl hover:bg-neutral-50 transition-colors border border-transparent hover:border-neutral-100">
+                                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-sm flex-col leading-none">
+                                            <span className="text-[10px] uppercase opacity-70 mb-0.5">{dest.date.split(' ')[0]}</span>
+                                            <span>{dest.date.split(' ')[1]}</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-foreground">{dest.name}</h4>
+                                            <p className="text-sm text-muted-foreground">{dest.time}</p>
+                                        </div>
+                                        <button className="p-2 text-neutral-400 hover:text-primary transition-colors">
+                                            <Icon name="ChevronRightIcon" size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}

@@ -38,7 +38,7 @@ const AgentWorkflowTabs = ({
     },
     {
       label: 'Edit',
-      path: '/agent-itinerary-editor',
+      path: '/optimizer',
       icon: 'PencilSquareIcon',
       description: 'Modify itinerary',
     },
@@ -93,11 +93,10 @@ const AgentWorkflowTabs = ({
                 key={tab.path}
                 href={requestId ? `${tab.path}?id=${requestId}` : tab.path}
                 onClick={(e) => handleTabClick(e, tab.path)}
-                className={`group relative flex items-center space-x-2 rounded-md px-4 py-2.5 text-sm font-medium transition-smooth ${
-                  isActive(tab.path)
+                className={`group relative flex items-center space-x-2 rounded-md px-4 py-2.5 text-sm font-medium transition-smooth ${isActive(tab.path)
                     ? 'bg-primary text-primary-foreground shadow-elevation-1'
                     : 'text-foreground hover:bg-muted hover:text-foreground'
-                }`}
+                  }`}
               >
                 <Icon name={tab.icon as any} size={18} variant={isActive(tab.path) ? 'solid' : 'outline'} />
                 <span>{tab.label}</span>

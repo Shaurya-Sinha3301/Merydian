@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
+import { Sidebar } from '@/components/ui/Sidebar';
 import ItineraryTimeline from './ItineraryTimeline';
 import ActivityLibrary from './ActivityLibrary';
 import CostAnalysisPanel from './CostAnalysisPanel';
@@ -331,159 +332,160 @@ const EditorInteractive = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="flex bg-background h-screen overflow-hidden">
+      <Sidebar />
+      <div className="flex-1 overflow-y-auto pt-20">
+        <AgentWorkflowTabs
+          requestId="REQ-2026-001"
+          hasUnsavedChanges={hasUnsavedChanges} />
 
-      <AgentWorkflowTabs
-        requestId="REQ-2026-001"
-        hasUnsavedChanges={hasUnsavedChanges} />
-
-      <NavigationBreadcrumbs
-        requestContext={{
-          customerName: 'Sarah Johnson',
-          destination: 'Paris, France',
-          requestId: 'REQ-2026-001'
-        }} />
+        <NavigationBreadcrumbs
+          requestContext={{
+            customerName: 'Sarah Johnson',
+            destination: 'Paris, France',
+            requestId: 'REQ-2026-001'
+          }} />
 
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-        {/* Header Actions */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground mb-1">Edit Itinerary</h1>
-            <p className="text-sm text-muted-foreground">
-              Make modifications and track cost impacts in real-time
-            </p>
+        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+          {/* Header Actions */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground mb-1">Edit Itinerary</h1>
+              <p className="text-sm text-muted-foreground">
+                Make modifications and track cost impacts in real-time
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowComparison(true)}
+                className="flex items-center space-x-2 px-4 py-2 rounded-md border border-border bg-background text-foreground hover:bg-muted transition-smooth">
+
+                <Icon name="ArrowsRightLeftIcon" size={18} />
+                <span className="text-sm font-medium">Compare</span>
+              </button>
+              <button
+                onClick={handlePreviewCustomerView}
+                className="flex items-center space-x-2 px-4 py-2 rounded-md border border-border bg-background text-foreground hover:bg-muted transition-smooth">
+
+                <Icon name="EyeIcon" size={18} />
+                <span className="text-sm font-medium">Preview</span>
+              </button>
+              <button
+                onClick={handleSaveChanges}
+                disabled={!hasUnsavedChanges || isSaving}
+                className="flex items-center space-x-2 px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-smooth disabled:opacity-50 disabled:cursor-not-allowed">
+
+                {isSaving ?
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+                    <span className="text-sm">Saving...</span>
+                  </> :
+
+                  <>
+                    <Icon name="CheckIcon" size={18} />
+                    <span className="text-sm">Save Changes</span>
+                  </>
+                }
+              </button>
+            </div>
           </div>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setShowComparison(true)}
-              className="flex items-center space-x-2 px-4 py-2 rounded-md border border-border bg-background text-foreground hover:bg-muted transition-smooth">
 
-              <Icon name="ArrowsRightLeftIcon" size={18} />
-              <span className="text-sm font-medium">Compare</span>
-            </button>
-            <button
-              onClick={handlePreviewCustomerView}
-              className="flex items-center space-x-2 px-4 py-2 rounded-md border border-border bg-background text-foreground hover:bg-muted transition-smooth">
-
-              <Icon name="EyeIcon" size={18} />
-              <span className="text-sm font-medium">Preview</span>
-            </button>
-            <button
-              onClick={handleSaveChanges}
-              disabled={!hasUnsavedChanges || isSaving}
-              className="flex items-center space-x-2 px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-smooth disabled:opacity-50 disabled:cursor-not-allowed">
-
-              {isSaving ?
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
-                  <span className="text-sm">Saving...</span>
-                </> :
-
-                <>
-                  <Icon name="CheckIcon" size={18} />
-                  <span className="text-sm">Save Changes</span>
-                </>
-              }
-            </button>
-          </div>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Timeline Editor */}
-          <div className="lg:col-span-2 space-y-6">
-            <ItineraryTimeline
-              itinerary={itinerary}
-              onActivityEdit={handleActivityEdit}
-              onActivityDelete={handleActivityDelete}
-              onActivityReorder={handleActivityReorder}
-              onTimeAdjust={handleTimeAdjust} />
+          {/* Main Content Grid */}
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Timeline Editor */}
+            <div className="lg:col-span-2 space-y-6">
+              <ItineraryTimeline
+                itinerary={itinerary}
+                onActivityEdit={handleActivityEdit}
+                onActivityDelete={handleActivityDelete}
+                onActivityReorder={handleActivityReorder}
+                onTimeAdjust={handleTimeAdjust} />
 
 
-            {/* Quick Actions */}
-            <div className="bg-card rounded-lg border border-border p-4">
-              <h3 className="text-sm font-semibold text-foreground mb-3">Quick Actions</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {/* Quick Actions */}
+              <div className="bg-card rounded-lg border border-border p-4">
+                <h3 className="text-sm font-semibold text-foreground mb-3">Quick Actions</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <button
+                    onClick={() => setShowActivityLibrary(true)}
+                    className="flex flex-col items-center space-y-2 p-3 rounded-md bg-muted hover:bg-muted/80 transition-smooth">
+
+                    <Icon name="PlusCircleIcon" size={24} className="text-primary" />
+                    <span className="text-xs font-medium text-foreground">Add Activity</span>
+                  </button>
+                  <button className="flex flex-col items-center space-y-2 p-3 rounded-md bg-muted hover:bg-muted/80 transition-smooth">
+                    <Icon name="ArrowPathIcon" size={24} className="text-primary" />
+                    <span className="text-xs font-medium text-foreground">Optimize Route</span>
+                  </button>
+                  <button className="flex flex-col items-center space-y-2 p-3 rounded-md bg-muted hover:bg-muted/80 transition-smooth">
+                    <Icon name="ClockIcon" size={24} className="text-primary" />
+                    <span className="text-xs font-medium text-foreground">Adjust Times</span>
+                  </button>
+                  <button className="flex flex-col items-center space-y-2 p-3 rounded-md bg-muted hover:bg-muted/80 transition-smooth">
+                    <Icon name="DocumentDuplicateIcon" size={24} className="text-primary" />
+                    <span className="text-xs font-medium text-foreground">Duplicate Day</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Cost Analysis Sidebar */}
+            <div className="space-y-6">
+              <CostAnalysisPanel
+                originalCost={originalCost}
+                modifiedCost={modifiedCost}
+                breakdown={costBreakdown}
+                marginAnalysis={marginAnalysis} />
+
+
+              {/* Send to Customer */}
+              <div className="bg-card rounded-lg border border-border p-4">
+                <h3 className="text-sm font-semibold text-foreground mb-3">Send Updated Itinerary</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Review all changes and send the updated itinerary to the customer for approval.
+                </p>
                 <button
-                  onClick={() => setShowActivityLibrary(true)}
-                  className="flex flex-col items-center space-y-2 p-3 rounded-md bg-muted hover:bg-muted/80 transition-smooth">
+                  onClick={handleSendUpdatedItinerary}
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition-smooth">
 
-                  <Icon name="PlusCircleIcon" size={24} className="text-primary" />
-                  <span className="text-xs font-medium text-foreground">Add Activity</span>
-                </button>
-                <button className="flex flex-col items-center space-y-2 p-3 rounded-md bg-muted hover:bg-muted/80 transition-smooth">
-                  <Icon name="ArrowPathIcon" size={24} className="text-primary" />
-                  <span className="text-xs font-medium text-foreground">Optimize Route</span>
-                </button>
-                <button className="flex flex-col items-center space-y-2 p-3 rounded-md bg-muted hover:bg-muted/80 transition-smooth">
-                  <Icon name="ClockIcon" size={24} className="text-primary" />
-                  <span className="text-xs font-medium text-foreground">Adjust Times</span>
-                </button>
-                <button className="flex flex-col items-center space-y-2 p-3 rounded-md bg-muted hover:bg-muted/80 transition-smooth">
-                  <Icon name="DocumentDuplicateIcon" size={24} className="text-primary" />
-                  <span className="text-xs font-medium text-foreground">Duplicate Day</span>
+                  <Icon name="PaperAirplaneIcon" size={18} />
+                  <span>Send to Customer</span>
                 </button>
               </div>
             </div>
           </div>
+        </main>
 
-          {/* Cost Analysis Sidebar */}
-          <div className="space-y-6">
-            <CostAnalysisPanel
-              originalCost={originalCost}
-              modifiedCost={modifiedCost}
-              breakdown={costBreakdown}
-              marginAnalysis={marginAnalysis} />
+        {/* Activity Library Modal */}
+        {showActivityLibrary &&
+          <div className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+            <div className="bg-card rounded-lg shadow-elevation-4 w-full max-w-4xl h-[80vh] overflow-hidden flex flex-col">
+              <div className="p-4 border-b border-border flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-foreground">Activity Library</h2>
+                <button
+                  onClick={() => setShowActivityLibrary(false)}
+                  className="p-2 rounded-md hover:bg-muted transition-smooth">
 
-
-            {/* Send to Customer */}
-            <div className="bg-card rounded-lg border border-border p-4">
-              <h3 className="text-sm font-semibold text-foreground mb-3">Send Updated Itinerary</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Review all changes and send the updated itinerary to the customer for approval.
-              </p>
-              <button
-                onClick={handleSendUpdatedItinerary}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-md bg-success text-success-foreground font-medium hover:bg-success/90 transition-smooth">
-
-                <Icon name="PaperAirplaneIcon" size={18} />
-                <span>Send to Customer</span>
-              </button>
+                  <Icon name="XMarkIcon" size={24} className="text-muted-foreground" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ActivityLibrary onActivitySelect={handleActivitySelect} />
+              </div>
             </div>
           </div>
-        </div>
-      </main>
+        }
 
-      {/* Activity Library Modal */}
-      {showActivityLibrary &&
-        <div className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <div className="bg-card rounded-lg shadow-elevation-4 w-full max-w-4xl h-[80vh] overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-border flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-foreground">Activity Library</h2>
-              <button
-                onClick={() => setShowActivityLibrary(false)}
-                className="p-2 rounded-md hover:bg-muted transition-smooth">
+        {/* Comparison View Modal */}
+        {showComparison &&
+          <ComparisonView
+            comparison={comparisonData}
+            onClose={() => setShowComparison(false)} />
 
-                <Icon name="XMarkIcon" size={24} className="text-muted-foreground" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <ActivityLibrary onActivitySelect={handleActivitySelect} />
-            </div>
-          </div>
-        </div>
-      }
-
-      {/* Comparison View Modal */}
-      {showComparison &&
-        <ComparisonView
-          comparison={comparisonData}
-          onClose={() => setShowComparison(false)} />
-
-      }
+        }
+      </div>
     </div>);
-
 };
 
 export default EditorInteractive;

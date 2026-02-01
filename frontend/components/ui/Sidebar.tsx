@@ -6,11 +6,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
     Squares2X2Icon, // Dashboard
-    ShoppingBagIcon, // Product
-    UserGroupIcon, // Customers
-    CurrencyDollarIcon, // Income
-    MegaphoneIcon, // Promote
-    DocumentTextIcon,
+    ChartBarIcon, // Analytics
+    AdjustmentsHorizontalIcon, // Optimizer
+    UserGroupIcon, // Group Details
     ChevronDownIcon,
     ChevronRightIcon,
     Cog6ToothIcon
@@ -31,39 +29,25 @@ interface SidebarSection {
 // Data Structure matching the reference image hierarchy
 const sidebarStructure: { label: string; icon: React.ElementType; children?: SidebarItem[]; href?: string; isOpen?: boolean }[] = [
     {
-        label: "Dashboard",
+        label: "Dashboard Group Info",
         icon: Squares2X2Icon,
         href: "/agent-dashboard"
     },
     {
-        label: "Product",
-        icon: ShoppingBagIcon,
-        children: [
-            { label: "Overview", href: "/agent-request-review" }, // Mapping to existing routes
-            { label: "Drafts", href: "/drafts", count: 3 },
-            { label: "Released", href: "/released" },
-            { label: "Comments", href: "/comments" },
-            { label: "Scheduled", href: "/scheduled", count: 8 },
-        ]
+        label: "Optimizer Window",
+        icon: AdjustmentsHorizontalIcon,
+        href: "/optimizer"
     },
     {
-        label: "Customers",
+        label: "Group Details",
         icon: UserGroupIcon,
-        children: [
-            { label: "All Customers", href: "/customers" },
-            { label: "Groups", href: "/groups" }
-        ]
+        href: "/agent-dashboard/GRP-2026-001"
     },
-    { label: "Shop", icon: ShoppingBagIcon, href: "/shop" },
     {
-        label: "Income",
-        icon: CurrencyDollarIcon,
-        children: [
-            { label: "Earnings", href: "/earnings" },
-            { label: "Refunds", href: "/refunds" }
-        ]
+        label: "Data Analytics",
+        icon: ChartBarIcon,
+        href: "/analytics"
     },
-    { label: "Promote", icon: MegaphoneIcon, href: "/promote" },
 ];
 
 export function Sidebar({ className }: { className?: string }) {

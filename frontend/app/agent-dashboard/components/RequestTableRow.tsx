@@ -148,11 +148,11 @@ const RequestTableRow = ({ request, onQuickAction }: RequestTableRowProps) => {
       <td className="px-4 py-4">
         <div className="flex items-center space-x-2">
           <Link
-            href={`/agent-request-review?id=${request.id}`}
+            href={`/agent-dashboard/${request.id}`}
             className="flex items-center space-x-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-smooth text-sm font-medium"
           >
             <Icon name="EyeIcon" size={16} />
-            <span>Review</span>
+            <span>View Group</span>
           </Link>
           <button
             onClick={() => onQuickAction?.(request.id, 'assign')}

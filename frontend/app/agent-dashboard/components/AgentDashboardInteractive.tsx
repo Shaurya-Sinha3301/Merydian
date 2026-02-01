@@ -34,14 +34,14 @@ interface TripRequest {
 
 const mockRequests: TripRequest[] = [
   {
-    id: 'TR-2026-001',
-    customerName: 'Sarah Johnson',
+    id: 'GRP-2026-001',
+    customerName: 'The Johnson Family Group',
     destination: 'Paris, France',
     startDate: '2026-03-15',
     endDate: '2026-03-22',
     groupSize: { adults: 2, children: 1, seniors: 0 },
     budgetRange: { min: 3500, max: 4500 },
-    status: 'new',
+    status: 'new', // active in system but new
     priority: 'high',
     constraints: [
       { type: 'mobility', severity: 'medium', description: 'Child-friendly activities required' },
@@ -51,13 +51,13 @@ const mockRequests: TripRequest[] = [
     submittedAt: '2026-01-18T09:30:00',
   },
   {
-    id: 'TR-2026-002',
-    customerName: 'Michael Chen',
+    id: 'GRP-2026-002',
+    customerName: 'Chen & Lee Families',
     destination: 'Tokyo, Japan',
     startDate: '2026-04-10',
     endDate: '2026-04-20',
-    groupSize: { adults: 2, children: 0, seniors: 2 },
-    budgetRange: { min: 5000, max: 7000 },
+    groupSize: { adults: 4, children: 2, seniors: 2 },
+    budgetRange: { min: 15000, max: 20000 },
     status: 'in-review',
     priority: 'medium',
     constraints: [
@@ -68,13 +68,13 @@ const mockRequests: TripRequest[] = [
     submittedAt: '2026-01-17T14:20:00',
   },
   {
-    id: 'TR-2026-003',
-    customerName: 'Emily Rodriguez',
+    id: 'GRP-2026-003',
+    customerName: 'Rodriguez Reunion',
     destination: 'Barcelona, Spain',
     startDate: '2026-05-05',
     endDate: '2026-05-12',
-    groupSize: { adults: 4, children: 0, seniors: 0 },
-    budgetRange: { min: 2500, max: 3500 },
+    groupSize: { adults: 8, children: 3, seniors: 0 },
+    budgetRange: { min: 12500, max: 15500 },
     status: 'new',
     priority: 'low',
     constraints: [],
@@ -82,13 +82,13 @@ const mockRequests: TripRequest[] = [
     submittedAt: '2026-01-18T11:45:00',
   },
   {
-    id: 'TR-2026-004',
-    customerName: 'David Thompson',
+    id: 'GRP-2026-004',
+    customerName: 'Thompson Corporate Retreat',
     destination: 'Rome, Italy',
     startDate: '2026-06-01',
     endDate: '2026-06-08',
-    groupSize: { adults: 2, children: 2, seniors: 1 },
-    budgetRange: { min: 4000, max: 5500 },
+    groupSize: { adults: 12, children: 0, seniors: 0 },
+    budgetRange: { min: 40000, max: 55000 },
     status: 'approved',
     priority: 'high',
     constraints: [
@@ -97,36 +97,6 @@ const mockRequests: TripRequest[] = [
     ],
     confidenceScore: 68,
     submittedAt: '2026-01-16T16:10:00',
-  },
-  {
-    id: 'TR-2026-005',
-    customerName: 'Lisa Anderson',
-    destination: 'London, UK',
-    startDate: '2026-07-15',
-    endDate: '2026-07-25',
-    groupSize: { adults: 1, children: 0, seniors: 0 },
-    budgetRange: { min: 3000, max: 4000 },
-    status: 'in-review',
-    priority: 'medium',
-    constraints: [
-      { type: 'preference', severity: 'low', description: 'Interest in theater and arts' },
-    ],
-    confidenceScore: 88,
-    submittedAt: '2026-01-17T10:30:00',
-  },
-  {
-    id: 'TR-2026-006',
-    customerName: 'Robert Martinez',
-    destination: 'Dubai, UAE',
-    startDate: '2026-08-20',
-    endDate: '2026-08-28',
-    groupSize: { adults: 3, children: 1, seniors: 0 },
-    budgetRange: { min: 6000, max: 8000 },
-    status: 'booked',
-    priority: 'low',
-    constraints: [],
-    confidenceScore: 95,
-    submittedAt: '2026-01-15T13:20:00',
   },
 ];
 
@@ -232,7 +202,7 @@ const AgentDashboardInteractive = () => {
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Trip Requests Dashboard</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Current Running Groups</h1>
         <p className="text-muted-foreground">
           Manage incoming trip requests and monitor operational metrics
         </p>

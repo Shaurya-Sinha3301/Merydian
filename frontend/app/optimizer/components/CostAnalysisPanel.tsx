@@ -44,9 +44,8 @@ const CostAnalysisPanel = ({
       <div className="p-4 border-b border-border bg-muted/30">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-foreground">Cost Analysis</h3>
-          <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-md ${
-            isIncrease ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'
-          }`}>
+          <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-md ${isIncrease ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'
+            }`}>
             <Icon name={isIncrease ? 'ArrowTrendingUpIcon' : 'ArrowTrendingDownIcon'} size={16} variant="solid" />
             <span className="text-sm font-semibold">
               {isIncrease ? '+' : ''}{costDeltaPercentage}%
@@ -66,9 +65,8 @@ const CostAnalysisPanel = ({
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1">Change</p>
-            <p className={`text-lg font-semibold data-text ${
-              isIncrease ? 'text-destructive' : 'text-success'
-            }`}>
+            <p className={`text-lg font-semibold data-text ${isIncrease ? 'text-rose-600' : 'text-emerald-600'
+              }`}>
               {isIncrease ? '+' : ''}${Math.abs(costDelta).toLocaleString()}
             </p>
           </div>
@@ -99,9 +97,8 @@ const CostAnalysisPanel = ({
                         ${item.modified.toLocaleString()}
                       </span>
                       {hasChange && (
-                        <span className={`text-xs font-medium data-text ${
-                          itemChange > 0 ? 'text-destructive' : 'text-success'
-                        }`}>
+                        <span className={`text-xs font-medium data-text ${itemChange > 0 ? 'text-rose-600' : 'text-emerald-600'
+                          }`}>
                           {itemChange > 0 ? '+' : ''}${Math.abs(itemChange).toLocaleString()}
                         </span>
                       )}
@@ -129,18 +126,21 @@ const CostAnalysisPanel = ({
                 </span>
               </div>
               <div className="h-px bg-border my-2" />
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Gross Margin</span>
+
+              {/* Gross Margin Highlight */}
+              <div className="flex items-center justify-between p-2 -mx-2 bg-emerald-50 rounded-lg border border-emerald-100/50">
+                <span className="text-sm font-bold text-emerald-900">Gross Margin</span>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm font-semibold text-success data-text">
+                  <span className="text-sm font-bold text-emerald-700 data-text">
                     ${marginAnalysis.grossMargin.toLocaleString()}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs font-medium text-emerald-600/80">
                     ({marginAnalysis.marginPercentage}%)
                   </span>
                 </div>
               </div>
-              <div className="pl-4 space-y-2">
+
+              <div className="pl-4 space-y-2 mt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Company Cut (70%)</span>
                   <span className="text-xs font-medium text-foreground data-text">
@@ -149,7 +149,7 @@ const CostAnalysisPanel = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Agent Cut (30%)</span>
-                  <span className="text-xs font-medium text-primary data-text">
+                  <span className="text-xs font-medium text-emerald-600 data-text">
                     ${marginAnalysis.agentCut.toLocaleString()}
                   </span>
                 </div>
@@ -157,39 +157,38 @@ const CostAnalysisPanel = ({
             </div>
 
             {/* Profitability Indicator */}
-            <div className={`mt-4 p-3 rounded-md ${
-              marginAnalysis.marginPercentage >= 20
-                ? 'bg-success/10 border border-success/20'
-                : marginAnalysis.marginPercentage >= 15
-                ? 'bg-warning/10 border border-warning/20' :'bg-destructive/10 border border-destructive/20'
-            }`}>
+            <div className={`mt-4 p-3 rounded-md border ${marginAnalysis.marginPercentage >= 20
+              ? 'bg-emerald-50 border-emerald-200'
+              : marginAnalysis.marginPercentage >= 15
+                ? 'bg-amber-50 border-amber-200'
+                : 'bg-rose-50 border-rose-200'
+              }`}>
               <div className="flex items-center space-x-2">
                 <Icon
                   name={
                     marginAnalysis.marginPercentage >= 20
                       ? 'CheckCircleIcon'
                       : marginAnalysis.marginPercentage >= 15
-                      ? 'ExclamationTriangleIcon' :'XCircleIcon'
+                        ? 'ExclamationTriangleIcon' : 'XCircleIcon'
                   }
                   size={16}
                   className={
                     marginAnalysis.marginPercentage >= 20
-                      ? 'text-success'
+                      ? 'text-emerald-600'
                       : marginAnalysis.marginPercentage >= 15
-                      ? 'text-warning' :'text-destructive'
+                        ? 'text-amber-600' : 'text-rose-600'
                   }
                   variant="solid"
                 />
-                <span className={`text-xs font-medium ${
-                  marginAnalysis.marginPercentage >= 20
-                    ? 'text-success'
-                    : marginAnalysis.marginPercentage >= 15
-                    ? 'text-warning' :'text-destructive'
-                }`}>
+                <span className={`text-xs font-bold ${marginAnalysis.marginPercentage >= 20
+                  ? 'text-emerald-700'
+                  : marginAnalysis.marginPercentage >= 15
+                    ? 'text-amber-700' : 'text-rose-700'
+                  }`}>
                   {marginAnalysis.marginPercentage >= 20
                     ? 'Excellent Profitability'
                     : marginAnalysis.marginPercentage >= 15
-                    ? 'Acceptable Margin' :'Low Margin Warning'}
+                      ? 'Acceptable Margin' : 'Low Margin Warning'}
                 </span>
               </div>
             </div>
