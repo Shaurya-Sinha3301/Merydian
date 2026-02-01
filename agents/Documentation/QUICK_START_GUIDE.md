@@ -36,11 +36,11 @@ pip install -r requirements_agents.txt
 
 ### 2. Configuration
 
-Edit `.env` file and add your Google Gemini API key:
+Edit `.env` file and add your Groq API key:
 
 ```env
-GEMINI_API_KEY=your_actual_api_key_here
-GEMINI_MODEL=gemini-2.0-flash-exp
+GROQ_API_KEY=your_actual_api_key_here
+GROQ_MODEL=llama-3.1-8b-instant
 LOG_LEVEL=INFO
 ```
 
@@ -64,7 +64,7 @@ python -m agents.agent_controller
 User Input (Natural Language)
         ↓
 ┌───────────────────────┐
-│   Feedback Agent      │  Gemini-powered NLP parsing
+│   Feedback Agent      │  Groq Llama 3.1-powered NLP parsing
 │   (LLM)               │  Input: "We loved Akshardham"
 └───────────────────────┘  Output: Structured JSON event
         ↓
@@ -79,7 +79,7 @@ User Input (Natural Language)
 └───────────────────────┘
         ↓
 ┌───────────────────────┐
-│ Explainability Agent  │  Gemini-powered explanation
+│ Explainability Agent  │  Groq Llama 3.1-powered explanation
 │   (LLM)               │  Converts payloads to text
 └───────────────────────┘
         ↓
@@ -211,21 +211,21 @@ def handle_feedback(sid, data):
 
 ## Demo Mode
 
-The system includes a **demo mode** that works without a Gemini API key:
+The system includes a **demo mode** that works without a Groq API key:
 
 - Feedback Agent uses keyword matching instead of LLM
 - Explainability Agent uses simple templates
 - Perfect for testing the orchestration flow
 
-To use demo mode, simply leave `GEMINI_API_KEY` as `your_api_key_here` in `.env`.
+To use demo mode, simply leave `GROQ_API_KEY` as `your_api_key_here` in `.env`.
 
 ---
 
 ## Troubleshooting
 
-### Issue: "GEMINI_API_KEY not set"
+### Issue: "GROQ_API_KEY not set"
 
-**Solution**: Edit `.env` file and add your API key, or use demo mode.
+**Solution**: Edit `.env` file and add your API key from https://console.groq.com/keys, or use demo mode.
 
 ### Issue: Optimizer files not found
 
@@ -244,10 +244,10 @@ pip install -r requirements_agents.txt
 ## Next Steps
 
 1. ✅ Test the demo (`python agents/demo.py`)
-2. ⬜ Add your Gemini API key to `.env`
+2. ⬜ Add your Groq API key to `.env`
 3. ⬜ Integrate with actual optimizer code
 4. ⬜ Build REST API for website integration
-5. ⬜ Add authentication and rate limiting
+5. ⬜ Add authentication
 6. ⬜ Deploy to production
 
 For detailed implementation guidance, see:

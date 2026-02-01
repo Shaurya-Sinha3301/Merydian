@@ -134,14 +134,14 @@ Converts natural language user input into structured events.
 
 #### `__init__()`
 
-Initializes the agent with Gemini API.
+Initializes the agent with Groq API.
 
 ```python
 agent = FeedbackAgent()
 ```
 
 **Behavior:**
-- If `GEMINI_API_KEY` is valid: Uses Gemini for parsing
+- If `GROQ_API_KEY` is valid: Uses Groq for parsing
 - If invalid or missing: Falls back to demo mode (keyword matching)
 
 #### `parse(user_input: str, context: Optional[dict] = None) -> FeedbackEvent`
@@ -286,11 +286,11 @@ Load enriched diffs from file.
 
 ### Class: `ExplainabilityAgent`
 
-Converts decision payloads into human-readable summaries using Gemini.
+Converts decision payloads into human-readable summaries using Groq Llama 3.1.
 
 #### `__init__()`
 
-Initializes the agent with Gemini API.
+Initializes the agent with Groq API.
 
 ```python
 agent = ExplainabilityAgent()
@@ -405,7 +405,7 @@ All agents include built-in error handling:
 - **Invalid API Key**: Falls back to demo mode
 - **Parsing Errors**: Returns `UNKNOWN` event type with LOW confidence
 - **File Not Found**: Logs warning and returns empty dict
-- **Gemini API Errors**: Catches exceptions and returns fallback responses
+- **Groq API Errors**: Catches exceptions and returns fallback responses
 
 ---
 

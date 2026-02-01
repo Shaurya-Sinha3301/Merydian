@@ -60,7 +60,7 @@ Your optimizer and explainability stack already do the hard thinking. The agent 
 
 **Role**: Natural Language → Structured Events
 
-**Technology**: Google Gemini API
+**Technology**: Groq Llama 3.1 API
 
 **Input Example**:
 ```
@@ -288,7 +288,7 @@ Right now, the flow is **linear and obvious**. Plain Python is clearer and safer
 ### Adding New Event Types
 
 1. Add to `EventType` enum in `schemas.py`
-2. Update Gemini prompt in `feedback_agent.py`
+2. Update Groq prompt in `feedback_agent.py`
 3. Add decision rule in `decision_policy_agent.py`
 
 ```python
@@ -353,7 +353,7 @@ best_solution = judge_agent.select_best(solutions)
 
 1. **Parallel LLM Calls**: Run Feedback + Explainability concurrently
 2. **Streaming**: Stream explanations as they're generated
-3. **Caching**: Cache Gemini responses for similar inputs
+3. **Caching**: Cache Groq responses for similar inputs
 4. **Async**: Make controller fully async
 
 ---
@@ -363,7 +363,7 @@ best_solution = judge_agent.select_best(solutions)
 ### Graceful Degradation
 
 ```python
-# If Gemini fails → Fall back to demo mode
+# If Groq fails → Fall back to demo mode
 # If optimizer fails → Return last known solution
 # If parsing fails → Return UNKNOWN event + LOW confidence
 ```
@@ -392,7 +392,7 @@ event = FeedbackEvent(**parsed_data)  # Throws if invalid
 ### Unit Tests (Per Agent)
 
 ```bash
-python -m agents.feedback_agent     # Test Gemini integration
+python -m agents.feedback_agent     # Test Groq integration
 python -m agents.decision_policy_agent  # Test decision rules
 ```
 
