@@ -41,7 +41,7 @@ const CustomerNavigation = ({ className = '' }: CustomerNavigationProps) => {
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary shadow-neu-sm">
                 <Icon name="GlobeAltIcon" size={24} className="text-primary-foreground" variant="solid" />
               </div>
-              <span className="font-heading text-xl font-semibold text-foreground">TripCraft</span>
+              <span className="font-heading text-xl font-semibold text-foreground">Voyageur</span>
             </Link>
 
             {/* Desktop Navigation Items */}

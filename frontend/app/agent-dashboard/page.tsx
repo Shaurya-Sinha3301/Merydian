@@ -6,7 +6,7 @@ import { Sidebar } from '@/components/ui/Sidebar';
 import AgentDashboardInteractive from './components/AgentDashboardInteractive';
 
 export const metadata: Metadata = {
-  title: 'Agent Dashboard - TripCraft',
+  title: 'Agent Dashboard - Voyageur',
   description: 'Manage incoming trip requests, review customer preferences, and monitor operational metrics with comprehensive workflow tools for travel agents.',
 };
 

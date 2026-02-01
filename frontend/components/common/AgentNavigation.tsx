@@ -46,7 +46,7 @@ const AgentNavigation = ({ className = '' }: AgentNavigationProps) => {
               <Icon name="GlobeAltIcon" size={24} className="text-primary-foreground" variant="solid" />
             </div>
             <div className="flex flex-col">
-              <span className="font-heading text-xl font-semibold text-foreground">TripCraft</span>
+              <span className="font-heading text-xl font-semibold text-foreground">Voyageur</span>
               <span className="caption text-muted-foreground text-xs">Agent Portal</span>
             </div>
           </Link>

@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { DM_Sans, Crimson_Text } from "next/font/google";
 import "./globals.css";
 import "./source_styles.css";
-import { FloatingNavbar } from "@/components/ui/FloatingNavbar";
-
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -19,8 +17,8 @@ const crimsonText = Crimson_Text({
 });
 
 export const metadata: Metadata = {
-  title: "TravelAgent Hub | AI-Powered Multi-Group Itinerary Management",
-  description: "AI-powered platform for travel agents managing multiple groups, families, and itineraries with zero stress.",
+  title: "Voyageur | AI-Powered Travel Planning Platform",
+  description: "AI-powered platform connecting travelers with expert agents for personalized itineraries and exceptional travel experiences.",
 };
 
 export default function RootLayout({
@@ -35,14 +33,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       </head>
       <body
-        className={`${dmSans.variable} ${crimsonText.variable} font-sans antialiased selection:bg-teal-100 bg-background text-foreground`}
+        className={`${dmSans.variable} ${crimsonText.variable} font-sans antialiased bg-background text-foreground`}
       >
-        <div className="relative z-50">
-          <FloatingNavbar />
-        </div>
-        <main className="pt-16">
-          {children}
-        </main>
+        {children}
       </body>
     </html>
   );

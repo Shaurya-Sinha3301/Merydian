@@ -4,7 +4,7 @@ import CustomerProgressIndicator from '@/components/common/CustomerProgressIndic
 import TripRequestInteractive from './components/TripRequestInteractive';
 
 export const metadata: Metadata = {
-  title: 'Create Trip Request - TripCraft',
+  title: 'Create Trip Request - Voyageur',
   description: 'Create your personalized trip request with guided form-driven input for destination, dates, budget, group composition, and individual preferences.',
 };
 
