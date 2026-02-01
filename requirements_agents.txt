@@ -1,0 +1,13 @@
+# Agent System Dependencies
+
+# LLM Provider (Groq with Llama 3)
+groq>=0.4.0
+
+# Environment Variable Management
+python-dotenv>=1.0.0
+
+# Schema Validation
+pydantic>=2.0.0
+
+# Existing project dependencies (if not already installed)
+# Add any additional dependencies needed for optimizer integration
