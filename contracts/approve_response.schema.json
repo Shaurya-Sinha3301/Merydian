@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Approve Response Schema",
+  "description": "Response schema for itinerary option approval",
+  "type": "object",
+  "properties": {
+    "message": {
+      "type": "string",
+      "description": "Confirmation message",
+      "examples": ["Option 'opt_1' approved successfully. Agents triggered."]
+    },
+    "option_id": {
+      "type": "string",
+      "description": "Approved option ID",
+      "examples": ["opt_1"]
+    },
+    "tools_agent_triggered": {
+      "type": "boolean",
+      "description": "Whether Tools Agent was triggered",
+      "examples": [true]
+    },
+    "communication_agent_triggered": {
+      "type": "boolean",
+      "description": "Whether Communication Agent was triggered",
+      "examples": [true]
+    }
+  },
+  "required": ["message", "option_id", "tools_agent_triggered", "communication_agent_triggered"],
+  "additionalProperties": false
+}

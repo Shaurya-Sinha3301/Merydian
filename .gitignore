@@ -6,9 +6,6 @@
 
 Project-Context.md
 
-# ml_or/Documentation/
-
-# Python
 __pycache__/
 *.pyc
 *.pyo
