@@ -8,4 +8,13 @@ Project-Context.md
 
 # ml_or/Documentation/
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
 .env
+.venv/
