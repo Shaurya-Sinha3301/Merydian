@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Itinerary Options Response Schema",
+  "description": "Response schema for agent dashboard itinerary options",
+  "type": "object",
+  "properties": {
+    "options": {
+      "type": "array",
+      "description": "List of available itinerary options",
+      "items": {
+        "type": "object",
+        "properties": {
+          "option_id": {
+            "type": "string",
+            "description": "Unique identifier for the option",
+            "pattern": "^opt_[a-zA-Z0-9_]+$",
+            "examples": ["opt_1", "opt_2", "opt_evt_456_1"]
+          },
+          "summary": {
+            "type": "string",
+            "description": "Brief description of the option",
+            "minLength": 1,
+            "maxLength": 200,
+            "examples": ["Split A for 4 hrs", "Delay entire group", "Reschedule with minimal impact"]
+          },
+          "cost": {
+            "type": "number",
+            "description": "Cost associated with this option",
+            "minimum": 0,
+            "examples": [120, 90, 75.5]
+          },
+          "satisfaction": {
+            "type": "number",
+            "description": "Predicted satisfaction score (0.0 to 1.0)",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "examples": [0.82, 0.65, 0.91]
+          }
+        },
+        "required": ["option_id", "summary", "cost", "satisfaction"],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    }
+  },
+  "required": ["options"],
+  "additionalProperties": false
+}

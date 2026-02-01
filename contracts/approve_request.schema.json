@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Approve Request Schema",
+  "description": "Request schema for approving an itinerary option",
+  "type": "object",
+  "properties": {
+    "option_id": {
+      "type": "string",
+      "description": "ID of the option to approve",
+      "pattern": "^opt_[a-zA-Z0-9_]+$",
+      "examples": ["opt_1", "opt_2"]
+    }
+  },
+  "required": ["option_id"],
+  "additionalProperties": false
+}

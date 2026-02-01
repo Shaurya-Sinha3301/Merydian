@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "POI Request Schema",
+  "description": "Schema for Point of Interest requests during mid-trip",
+  "type": "object",
+  "properties": {
+    "poi_name": {
+      "type": "string",
+      "description": "Name of the Point of Interest",
+      "minLength": 1,
+      "maxLength": 200,
+      "examples": ["Marina Bay Sands SkyPark", "Eiffel Tower", "Central Park"]
+    },
+    "urgency": {
+      "type": "string",
+      "enum": ["soft", "medium", "high"],
+      "description": "Urgency level of the POI request",
+      "examples": ["soft"]
+    }
+  },
+  "required": ["poi_name", "urgency"],
+  "additionalProperties": false
+}
