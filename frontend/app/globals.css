@@ -177,7 +177,6 @@
   body {
     @apply bg-background text-foreground;
   }
-<<<<<<< HEAD
 
   html {
     scroll-behavior: smooth;
@@ -272,7 +271,9 @@
   .animate-delay-600 {
     animation-delay: 0.6s;
     animation-fill-mode: both;
-=======
+  }
+
+  /* Leaflet Map Styles */
   .leaflet-container {
     @apply !bg-card !font-[inherit];
   }
@@ -320,7 +321,6 @@
   }
   .marker-cluster div {
     @apply font-[inherit];
->>>>>>> ca9d9fd862027424a3ebce7bfa4357b7b1ee08f1
   }
 }
 
