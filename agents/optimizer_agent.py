@@ -49,6 +49,9 @@ class OptimizerAgent:
             - enriched_diffs: Path to enriched_diffs.json (if available)
         """
         logger.info("Running optimizer...")
+        logger.warning("⚠️  OPTIMIZER STUB MODE: Using static demo data, not processing actual constraints")
+        logger.warning("⚠️  All runs will produce identical results (Akshardham scenario)")
+        logger.warning("⚠️  TODO: Integrate with ml_or.itinerary_optimizer.ItineraryOptimizer")
         
         # Create timestamped output directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -56,11 +59,31 @@ class OptimizerAgent:
         run_dir.mkdir(exist_ok=True)
         logger.info(f"Saving results to: {run_dir}")
         
-        # For demo purposes, we'll use the existing test data
-        # In production, this would call your actual optimizer code
+        # ═══════════════════════════════════════════════════════════════════════
+        # CRITICAL: This is a STUB implementation for demonstration purposes
+        # ═══════════════════════════════════════════════════════════════════════
+        # The optimizer currently ignores the `preferences` and `constraints` 
+        # parameters and always copies the same demo files from:
+        #   ml_or/tests/solved/3fam3daypref/
+        # 
+        # This means:
+        # - MUST_VISIT_ADDED events don't add the requested POI
+        # - NEVER_VISIT_ADDED events don't exclude the requested POI  
+        # - All optimizer runs produce identical results
+        #
+        # TO INTEGRATE THE REAL OPTIMIZER:
+        # 1. Import: from ml_or.itinerary_optimizer import ItineraryOptimizer
+        # 2. Load locations, transport, base itinerary
+        # 3. Build family_preferences dict from `preferences` parameter
+        # 4. Call optimizer.optimize_trip() with updated preferences
+        # 5. Run the explainability pipeline (diff_engine, causal_tagger, etc.)
+        # 6. Save all outputs to run_dir
+        #
+        # See ml_or/tests/solved/3fam3daypref/run_preference_scenario.py 
+        # for a complete example of the integration workflow.
+        # ═══════════════════════════════════════════════════════════════════════
         
         # Copy demo files to output directory for demonstration of the pipeline
-        # TODO: Integrate with actual optimizer
         import shutil
         result = {
             "optimized_solution": run_dir / "optimized_solution.json",
@@ -76,7 +99,7 @@ class OptimizerAgent:
                 shutil.copy(src_path, dest_path)
                 logger.info(f"Copied {key} to {dest_path}")
         
-        logger.info("Optimizer completed successfully")
+        logger.info("Optimizer completed successfully (DEMO MODE)")
         return result
     
     def load_solution(self, solution_path: Path) -> Dict[str, Any]:

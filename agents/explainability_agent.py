@@ -87,7 +87,7 @@ class ExplainabilityAgent:
         return [self.explain(payload) for payload in payloads]
     
     def _build_prompt(self, payload: Dict[str, Any]) -> str:
-        """Build the prompt for Gemini API."""
+        """Build the prompt for Groq API with causal tag explanations."""
         
         payload_str = json.dumps(payload, indent=2)
         
@@ -96,16 +96,24 @@ class ExplainabilityAgent:
 Decision Payload:
 {payload_str}
 
+CAUSAL TAG DEFINITIONS (use these to explain WHY changes happened):
+- SHARED_ANCHOR_REQUIRED: This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together
+- INTEREST_VECTOR_DOMINANCE: This POI matches the family's interest tags very strongly (interest score > 1.2)
+- LOW_INTEREST_DROPPED: This POI was removed because it has low relevance to the family's interests (score < 0.8)
+- OBJECTIVE_DOMINATED: This POI was removed due to optimization tradeoffs (cost, time, or other constraints)
+
 Generate a brief, clear explanation (1-2 sentences) that describes:
-1. What changed in the itinerary
-2. Why it changed (based on the data in the payload)
+1. What changed in the itinerary (which POI, which day, which family)
+2. Why it changed (use the causal_tags to explain the reason)
+3. If available, mention the cost impact or satisfaction gain
 
 Guidelines:
-- Write in active voice
+- Write in active voice for travelers/travel agents
 - Be concise and specific
-- Focus on user-facing impact
-- Don't mention technical details or field names
-- Don't infer causality beyond what's in the payload
+- Translate causal tags into natural language (don't say "SHARED_ANCHOR_REQUIRED", say "needed for group coordination")
+- Include actual POI names from the payload
+- Mention costs/satisfaction when relevant
+- Don't mention technical field names
 
 Return ONLY the explanation text, nothing else."""
         

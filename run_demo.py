@@ -18,15 +18,9 @@ from agents.explainability_agent import ExplainabilityAgent
 def main():
     """Run all demo scenarios with proper LLM payloads."""
     
-    # Create timestamped output directory
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_dir = project_root / "agents" / "tests" / f"demo_run_{timestamp}"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
     print("\n" + "="*80)
     print("VOYAGEUR AGENT SYSTEM - FULL DEMO WITH LLM PAYLOADS")
     print("="*80 + "\n")
-    print(f"Outputs will be saved to: {output_dir}\n")
     
     # Initialize controller and explainability agent
     print("Initializing agent system...\n")
@@ -103,9 +97,11 @@ def main():
         # If optimizer was triggered, load and use LLM payloads
         if result['optimizer_output']:
             llm_payloads_path = result['optimizer_output'].get('llm_payloads')
+            optimizer_output_dir = Path(llm_payloads_path).parent if llm_payloads_path else None
             
             if llm_payloads_path and Path(llm_payloads_path).exists():
-                print(f"\n✓ Loading LLM payloads from: {llm_payloads_path}")
+                print(f"\n✓ Using optimizer output folder: {optimizer_output_dir}")
+                print(f"✓ Loading LLM payloads from: {llm_payloads_path}")
                 
                 # Load LLM payloads
                 with open(llm_payloads_path, 'r') as f:
@@ -121,6 +117,7 @@ def main():
                     print(f"     Family: {payload.get('family')}")
                     print(f"     POI: {payload.get('poi', {}).get('name', 'Unknown')}")
                     print(f"     Change: {payload.get('change_type')}")
+                    print(f"     Causal Tags: {', '.join(payload.get('causal_tags', []))}")
                     
                     explanation = exp_agent.explain(payload)
                     explanations.append({
@@ -133,6 +130,8 @@ def main():
                     "input": llm_payloads,
                     "output": explanations
                 }
+                # Store the optimizer folder for later use
+                scenario_output["optimizer_output_dir"] = str(optimizer_output_dir)
             else:
                 print("  ⚠️  No llm_payloads.json found in optimizer output")
                 scenario_output["explainability_agent"] = {
@@ -157,7 +156,21 @@ def main():
         if scenario_output.get("explainability_agent", {}).get("output"):
             print(f"Explanations Generated: {len(scenario_output['explainability_agent']['output'])}")
     
-    # Save all outputs to JSON
+    # Use the optimizer's output folder (from the last optimizer run) for saving all outputs
+    # This consolidates everything into one folder
+    output_dir = None
+    for result in all_results:
+        if result.get("optimizer_output_dir"):
+            output_dir = Path(result["optimizer_output_dir"])
+            break
+    
+    if not output_dir:
+        # Fallback: create a new folder if optimizer never ran
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_dir = project_root / "agents" / "tests" / f"demo_run_{timestamp}"
+        output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save all outputs to JSON in the optimizer's folder
     output_file = output_dir / "llm_outputs.json"
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(all_results, f, indent=2, ensure_ascii=False, default=str)
@@ -167,7 +180,7 @@ def main():
     with open(summary_file, 'w') as f:
         f.write(f"Demo Run Summary\n")
         f.write(f"{'='*80}\n")
-        f.write(f"Timestamp: {timestamp}\n")
+        f.write(f"Output Directory: {output_dir}\n")
         f.write(f"Total scenarios: {len(scenarios)}\n")
         f.write(f"Optimizer triggered: {sum(1 for r in all_results if r['optimizer_triggered'])} times\n\n")
         
@@ -186,8 +199,9 @@ def main():
     print(f"\n{'='*80}")
     print("DEMO COMPLETED")
     print(f"{'='*80}\n")
-    print(f"✅ All LLM inputs/outputs saved to: {output_file}")
-    print(f"✅ Summary saved to: {summary_file}")
+    print(f"✅ All outputs consolidated in: {output_dir}")
+    print(f"✅ LLM inputs/outputs: {output_file}")
+    print(f"✅ Summary: {summary_file}")
     print(f"\nResults:")
     print(f"  Scenarios run: {len(scenarios)}")
     print(f"  Optimizer triggered: {sum(1 for r in all_results if r['optimizer_triggered'])} times")
