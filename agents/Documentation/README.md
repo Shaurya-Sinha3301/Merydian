@@ -78,10 +78,10 @@ User Input → Feedback Agent → Decision Agent → Optimizer Agent → Explain
 
 | Agent | Role | Technology |
 |-------|------|------------|
-| **Feedback** | Natural language → Events | Gemini (LLM) |
+| **Feedback** | Natural language → Events | Groq Llama 3.1 (LLM) |
 | **Decision/Policy** | Events → Actions | Rule-based |
 | **Optimizer** | Run optimizer | Wrapper |
-| **Explainability** | Payloads → Summaries | Gemini (LLM) |
+| **Explainability** | Payloads → Summaries | Groq Llama 3.1 (LLM) |
 
 ### Event Types
 
@@ -155,7 +155,8 @@ result = controller.process_user_input(
 ### Add API Key
 Edit `.env`:
 ```env
-GEMINI_API_KEY=your_actual_key_here
+GROQ_API_KEY=your_actual_key_here
+GROQ_MODEL=llama-3.1-8b-instant
 ```
 
 ---
@@ -185,11 +186,16 @@ When extending the system:
 
 ## Version History
 
+### v1.1 (2026-02-01)
+- Migrated from Gemini to Groq (Llama 3.1-8b-instant)
+- Removed rate limiting (Groq free tier: 30 RPM vs Gemini 2 RPM)
+- Updated all documentation
+
 ### v1.0 (2026-01-31)
 - Initial release
 - 4 core agents (Feedback, Decision, Optimizer, Explainability)
 - Event-driven orchestration
-- Gemini integration with demo mode fallback
+- Groq integration with demo mode fallback
 - Complete documentation
 
 ---

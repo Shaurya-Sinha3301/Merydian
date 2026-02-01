@@ -468,7 +468,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
       - LOG_LEVEL=INFO
     volumes:
       - ./agents:/app/agents
@@ -480,8 +480,8 @@ services:
 
 ```bash
 # .env.production
-GEMINI_API_KEY=your_production_key
-GEMINI_MODEL=gemini-2.0-flash-exp
+GROQ_API_KEY=your_production_key
+GROQ_MODEL=llama-3.1-8b-instant
 LOG_LEVEL=WARNING
 SECRET_KEY=your_jwt_secret
 DATABASE_URL=postgresql://...
