@@ -1,0 +1,55 @@
+"""
+Demo Launcher Script
+====================
+
+Usage:
+    python demo <demo_name>
+
+Available demos:
+    - reopt_hard_constraints
+
+Example:
+    python demo reopt_hard_constraints
+"""
+
+import sys
+from pathlib import Path
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python demo <demo_name>")
+        print("\nAvailable demos:")
+        print("  - reopt_hard_constraints  : Re-optimization with must-visit/never-visit constraints")
+        sys.exit(1)
+    
+    demo_name = sys.argv[1]
+    
+    # Map demo names to paths
+    demos = {
+        "reopt_hard_constraints": Path("ml_or/demos/reopt_hard_constraints/run_demo.py"),
+    }
+    
+    if demo_name not in demos:
+        print(f"❌ Unknown demo: {demo_name}")
+        print("\nAvailable demos:")
+        for name in demos.keys():
+            print(f"  - {name}")
+        sys.exit(1)
+    
+    demo_script = demos[demo_name]
+    
+    if not demo_script.exists():
+        print(f"Demo script not found: {demo_script}")
+        sys.exit(1)
+    
+    print(f"Launching demo: {demo_name}\n")
+    
+    # Execute the demo script
+    import subprocess
+    result = subprocess.run([sys.executable, str(demo_script)], cwd=Path.cwd())
+    
+    sys.exit(result.returncode)
+
+
+if __name__ == "__main__":
+    main()
