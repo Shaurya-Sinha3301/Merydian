@@ -1,0 +1,233 @@
+[
+  {
+    "family": "FAM_A",
+    "day": 1,
+    "change_type": "POI_REMOVED",
+    "poi": {
+      "id": "LOC_013",
+      "name": "Lodhi Gardens"
+    },
+    "causal_tags": [
+      "OBJECTIVE_DOMINATED"
+    ],
+    "cost_delta": {
+      "saved_cost": 105.26,
+      "currency": "INR",
+      "transport_savings": 105.26
+    },
+    "satisfaction_delta": {
+      "loss": 0.0
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_A",
+    "day": 1,
+    "change_type": "POI_REMOVED",
+    "poi": {
+      "id": "LOC_018",
+      "name": "Agrasen ki Baoli"
+    },
+    "causal_tags": [
+      "OBJECTIVE_DOMINATED"
+    ],
+    "cost_delta": {
+      "saved_cost": 105.26,
+      "currency": "INR",
+      "transport_savings": 105.26
+    },
+    "satisfaction_delta": {
+      "loss": 1.5
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_A",
+    "day": 3,
+    "change_type": "POI_ADDED",
+    "poi": {
+      "id": "LOC_015",
+      "name": "Chandni Chowk"
+    },
+    "causal_tags": [
+      "INTEREST_VECTOR_DOMINANCE"
+    ],
+    "cost_delta": {
+      "extra_cost": 300.0,
+      "currency": "INR",
+      "transport_cost": 100.0
+    },
+    "satisfaction_delta": {
+      "gain": 1.35
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_A",
+    "day": 3,
+    "change_type": "POI_ADDED",
+    "poi": {
+      "id": "LOC_018",
+      "name": "Agrasen ki Baoli"
+    },
+    "causal_tags": [
+      "INTEREST_VECTOR_DOMINANCE"
+    ],
+    "cost_delta": {
+      "extra_cost": 100.0,
+      "currency": "INR",
+      "transport_cost": 100.0
+    },
+    "satisfaction_delta": {
+      "gain": 1.5
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_B",
+    "day": 1,
+    "change_type": "POI_REMOVED",
+    "poi": {
+      "id": "LOC_013",
+      "name": "Lodhi Gardens"
+    },
+    "causal_tags": [
+      "OBJECTIVE_DOMINATED"
+    ],
+    "cost_delta": {
+      "saved_cost": 105.26,
+      "currency": "INR",
+      "transport_savings": 105.26
+    },
+    "satisfaction_delta": {
+      "loss": 0.0
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_B",
+    "day": 1,
+    "change_type": "POI_REMOVED",
+    "poi": {
+      "id": "LOC_018",
+      "name": "Agrasen ki Baoli"
+    },
+    "causal_tags": [
+      "OBJECTIVE_DOMINATED"
+    ],
+    "cost_delta": {
+      "saved_cost": 105.26,
+      "currency": "INR",
+      "transport_savings": 105.26
+    },
+    "satisfaction_delta": {
+      "loss": 1.13
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_B",
+    "day": 3,
+    "change_type": "POI_ADDED",
+    "poi": {
+      "id": "LOC_015",
+      "name": "Chandni Chowk"
+    },
+    "causal_tags": [
+      "INTEREST_VECTOR_DOMINANCE"
+    ],
+    "cost_delta": {
+      "extra_cost": 300.0,
+      "currency": "INR",
+      "transport_cost": 100.0
+    },
+    "satisfaction_delta": {
+      "gain": 1.47
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_C",
+    "day": 1,
+    "change_type": "POI_REMOVED",
+    "poi": {
+      "id": "LOC_013",
+      "name": "Lodhi Gardens"
+    },
+    "causal_tags": [
+      "OBJECTIVE_DOMINATED"
+    ],
+    "cost_delta": {
+      "saved_cost": 105.26,
+      "currency": "INR",
+      "transport_savings": 105.26
+    },
+    "satisfaction_delta": {
+      "loss": 0.0
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_C",
+    "day": 1,
+    "change_type": "POI_REMOVED",
+    "poi": {
+      "id": "LOC_018",
+      "name": "Agrasen ki Baoli"
+    },
+    "causal_tags": [
+      "OBJECTIVE_DOMINATED"
+    ],
+    "cost_delta": {
+      "saved_cost": 105.26,
+      "currency": "INR",
+      "transport_savings": 105.26
+    },
+    "satisfaction_delta": {
+      "loss": 1.22
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_C",
+    "day": 3,
+    "change_type": "POI_ADDED",
+    "poi": {
+      "id": "LOC_015",
+      "name": "Chandni Chowk"
+    },
+    "causal_tags": [
+      "INTEREST_VECTOR_DOMINANCE"
+    ],
+    "cost_delta": {
+      "extra_cost": 300.0,
+      "currency": "INR",
+      "transport_cost": 100.0
+    },
+    "satisfaction_delta": {
+      "gain": 1.35
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_C",
+    "day": 3,
+    "change_type": "POI_ADDED",
+    "poi": {
+      "id": "LOC_018",
+      "name": "Agrasen ki Baoli"
+    },
+    "causal_tags": [
+      "INTEREST_VECTOR_DOMINANCE"
+    ],
+    "cost_delta": {
+      "extra_cost": 100.0,
+      "currency": "INR",
+      "transport_cost": 100.0
+    },
+    "satisfaction_delta": {
+      "gain": 1.22
+    },
+    "audience": "TRAVEL_AGENT"
+  }
+]

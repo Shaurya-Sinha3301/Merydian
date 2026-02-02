@@ -99,11 +99,17 @@ class AgentController:
             if context and context.get("output_dir"):
                 output_dir_path = Path(context["output_dir"])
             
+            # Get current cumulative preferences path from context
+            current_prefs_path = None
+            if context and context.get("current_preferences_path"):
+                current_prefs_path = Path(context["current_preferences_path"])
+            
             # Run optimizer with event data and previous solution for comparison
             optimizer_output = self.optimizer_agent.run(
                 preferences=preferences,
                 base_solution_path=previous_solution_path,  # For diff comparison
-                output_dir=output_dir_path  # Where to save outputs
+                output_dir=output_dir_path,  # Where to save outputs
+                current_prefs_path=current_prefs_path  # Current cumulative preferences
             )
             result["optimizer_output"] = optimizer_output
             logger.info(f"✓ Optimizer completed")
