@@ -9,7 +9,7 @@
     {
       "day": 1,
       "objective_value": 833.4663400030167,
-      "solve_time_seconds": 0.17978460000000002,
+      "solve_time_seconds": 0.222758,
       "shared_poi_order": [
         "LOC_008",
         "LOC_LUNCH",
@@ -564,7 +564,7 @@
     {
       "day": 2,
       "objective_value": 16.0,
-      "solve_time_seconds": 0.0740939,
+      "solve_time_seconds": 0.0772184,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_009",
@@ -602,8 +602,8 @@
               "sequence": 3,
               "location_id": "LOC_006",
               "location_name": "Akshardham",
-              "arrival_time": "15:48",
-              "departure_time": "17:48",
+              "arrival_time": "15:49",
+              "departure_time": "17:49",
               "visit_duration_min": 120,
               "satisfaction_score": 0.77
             },
@@ -611,8 +611,8 @@
               "sequence": 4,
               "location_id": "LOC_005",
               "location_name": "Humayun Tomb",
-              "arrival_time": "18:05",
-              "departure_time": "19:05",
+              "arrival_time": "18:06",
+              "departure_time": "19:06",
               "visit_duration_min": 60,
               "satisfaction_score": 1.2
             },
@@ -709,8 +709,8 @@
               "sequence": 3,
               "location_id": "LOC_006",
               "location_name": "Akshardham",
-              "arrival_time": "15:48",
-              "departure_time": "17:48",
+              "arrival_time": "15:49",
+              "departure_time": "17:49",
               "visit_duration_min": 120,
               "satisfaction_score": 1.09
             },
@@ -718,8 +718,8 @@
               "sequence": 4,
               "location_id": "LOC_005",
               "location_name": "Humayun Tomb",
-              "arrival_time": "18:05",
-              "departure_time": "19:05",
+              "arrival_time": "18:06",
+              "departure_time": "19:06",
               "visit_duration_min": 60,
               "satisfaction_score": 0.95
             },
@@ -816,8 +816,8 @@
               "sequence": 3,
               "location_id": "LOC_006",
               "location_name": "Akshardham",
-              "arrival_time": "15:48",
-              "departure_time": "17:48",
+              "arrival_time": "15:49",
+              "departure_time": "17:49",
               "visit_duration_min": 120,
               "satisfaction_score": 0.91
             },
@@ -825,8 +825,8 @@
               "sequence": 4,
               "location_id": "LOC_005",
               "location_name": "Humayun Tomb",
-              "arrival_time": "18:05",
-              "departure_time": "19:05",
+              "arrival_time": "18:06",
+              "departure_time": "19:06",
               "visit_duration_min": 60,
               "satisfaction_score": 1.09
             },
@@ -903,7 +903,7 @@
     {
       "day": 3,
       "objective_value": 501.0,
-      "solve_time_seconds": 0.031645900000000005,
+      "solve_time_seconds": 0.032928200000000005,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_DINNER"

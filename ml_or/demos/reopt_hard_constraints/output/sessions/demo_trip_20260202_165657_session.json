@@ -1,0 +1,76 @@
+{
+  "trip_id": "demo_trip_20260202_165657",
+  "family_ids": [
+    "FAM_A",
+    "FAM_B",
+    "FAM_C"
+  ],
+  "baseline_itinerary_path": "C:\\Amlan\\Codes\\Voyageur_Studio\\ml_or\\data\\base_itinerary_final.json",
+  "current_preferences": [
+    {
+      "family_id": "FAM_A",
+      "members": 4,
+      "children": 2,
+      "budget_sensitivity": 0.9,
+      "energy_level": 0.6,
+      "pace_preference": "relaxed",
+      "interest_vector": {
+        "history": 0.9,
+        "architecture": 0.8,
+        "food": 0.3,
+        "nature": 0.5,
+        "nightlife": 0.1,
+        "shopping": 0.2,
+        "religious": 0.9
+      },
+      "must_visit_locations": [],
+      "never_visit_locations": [],
+      "notes": "History buff family. Prefers religious sites. Budget conscious."
+    },
+    {
+      "family_id": "FAM_B",
+      "members": 2,
+      "children": 0,
+      "budget_sensitivity": 0.2,
+      "energy_level": 0.9,
+      "pace_preference": "fast",
+      "interest_vector": {
+        "history": 0.2,
+        "architecture": 0.4,
+        "food": 0.9,
+        "nature": 0.2,
+        "nightlife": 1.0,
+        "shopping": 0.9,
+        "religious": 0.1
+      },
+      "must_visit_locations": [],
+      "never_visit_locations": [],
+      "notes": "Young couple. Loves food, nightlife, and shopping. High energy."
+    },
+    {
+      "family_id": "FAM_C",
+      "members": 3,
+      "children": 1,
+      "budget_sensitivity": 0.5,
+      "energy_level": 0.7,
+      "pace_preference": "moderate",
+      "interest_vector": {
+        "history": 0.5,
+        "architecture": 0.5,
+        "food": 0.6,
+        "nature": 0.5,
+        "nightlife": 0.5,
+        "shopping": 0.5,
+        "religious": 0.5
+      },
+      "must_visit_locations": [],
+      "never_visit_locations": [],
+      "notes": "Balanced family. Moderate preferences across all categories."
+    }
+  ],
+  "iteration_count": 1,
+  "itinerary_history": [
+    "C:\\Amlan\\Codes\\Voyageur_Studio\\ml_or\\demos\\reopt_hard_constraints\\output\\demo_trip_20260202_165657\\iteration_0_baseline\\itinerary.json"
+  ],
+  "feedback_history": []
+}

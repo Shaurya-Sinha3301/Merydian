@@ -44,7 +44,8 @@ class OptimizerAgent:
         self,
         preferences: Optional[Dict[str, Any]] = None,
         constraints: Optional[Dict[str, Any]] = None,
-        base_solution_path: Optional[Path] = None
+        base_solution_path: Optional[Path] = None,
+        output_dir: Optional[Path] = None
     ) -> Dict[str, Path]:
         """
         Run the optimizer with updated preferences/constraints.
@@ -53,6 +54,7 @@ class OptimizerAgent:
             preferences: FeedbackEvent dictionary with user preference change
             constraints: Updated constraints (currently unused)
             base_solution_path: Path to baseline solution for comparison (optional)
+            output_dir: Directory to save outputs (optional, defaults to agents/tests/run_*)
         
         Returns:
             Dictionary with paths to generated files
@@ -61,10 +63,16 @@ class OptimizerAgent:
         
         logger.info("Running optimizer with real ItineraryOptimizer...")
         
-        # Create timestamped output directory
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        run_dir = self.output_dir / f"run_{timestamp}"
-        run_dir.mkdir(exist_ok=True)
+        # Determine output directory
+        if output_dir:
+            run_dir = Path(output_dir)
+            run_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            # Default: Create timestamped output directory in agents/tests
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            run_dir = self.output_dir / f"run_{timestamp}"
+            run_dir.mkdir(exist_ok=True)
+        
         logger.info(f"Saving results to: {run_dir}")
         
         # ═══════════════════════════════════════════════════════════════

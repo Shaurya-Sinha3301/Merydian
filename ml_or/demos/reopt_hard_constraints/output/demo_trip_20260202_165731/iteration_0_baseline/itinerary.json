@@ -9,7 +9,7 @@
     {
       "day": 1,
       "objective_value": 833.4663400030167,
-      "solve_time_seconds": 0.17978460000000002,
+      "solve_time_seconds": 0.1864548,
       "shared_poi_order": [
         "LOC_008",
         "LOC_LUNCH",
@@ -564,7 +564,7 @@
     {
       "day": 2,
       "objective_value": 16.0,
-      "solve_time_seconds": 0.0740939,
+      "solve_time_seconds": 0.07546380000000001,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_009",
@@ -903,7 +903,7 @@
     {
       "day": 3,
       "objective_value": 501.0,
-      "solve_time_seconds": 0.031645900000000005,
+      "solve_time_seconds": 0.0435621,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_DINNER"

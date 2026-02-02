@@ -53,37 +53,37 @@ def apply_event_to_preferences(
     # Initialize family if not exists
     if family_id not in preferences:
         preferences[family_id] = {
-            "must_visit": [],
-            "never_visit": [],
+            "must_visit_locations": [],
+            "never_visit_locations": [],
             "interests": []
         }
     
-    # Ensure lists exist
-    if "must_visit" not in preferences[family_id]:
-        preferences[family_id]["must_visit"] = []
-    if "never_visit" not in preferences[family_id]:
-        preferences[family_id]["never_visit"] = []
+    # Ensure lists exist (match FamilyPreference class field names)
+    if "must_visit_locations" not in preferences[family_id]:
+        preferences[family_id]["must_visit_locations"] = []
+    if "never_visit_locations" not in preferences[family_id]:
+        preferences[family_id]["never_visit_locations"] = []
     
     # Apply event
     if event_type == "MUST_VISIT_ADDED" and poi_id:
-        if poi_id not in preferences[family_id]["must_visit"]:
-            preferences[family_id]["must_visit"].append(poi_id)
-            logger.info(f"Added {poi_id} to {family_id} must_visit list")
+        if poi_id not in preferences[family_id]["must_visit_locations"]:
+            preferences[family_id]["must_visit_locations"].append(poi_id)
+            logger.info(f"Added {poi_id} to {family_id} must_visit_locations list")
         
         # Remove from never_visit if present
-        if poi_id in preferences[family_id].get("never_visit", []):
-            preferences[family_id]["never_visit"].remove(poi_id)
-            logger.info(f"Removed {poi_id} from {family_id} never_visit list")
+        if poi_id in preferences[family_id].get("never_visit_locations", []):
+            preferences[family_id]["never_visit_locations"].remove(poi_id)
+            logger.info(f"Removed {poi_id} from {family_id} never_visit_locations list")
     
     elif event_type == "NEVER_VISIT_ADDED" and poi_id:
-        if poi_id not in preferences[family_id]["never_visit"]:
-            preferences[family_id]["never_visit"].append(poi_id)
-            logger.info(f"Added {poi_id} to {family_id} never_visit list")
+        if poi_id not in preferences[family_id]["never_visit_locations"]:
+            preferences[family_id]["never_visit_locations"].append(poi_id)
+            logger.info(f"Added {poi_id} to {family_id} never_visit_locations list")
         
         # Remove from must_visit if present
-        if poi_id in preferences[family_id].get("must_visit", []):
-            preferences[family_id]["must_visit"].remove(poi_id)
-            logger.info(f"Removed {poi_id} from {family_id} must_visit list")
+        if poi_id in preferences[family_id].get("must_visit_locations", []):
+            preferences[family_id]["must_visit_locations"].remove(poi_id)
+            logger.info(f"Removed {poi_id} from {family_id} must_visit_locations list")
     
     return preferences
 

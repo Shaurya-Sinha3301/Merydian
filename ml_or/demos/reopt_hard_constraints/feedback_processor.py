@@ -95,13 +95,17 @@ class FeedbackProcessor:
             )
         
         # Process through agent controller
+        # Get the latest optimized itinerary from previous iteration (for comparison)
+        previous_solution = session_manager.get_latest_itinerary(trip_id)
+        
         result = self.controller.process_user_input(
             user_input=message,
             context={
                 "family_id": family_id,
                 "trip_id": trip_id,
                 "current_preferences_path": str(prefs_path),
-                "baseline_itinerary": session.baseline_itinerary_path,
+                "base_itinerary": session.baseline_itinerary_path,  # Skeleton stays same
+                "previous_solution": str(previous_solution) if previous_solution else None,  # For comparison
                 "output_dir": str(iteration_dir)
             }
         )
@@ -127,6 +131,38 @@ class FeedbackProcessor:
             # Save updated preferences
             updated_prefs_path = iteration_dir / "preferences_updated.json"
             session_manager.save_preferences_to_file(trip_id, updated_prefs_path)
+            
+            # Copy optimizer outputs to iteration directory for visibility
+            import shutil
+            optimizer_outputs = result['optimizer_output']
+            
+            # Copy optimized solution (skip if already in place)
+            if optimizer_outputs.get('optimized_solution'):
+                solution_src = Path(optimizer_outputs['optimized_solution'])
+                solution_dst = iteration_dir / "optimized_solution.json"
+                if solution_src.exists() and solution_src.resolve() != solution_dst.resolve():
+                    shutil.copy(solution_src, solution_dst)
+            
+            # Copy LLM payloads (important for explainability)
+            if optimizer_outputs.get('llm_payloads'):
+                payloads_src = Path(optimizer_outputs['llm_payloads'])
+                payloads_dst = iteration_dir / "llm_payloads.json"
+                if payloads_src.exists() and payloads_src.resolve() != payloads_dst.resolve():
+                    shutil.copy(payloads_src, payloads_dst)
+            
+            # Copy enriched diffs
+            if optimizer_outputs.get('enriched_diffs'):
+                diffs_src = Path(optimizer_outputs['enriched_diffs'])
+                diffs_dst = iteration_dir / "enriched_diffs.json"
+                if diffs_src.exists() and diffs_src.resolve() != diffs_dst.resolve():
+                    shutil.copy(diffs_src, diffs_dst)
+            
+            # Copy decision traces
+            if optimizer_outputs.get('decision_traces'):
+                traces_src = Path(optimizer_outputs['decision_traces'])
+                traces_dst = iteration_dir / "decision_traces.json"
+                if traces_src.exists() and traces_src.resolve() != traces_dst.resolve():
+                    shutil.copy(traces_src, traces_dst)
            
             # Record new itinerary
             session.update_itinerary(result['optimizer_output']['optimized_solution'])

@@ -122,18 +122,40 @@ Return ONLY the explanation text, nothing else."""
     def _demo_explain(self, payload: Dict[str, Any]) -> AgentExplanation:
         """Simple template-based explanation (fallback when no API key)."""
         
-        # Extract common fields
+        # Extract common fields - handle nested POI structure
         change_type = payload.get("change_type", "unknown")
-        poi_name = payload.get("poi_name", "location")
+        
+        # POI can be nested like {"id": "LOC_006", "name": "Akshardham"}
+        poi_data = payload.get("poi", {})
+        if isinstance(poi_data, dict):
+            poi_name = poi_data.get("name", "location")
+        else:
+            poi_name = str(poi_data)
+        
+        family = payload.get("family", "a family")
         day = payload.get("day", "?")
         
-        # Simple template
-        if change_type == "visit_added":
-            summary = f"Added {poi_name} to Day {day} visit list based on updated preferences."
-        elif change_type == "visit_removed":
-            summary = f"Removed {poi_name} from Day {day} visit list based on updated preferences."
+        # Extract causal tags for more context
+        causal_tags = payload.get("causal_tags", [])
+        reason = ""
+        if causal_tags:
+            tag = causal_tags[0]
+            if tag == "SHARED_ANCHOR_REQUIRED":
+                reason = " (needed for group coordination)"
+            elif tag == "INTEREST_VECTOR_DOMINANCE":
+                reason = " (strongly matches interests)"
+            elif tag == "LOW_INTEREST_DROPPED":
+                reason = " (low relevance to interests)"
+            elif tag == "OBJECTIVE_DOMINATED":
+                reason = " (optimization tradeoff)"
+        
+        # Build summary based on change type
+        if change_type == "POI_ADDED":
+            summary = f"Added {poi_name} to {family}'s Day {day} itinerary{reason}."
+        elif change_type == "POI_REMOVED":
+            summary = f"Removed {poi_name} from {family}'s Day {day} itinerary{reason}."
         else:
-            summary = f"Modified itinerary: {change_type} for {poi_name} on Day {day}."
+            summary = f"Modified itinerary: {change_type} for {poi_name} on Day {day}{reason}."
         
         return AgentExplanation(
             summary=summary,
