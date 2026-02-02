@@ -249,14 +249,28 @@ class ReoptimizationDemo:
         return v2_path
     
     def _detect_branch_poi(self, itinerary):
-        """Detect the first Branch POI in the itinerary."""
+        """Detect Akshardham (LOC_006) for demo - the must-visit POI from Phase 2."""
+        # For demo purposes, we specifically target Akshardham since:
+        # - Phase 2: FAM_A requested it as must-visit
+        # - Phase 3: FAM_B wants to exclude it (never-visit)
+        # This creates a clear narrative: constraint conflict resolution
+        
         # Load locations
         with open(self.locations_file, 'r') as f:
             locations_list = json.load(f)
         
         locations_map = {loc['location_id']: loc for loc in locations_list}
         
-        # Check all days
+        # First, check if LOC_006 (Akshardham) is in the itinerary
+        for day_data in itinerary.get('days', []):
+            families_data = day_data.get('families', {})
+            for family_id, family_data in families_data.items():
+                for poi in family_data.get('pois', []):
+                    poi_id = poi.get('location_id')
+                    if poi_id == 'LOC_006':  # Akshardham
+                        return 'LOC_006'
+        
+        # Fallback: return any Branch POI if Akshardham not found
         for day_data in itinerary.get('days', []):
             families_data = day_data.get('families', {})
             for family_id, family_data in families_data.items():
