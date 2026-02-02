@@ -45,7 +45,8 @@ class OptimizerAgent:
         preferences: Optional[Dict[str, Any]] = None,
         constraints: Optional[Dict[str, Any]] = None,
         base_solution_path: Optional[Path] = None,
-        output_dir: Optional[Path] = None
+        output_dir: Optional[Path] = None,
+        current_prefs_path: Optional[Path] = None
     ) -> Dict[str, Path]:
         """
         Run the optimizer with updated preferences/constraints.
@@ -79,8 +80,10 @@ class OptimizerAgent:
         # STEP 1: Build Updated Family Preferences
         # ═══════════════════════════════════════════════════════════════
         
-        # Load base preferences
-        base_prefs = load_base_preferences(self.base_prefs_path)
+        # Load current preferences (cumulative) or fall back to base
+        prefs_file = current_prefs_path if current_prefs_path else self.base_prefs_path
+        logger.info(f"Loading preferences from: {prefs_file}")
+        base_prefs = load_base_preferences(prefs_file)
         
         # Ensure all families have at least empty preferences
         all_families = ["FAM_A", "FAM_B", "FAM_C"]

@@ -118,14 +118,11 @@ class ReoptimizationDemo:
         print("PHASE 3: CHAT MESSAGE - NEVER VISIT REQUEST")
         print("="*80)
         
-        # Detect a POI to exclude (from latest itinerary)
-        latest_itinerary = self.session_manager.get_latest_itinerary(self.demo_trip_id)
-        detected_poi = self._detect_branch_poi(latest_itinerary)
-        poi_name = self._get_poi_name(detected_poi) if detected_poi else "Lodhi Gardens"
-        
+        # Request to remove Lodhi Gardens (LOC_013) which IS in the itinerary after iteration 2
+        # This will cause actual changes and generate explanations
         self._simulate_chat_message(
             family_id="FAM_B",
-            message=f"We're not interested in {poi_name}, please skip it.",
+            message="We're not interested in Lodhi Gardens, please skip it.",
             phase_name="never_visit"
         )
         

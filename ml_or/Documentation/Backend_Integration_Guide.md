@@ -38,6 +38,7 @@ This document describes the **agentic itinerary re-optimization system** and pro
 - Parses natural language feedback using Groq LLM
 - Extracts: event type, POI name, family ID, confidence
 - Example: "We're not interested in Akshardham" → `NEVER_VISIT_ADDED, POI=Akshardham, FAM_B`
+- **Correction**: Ensures extracted POI names map to valid `must_visit_locations` or `never_visit_locations` fields.
 
 **DecisionPolicyAgent** ([decision_policy_agent.py](file:///c:/Amlan/Codes/Voyageur_Studio/agents/decision_policy_agent.py))
 - Decides action based on event type
@@ -46,8 +47,9 @@ This document describes the **agentic itinerary re-optimization system** and pro
 
 **OptimizerAgent** ([optimizer_agent.py](file:///c:/Amlan/Codes/Voyageur_Studio/agents/optimizer_agent.py))
 - Wraps `ItineraryOptimizer` with explainability pipeline
+- Inputs: `preferences` (delta), `current_prefs_path` (cumulative context)
 - Generates: optimized solution, decision traces, enriched diffs, LLM payloads
-- Saves all artifacts to specified output directory
+- Saves all artifacts to specified output directory for iteration tracking
 
 **ExplainabilityAgent** ([explainability_agent.py](file:///c:/Amlan/Codes/Voyageur_Studio/agents/explainability_agent.py))
 - Converts technical payloads → natural language explanations
@@ -134,6 +136,8 @@ Session State (from DB/File)
 └─────────────────────────────────┘
     ↓
 AgentController.process_user_input(message, context)
+    ↓
+    (Passes context['current_preferences_path'] to OptimizerAgent)
     ↓
 ┌─────────────────────────────────┐
 │ OptimizerAgent Output:          │
@@ -468,6 +472,7 @@ class DatabaseSessionManager:
     
     def update_preferences(self, trip_id: str, family_id: str, event_type: str, poi_id: str):
         # Load session, update preferences JSON, save
+        # Note: Uses 'must_visit_locations' and 'never_visit_locations' fields
         ...
 ```
 
