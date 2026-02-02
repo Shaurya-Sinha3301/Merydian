@@ -239,7 +239,8 @@ class OptimizerAgent:
             "optimized_solution": solution_path,
             "decision_traces": traces_path,
             "enriched_diffs": diffs_path,
-            "llm_payloads": payloads_path
+            "llm_payloads": payloads_path,
+            "family_preferences": updated_prefs_path  # Source of truth for preferences
         }
     
     def load_solution(self, solution_path: Path) -> Dict[str, Any]:

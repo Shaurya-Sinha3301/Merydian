@@ -573,6 +573,89 @@ Each iteration directory contains:
 
 ---
 
+## Troubleshooting Common Issues
+
+### Issue 1: Must-Visit Constraints Not Enforced
+
+**Symptom**: User requests "We want to visit Akshardham" but it doesn't appear in the optimized itinerary.
+
+**Root Cause**: `OptimizerAgent` is not receiving cumulative preferences. It's loading base preferences instead.
+
+**Solution**: 
+```python
+# In FeedbackProcessor or your API handler
+context = {
+    "current_preferences_path": str(cumulative_prefs_path),  # ✅ CRITICAL
+    "family_id": family_id,
+    ...
+}
+
+result = controller.process_user_input(message, context)
+```
+
+Ensure `AgentController.process_user_input()` passes this to `OptimizerAgent`:
+```python
+optimizer_output = self.optimizer_agent.run(
+    current_prefs_path=context.get('current_preferences_path')  # ✅
+)
+```
+
+---
+
+### Issue 2: Multiple Preference Files with Different Content
+
+**Symptom**: Two files in iteration directory: `preferences_updated.json` and `family_preferences_updated.json` with different content.
+
+**Root Cause**: Old code saved session state separately from OptimizerAgent output.
+
+**Solution**: Latest version (Feb 2026) fixed this. Only `family_preferences_updated.json` should be generated. Update to latest version:
+```python
+# FeedbackProcessor should copy from OptimizerAgent output
+if optimizer_outputs.get('family_preferences'):
+    shutil.copy(optimizer_outputs['family_preferences'], 
+                iteration_dir / "family_preferences_updated.json")
+```
+
+---
+
+### Issue 3: Empty Explanations
+
+**Symptom**: `explanations.md` is empty or `llm_payloads.json` contains `[]`.
+
+**Possible Causes**:
+1. **No changes occurred** - If the requested POI was already in itinerary, optimizer makes no changes (expected behavior)
+2. **ExplainabilityAgent not receiving payloads** - Check that payloads are being passed correctly
+
+**Debugging**:
+```python
+# Check if diff engine found changes
+with open('enriched_diffs.json') as f:
+    diffs = json.load(f)
+    print(f"Changes found: {len(diffs.get('changes', []))}")
+```
+
+---
+
+### Issue 4: Wrong Field Names
+
+**Symptom**: `TypeError: FamilyPreference() got unexpected keyword argument 'must_visit'`
+
+**Root Cause**: Using old field names.
+
+**Solution**: Always use:
+- `must_visit_locations` ✅ (NOT `must_visit`)
+- `never_visit_locations` ✅ (NOT `never_visit`)
+
+```json
+{
+  "family_id": "FAM_A",
+  "must_visit_locations": ["LOC_006"],
+  "never_visit_locations": ["LOC_013"]
+}
+```
+
+---
+
 ## Summary
 
 ### What We Achieved
@@ -582,6 +665,7 @@ Each iteration directory contains:
 ✅ **Explainable AI**: Real POI names, costs, causal reasoning  
 ✅ **Backend Compatible**: REST, WebSocket, async patterns  
 ✅ **Tested & Documented**: Working demo + integration guide  
+✅ **Critical Fixes**: Cumulative preferences, single source of truth
 
 ### Next Steps for Production
 
@@ -593,6 +677,7 @@ Each iteration directory contains:
 
 ### Support & Resources
 
+- **Complete Workflow Guide**: [AGENTIC_WORKFLOW_COMPLETE_GUIDE.md](file:///c:/Amlan/Codes/Voyageur_Studio/ml_or/Documentation/AGENTIC_WORKFLOW_COMPLETE_GUIDE.md) - **START HERE**
 - **Demo Code**: [ml_or/demos/reopt_hard_constraints/](file:///c:/Amlan/Codes/Voyageur_Studio/ml_or/demos/reopt_hard_constraints/)
 - **Agent Implementations**: [agents/](file:///c:/Amlan/Codes/Voyageur_Studio/agents/)
 - **Explainability Pipeline**: [ml_or/explainability/](file:///c:/Amlan/Codes/Voyageur_Studio/ml_or/explainability/)
@@ -600,6 +685,6 @@ Each iteration directory contains:
 
 ---
 
-**Last Updated**: 2026-02-02  
-**Version**: 1.0  
-**Status**: Production-Ready for Backend Integration
+**Last Updated**: 2026-02-03  
+**Version**: 2.0  
+**Status**: Production-Ready with Critical Fixes Applied

@@ -8,8 +8,8 @@
   "days": [
     {
       "day": 1,
-      "objective_value": 833.4663400030167,
-      "solve_time_seconds": 0.25133520000000004,
+      "objective_value": 807.0,
+      "solve_time_seconds": 0.1445519,
       "shared_poi_order": [
         "LOC_008",
         "LOC_LUNCH",
@@ -17,88 +17,70 @@
         "LOC_010",
         "LOC_DINNER"
       ],
-      "total_transport_cost": 804.7668299984916,
-      "total_transport_time_min": 405,
+      "total_transport_cost": 438,
+      "total_transport_time_min": 411,
       "transport": [],
       "families": {
         "FAM_A": {
           "family_id": "FAM_A",
-          "total_satisfaction": 10.89,
+          "total_satisfaction": 7.94,
           "pois": [
             {
               "sequence": 1,
               "location_id": "LOC_008",
               "location_name": "Raj Ghat",
-              "arrival_time": "09:32",
-              "departure_time": "10:17",
+              "arrival_time": "09:31",
+              "departure_time": "10:16",
               "visit_duration_min": 45,
               "satisfaction_score": 1.44
             },
             {
               "sequence": 2,
-              "location_id": "LOC_013",
-              "location_name": "Lodhi Gardens",
-              "arrival_time": "10:27",
-              "departure_time": "11:27",
-              "visit_duration_min": 60,
-              "satisfaction_score": 1.44
-            },
-            {
-              "sequence": 3,
-              "location_id": "LOC_018",
-              "location_name": "Agrasen ki Baoli",
-              "arrival_time": "11:37",
-              "departure_time": "12:22",
-              "visit_duration_min": 45,
-              "satisfaction_score": 1.5
-            },
-            {
-              "sequence": 4,
               "location_id": "LOC_LUNCH",
               "location_name": "Connaught Place Restaurants (Lunch)",
-              "arrival_time": "12:32",
-              "departure_time": "13:32",
+              "arrival_time": "12:30",
+              "departure_time": "13:30",
               "visit_duration_min": 60,
               "satisfaction_score": 1.15
             },
             {
-              "sequence": 5,
+              "sequence": 3,
               "location_id": "LOC_001",
               "location_name": "Red Fort",
-              "arrival_time": "13:55",
-              "departure_time": "14:40",
+              "arrival_time": "13:52",
+              "departure_time": "14:37",
               "visit_duration_min": 45,
               "satisfaction_score": 1.04
             },
             {
-              "sequence": 6,
+              "sequence": 4,
               "location_id": "LOC_003",
               "location_name": "India Gate",
-              "arrival_time": "14:59",
-              "departure_time": "15:44",
+              "arrival_time": "14:56",
+              "departure_time": "15:41",
               "visit_duration_min": 45,
               "satisfaction_score": 1.05
             },
             {
-              "sequence": 7,
+              "sequence": 5,
               "location_id": "LOC_046",
               "location_name": "Parikrama",
-              "arrival_time": "15:56",
-              "departure_time": "16:56",
+              "arrival_time": "15:53",
+              "departure_time": "16:53",
               "visit_duration_min": 60,
               "satisfaction_score": 0.96
             },
             {
-              "sequence": 8,
+              "sequence": 6,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:30",
-              "departure_time": "18:30",
+              "arrival_time": "17:02",
+              "departure_time": "18:02",
               "visit_duration_min": 60,
               "satisfaction_score": 1.17
             },
             {
-              "sequence": 9,
+              "sequence": 7,
               "location_id": "LOC_DINNER",
               "location_name": "Evening Fine Dining (Dinner)",
               "arrival_time": "19:30",
@@ -120,29 +102,11 @@
             {
               "from": "LOC_008",
               "from_name": "Raj Ghat",
-              "to": "LOC_013",
-              "to_name": "Lodhi Gardens",
-              "mode": "CAB_FALLBACK",
-              "duration_min": 10,
-              "cost": 50
-            },
-            {
-              "from": "LOC_013",
-              "from_name": "Lodhi Gardens",
-              "to": "LOC_018",
-              "to_name": "Agrasen ki Baoli",
-              "mode": "CAB_FALLBACK",
-              "duration_min": 10,
-              "cost": 55.255609999497196
-            },
-            {
-              "from": "LOC_018",
-              "from_name": "Agrasen ki Baoli",
               "to": "LOC_LUNCH",
               "to_name": "Connaught Place Restaurants (Lunch)",
-              "mode": "CAB_FALLBACK",
-              "duration_min": 10,
-              "cost": 50
+              "mode": "BUS",
+              "duration_min": 32,
+              "cost": 33
             },
             {
               "from": "LOC_LUNCH",
@@ -202,82 +166,64 @@
         },
         "FAM_B": {
           "family_id": "FAM_B",
-          "total_satisfaction": 10.87,
+          "total_satisfaction": 8.79,
           "pois": [
             {
               "sequence": 1,
               "location_id": "LOC_008",
               "location_name": "Raj Ghat",
-              "arrival_time": "09:32",
-              "departure_time": "10:17",
+              "arrival_time": "09:31",
+              "departure_time": "10:16",
               "visit_duration_min": 45,
               "satisfaction_score": 0.98
             },
             {
               "sequence": 2,
-              "location_id": "LOC_013",
-              "location_name": "Lodhi Gardens",
-              "arrival_time": "10:27",
-              "departure_time": "11:27",
-              "visit_duration_min": 60,
-              "satisfaction_score": 1.02
-            },
-            {
-              "sequence": 3,
-              "location_id": "LOC_018",
-              "location_name": "Agrasen ki Baoli",
-              "arrival_time": "11:37",
-              "departure_time": "12:22",
-              "visit_duration_min": 45,
-              "satisfaction_score": 1.05
-            },
-            {
-              "sequence": 4,
               "location_id": "LOC_LUNCH",
               "location_name": "Connaught Place Restaurants (Lunch)",
-              "arrival_time": "12:32",
-              "departure_time": "13:32",
+              "arrival_time": "12:30",
+              "departure_time": "13:30",
               "visit_duration_min": 60,
               "satisfaction_score": 1.45
             },
             {
-              "sequence": 5,
+              "sequence": 3,
               "location_id": "LOC_001",
               "location_name": "Red Fort",
-              "arrival_time": "13:55",
-              "departure_time": "14:40",
+              "arrival_time": "13:52",
+              "departure_time": "14:37",
               "visit_duration_min": 45,
               "satisfaction_score": 0.91
             },
             {
-              "sequence": 6,
+              "sequence": 4,
               "location_id": "LOC_003",
               "location_name": "India Gate",
-              "arrival_time": "14:59",
-              "departure_time": "15:44",
+              "arrival_time": "14:56",
+              "departure_time": "15:41",
               "visit_duration_min": 45,
               "satisfaction_score": 1.6
             },
             {
-              "sequence": 7,
+              "sequence": 5,
               "location_id": "LOC_046",
               "location_name": "Parikrama",
-              "arrival_time": "15:56",
-              "departure_time": "16:56",
+              "arrival_time": "15:53",
+              "departure_time": "16:53",
               "visit_duration_min": 60,
               "satisfaction_score": 1.41
             },
             {
-              "sequence": 8,
+              "sequence": 6,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:30",
-              "departure_time": "18:30",
+              "arrival_time": "17:02",
+              "departure_time": "18:02",
               "visit_duration_min": 60,
               "satisfaction_score": 0.82
             },
             {
-              "sequence": 9,
+              "sequence": 7,
               "location_id": "LOC_DINNER",
               "location_name": "Evening Fine Dining (Dinner)",
               "arrival_time": "19:30",
@@ -299,29 +245,11 @@
             {
               "from": "LOC_008",
               "from_name": "Raj Ghat",
-              "to": "LOC_013",
-              "to_name": "Lodhi Gardens",
-              "mode": "CAB_FALLBACK",
-              "duration_min": 10,
-              "cost": 50
-            },
-            {
-              "from": "LOC_013",
-              "from_name": "Lodhi Gardens",
-              "to": "LOC_018",
-              "to_name": "Agrasen ki Baoli",
-              "mode": "CAB_FALLBACK",
-              "duration_min": 10,
-              "cost": 55.255609999497196
-            },
-            {
-              "from": "LOC_018",
-              "from_name": "Agrasen ki Baoli",
               "to": "LOC_LUNCH",
               "to_name": "Connaught Place Restaurants (Lunch)",
-              "mode": "CAB_FALLBACK",
-              "duration_min": 10,
-              "cost": 50
+              "mode": "BUS",
+              "duration_min": 32,
+              "cost": 33
             },
             {
               "from": "LOC_LUNCH",
@@ -381,82 +309,64 @@
         },
         "FAM_C": {
           "family_id": "FAM_C",
-          "total_satisfaction": 10.9,
+          "total_satisfaction": 8.41,
           "pois": [
             {
               "sequence": 1,
               "location_id": "LOC_008",
               "location_name": "Raj Ghat",
-              "arrival_time": "09:32",
-              "departure_time": "10:17",
+              "arrival_time": "09:31",
+              "departure_time": "10:16",
               "visit_duration_min": 45,
               "satisfaction_score": 1.27
             },
             {
               "sequence": 2,
-              "location_id": "LOC_013",
-              "location_name": "Lodhi Gardens",
-              "arrival_time": "10:27",
-              "departure_time": "11:27",
-              "visit_duration_min": 60,
-              "satisfaction_score": 1.27
-            },
-            {
-              "sequence": 3,
-              "location_id": "LOC_018",
-              "location_name": "Agrasen ki Baoli",
-              "arrival_time": "11:37",
-              "departure_time": "12:22",
-              "visit_duration_min": 45,
-              "satisfaction_score": 1.22
-            },
-            {
-              "sequence": 4,
               "location_id": "LOC_LUNCH",
               "location_name": "Connaught Place Restaurants (Lunch)",
-              "arrival_time": "12:32",
-              "departure_time": "13:32",
+              "arrival_time": "12:30",
+              "departure_time": "13:30",
               "visit_duration_min": 60,
               "satisfaction_score": 1.3
             },
             {
-              "sequence": 5,
+              "sequence": 3,
               "location_id": "LOC_001",
               "location_name": "Red Fort",
-              "arrival_time": "13:55",
-              "departure_time": "14:40",
+              "arrival_time": "13:52",
+              "departure_time": "14:37",
               "visit_duration_min": 45,
               "satisfaction_score": 1.04
             },
             {
-              "sequence": 6,
+              "sequence": 4,
               "location_id": "LOC_003",
               "location_name": "India Gate",
-              "arrival_time": "14:59",
-              "departure_time": "15:44",
+              "arrival_time": "14:56",
+              "departure_time": "15:41",
               "visit_duration_min": 45,
               "satisfaction_score": 1.3
             },
             {
-              "sequence": 7,
+              "sequence": 5,
               "location_id": "LOC_046",
               "location_name": "Parikrama",
-              "arrival_time": "15:56",
-              "departure_time": "16:56",
+              "arrival_time": "15:53",
+              "departure_time": "16:53",
               "visit_duration_min": 60,
               "satisfaction_score": 1.18
             },
             {
-              "sequence": 8,
+              "sequence": 6,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:30",
-              "departure_time": "18:30",
+              "arrival_time": "17:02",
+              "departure_time": "18:02",
               "visit_duration_min": 60,
               "satisfaction_score": 0.95
             },
             {
-              "sequence": 9,
+              "sequence": 7,
               "location_id": "LOC_DINNER",
               "location_name": "Evening Fine Dining (Dinner)",
               "arrival_time": "19:30",
@@ -478,29 +388,11 @@
             {
               "from": "LOC_008",
               "from_name": "Raj Ghat",
-              "to": "LOC_013",
-              "to_name": "Lodhi Gardens",
-              "mode": "CAB_FALLBACK",
-              "duration_min": 10,
-              "cost": 50
-            },
-            {
-              "from": "LOC_013",
-              "from_name": "Lodhi Gardens",
-              "to": "LOC_018",
-              "to_name": "Agrasen ki Baoli",
-              "mode": "CAB_FALLBACK",
-              "duration_min": 10,
-              "cost": 55.255609999497196
-            },
-            {
-              "from": "LOC_018",
-              "from_name": "Agrasen ki Baoli",
               "to": "LOC_LUNCH",
               "to_name": "Connaught Place Restaurants (Lunch)",
-              "mode": "CAB_FALLBACK",
-              "duration_min": 10,
-              "cost": 50
+              "mode": "BUS",
+              "duration_min": 32,
+              "cost": 33
             },
             {
               "from": "LOC_LUNCH",
@@ -564,7 +456,7 @@
     {
       "day": 2,
       "objective_value": 16.0,
-      "solve_time_seconds": 0.07083990000000001,
+      "solve_time_seconds": 0.2024899,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_009",
@@ -602,8 +494,8 @@
               "sequence": 3,
               "location_id": "LOC_006",
               "location_name": "Akshardham",
-              "arrival_time": "15:48",
-              "departure_time": "17:48",
+              "arrival_time": "15:49",
+              "departure_time": "17:49",
               "visit_duration_min": 120,
               "satisfaction_score": 0.77
             },
@@ -611,8 +503,8 @@
               "sequence": 4,
               "location_id": "LOC_005",
               "location_name": "Humayun Tomb",
-              "arrival_time": "18:05",
-              "departure_time": "19:05",
+              "arrival_time": "18:06",
+              "departure_time": "19:06",
               "visit_duration_min": 60,
               "satisfaction_score": 1.2
             },
@@ -709,8 +601,8 @@
               "sequence": 3,
               "location_id": "LOC_006",
               "location_name": "Akshardham",
-              "arrival_time": "15:48",
-              "departure_time": "17:48",
+              "arrival_time": "15:49",
+              "departure_time": "17:49",
               "visit_duration_min": 120,
               "satisfaction_score": 1.09
             },
@@ -718,8 +610,8 @@
               "sequence": 4,
               "location_id": "LOC_005",
               "location_name": "Humayun Tomb",
-              "arrival_time": "18:05",
-              "departure_time": "19:05",
+              "arrival_time": "18:06",
+              "departure_time": "19:06",
               "visit_duration_min": 60,
               "satisfaction_score": 0.95
             },
@@ -816,8 +708,8 @@
               "sequence": 3,
               "location_id": "LOC_006",
               "location_name": "Akshardham",
-              "arrival_time": "15:48",
-              "departure_time": "17:48",
+              "arrival_time": "15:49",
+              "departure_time": "17:49",
               "visit_duration_min": 120,
               "satisfaction_score": 0.91
             },
@@ -825,8 +717,8 @@
               "sequence": 4,
               "location_id": "LOC_005",
               "location_name": "Humayun Tomb",
-              "arrival_time": "18:05",
-              "departure_time": "19:05",
+              "arrival_time": "18:06",
+              "departure_time": "19:06",
               "visit_duration_min": 60,
               "satisfaction_score": 1.09
             },
@@ -903,7 +795,7 @@
     {
       "day": 3,
       "objective_value": 501.0,
-      "solve_time_seconds": 0.048453500000000004,
+      "solve_time_seconds": 0.0694839,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_DINNER"
@@ -1075,6 +967,6 @@
       "num_families": 3
     }
   ],
-  "total_trip_cost": 1212.7668299984916,
-  "total_trip_time_min": 777
+  "total_trip_cost": 846,
+  "total_trip_time_min": 783
 }

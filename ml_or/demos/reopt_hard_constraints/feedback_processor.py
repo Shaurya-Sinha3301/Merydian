@@ -128,13 +128,16 @@ class FeedbackProcessor:
                 poi_id=result['event'].poi_id
             )
             
-            # Save updated preferences
-            updated_prefs_path = iteration_dir / "preferences_updated.json"
-            session_manager.save_preferences_to_file(trip_id, updated_prefs_path)
-            
             # Copy optimizer outputs to iteration directory for visibility
             import shutil
             optimizer_outputs = result['optimizer_output']
+            
+            # Copy family preferences (the source of truth from OptimizerAgent)
+            if optimizer_outputs.get('family_preferences'):
+                prefs_src = Path(optimizer_outputs['family_preferences'])
+                prefs_dst = iteration_dir / "family_preferences_updated.json"
+                if prefs_src.exists() and prefs_src.resolve() != prefs_dst.resolve():
+                    shutil.copy(prefs_src, prefs_dst)
             
             # Copy optimized solution (skip if already in place)
             if optimizer_outputs.get('optimized_solution'):
