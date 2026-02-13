@@ -136,9 +136,21 @@ class ItineraryOptimizer:
         }
     
     def _load_transport(self, filepath: str) -> List[TransportEdge]:
-        """Load transport edges from JSON"""
+        """Load transport edges, filtering out unavailable ones"""
         with open(filepath, 'r') as f:
-            data = json.load(f)
+            all_edges = json.load(f)
+        
+        # Filter by availability (supports transport disruptions)
+        available_edges = [
+            edge for edge in all_edges
+            if edge.get('available', True)  # Default to True for backward compatibility
+        ]
+        
+        filtered_count = len(all_edges) - len(available_edges)
+        if filtered_count > 0:
+            print(f"  [DISRUPTION] Filtered {filtered_count} unavailable transport edges")
+        
+        
         return [
             TransportEdge(
                 edge_id=edge['edge_id'],
@@ -149,7 +161,7 @@ class ItineraryOptimizer:
                 cost=edge['cost'],
                 reliability=edge['reliability']
             )
-            for edge in data
+            for edge in available_edges  # ← Use filtered edges
         ]
     
     def _load_base_itinerary(self, filepath: str) -> Dict:
