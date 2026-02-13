@@ -1,0 +1,23 @@
+[
+  {
+    "family": "FAM_B",
+    "day": 2,
+    "change_type": "POI_REMOVED",
+    "poi": {
+      "id": "LOC_006",
+      "name": "Akshardham"
+    },
+    "causal_tags": [
+      "OBJECTIVE_DOMINATED"
+    ],
+    "cost_delta": {
+      "saved_cost": 43.0,
+      "currency": "INR",
+      "transport_savings": -7.0
+    },
+    "satisfaction_delta": {
+      "loss": 1.09
+    },
+    "audience": "TRAVEL_AGENT"
+  }
+]

@@ -46,6 +46,29 @@ class FeedbackProcessor:
             print("Running in fallback mode without agent processing")
             self.controller = None
             self.use_agents = False
+            
+        self.poi_name_map = {}
+        POI_LOCATIONS_PATH = Path("ml_or/data/locations.json") # Hardcoded project path fallback
+        
+        # Load locations for name resolution
+        try:
+            # Try absolute path first if provided (could be added to __init__ later)
+            locations_path = POI_LOCATIONS_PATH
+            if not locations_path.exists():
+                # Try relative to this file
+                locations_path = Path(__file__).parent.parent / "data" / "locations.json"
+            
+            if locations_path.exists():
+                with open(locations_path, 'r', encoding='utf-8') as f:
+                    locations = json.load(f)
+                    for loc in locations:
+                        # Map name to ID (case-insensitive)
+                        self.poi_name_map[loc['name'].lower()] = loc['location_id']
+                print(f"Loaded {len(self.poi_name_map)} locations for POI resolution")
+            else:
+                print(f"Warning: Locations file not found at {locations_path}")
+        except Exception as e:
+            print(f"Warning: Failed to load locations map: {e}")
     
     def process_feedback(
         self, 
@@ -121,12 +144,30 @@ class FeedbackProcessor:
         itinerary_updated = False
         if result.get('optimizer_output'):
             # Update preferences in session (cumulative)
-            session_manager.update_preferences(
+            # Resolve POI ID if missing
+            poi_id = result['event'].poi_id
+            if not poi_id and result['event'].poi_name:
+                poi_name_lower = result['event'].poi_name.lower()
+                if poi_name_lower in self.poi_name_map:
+                    poi_id = self.poi_name_map[poi_name_lower]
+                    print(f"DEBUG: Resolved POI ID {poi_id} from name '{result['event'].poi_name}'")
+            
+            # Update preferences in session (cumulative)
+            print(f"DEBUG: Updating preferences for {family_id}")
+            print(f"DEBUG: Event Type: {result['event'].event_type}")
+            print(f"DEBUG: POI ID: {poi_id}")
+            
+            updated_prefs = session_manager.update_preferences(
                 trip_id=trip_id,
                 family_id=family_id,
                 event_type=result['event'].event_type,
-                poi_id=result['event'].poi_id
+                poi_id=poi_id
             )
+            
+            # CRITICAL FIX: Update local session object with new preferences
+            # otherwise the subsequent _save_session call will overwrite the disk
+            # changes made by update_preferences with the stale local session state.
+            session.current_preferences = updated_prefs
             
             # Copy optimizer outputs to iteration directory for visibility
             import shutil
@@ -138,6 +179,8 @@ class FeedbackProcessor:
                 prefs_dst = iteration_dir / "family_preferences_updated.json"
                 if prefs_src.exists() and prefs_src.resolve() != prefs_dst.resolve():
                     shutil.copy(prefs_src, prefs_dst)
+                elif not prefs_src.exists():
+                    print(f"WARNING: Optimizer output 'family_preferences' missing at {prefs_src}")
             
             # Copy optimized solution (skip if already in place)
             if optimizer_outputs.get('optimized_solution'):
@@ -145,6 +188,8 @@ class FeedbackProcessor:
                 solution_dst = iteration_dir / "optimized_solution.json"
                 if solution_src.exists() and solution_src.resolve() != solution_dst.resolve():
                     shutil.copy(solution_src, solution_dst)
+                elif not solution_src.exists():
+                    print(f"WARNING: Optimizer output 'optimized_solution' missing at {solution_src}")
             
             # Copy LLM payloads (important for explainability)
             if optimizer_outputs.get('llm_payloads'):

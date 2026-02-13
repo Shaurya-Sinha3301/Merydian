@@ -1,0 +1,104 @@
+{
+  "FAM_A": {
+    "1": [
+      {
+        "type": "POI_REMOVED",
+        "poi": "LOC_018",
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "satisfaction_delta": {
+          "loss": 1.5
+        },
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        }
+      },
+      {
+        "type": "POI_REMOVED",
+        "poi": "LOC_013",
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "satisfaction_delta": {
+          "loss": 0.0
+        },
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        }
+      }
+    ]
+  },
+  "FAM_B": {
+    "1": [
+      {
+        "type": "POI_REMOVED",
+        "poi": "LOC_018",
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "satisfaction_delta": {
+          "loss": 1.05
+        },
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        }
+      },
+      {
+        "type": "POI_REMOVED",
+        "poi": "LOC_013",
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "satisfaction_delta": {
+          "loss": 0.0
+        },
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        }
+      }
+    ]
+  },
+  "FAM_C": {
+    "1": [
+      {
+        "type": "POI_REMOVED",
+        "poi": "LOC_018",
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "satisfaction_delta": {
+          "loss": 1.22
+        },
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        }
+      },
+      {
+        "type": "POI_REMOVED",
+        "poi": "LOC_013",
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "satisfaction_delta": {
+          "loss": 0.0
+        },
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        }
+      }
+    ]
+  }
+}

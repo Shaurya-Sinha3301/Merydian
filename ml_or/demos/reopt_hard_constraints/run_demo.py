@@ -1,44 +1,89 @@
 """
 Re-Optimization Demo with Agentic Workflow Integration
-
-This demo showcases the itinerary re-optimization pipeline using the agentic system:
-- FeedbackAgent: Processes natural language feedback
-- OptimizerAgent: Runs itinerary optimization
-- ExplainabilityAgent: Generates human-readable explanations
-
-The demo simulates a chat interface where families provide feedback about
-their itinerary, and the system responds with optimizations and explanations.
-
-Architecture:
-- Session-based state management (compatible with production)
-- Stateless feedback processing (same code as API endpoints)  
-- Cumulative preference updates (all constraints persist)
-
-Usage:
-    python ml_or/demos/reopt_hard_constraints/run_demo.py
 """
 
 import sys
 import json
+import requests
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Any
 
-# Add project root to path
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from ml_or.demos.reopt_hard_constraints.trip_session_manager import TripSessionManager
 from ml_or.demos.reopt_hard_constraints.feedback_processor import FeedbackProcessor
 
+# ANSI Colors for beautiful terminal output
+RESET = "\033[0m"
+BOLD = "\033[1m"
+BLUE = "\033[94m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+CYAN = "\033[96m"
+RED = "\033[91m"
+MAGENTA = "\033[95m"
+
+class DemoLogger:
+    """Handles logging to both terminal (beautiful) and markdown files (timestamped + latest)."""
+    
+    def __init__(self, log_file_path: Path):
+        self.log_files = [
+            log_file_path,
+            log_file_path.parent / "latest_demo_log.md"
+        ]
+        
+        # Initialize MD files
+        header = f"# Re-Optimization Demo Log\n\n**Run Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n---\n\n"
+        for path in self.log_files:
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(header)
+
+    def section(self, title: str):
+        # Terminal
+        print("\n" + "="*80)
+        print(f"  {BOLD}{title.upper()}{RESET}")
+        print("="*80)
+        # Files
+        for path in self.log_files:
+            with open(path, 'a', encoding='utf-8') as f:
+                f.write(f"\n## {title}\n\n")
+
+    def info(self, message: str, color=RESET):
+        print(f"{color}{message}{RESET}")
+        for path in self.log_files:
+            with open(path, 'a', encoding='utf-8') as f:
+                f.write(f"{message}\n\n")
+
+    def key_value(self, key: str, value: Any, color=BLUE):
+        print(f"{color}{key:<20}{RESET} {value}")
+        for path in self.log_files:
+            with open(path, 'a', encoding='utf-8') as f:
+                f.write(f"- **{key}:** {value}\n")
+
+    def code_block(self, content: str, language: str = "json"):
+        # Terminal (plain indentation)
+        print(content.replace('\n', '\n    '))
+        # Files
+        for path in self.log_files:
+            with open(path, 'a', encoding='utf-8') as f:
+                f.write(f"```{language}\n{content}\n```\n\n")
+
+    def success(self, message: str):
+        print(f"{GREEN}✓ {message}{RESET}")
+        for path in self.log_files:
+            with open(path, 'a', encoding='utf-8') as f:
+                f.write(f"> ✅ {message}\n\n")
+
+    def error(self, message: str):
+        print(f"{RED}❌ {message}{RESET}")
+        for path in self.log_files:
+            with open(path, 'a', encoding='utf-8') as f:
+                f.write(f"> ❌ **ERROR:** {message}\n\n")
+
 
 class ReoptimizationDemo:
-    """
-    Demo harness that simulates a website chat interface.
-    
-    This demonstrates how chat messages from a website would be processed
-    using the same logic that will be used in production API endpoints.
-    """
     
     def __init__(self):
         self.demo_dir = Path(__file__).parent
@@ -46,34 +91,30 @@ class ReoptimizationDemo:
         self.output_dir = self.demo_dir / "output"
         self.output_dir.mkdir(exist_ok=True)
         
-        # Session management (file-based for demo)
         self.session_manager = TripSessionManager(
             storage_dir=self.output_dir / "sessions"
         )
         
-        # Stateless processor (production-ready)
         self.processor = FeedbackProcessor()
         
-        # Demo trip ID
         self.demo_trip_id = f"demo_trip_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
-        # File paths
         self.locations_file = project_root / "ml_or" / "data" / "locations.json"
         self.base_itinerary_file = str(project_root / "ml_or" / "data" / "base_itinerary_final.json")
+        
+        self.api_url = "http://localhost:8000/api/v1/demo/receive_optimization"
+        
+        # Initialize logger
+        log_path = self.output_dir / f"demo_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        self.logger = DemoLogger(log_path)
     
     def run(self):
-        """Execute demo with simulated chat messages."""
-        
-        print("\n" + "="*80)
-        print("  RE-OPTIMIZATION DEMO - AGENTIC WORKFLOW")
-        print("="*80)
-        print("\nThis demo simulates a chat interface where families provide feedback")
-        print("and the system responds with optimized itineraries and explanations.\n")
+        self.logger.section("Re-Optimization Demo - Agentic Workflow")
+        self.logger.info("This demo simulates a chat interface where families provide feedback")
+        self.logger.info("and the system responds with optimized itineraries and explanations.\n")
         
         # Phase 0: Initialize session
-        print("\n" + "="*80)
-        print("PHASE 0: INITIALIZE TRIP SESSION")
-        print("="*80)
+        self.logger.section("Phase 0: Initialize Trip Session")
         
         baseline_prefs = self._load_baseline_preferences()
         session = self.session_manager.create_session(
@@ -83,43 +124,38 @@ class ReoptimizationDemo:
             baseline_itinerary_path=self.base_itinerary_file
         )
         
-        print(f"\nTrip ID: {self.demo_trip_id}")
-        print(f"Families: {', '.join(session.family_ids)}")
-        print(f"Baseline Itinerary: {session.baseline_itinerary_path}")
-        print(f"Session Storage: {self.session_manager.storage_dir}")
+        self.logger.key_value("Trip ID", self.demo_trip_id)
+        self.logger.key_value("Families", ', '.join(session.family_ids))
+        self.logger.key_value("Baseline Itinerary", session.baseline_itinerary_path)
+        self.logger.key_value("Session Storage", self.session_manager.storage_dir)
         
         # Phase 1: Generate baseline itinerary
-        print("\n" + "="*80)
-        print("PHASE 1: GENERATE BASELINE ITINERARY")
-        print("="*80)
+        self.logger.section("Phase 1: Generate Baseline Itinerary")
         
         baseline_result = self._generate_baseline()
         if baseline_result:
-            print(f"\nBaseline itinerary generated successfully!")
-            print(f"Saved to: {baseline_result}")
+            self.logger.success("Baseline itinerary generated successfully!")
+            self.logger.key_value("Saved to", baseline_result)
             
             # Update session with baseline
             session.update_itinerary(Path(baseline_result))
             self.session_manager._save_session(session)
         
         # Phase 2: Process feedback - Must Visit
-        print("\n" + "="*80)
-        print("PHASE 2: CHAT MESSAGE - MUST VISIT REQUEST")
-        print("="*80)
+        self.logger.section("Phase 2: Chat Message - Must Visit Request")
         
         self._simulate_chat_message(
             family_id="FAM_A",
-            message="We loved Akshardham, we definitely want to visit it tomorrow.",
+            message="We loved Chandni Chowk, we definitely want to visit it tomorrow.",
             phase_name="must_visit"
         )
         
-        # Phase 3: Process feedback - Never Visit
-        print("\n" + "="*80)
-        print("PHASE 3: CHAT MESSAGE - NEVER VISIT REQUEST")
-        print("="*80)
+        # Phase 3: Simulated "Never Visit" request
+        import time
+        self.logger.info("Waiting 10 seconds before next request to avoid rate limits...")
+        time.sleep(10)
         
-        # Request to remove Lodhi Gardens (LOC_013) which IS in the itinerary after iteration 2
-        # This will cause actual changes and generate explanations
+        self.logger.section("Phase 3: Chat Message - Never Visit Request")
         self._simulate_chat_message(
             family_id="FAM_B",
             message="We're not interested in Lodhi Gardens, please skip it.",
@@ -127,39 +163,21 @@ class ReoptimizationDemo:
         )
         
         # Summary
-        print("\n" + "="*80)
-        print("DEMO COMPLETE")
-        print("="*80)
+        self.logger.section("Demo Complete")
         
         final_session = self.session_manager.get_session(self.demo_trip_id)
-        print(f"\nTotal Iterations: {final_session.iteration_count}")
-        print(f"Feedback Messages: {len(final_session.feedback_history)}")
-        print(f"\nOutput Directory: {self.output_dir / self.demo_trip_id}")
-        
-        # Show cumulative preferences
-        print("\nFinal Cumulative Preferences:")
-        for fam in final_session.current_preferences:
-            must_visit = fam.get('must_visit_locations', [])
-            never_visit = fam.get('never_visit_locations', [])
-            if must_visit or never_visit:
-                print(f"  {fam['family_id']}:")
-                if must_visit:
-                    print(f"    Must Visit: {must_visit}")
-                if never_visit:
-                    print(f"    Never Visit: {never_visit}")
+        self.logger.key_value("Total Iterations", final_session.iteration_count)
+        self.logger.key_value("Feedback Messages", len(final_session.feedback_history))
+        self.logger.key_value("Output Directory", self.output_dir / self.demo_trip_id)
         
         print("\n" + "="*80 + "\n")
     
     def _simulate_chat_message(self, family_id: str, message: str, phase_name: str):
-        """
-        Simulate a chat message from the website.
-        
-        In production, this would be an incoming POST request to /api/feedback
-        or a WebSocket message.
-        """
-        print(f"\n{'[CHAT MESSAGE]':<20} {family_id}")
-        print(f"{'Message:':<20} \"{message}\"")
-        print(f"\n{'[PROCESSING]':<20} Using AgentController pipeline...")
+        print("") # Spacing
+        self.logger.key_value("[CHAT MESSAGE]", family_id, color=MAGENTA)
+        self.logger.key_value("Message", f'"{message}"', color=RESET)
+        print("")
+        self.logger.info(f"{YELLOW}[PROCESSING] Using AgentController pipeline...{RESET}")
         
         try:
             # Process feedback (same logic as production API)
@@ -172,39 +190,90 @@ class ReoptimizationDemo:
             )
             
             # Display results
-            print(f"\n{'[RESULT]':<20} Event Type: {result['event_type']}")
-            print(f"{'[RESULT]':<20} Action: {result['action_taken']}")
-            print(f"{'[RESULT]':<20} Itinerary Updated: {result['itinerary_updated']}")
-            print(f"{'[RESULT]':<20} Iteration: {result['iteration']}")
+            print("")
+            self.logger.key_value("[RESULT] Event Type", result['event_type'], color=CYAN)
+            self.logger.key_value("[RESULT] Action", result['action_taken'], color=CYAN)
+            self.logger.key_value("[RESULT] Itinerary Updated", str(result['itinerary_updated']), color=CYAN)
+            self.logger.key_value("[RESULT] Iteration", str(result['iteration']), color=CYAN)
             
             if result.get('explanations'):
-                print(f"\n{'[EXPLANATIONS]':<20}")
+                self.logger.info(f"\n{BOLD}[EXPLANATIONS]{RESET}")
                 for exp in result['explanations']:
-                    print(f"  - {exp}")
+                    self.logger.info(f"  - {exp}")
             
-            print(f"\n{'[OUTPUT]':<20} {result['output_dir']}")
+            if result.get('itinerary_updated') and result.get('output_dir'):
+                self._post_to_api(result)
+            
+            self.logger.key_value("[OUTPUT]", str(result['output_dir']), color=BLUE)
             
         except Exception as e:
-            print(f"\n{'[ERROR]':<20} {str(e)}")
+            self.logger.error(str(e))
             import traceback
             traceback.print_exc()
-    
+            
+    def _post_to_api(self, result: Dict[str, Any]):
+        print("")
+        self.logger.info(f"{MAGENTA}[API POST] Sending updated itinerary to {self.api_url}...{RESET}")
+        
+        try:
+            output_dir = Path(result['output_dir'])
+            itinerary_path = output_dir / "optimized_solution.json"
+            llm_payloads_path = output_dir / "llm_payloads.json"
+            
+            if not itinerary_path.exists():
+                self.logger.error("Itinerary file not found")
+                return
+
+            with open(itinerary_path, 'r', encoding='utf-8') as f:
+                itinerary_data = json.load(f)
+                
+            llm_payloads = []
+            if llm_payloads_path.exists():
+                with open(llm_payloads_path, 'r', encoding='utf-8') as f:
+                    llm_payloads = json.load(f)
+                
+                # Log LLM payloads nicely
+                self.logger.info(f"\n{BOLD}[LLM PAYLOADS]{RESET}")
+                for i, payload in enumerate(llm_payloads, 1):
+                    formatted = {
+                        "Family": payload.get('family'),
+                        "POI": payload.get('poi', {}).get('name', 'Unknown'),
+                        "Action": payload.get('change_type'),
+                        "Reasoning": payload.get('causal_tags', [])
+                    }
+                    self.logger.code_block(json.dumps(formatted, indent=2))
+            
+            payload = {
+                "trip_id": self.demo_trip_id,
+                "iteration": result.get('iteration', 0),
+                "itinerary": itinerary_data,
+                "llm_payloads": llm_payloads,
+                "explanations": result.get('explanations', [])
+            }
+            
+            response = requests.post(self.api_url, json=payload)
+            
+            if response.status_code == 200:
+                self.logger.success("Data received by endpoint")
+                self.logger.key_value("[API RESPONSE]", response.json().get('message'))
+            else:
+                self.logger.error(f"Status {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.logger.error(f"Failed to post data: {e}")
+
     def _generate_baseline(self) -> str:
-        """Generate baseline itinerary using optimizer."""
         from ml_or.itinerary_optimizer import ItineraryOptimizer
         
-        # Create baseline output directory
         baseline_dir = self.output_dir / self.demo_trip_id / "iteration_0_baseline"
         baseline_dir.mkdir(parents=True, exist_ok=True)
         
-        # Save baseline preferences
         prefs_path = baseline_dir / "preferences.json"
         session = self.session_manager.get_session(self.demo_trip_id)
         with open(prefs_path, 'w', encoding='utf-8') as f:
             json.dump(session.current_preferences, f, indent=2)
         
         try:
-            # Run optimizer
             optimizer = ItineraryOptimizer(
                 locations_file=str(self.locations_file),
                 transport_file=str(project_root / "ml_or" / "data" / "transport_graph.json"),
@@ -218,12 +287,10 @@ class ReoptimizationDemo:
                 lambda_divergence=100.0
             )
             
-            # Save solution
             solution_path = baseline_dir / "itinerary.json"
             with open(solution_path, 'w', encoding='utf-8') as f:
                 json.dump(solution, f, indent=2)
             
-            # Also save to root for easy access
             baseline_link = self.output_dir / "itinerary_v0_baseline.json"
             with open(baseline_link, 'w', encoding='utf-8') as f:
                 json.dump(solution, f, indent=2)
@@ -237,13 +304,11 @@ class ReoptimizationDemo:
             return None
     
     def _load_baseline_preferences(self) -> List[Dict[str, Any]]:
-        """Load baseline family preferences."""
         baseline_path = self.data_dir / "family_preferences_baseline.json"
         
         with open(baseline_path, 'r', encoding='utf-8') as f:
             prefs = json.load(f)
         
-        # Ensure all families have constraint lists
         for fam in prefs:
             if 'must_visit_locations' not in fam:
                 fam['must_visit_locations'] = []
@@ -251,60 +316,9 @@ class ReoptimizationDemo:
                 fam['never_visit_locations'] = []
         
         return prefs
-    
-    def _detect_branch_poi(self, itinerary_path: Path) -> str:
-        """Detect Akshardham (LOC_006) for demo consistency."""
-        if not itinerary_path or not itinerary_path.exists():
-            return None
-        
-        with open(itinerary_path, 'r', encoding='utf-8') as f:
-            itinerary = json.load(f)
-        
-        # Load locations
-        with open(self.locations_file, 'r', encoding='utf-8') as f:
-            locations_list = json.load(f)
-        
-        locations_map = {loc['location_id']: loc for loc in locations_list}
-        
-        # First, check if LOC_006 (Akshardham) is in the itinerary
-        for day_data in itinerary.get('days', []):
-            families_data = day_data.get('families', {})
-            for family_id, family_data in families_data.items():
-                for poi in family_data.get('pois', []):
-                    poi_id = poi.get('location_id')
-                    if poi_id == 'LOC_006':  # Akshardham
-                        return 'LOC_006'
-        
-        # Fallback: return any Branch POI
-        for day_data in itinerary.get('days', []):
-            families_data = day_data.get('families', {})
-            for family_id, family_data in families_data.items():
-                for poi in family_data.get('pois', []):
-                    poi_id = poi.get('location_id')
-                    if poi_id in locations_map:
-                        role = locations_map[poi_id].get('role', 'BRANCH')
-                        if role != "SKELETON":
-                            return poi_id
-        
-        return None
-    
-    def _get_poi_name(self, poi_id: str) -> str:
-        """Get POI name from location ID."""
-        if not poi_id:
-            return "Unknown Location"
-        
-        with open(self.locations_file, 'r', encoding='utf-8') as f:
-            locations = json.load(f)
-        
-        for loc in locations:
-            if loc['location_id'] == poi_id:
-                return loc['name']
-        
-        return poi_id
 
 
 def main():
-    """Entry point for the demo."""
     demo = ReoptimizationDemo()
     demo.run()
 

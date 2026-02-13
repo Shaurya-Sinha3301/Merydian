@@ -90,8 +90,8 @@ class OptimizerAgent:
         for fam_id in all_families:
             if fam_id not in base_prefs:
                 base_prefs[fam_id] = {
-                    "must_visit": [],
-                    "never_visit": [],
+                    "must_visit_locations": [],
+                    "never_visit_locations": [],
                     "interests": []
                 }
         

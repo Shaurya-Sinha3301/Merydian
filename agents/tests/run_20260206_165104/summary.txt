@@ -1,0 +1,28 @@
+Demo Run Summary
+================================================================================
+Output Directory: D:\Coding\Voyage\meiliai\agents\tests\run_20260206_165104
+Total scenarios: 4
+Optimizer triggered: 2 times
+
+
+Scenario 1: Must-Visit Location Added
+  User Input: We loved Akshardham, we definitely want to visit it tomorrow.
+  Event Type: MUST_VISIT_ADDED
+  Decision: RUN_OPTIMIZER
+
+Scenario 2: Location Excluded
+  User Input: Please skip the Red Fort, we're not interested.
+  Event Type: NEVER_VISIT_ADDED
+  Decision: RUN_OPTIMIZER
+  Explanations (1):
+    - For Family FAM_B on Day 2, we removed the Akshardham POI from their itinerary. This change was made because the POI was removed due to optimization tradeoffs, allowing the system to make better use of the family's time and budget, resulting in a cost savings of 43 INR.
+
+Scenario 3: Day Rating (Soft Preference)
+  User Input: I'd rate today a 9 out of 10!
+  Event Type: DAY_RATING
+  Decision: UPDATE_PREFERENCES_ONLY
+
+Scenario 4: Delay Reported (Mocked)
+  User Input: We're running 30 minutes late due to traffic
+  Event Type: DELAY_REPORTED
+  Decision: NO_ACTION
