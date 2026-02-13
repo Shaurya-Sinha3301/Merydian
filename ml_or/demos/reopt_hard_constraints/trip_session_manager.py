@@ -201,15 +201,40 @@ class TripSessionManager:
         return session
     
     def get_session(self, trip_id: str) -> Optional[TripSession]:
-        """Load existing session."""
-        session_file = self.storage_dir / f"{trip_id}_session.json"
+        """Retrieve session from storage"""
+        session_file = self.storage_dir / f"{trip_id}.json"
+        
         if not session_file.exists():
             return None
         
         with open(session_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        return TripSession.from_dict(data)
+        # Convert ISO format strings back to datetime objects and rebuild TransportDisruption objects
+        if data.get('active_disruptions'):
+            reconstructed_disruptions = []
+            for disruption in data['active_disruptions']:
+                # Convert datetime strings back to datetime objects
+                for key in ['start_time', 'end_time', 'reported_at']:
+                    if disruption.get(key) and isinstance(disruption[key], str):
+                        try:
+                            disruption[key] = datetime.fromisoformat(disruption[key])
+                        except:
+                            disruption[key] = None
+                
+                # Convert dict back to TransportDisruption object
+                # Handle tuple conversion for affected_locations
+                if disruption.get('affected_locations') and isinstance(disruption['affected_locations'], list):
+                    disruption['affected_locations'] = tuple(disruption['affected_locations'])
+                
+                reconstructed_disruptions.append(TransportDisruption(**{
+                    k: v for k, v in disruption.items() 
+                   if k in TransportDisruption.__annotations__
+                }))
+            
+            data['active_disruptions'] = reconstructed_disruptions
+        
+        return TripSession(**data)
     
     def update_preferences(
         self, 
@@ -250,11 +275,21 @@ class TripSessionManager:
         return session.current_preferences
     
     def _save_session(self, session: TripSession):
-        """Persist session to file storage."""
-        session_file = self.storage_dir / f"{session.trip_id}_session.json"
+        """Save session to JSON file"""
+        session_file = self.storage_dir / f"{session.trip_id}.json"
         
-        with open(session_file, 'w', encoding='utf-8') as f:
-            json.dump(session.to_dict(), f, indent=2)
+        # Convert to dict with custom datetime handling
+        session_dict = asdict(session)
+        
+        # Convert datetime objects to ISO format strings
+        if session_dict.get('active_disruptions'):
+            for disruption in session_dict['active_disruptions']:
+                for key in ['start_time', 'end_time', 'reported_at']:
+                    if disruption.get(key) and isinstance(disruption[key], datetime):
+                        disruption[key] = disruption[key].isoformat()
+        
+        with open(session_file, 'w') as f:
+            json.dump(session_dict, f, indent=2, default=str)
     
     def get_latest_itinerary(self, trip_id: str) -> Optional[Path]:
         """Get most recent itinerary for this trip."""
