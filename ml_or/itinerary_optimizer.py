@@ -987,10 +987,181 @@ class ItineraryOptimizer:
                              
                 print(f"DAY {day_idx + 1} COMPLETE")
             else:
-                print(f"DAY {day_idx + 1} FAILED (Infeasible)")
                 break
                 
         return trip_solution
+
+    def find_best_day_for_poi(
+        self,
+        poi_id: str,
+        candidate_days: List[int],
+        base_itinerary: Dict,
+        method: str = "average"
+    ) -> Tuple[int, float]:
+        """
+        Find best day to place a requested POI based on geographic proximity.
+        
+        Uses average distance to skeleton POIs to predict transport cost.
+        
+        Args:
+            poi_id: POI to place (e.g., "LOC_CHANDNI_CHOWK")
+            candidate_days: Days to consider (0-indexed, e.g., [1, 2] for Days 2-3)
+            base_itinerary: Base itinerary with skeleton POIs
+            method: "average" (distance to all POIs) or "centroid" (not implemented)
+        
+        Returns:
+            Tuple of (best_day_index, distance_score in km)
+        
+        Example:
+            # Find best day for Chandni Chowk between Days 2-3
+            best_day, dist = optimizer.find_best_day_for_poi(
+                poi_id="LOC_CHANDNI_CHOWK",
+                candidate_days=[1, 2],  # Days 2 and 3
+                base_itinerary=base_itinerary
+            )
+            # → (2, 3.83)  # Day 3 with 3.83 km avg distance
+        """
+        requested_loc = self.locations[poi_id]
+        best_day = candidate_days[0]
+        best_score = float('inf')
+        
+        print(f"\n[LOOK-AHEAD] Finding best day for {requested_loc.name}")
+        print(f"  Candidate days: {[d+1 for d in candidate_days]}")  # 1-indexed
+        
+        for day_idx in candidate_days:
+            if day_idx >= len(base_itinerary['days']):
+                continue
+                
+            skeleton_pois = base_itinerary['days'][day_idx]['pois']
+            
+            if not skeleton_pois:
+                continue
+            
+            # Calculate average distance to all skeleton POIs
+            total_dist = 0
+            for skel_poi in skeleton_pois:
+                skel_loc = self.locations[skel_poi['location_id']]
+                dist = self._haversine_distance(requested_loc, skel_loc)
+                total_dist += dist
+            
+            score = total_dist / len(skeleton_pois)
+            
+            print(f"  Day {day_idx + 1}: {score:.2f} km avg")
+            
+            if score < best_score:
+                best_score = score
+                best_day = day_idx
+        
+        print(f"  → Best fit: Day {best_day + 1} ({best_score:.2f} km)\n")
+        return best_day, best_score
+
+    def reoptimize_from_current_state(
+        self,
+        current_solution: Dict,
+        target_day_index: int,
+        family_ids: List[str],
+        lambda_divergence: float = 0.05
+    ) -> Dict:
+        """
+        Re-optimize trip from current state, re-optimizing a specific day.
+        
+        Preserves completed days, re-optimizes target day with updated preferences,
+        and reconstructs full trip solution.
+        
+        Args:
+            current_solution: Existing trip solution (Days 1-N)
+            target_day_index: Day to re-optimize (0-indexed, e.g., 2 = Day 3)
+            family_ids: Families to optimize for
+            lambda_divergence: Divergence penalty
+        
+        Returns:
+            Updated trip solution with re-optimized day
+        
+        Example:
+            # At Day 2, user adds POI to Day 3 preferences
+            # Re-optimize Day 3 only, preserve Days 1-2
+            new_solution = optimizer.reoptimize_from_current_state(
+                current_solution=existing_trip_solution,
+                target_day_index=2,  # Re-optimize Day 3
+                family_ids=["FAM_A", "FAM_B", "FAM_C"]
+            )
+        """
+        print(f"\n{'='*80}")
+        print(f"RE-OPTIMIZING FROM CURRENT STATE")
+        print(f"  Target Day: {target_day_index + 1}")
+        print(f"{'='*80}\n")
+        
+        # Step 1: Extract visited history from completed days
+        visited_history = {fid: set() for fid in family_ids}
+        
+        for day_idx in range(target_day_index):
+            if day_idx >= len(current_solution['days']):
+                break
+            day_data = current_solution['days'][day_idx]
+            for fid, fam_data in day_data['families'].items():
+                for poi in fam_data['pois']:
+                    visited_history[fid].add(poi['location_id'])
+        
+        print(f"[HISTORY] Extracted visited POIs from Days 1-{target_day_index}:")
+        for fid, pois in visited_history.items():
+            print(f"  {fid}: {len(pois)} POIs visited")
+        
+        # Step 2: Re-optimize target day with history
+        print(f"\n[REOPT] Re-optimizing Day {target_day_index + 1}...")
+        
+        day_result = self.optimize_multi_family_single_day(
+            family_ids=family_ids,
+            day_index=target_day_index,
+            max_pois=5,
+            time_limit_seconds=60,
+            lambda_divergence=lambda_divergence,
+            visited_history=visited_history  # ← Preserves past days!
+        )
+        
+        if not day_result:
+            print(f"[ERROR] Re-optimization failed for Day {target_day_index + 1}")
+            return current_solution
+        
+        print(f"[SUCCESS] Day {target_day_index + 1} re-optimized")
+        
+        # Step 3: Reconstruct full trip solution
+        new_trip_solution = {
+            "trip_id": current_solution.get("trip_id", "TRIP_REOPT"),
+            "families": family_ids,
+            "days": [],
+            "total_trip_cost": 0,
+            "total_trip_time_min": 0,
+        }
+        
+        # Add completed days (unchanged)
+        for day_idx in range(target_day_index):
+            if day_idx >= len(current_solution['days']):
+                break
+            day_data = current_solution['days'][day_idx]
+            new_trip_solution["days"].append(day_data)
+            new_trip_solution["total_trip_cost"] += day_data["total_transport_cost"]
+            new_trip_solution["total_trip_time_min"] += day_data["total_transport_time_min"]
+        
+        # Add re-optimized day
+        new_trip_solution["days"].append(day_result)
+        new_trip_solution["total_trip_cost"] += day_result["total_transport_cost"]
+        new_trip_solution["total_trip_time_min"] += day_result["total_transport_time_min"]
+        
+        # Add future days (if any, unchanged)
+        for day_idx in range(target_day_index + 1, len(current_solution['days'])):
+            day_data = current_solution['days'][day_idx]
+            new_trip_solution["days"].append(day_data)
+            new_trip_solution["total_trip_cost"] += day_data["total_transport_cost"]
+            new_trip_solution["total_trip_time_min"] += day_data["total_transport_time_min"]
+        
+        print(f"\n[COMPLETE] Trip solution reconstructed:")
+        print(f"  Days 1-{target_day_index}: Preserved (unchanged)")
+        print(f"  Day {target_day_index + 1}: Re-optimized ✓")
+        if target_day_index + 1 < len(current_solution['days']):
+            print(f"  Days {target_day_index + 2}-{len(current_solution['days'])}: Preserved (unchanged)")
+        
+        return new_trip_solution
+
 
     def optimize_multi_family_single_day(
         self,

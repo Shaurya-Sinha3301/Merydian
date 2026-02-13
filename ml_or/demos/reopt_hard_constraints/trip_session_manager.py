@@ -35,6 +35,12 @@ class TripSession:
     itinerary_history: List[str] = field(default_factory=list)
     feedback_history: List[Dict[str, Any]] = field(default_factory=list)
     
+    # Trip State Tracking (NEW)
+    current_day: Optional[int] = None  # 0-indexed, None = pre-trip
+    current_time_minutes: Optional[int] = None  # Minutes since midnight, None = start of day
+    trip_status: str = "PLANNING"  # "PLANNING", "IN_PROGRESS", "COMPLETED"
+    total_days: int = 3  # Total trip duration
+    
     def add_feedback(self, text: str, family_id: str, event_type: str):
         """Record feedback for audit trail."""
         self.feedback_history.append({
@@ -49,6 +55,82 @@ class TripSession:
         """Record new itinerary version."""
         self.itinerary_history.append(str(itinerary_path))
         self.iteration_count += 1
+    
+    def get_candidate_days(
+        self,
+        constraint: str = "all_future",
+        before_day: Optional[int] = None
+    ) -> List[int]:
+        """
+        Calculate candidate days based on current trip state.
+        
+        Args:
+            constraint: Type of constraint
+                - "all_future": All days after current_day
+                - "current_and_future": Current day + future
+                - "before_day_N": All days up to before_day (exclusive)
+            before_day: For "before_day_N" constraint (1-indexed)
+        
+        Returns:
+            List of candidate day indices (0-indexed)
+        
+        Examples:
+            # Pre-trip planning, "before Day 3"
+            current_day = None, constraint = "before_day_N", before_day = 3
+            → [0, 1]  # Days 1 and 2
+            
+            # Mid-trip, Day 2
+            current_day = 1, constraint = "current_and_future"
+            → [1, 2]  # Days 2 and 3
+        """
+        if self.trip_status == "PLANNING":
+            # Pre-trip: all days are candidates
+            if constraint == "before_day_N" and before_day:
+                return list(range(before_day - 1))  # Convert to 0-indexed
+            else:
+                return list(range(self.total_days))
+        
+        elif self.trip_status == "IN_PROGRESS":
+            # Mid-trip: only current + future days
+            if self.current_day is None:
+                self.current_day = 0  # Safety default
+            
+            if constraint == "all_future":
+                return list(range(self.current_day + 1, self.total_days))
+            
+            elif constraint == "current_and_future":
+                return list(range(self.current_day, self.total_days))
+            
+            elif constraint == "before_day_N" and before_day:
+                # Candidate days: [current_day, before_day)
+                max_day = min(before_day - 1, self.total_days)
+                return list(range(self.current_day, max_day))
+            
+            else:
+                return list(range(self.current_day, self.total_days))
+        
+        else:  # COMPLETED
+            return []
+    
+    def advance_to_day(self, day_index: int, time_minutes: int = 0):
+        """
+        Update trip state to a specific day and time.
+        
+        Args:
+            day_index: Day to advance to (0-indexed)
+            time_minutes: Time of day in minutes since midnight (default: 0)
+        
+        Example:
+            session.advance_to_day(1, 960)  # Day 2, 16:00
+        """
+        self.current_day = day_index
+        self.current_time_minutes = time_minutes
+        
+        if self.trip_status == "PLANNING":
+            self.trip_status = "IN_PROGRESS"
+        
+        if day_index >= self.total_days - 1:
+            self.trip_status = "COMPLETED"
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
@@ -162,6 +244,24 @@ class TripSessionManager:
             json.dump(session.current_preferences, f, indent=2)
         
         return output_path
+    
+    def start_trip(self, trip_id: str, start_day: int = 0, start_time_minutes: int = 0):
+        """Mark trip as started and set initial state."""
+        session = self.get_session(trip_id)
+        if not session:
+            raise ValueError(f"No session found for trip_id: {trip_id}")
+        
+        session.advance_to_day(start_day, start_time_minutes)
+        self._save_session(session)
+    
+    def update_trip_time(self, trip_id: str, day_index: int, time_minutes: int):
+        """Update current trip position (called when time advances)."""
+        session = self.get_session(trip_id)
+        if not session:
+            raise ValueError(f"No session found for trip_id: {trip_id}")
+        
+        session.advance_to_day(day_index, time_minutes)
+        self._save_session(session)
 
 
 # Production example (not implemented yet):
