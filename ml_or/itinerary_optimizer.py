@@ -1700,6 +1700,3 @@ class ItineraryOptimizer:
         print(f"[OK] Multi-family solution extracted for {len(family_ids)} families")
         
         return solution
-
-
-
