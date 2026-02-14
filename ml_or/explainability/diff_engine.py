@@ -122,11 +122,58 @@ class ItineraryDiffEngine:
                     "poi": pid
                 })
             
-            # 3. TODO: Rescheduled (POI exists in both but timing changed)
-            # For now, focusing on additions/removals
+            # 3. Transport route changes (NEW)
+            # Detect when transport modes change between identical POIs
+            self._detect_route_changes(
+                baseline_family_data, 
+                new_family_data, 
+                changes
+            )
             
             if changes:
                 diffs[family_id][day_idx + 1] = changes  # Use 1-based day index
+    
+    def _detect_route_changes(
+        self, 
+        baseline_family: Dict, 
+        new_family: Dict, 
+        changes: List[Dict]
+    ):
+        """
+        Detect transport mode changes between baseline and new solution.
+        Compares transport modes used between consecutive POIs.
+        """
+        baseline_pois = baseline_family.get("pois", [])
+        new_pois = new_family.get("pois", [])
+        
+        # Create mapping of POI pairs to transport modes for both solutions
+        baseline_routes = {}
+        for i in range(len(baseline_pois) - 1):
+            from_poi = baseline_pois[i]["location_id"]
+            to_poi = baseline_pois[i + 1]["location_id"]
+            mode = baseline_pois[i].get("transport_to_next", {}).get("mode", "UNKNOWN")
+            baseline_routes[(from_poi, to_poi)] = mode
+        
+        new_routes = {}
+        for i in range(len(new_pois) - 1):
+            from_poi = new_pois[i]["location_id"]
+            to_poi = new_pois[i + 1]["location_id"]
+            mode = new_pois[i].get("transport_to_next", {}).get("mode", "UNKNOWN")
+            new_routes[(from_poi, to_poi)] = mode
+        
+        # Find route pairs that exist in both solutions but with different modes
+        for route_pair, baseline_mode in baseline_routes.items():
+            if route_pair in new_routes:
+                new_mode = new_routes[route_pair]
+                if baseline_mode != new_mode:
+                    changes.append({
+                        "type": "ROUTE_CHANGED",
+                        "from_poi": route_pair[0],
+                        "to_poi": route_pair[1],
+                        "from_mode": baseline_mode,
+                        "to_mode": new_mode
+                    })
+
 
 
     def _process_day_diff(self, diffs: Dict, day_idx: int, base_itinerary: Dict, day_result: Dict):
@@ -163,7 +210,11 @@ class ItineraryDiffEngine:
                     "poi": pid
                 })
             
-            # 3. Rescheduled (implied if in both but order different? skipping for MV)
+            # 3. Transport route changes (detect mode changes)
+            base_family_data = {"pois": base_day_data.get("pois", [])}
+            self._detect_route_changes(base_family_data, family_data, changes)
             
             if changes:
                 diffs[family_id][day_idx + 1] = changes # Use 1-based day index for output consistency
+
+
