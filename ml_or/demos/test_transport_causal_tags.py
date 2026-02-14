@@ -17,6 +17,7 @@ sys.path.insert(0, str(ml_or_root))
 from itinerary_optimizer import ItineraryOptimizer
 from explainability.diff_engine import ItineraryDiffEngine
 from explainability.causal_tagger import CausalTagger
+from explainability.delta_engine import DeltaEngine
 from explainability.payload_builder import ExplanationPayloadBuilder
 
 
@@ -290,9 +291,25 @@ def main():
         json.dump(decision_traces, f, indent=2)
     print(f"  ✓ Saved: {traces_file.name}\n")
     
-    print("[5.2] Tagging changes with causal reasons...")
+    # Load locations for delta calculations
+    print("[5.2] Loading location data...")
+    with open(data_dir / "locations.json", 'r', encoding='utf-8') as f:
+        locations_data = json.load(f)
+    locations_map = {loc["location_id"]: loc for loc in locations_data}
+    
+    print("[5.3] Tagging changes with causal reasons...")
     causal_tagger = CausalTagger()
     enriched_diffs = causal_tagger.tag_changes(diffs, decision_traces)
+    
+    print("[5.4] Computing cost and satisfaction deltas...")
+    delta_engine = DeltaEngine()
+    enriched_diffs = delta_engine.compute_deltas(
+        enriched_diffs,
+        decision_traces,
+        locations_map,
+        baseline_solution,
+        disrupted_solution
+    )
     
     # Save enriched diffs
     enriched_file = output_dir / "enriched_diffs.json"
@@ -321,12 +338,7 @@ def main():
     print("STEP 6: Build LLM Payloads")
     print("="*80 + "\n")
     
-    print("[6.1] Loading location names...")
-    with open(data_dir / "locations.json", 'r', encoding='utf-8') as f:
-        locations_data = json.load(f)
-    
-    # Create location map
-    locations_map = {loc["location_id"]: loc for loc in locations_data}
+    print("[6.1] Using existing location map from step 5...")  # Already loaded for delta_engine
     
     print("[6.2] Building explanation payloads...")
     payload_builder = ExplanationPayloadBuilder()
