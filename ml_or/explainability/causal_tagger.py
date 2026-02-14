@@ -61,6 +61,26 @@ class CausalTagger:
                 # Check if it was a skeletal role
                 if candidate_info.get("role") == "SKELETON":
                     tags.append("SHARED_ANCHOR_REQUIRED")
+                
+                # If moderate interest (0.8 - 1.2), tag as optimizer selection
+                if not tags and 0.8 <= candidate_info.get("interest_score", 0) <= 1.2:
+                    tags.append("OPTIMIZER_SELECTED")
+                
+                # If low interest but still added, check if it's due to transport disruption
+                if not tags and candidate_info.get("interest_score", 0) < 0.8:
+                    # Check if there's an active disruption - might be route optimization
+                    if trace.get("active_disruptions"):
+                        tags.append("TRANSPORT_ROUTING_OPTIMIZATION")
+                        # Add tags for each affected transport mode
+                        for disruption in trace["active_disruptions"]:
+                            for mode in disruption.get("affected_modes", []):
+                                tags.append(f"{mode}_UNAVAILABLE")
+                    else:
+                        # Otherwise it's a general optimizer tradeoff (e.g., fills time well)
+                        tags.append("OPTIMIZER_TRADEOFF")
+            else:
+                # No candidate info - this shouldn't happen but tag as unknown
+                tags.append("OPTIMIZER_SELECTED")
 
         elif c_type == "POI_REMOVED":
             # Why did we remove this?
@@ -72,6 +92,7 @@ class CausalTagger:
                      tags.append("LOW_INTEREST_DROPPED")
                  else:
                      # General fallback for optimizer tradeoffs
+                     # OBJECTIVE_DOMINATED means other objectives (cost, time, coherence) outweighed this POI
                      tags.append("OBJECTIVE_DOMINATED")
         
         # 3. TRANSPORT DISRUPTION DETECTION (NEW)
@@ -86,11 +107,13 @@ class CausalTagger:
                     # Check if the disruption affects the original transport mode
                     if disruption.get("affected_modes") and from_mode in disruption["affected_modes"]:
                         tags.append("TRANSPORT_DISRUPTED")
-                        tags.append(f"DISRUPTION_{disruption.get('reason', 'UNKNOWN')}")
+                        # Add tag for the unavailable mode
+                        tags.append(f"{from_mode}_UNAVAILABLE")
                         
                         # If we successfully rerouted to a different mode
                         if to_mode and to_mode != from_mode:
                             tags.append("ROUTE_REROUTED")
+                            tags.append(f"REROUTED_TO_{to_mode}")
                         
                         break  # One disruption match is enough
             

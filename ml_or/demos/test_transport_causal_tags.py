@@ -173,12 +173,94 @@ def main():
     print("STEP 5: Apply Causal Tagging")
     print("="*80 + "\n")
     
-    print("[5.1] Creating decision traces with disruption info...")
-    # Create decision traces that include disruption information
-    decision_traces = {}
-    for day_idx in range(3):  # Days 0, 1, 2 (corresponding to Days 1, 2, 3)
-        decision_traces[day_idx] = {
-            "candidates": [],
+    print("[5.1] Creating decision traces with realistic candidate data...")
+    
+    # Load family preferences to calculate interest scores
+    with open(data_dir / "family_preferences_3fam_strict.json", 'r', encoding='utf-8') as f:
+        family_prefs = json.load(f)
+    
+    # Calculate interest scores for LOC_015 (Chandni Chowk):
+    # Tags: shopping, food, history
+    # Base importance: 0.88
+    def calc_interest_score(family_id):
+        fam_pref = next((f for f in family_prefs if f["family_id"] == family_id), None)
+        if not fam_pref:
+            return 1.0
+        
+        iv = fam_pref["interest_vector"]
+        # Chandni Chowk: shopping + food + history
+        base = 0.88
+        score = base * (iv["shopping"] * 0.4 + iv["food"] * 0.4 + iv["history"] * 0.2)
+        return round(score, 4)
+    
+    # Create decision traces with candidate data for Day 3 (index 2)
+    decision_traces = {
+        2: {  # Day 3
+            "candidates": [
+                {
+                    "family": "FAM_A",
+                    "day": 3,
+                    "candidates": [
+                        {
+                            "poi_id": "LOC_LUNCH",
+                            "interest_score": 1.2,
+                            "role": "SKELETON"
+                        },
+                        {
+                            "poi_id": "LOC_DINNER",
+                            "interest_score": 1.17,
+                            "role": "SKELETON"
+                        },
+                        {
+                            "poi_id": "LOC_015",  # Chandni Chowk - ADDED
+                            "interest_score": calc_interest_score("FAM_A"),  # shopping:0.3, food:0.4, history:0.9
+                            "role": "BRANCH"
+                        }
+                    ]
+                },
+                {
+                    "family": "FAM_B",
+                    "day": 3,
+                    "candidates": [
+                        {
+                            "poi_id": "LOC_LUNCH",
+                            "interest_score": 1.45,
+                            "role": "SKELETON"
+                        },
+                        {
+                            "poi_id": "LOC_DINNER",
+                            "interest_score": 1.63,
+                            "role": "SKELETON"
+                        },
+                        {
+                            "poi_id": "LOC_015",  # Chandni Chowk - ADDED
+                            "interest_score": calc_interest_score("FAM_B"),  # shopping:0.8, food:0.9, history:0.3
+                            "role": "BRANCH"
+                        }
+                    ]
+                },
+                {
+                    "family": "FAM_C",
+                    "day": 3,
+                    "candidates": [
+                        {
+                            "poi_id": "LOC_LUNCH",
+                            "interest_score": 1.3,
+                            "role": "SKELETON"
+                        },
+                        {
+                            "poi_id": "LOC_DINNER",
+                            "interest_score": 1.37,
+                            "role": "SKELETON"
+                        },
+                        {
+                            "poi_id": "LOC_015",  # Chandni Chowk - ADDED
+                            "interest_score": calc_interest_score("FAM_C"),  # shopping:0.7, food:0.6, history:0.6
+                            "role": "BRANCH"
+                        }
+                    ]
+                }
+            ],
             "constraints": [],
             "active_disruptions": [
                 {
@@ -187,8 +269,20 @@ def main():
                     "reason": "STRIKE",
                     "severity": "SEVERE"
                 }
-            ]
+            ],
+            "outcome": {
+                "family": "ALL",
+                "day": 3,
+                "selected_pois": ["LOC_LUNCH", "LOC_015", "LOC_DINNER"],
+                "objective_breakdown": {
+                    "total_satisfaction": 0,
+                    "coherence_loss": 0,
+                    "net_value": 0
+                },
+                "rejected_eligible_pois": []
+            }
         }
+    }
     
     # Save decision traces
     traces_file = output_dir / "decision_traces.json"
