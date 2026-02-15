@@ -305,13 +305,17 @@ class OptimizerAgent:
         
         logger.info("Running explainability pipeline...")
         
+        # Initialize decision traces (will be populated later with disruption info)
+        decision_traces = optimizer.decision_traces
+        
         # Compare solutions
         diff_engine = ItineraryDiffEngine()
         if baseline_solution:
             diffs = diff_engine.compare_optimized_solutions(
                 baseline_optimized=baseline_solution,
                 new_optimized=new_solution,
-                days_to_compare=None
+                days_to_compare=None,
+                decision_traces=decision_traces  # Pass for transport disruption detection
             )
         else:
             # First run - no baseline
@@ -321,8 +325,7 @@ class OptimizerAgent:
         # Tag changes with causal reasoning
         tagger = CausalTagger()
         
-        # Build decision traces with disruption info
-        decision_traces = optimizer.decision_traces
+        # Add disruption info to decision traces if needed
         if transport_disruption_active and preferences:
             # Add active_disruptions to each day's decision trace
             transport_mode = preferences.get('transport_mode')

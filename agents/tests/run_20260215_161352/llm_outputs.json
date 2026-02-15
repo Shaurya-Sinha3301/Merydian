@@ -2,7 +2,7 @@
   {
     "scenario_number": 1,
     "scenario_name": "Must-Visit Location Added",
-    "timestamp": "2026-02-15T15:32:55.610466",
+    "timestamp": "2026-02-15T16:13:53.921888",
     "user_input": "We loved Akshardham, we definitely want to visit it tomorrow.",
     "context": {
       "family_id": "FAM_B"
@@ -45,15 +45,16 @@
       "input": [],
       "output": []
     },
-    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_153254"
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_161352"
   },
   {
     "scenario_number": 2,
     "scenario_name": "Location Excluded",
-    "timestamp": "2026-02-15T15:33:06.809436",
+    "timestamp": "2026-02-15T16:14:04.895182",
     "user_input": "Please skip the Red Fort, we're not interested.",
     "context": {
-      "family_id": "FAM_A"
+      "family_id": "FAM_A",
+      "previous_solution": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_161352\\optimized_solution.json"
     },
     "feedback_agent": {
       "input": "Please skip the Red Fort, we're not interested.",
@@ -136,20 +137,21 @@
             },
             "audience": "TRAVEL_AGENT"
           },
-          "output_summary": "For Family FAM_B on Day 2, we removed Akshardham from their itinerary. This change was made because the optimizer determined that it was dominated by other objectives, resulting in a cost savings of 43 INR."
+          "output_summary": "For Family FAM_B, we removed Akshardham from Day 2 of their itinerary. This change was made because the optimizer determined that it was dominated by other objectives, resulting in a cost savings of 43 INR."
         }
       ]
     },
-    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_153306"
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_161404"
   },
   {
     "scenario_number": 3,
     "scenario_name": "Day Rating (Soft Preference)",
-    "timestamp": "2026-02-15T15:33:17.265047",
+    "timestamp": "2026-02-15T16:14:15.333625",
     "user_input": "I'd rate today a 9 out of 10!",
     "context": {
       "family_id": "FAM_C",
-      "day": 1
+      "day": 1,
+      "previous_solution": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_161404\\optimized_solution.json"
     },
     "feedback_agent": {
       "input": "I'd rate today a 9 out of 10!",
@@ -195,9 +197,11 @@
   {
     "scenario_number": 4,
     "scenario_name": "METRO Global Disruption",
-    "timestamp": "2026-02-15T15:33:42.034646",
+    "timestamp": "2026-02-15T16:14:31.412160",
     "user_input": "There's a METRO strike today, all metro services are unavailable",
-    "context": {},
+    "context": {
+      "previous_solution": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_161404\\optimized_solution.json"
+    },
     "feedback_agent": {
       "input": "There's a METRO strike today, all metro services are unavailable",
       "output": {
@@ -294,27 +298,6 @@
           },
           "satisfaction_delta": {
             "gain": 1.29
-          },
-          "audience": "TRAVEL_AGENT"
-        },
-        {
-          "family": "FAM_B",
-          "day": 2,
-          "change_type": "POI_REMOVED",
-          "poi": {
-            "id": "LOC_006",
-            "name": "Akshardham"
-          },
-          "causal_tags": [
-            "OBJECTIVE_DOMINATED"
-          ],
-          "cost_delta": {
-            "saved_cost": 85.0,
-            "currency": "INR",
-            "transport_savings": 35.0
-          },
-          "satisfaction_delta": {
-            "loss": 1.09
           },
           "audience": "TRAVEL_AGENT"
         },
@@ -458,30 +441,6 @@
         {
           "input_payload": {
             "family": "FAM_B",
-            "day": 2,
-            "change_type": "POI_REMOVED",
-            "poi": {
-              "id": "LOC_006",
-              "name": "Akshardham"
-            },
-            "causal_tags": [
-              "OBJECTIVE_DOMINATED"
-            ],
-            "cost_delta": {
-              "saved_cost": 85.0,
-              "currency": "INR",
-              "transport_savings": 35.0
-            },
-            "satisfaction_delta": {
-              "loss": 1.09
-            },
-            "audience": "TRAVEL_AGENT"
-          },
-          "output_summary": "For Family FAM_B on Day 2, we removed Akshardham from their itinerary. This change was made because the optimizer determined that it was dominated by other objectives, resulting in a cost savings of 85 INR."
-        },
-        {
-          "input_payload": {
-            "family": "FAM_B",
             "day": 3,
             "change_type": "POI_REMOVED",
             "poi": {
@@ -549,16 +508,16 @@
             },
             "audience": "TRAVEL_AGENT"
           },
-          "output_summary": "For Family FAM_C, we removed Parikrama from Day 3 of their itinerary. This change was made because the POI was removed due to optimization tradeoffs, where its value was outweighed by other constraints. \n\nNote: This change resulted in a cost savings of 285 INR, with 35 INR of that being transport savings, and a slight decrease in overall satisfaction of 1.18 points."
+          "output_summary": "For Family FAM_C, we removed Parikrama from Day 3 of their itinerary. This change was made because the POI was removed due to optimization tradeoffs, where its value was outweighed by other constraints. \n\nAdditionally, this change resulted in a cost savings of 285 INR, with 35 INR of that savings coming from transportation."
         }
       ]
     },
-    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_153328"
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_161425"
   },
   {
     "scenario_number": 5,
     "scenario_name": "Delay Reported (Mocked)",
-    "timestamp": "2026-02-15T15:34:35.744684",
+    "timestamp": "2026-02-15T16:15:22.261173",
     "user_input": "We're running 30 minutes late due to traffic",
     "context": null,
     "feedback_agent": {

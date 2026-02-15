@@ -9,7 +9,7 @@
     {
       "day": 1,
       "objective_value": -760.5336599969833,
-      "solve_time_seconds": 0.2372479,
+      "solve_time_seconds": 0.18226830000000002,
       "shared_poi_order": [
         "LOC_008",
         "LOC_LUNCH",
@@ -83,8 +83,8 @@
               "sequence": 7,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:04",
-              "departure_time": "18:04",
+              "arrival_time": "17:03",
+              "departure_time": "18:03",
               "visit_duration_min": 60,
               "satisfaction_score": 1.17
             },
@@ -226,8 +226,8 @@
               "sequence": 5,
               "location_id": "LOC_001",
               "location_name": "Red Fort",
-              "arrival_time": "13:54",
-              "departure_time": "14:39",
+              "arrival_time": "13:53",
+              "departure_time": "14:38",
               "visit_duration_min": 45,
               "satisfaction_score": 0.91
             },
@@ -235,8 +235,8 @@
               "sequence": 6,
               "location_id": "LOC_003",
               "location_name": "India Gate",
-              "arrival_time": "14:58",
-              "departure_time": "15:43",
+              "arrival_time": "14:57",
+              "departure_time": "15:42",
               "visit_duration_min": 45,
               "satisfaction_score": 1.55
             },
@@ -244,8 +244,8 @@
               "sequence": 7,
               "location_id": "LOC_046",
               "location_name": "Parikrama",
-              "arrival_time": "15:55",
-              "departure_time": "16:55",
+              "arrival_time": "15:54",
+              "departure_time": "16:54",
               "visit_duration_min": 60,
               "satisfaction_score": 1.41
             },
@@ -253,8 +253,8 @@
               "sequence": 8,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:04",
-              "departure_time": "18:04",
+              "arrival_time": "17:03",
+              "departure_time": "18:03",
               "visit_duration_min": 60,
               "satisfaction_score": 0.88
             },
@@ -432,8 +432,8 @@
               "sequence": 8,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:04",
-              "departure_time": "18:04",
+              "arrival_time": "17:03",
+              "departure_time": "18:03",
               "visit_duration_min": 60,
               "satisfaction_score": 0.95
             },
@@ -546,7 +546,7 @@
     {
       "day": 2,
       "objective_value": -2109.0,
-      "solve_time_seconds": 0.073162,
+      "solve_time_seconds": 0.0907405,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_009",
@@ -867,7 +867,7 @@
     {
       "day": 3,
       "objective_value": 517.0,
-      "solve_time_seconds": 0.0462221,
+      "solve_time_seconds": 0.0509761,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_DINNER"

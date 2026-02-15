@@ -58,6 +58,7 @@ def main():
     ]
     
     all_results = []
+    previous_solution_path = None  # Track previous scenario's output for sequential comparison
     
     for i, scenario in enumerate(scenarios, 1):
         print(f"\n{'#'*80}")
@@ -70,10 +71,15 @@ def main():
             print(f"⏳ Pausing 10 seconds to avoid rate limiting...\n")
             time.sleep(10)
         
+        # Build context with previous solution for comparison
+        context = scenario["context"] if scenario["context"] is not None else {}
+        if previous_solution_path:
+            context["previous_solution"] = str(previous_solution_path)
+        
         # Process scenario
         result = controller.process_user_input(
             scenario["input"],
-            scenario["context"]
+            context
         )
         
         # Collect basic outputs
@@ -143,6 +149,12 @@ def main():
                 }
                 # Store the optimizer folder for later use
                 scenario_output["optimizer_output_dir"] = str(optimizer_output_dir)
+                
+                # Update previous_solution_path for next scenario
+                optimized_solution_file = optimizer_output_dir / "optimized_solution.json"
+                if optimized_solution_file.exists():
+                    previous_solution_path = optimized_solution_file
+                    print(f"  💾 Saved baseline for next scenario: {previous_solution_path}")
             else:
                 print("  ⚠️  No llm_payloads.json found in optimizer output")
                 scenario_output["explainability_agent"] = {

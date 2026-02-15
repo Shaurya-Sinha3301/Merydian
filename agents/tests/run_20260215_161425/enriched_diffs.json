@@ -51,21 +51,6 @@
           "currency": "INR",
           "transport_cost": 58.0
         }
-      },
-      {
-        "type": "POI_REMOVED",
-        "poi": "LOC_006",
-        "causal_tags": [
-          "OBJECTIVE_DOMINATED"
-        ],
-        "satisfaction_delta": {
-          "loss": 1.09
-        },
-        "cost_delta": {
-          "saved_cost": 85.0,
-          "currency": "INR",
-          "transport_savings": 35.0
-        }
       }
     ],
     "3": [

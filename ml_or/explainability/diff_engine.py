@@ -36,7 +36,8 @@ class ItineraryDiffEngine:
         self, 
         baseline_optimized: Dict, 
         new_optimized: Dict, 
-        days_to_compare: Optional[List[int]] = None
+        days_to_compare: Optional[List[int]] = None,
+        decision_traces: Optional[Dict] = None
     ) -> Dict[str, Dict[int, List[Dict]]]:
         """
         Compare two optimized itineraries (rather than base vs optimized).
@@ -76,8 +77,9 @@ class ItineraryDiffEngine:
             
             # Use the existing _process_day_diff logic but compare
             # baseline_optimized POIs vs new_optimized POIs
+            day_trace = decision_traces.get(day_idx) if decision_traces else None
             self._process_day_diff_optimized(
-                diffs, day_idx, baseline_day, new_day
+                diffs, day_idx, baseline_day, new_day, day_trace
             )
         
         return diffs
@@ -87,7 +89,8 @@ class ItineraryDiffEngine:
         diffs: Dict, 
         day_idx: int, 
         baseline_day: Dict, 
-        new_day: Dict
+        new_day: Dict,
+        day_trace: Optional[Dict] = None
     ):
         """
         Process diff for a single day when comparing two optimized solutions.
@@ -129,6 +132,15 @@ class ItineraryDiffEngine:
                 new_family_data, 
                 changes
             )
+            
+            # 4. Transport disruption detection via CAB_FALLBACK
+            # Detect when CAB_FALLBACK indicates disrupted primary mode
+            if day_trace and day_trace.get("active_disruptions"):
+                self._detect_fallback_routes(
+                    new_family_data,
+                    day_trace["active_disruptions"],
+                    changes
+                )
             
             if changes:
                 diffs[family_id][day_idx + 1] = changes  # Use 1-based day index
@@ -174,7 +186,48 @@ class ItineraryDiffEngine:
                         "to_mode": new_mode
                     })
 
-
+    def _detect_fallback_routes(
+        self,
+        family_data: Dict,
+        active_disruptions: List[Dict],
+        changes: List[Dict]
+    ):
+        """
+        Detect CAB_FALLBACK usage indicating transport disruption.
+        When optimizer uses CAB_FALLBACK, it indicates the primary transport mode
+        (e.g., METRO, BUS) was unavailable due to disruption.
+        """
+        # Transport info is in pois list, not a separate "transport" field
+        pois = family_data.get("pois", [])
+        
+        # Check each POI's transport_to_next for CAB_FALLBACK
+        for i, poi in enumerate(pois):
+            transport_to_next = poi.get("transport_to_next", {})
+            mode = transport_to_next.get("mode")
+            
+            if mode == "CAB_FALLBACK":
+                # Infer which mode was disrupted from active_disruptions
+                for disruption in active_disruptions:
+                    affected_modes = disruption.get("affected_modes", [])
+                    
+                    if affected_modes:
+                        # Use the first affected mode as the inferred baseline
+                        from_mode = affected_modes[0]
+                        
+                        # Get from/to POIs
+                        from_poi = poi.get("id")
+                        to_poi = pois[i + 1].get("id") if i + 1 < len(pois) else None
+                        
+                        if from_poi and to_poi:
+                            changes.append({
+                                "type": "ROUTE_CHANGED",
+                                "from_poi": from_poi,
+                                "to_poi": to_poi,
+                                "from_mode": from_mode,
+                                "to_mode": "CAB_FALLBACK",
+                            "reason": f"{from_mode}_DISRUPTION"
+                        })
+                        break  # One disruption attribution per fallback
 
     def _process_day_diff(self, diffs: Dict, day_idx: int, base_itinerary: Dict, day_result: Dict):
         # Get base POIs for this day
