@@ -40,6 +40,44 @@ class OptimizerAgent:
         
         logger.info("OptimizerAgent initialized with real optimizer")
     
+    def _apply_transport_disruption(
+        self,
+        transport_file: str,
+        disruption_mode: str,
+        from_poi: Optional[str] = None,
+        to_poi: Optional[str] = None
+    ) -> str:
+        """Create temporary transport graph with disruptions."""
+        import json
+        from pathlib import Path
+        
+        with open(transport_file, 'r') as f:
+            graph = json.load(f)
+        
+        disrupted_count = 0
+        
+        if from_poi and to_poi:
+            for edge in graph:
+                if edge.get("mode") == disruption_mode:
+                    if (edge["from"] == from_poi and edge["to"] == to_poi) or \
+                       (edge["from"] == to_poi and edge["to"] == from_poi):
+                        edge["available"] = False
+                        disrupted_count += 1
+            logger.info(f"Applied route-specific disruption: {disruption_mode} from {from_poi} to {to_poi} ({disrupted_count} edges)")
+        else:
+            for edge in graph:
+                if edge.get("mode") == disruption_mode:
+                    edge["available"] = False
+                    disrupted_count += 1
+            logger.info(f"Applied global disruption: All {disruption_mode} routes ({disrupted_count} edges)")
+        
+        temp_file = Path(transport_file).parent / f"transport_disrupted_{disruption_mode}.json"
+        with open(temp_file, 'w') as f:
+            json.dump(graph, f, indent=2)
+        
+        logger.info(f"Temporary transport graph saved: {temp_file}")
+        return str(temp_file)
+    
     def run(
         self,
         preferences: Optional[Dict[str, Any]] = None,
@@ -177,11 +215,27 @@ class OptimizerAgent:
         # ═══════════════════════════════════════════════════════════════
         
         from ml_or.itinerary_optimizer import ItineraryOptimizer
+        from .schemas import EventType
+        
+        # Apply transport disruption if needed
+        transport_file_to_use = str(self.transport_path)
+        if preferences and preferences.get('event_type') == EventType.TRANSPORT_ISSUE:
+            transport_mode = preferences.get('transport_mode')
+            from_poi = preferences.get('disruption_from_poi')
+            to_poi = preferences.get('disruption_to_poi')
+            
+            if transport_mode:
+                transport_file_to_use = self._apply_transport_disruption(
+                    str(self.transport_path),
+                    transport_mode,
+                    from_poi,
+                    to_poi
+                )
         
         logger.info("Initializing ItineraryOptimizer...")
         optimizer = ItineraryOptimizer(
             locations_file=str(self.locations_path),
-            transport_file=str(self.transport_path),
+            transport_file=transport_file_to_use,
             base_itinerary_file=str(self.base_itinerary_path),
             family_prefs_file=str(updated_prefs_path)
         )

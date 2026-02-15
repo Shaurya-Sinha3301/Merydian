@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from datetime import datetime
 import json
+import time
 
 # Add project root to path
 project_root = Path(__file__).parent
@@ -45,6 +46,11 @@ def main():
             "context": {"family_id": "FAM_C", "day": 1},
         },
         {
+            "name": "METRO Global Disruption",
+            "input": "There's a METRO strike today, all metro services are unavailable",
+            "context": {},
+        },
+        {
             "name": "Delay Reported (Mocked)",
             "input": "We're running 30 minutes late due to traffic",
             "context": None,
@@ -58,6 +64,11 @@ def main():
         print(f"SCENARIO {i}/{len(scenarios)}: {scenario['name']}")
         print(f"{'#'*80}\n")
         print(f"User: \"{scenario['input']}\"\n")
+        
+        # Rate limiting: pause between scenarios to avoid API limits
+        if i > 1:  # Skip pause before first scenario
+            print(f"⏳ Pausing 10 seconds to avoid rate limiting...\n")
+            time.sleep(10)
         
         # Process scenario
         result = controller.process_user_input(

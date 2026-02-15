@@ -1,0 +1,333 @@
+[
+  {
+    "scenario_number": 1,
+    "scenario_name": "Must-Visit Location Added",
+    "timestamp": "2026-02-15T15:08:27.069884",
+    "user_input": "We loved Akshardham, we definitely want to visit it tomorrow.",
+    "context": {
+      "family_id": "FAM_B"
+    },
+    "feedback_agent": {
+      "input": "We loved Akshardham, we definitely want to visit it tomorrow.",
+      "output": {
+        "event_type": "MUST_VISIT_ADDED",
+        "confidence": "HIGH",
+        "poi_name": "Akshardham",
+        "poi_id": null,
+        "rating": null,
+        "day": null,
+        "family_id": "FAM_B"
+      }
+    },
+    "decision_agent": {
+      "input": {
+        "agent": "FeedbackAgent",
+        "family_id": "FAM_B",
+        "event_type": "MUST_VISIT_ADDED",
+        "poi_id": null,
+        "poi_name": "Akshardham",
+        "rating": null,
+        "day": null,
+        "confidence": "HIGH",
+        "raw_input": "We loved Akshardham, we definitely want to visit it tomorrow.",
+        "transport_mode": null,
+        "disruption_from_poi": null,
+        "disruption_to_poi": null,
+        "metadata": {}
+      },
+      "output": {
+        "action": "RUN_OPTIMIZER",
+        "reason": "Hard constraint changed: MUST_VISIT_ADDED"
+      }
+    },
+    "optimizer_triggered": true,
+    "explainability_agent": {
+      "input": [],
+      "output": []
+    },
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_150825"
+  },
+  {
+    "scenario_number": 2,
+    "scenario_name": "Location Excluded",
+    "timestamp": "2026-02-15T15:08:38.200921",
+    "user_input": "Please skip the Red Fort, we're not interested.",
+    "context": {
+      "family_id": "FAM_A"
+    },
+    "feedback_agent": {
+      "input": "Please skip the Red Fort, we're not interested.",
+      "output": {
+        "event_type": "NEVER_VISIT_ADDED",
+        "confidence": "HIGH",
+        "poi_name": null,
+        "poi_id": null,
+        "rating": null,
+        "day": null,
+        "family_id": "FAM_A"
+      }
+    },
+    "decision_agent": {
+      "input": {
+        "agent": "FeedbackAgent",
+        "family_id": "FAM_A",
+        "event_type": "NEVER_VISIT_ADDED",
+        "poi_id": null,
+        "poi_name": null,
+        "rating": null,
+        "day": null,
+        "confidence": "HIGH",
+        "raw_input": "Please skip the Red Fort, we're not interested.",
+        "transport_mode": null,
+        "disruption_from_poi": null,
+        "disruption_to_poi": null,
+        "metadata": {}
+      },
+      "output": {
+        "action": "RUN_OPTIMIZER",
+        "reason": "Hard constraint changed: NEVER_VISIT_ADDED"
+      }
+    },
+    "optimizer_triggered": true,
+    "explainability_agent": {
+      "input": [
+        {
+          "family": "FAM_B",
+          "day": 2,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_006",
+            "name": "Akshardham"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 43.0,
+            "currency": "INR",
+            "transport_savings": -7.0
+          },
+          "satisfaction_delta": {
+            "loss": 1.09
+          },
+          "audience": "TRAVEL_AGENT"
+        }
+      ],
+      "output": [
+        {
+          "input_payload": {
+            "family": "FAM_B",
+            "day": 2,
+            "change_type": "POI_REMOVED",
+            "poi": {
+              "id": "LOC_006",
+              "name": "Akshardham"
+            },
+            "causal_tags": [
+              "OBJECTIVE_DOMINATED"
+            ],
+            "cost_delta": {
+              "saved_cost": 43.0,
+              "currency": "INR",
+              "transport_savings": -7.0
+            },
+            "satisfaction_delta": {
+              "loss": 1.09
+            },
+            "audience": "TRAVEL_AGENT"
+          },
+          "output_summary": "For Family FAM_B on Day 2, we removed Akshardham from their itinerary. This change was made because the optimizer determined that it was dominated by other objectives, resulting in a cost savings of 43 INR."
+        }
+      ]
+    },
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_150837"
+  },
+  {
+    "scenario_number": 3,
+    "scenario_name": "Day Rating (Soft Preference)",
+    "timestamp": "2026-02-15T15:08:48.747711",
+    "user_input": "I'd rate today a 9 out of 10!",
+    "context": {
+      "family_id": "FAM_C",
+      "day": 1
+    },
+    "feedback_agent": {
+      "input": "I'd rate today a 9 out of 10!",
+      "output": {
+        "event_type": "UNKNOWN",
+        "confidence": "LOW",
+        "poi_name": null,
+        "poi_id": null,
+        "rating": null,
+        "day": null,
+        "family_id": null
+      }
+    },
+    "decision_agent": {
+      "input": {
+        "agent": "FeedbackAgent",
+        "family_id": null,
+        "event_type": "UNKNOWN",
+        "poi_id": null,
+        "poi_name": null,
+        "rating": null,
+        "day": null,
+        "confidence": "LOW",
+        "raw_input": "I'd rate today a 9 out of 10!",
+        "transport_mode": null,
+        "disruption_from_poi": null,
+        "disruption_to_poi": null,
+        "metadata": {
+          "error": "1 validation error for FeedbackEvent\nconfidence\n  Field required [type=missing, input_value={'event_type': 'DAY_RATIN...e today a 9 out of 10!\"}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing"
+        }
+      },
+      "output": {
+        "action": "NO_ACTION",
+        "reason": "Unknown or unhandled event type: UNKNOWN"
+      }
+    },
+    "optimizer_triggered": false,
+    "explainability_agent": {
+      "input": [],
+      "output": []
+    }
+  },
+  {
+    "scenario_number": 4,
+    "scenario_name": "METRO Global Disruption",
+    "timestamp": "2026-02-15T15:09:00.016567",
+    "user_input": "There's a METRO strike today, all metro services are unavailable",
+    "context": {},
+    "feedback_agent": {
+      "input": "There's a METRO strike today, all metro services are unavailable",
+      "output": {
+        "event_type": "TRANSPORT_ISSUE",
+        "confidence": "HIGH",
+        "poi_name": null,
+        "poi_id": null,
+        "rating": null,
+        "day": null,
+        "family_id": null
+      }
+    },
+    "decision_agent": {
+      "input": {
+        "agent": "FeedbackAgent",
+        "family_id": null,
+        "event_type": "TRANSPORT_ISSUE",
+        "poi_id": null,
+        "poi_name": null,
+        "rating": null,
+        "day": null,
+        "confidence": "HIGH",
+        "raw_input": "There's a METRO strike today, all metro services are unavailable",
+        "transport_mode": "METRO",
+        "disruption_from_poi": null,
+        "disruption_to_poi": null,
+        "metadata": {}
+      },
+      "output": {
+        "action": "RUN_OPTIMIZER",
+        "reason": "METRO disruption (global) requires itinerary re-optimization with updated transport graph"
+      }
+    },
+    "optimizer_triggered": true,
+    "explainability_agent": {
+      "input": [
+        {
+          "family": "FAM_B",
+          "day": 2,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_006",
+            "name": "Akshardham"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 43.0,
+            "currency": "INR",
+            "transport_savings": -7.0
+          },
+          "satisfaction_delta": {
+            "loss": 1.09
+          },
+          "audience": "TRAVEL_AGENT"
+        }
+      ],
+      "output": [
+        {
+          "input_payload": {
+            "family": "FAM_B",
+            "day": 2,
+            "change_type": "POI_REMOVED",
+            "poi": {
+              "id": "LOC_006",
+              "name": "Akshardham"
+            },
+            "causal_tags": [
+              "OBJECTIVE_DOMINATED"
+            ],
+            "cost_delta": {
+              "saved_cost": 43.0,
+              "currency": "INR",
+              "transport_savings": -7.0
+            },
+            "satisfaction_delta": {
+              "loss": 1.09
+            },
+            "audience": "TRAVEL_AGENT"
+          },
+          "output_summary": "For Family FAM_B on Day 2, we removed Akshardham from their itinerary. This change was made because the optimizer determined that it was dominated by other objectives, resulting in a cost savings of 43 INR."
+        }
+      ]
+    },
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260215_150859"
+  },
+  {
+    "scenario_number": 5,
+    "scenario_name": "Delay Reported (Mocked)",
+    "timestamp": "2026-02-15T15:09:10.564395",
+    "user_input": "We're running 30 minutes late due to traffic",
+    "context": null,
+    "feedback_agent": {
+      "input": "We're running 30 minutes late due to traffic",
+      "output": {
+        "event_type": "DELAY_REPORTED",
+        "confidence": "HIGH",
+        "poi_name": null,
+        "poi_id": null,
+        "rating": null,
+        "day": null,
+        "family_id": null
+      }
+    },
+    "decision_agent": {
+      "input": {
+        "agent": "FeedbackAgent",
+        "family_id": null,
+        "event_type": "DELAY_REPORTED",
+        "poi_id": null,
+        "poi_name": null,
+        "rating": null,
+        "day": null,
+        "confidence": "HIGH",
+        "raw_input": "We're running 30 minutes late due to traffic",
+        "transport_mode": null,
+        "disruption_from_poi": null,
+        "disruption_to_poi": null,
+        "metadata": {}
+      },
+      "output": {
+        "action": "NO_ACTION",
+        "reason": "Event acknowledged but not yet handled: DELAY_REPORTED. The agent system supports these events; optimizer will handle them in future updates."
+      }
+    },
+    "optimizer_triggered": false,
+    "explainability_agent": {
+      "input": [],
+      "output": []
+    }
+  }
+]

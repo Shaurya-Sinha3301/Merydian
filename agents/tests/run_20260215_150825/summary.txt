@@ -1,0 +1,35 @@
+Demo Run Summary
+================================================================================
+Output Directory: C:\Amlan\Codes\Voyageur_Studio\agents\tests\run_20260215_150825
+Total scenarios: 5
+Optimizer triggered: 3 times
+
+
+Scenario 1: Must-Visit Location Added
+  User Input: We loved Akshardham, we definitely want to visit it tomorrow.
+  Event Type: MUST_VISIT_ADDED
+  Decision: RUN_OPTIMIZER
+
+Scenario 2: Location Excluded
+  User Input: Please skip the Red Fort, we're not interested.
+  Event Type: NEVER_VISIT_ADDED
+  Decision: RUN_OPTIMIZER
+  Explanations (1):
+    - For Family FAM_B on Day 2, we removed Akshardham from their itinerary. This change was made because the optimizer determined that it was dominated by other objectives, resulting in a cost savings of 43 INR.
+
+Scenario 3: Day Rating (Soft Preference)
+  User Input: I'd rate today a 9 out of 10!
+  Event Type: UNKNOWN
+  Decision: NO_ACTION
+
+Scenario 4: METRO Global Disruption
+  User Input: There's a METRO strike today, all metro services are unavailable
+  Event Type: TRANSPORT_ISSUE
+  Decision: RUN_OPTIMIZER
+  Explanations (1):
+    - For Family FAM_B on Day 2, we removed Akshardham from their itinerary. This change was made because the optimizer determined that it was dominated by other objectives, resulting in a cost savings of 43 INR.
+
+Scenario 5: Delay Reported (Mocked)
+  User Input: We're running 30 minutes late due to traffic
+  Event Type: DELAY_REPORTED
+  Decision: NO_ACTION
