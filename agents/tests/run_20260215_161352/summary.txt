@@ -1,0 +1,52 @@
+Demo Run Summary
+================================================================================
+Output Directory: C:\Amlan\Codes\Voyageur_Studio\agents\tests\run_20260215_161352
+Total scenarios: 5
+Optimizer triggered: 3 times
+
+
+Scenario 1: Must-Visit Location Added
+  User Input: We loved Akshardham, we definitely want to visit it tomorrow.
+  Event Type: MUST_VISIT_ADDED
+  Decision: RUN_OPTIMIZER
+
+Scenario 2: Location Excluded
+  User Input: Please skip the Red Fort, we're not interested.
+  Event Type: NEVER_VISIT_ADDED
+  Decision: RUN_OPTIMIZER
+  Explanations (1):
+    - For Family FAM_B, we removed Akshardham from Day 2 of their itinerary. This change was made because the optimizer determined that it was dominated by other objectives, resulting in a cost savings of 43 INR.
+
+Scenario 3: Day Rating (Soft Preference)
+  User Input: I'd rate today a 9 out of 10!
+  Event Type: UNKNOWN
+  Decision: NO_ACTION
+
+Scenario 4: METRO Global Disruption
+  User Input: There's a METRO strike today, all metro services are unavailable
+  Event Type: TRANSPORT_ISSUE
+  Decision: RUN_OPTIMIZER
+  Explanations (6):
+    - For Family FAM_A on Day 2, we added Barbeque Nation to their itinerary. This change was made because the optimizer selected it as a moderate interest match, and it was added to optimize other factors despite having a relatively low interest score. 
+
+The addition of Barbeque Nation resulted in an extra cost of 458 INR and a transport cost of 58 INR, but it also led to a 0.95 satisfaction gain.
+    - For Family FAM_A, we removed Parikrama from Day 3 of their itinerary. This change was made because the POI was removed due to optimization tradeoffs, where its value was outweighed by other constraints. 
+
+Additionally, this change resulted in a cost savings of 285 INR, with 35 INR of that savings coming from transportation.
+    - For family FAM_B on day 2, we've added Barbeque Nation to their itinerary. This change was made because the POI strongly matches their interests, making it a great fit for their travel plans. 
+
+Note: The addition of Barbeque Nation resulted in an extra cost of 458 INR and a transport cost of 58 INR, but it's expected to bring a satisfaction gain of 1.29.
+    - For Family FAM_B, we removed Parikrama from Day 3 of their itinerary. This change was made because the POI was removed due to optimization tradeoffs, where its value was outweighed by other constraints. 
+
+Additionally, this change saved the family 285 INR, with 35 INR of that being transport savings, but resulted in a slight decrease in overall satisfaction.
+    - For Family FAM_C on Day 2, we've added Barbeque Nation to their itinerary. This change was made because the optimizer selected it as a moderate interest match, and it's now included to enhance their travel experience. 
+
+Note: The addition of Barbeque Nation is expected to incur an extra cost of approximately 458 INR, including 58 INR for transportation.
+    - For Family FAM_C, we removed Parikrama from Day 3 of their itinerary. This change was made because the POI was removed due to optimization tradeoffs, where its value was outweighed by other constraints. 
+
+Additionally, this change resulted in a cost savings of 285 INR, with 35 INR of that savings coming from transportation.
+
+Scenario 5: Delay Reported (Mocked)
+  User Input: We're running 30 minutes late due to traffic
+  Event Type: DELAY_REPORTED
+  Decision: NO_ACTION

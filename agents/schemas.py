@@ -43,6 +43,9 @@ class FeedbackEvent(BaseModel):
     day: Optional[int] = Field(None, ge=1, description="Day number if applicable")
     confidence: ConfidenceLevel = Field(..., description="Confidence in the parsing")
     raw_input: str = Field(..., description="Original user input")
+    transport_mode: Optional[str] = Field(None, description="Transport mode affected (BUS, METRO, AUTO, CAB)")
+    disruption_from_poi: Optional[str] = Field(None, description="Starting POI for route-specific disruption")
+    disruption_to_poi: Optional[str] = Field(None, description="Ending POI for route-specific disruption")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional context")
     
     class Config:

@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from datetime import datetime
 import json
+import time
 
 # Add project root to path
 project_root = Path(__file__).parent
@@ -45,6 +46,11 @@ def main():
             "context": {"family_id": "FAM_C", "day": 1},
         },
         {
+            "name": "METRO Global Disruption",
+            "input": "There's a METRO strike today, all metro services are unavailable",
+            "context": {},
+        },
+        {
             "name": "Delay Reported (Mocked)",
             "input": "We're running 30 minutes late due to traffic",
             "context": None,
@@ -52,6 +58,7 @@ def main():
     ]
     
     all_results = []
+    previous_solution_path = None  # Track previous scenario's output for sequential comparison
     
     for i, scenario in enumerate(scenarios, 1):
         print(f"\n{'#'*80}")
@@ -59,10 +66,20 @@ def main():
         print(f"{'#'*80}\n")
         print(f"User: \"{scenario['input']}\"\n")
         
+        # Rate limiting: pause between scenarios to avoid API limits
+        if i > 1:  # Skip pause before first scenario
+            print(f"⏳ Pausing 10 seconds to avoid rate limiting...\n")
+            time.sleep(10)
+        
+        # Build context with previous solution for comparison
+        context = scenario["context"] if scenario["context"] is not None else {}
+        if previous_solution_path:
+            context["previous_solution"] = str(previous_solution_path)
+        
         # Process scenario
         result = controller.process_user_input(
             scenario["input"],
-            scenario["context"]
+            context
         )
         
         # Collect basic outputs
@@ -132,6 +149,12 @@ def main():
                 }
                 # Store the optimizer folder for later use
                 scenario_output["optimizer_output_dir"] = str(optimizer_output_dir)
+                
+                # Update previous_solution_path for next scenario
+                optimized_solution_file = optimizer_output_dir / "optimized_solution.json"
+                if optimized_solution_file.exists():
+                    previous_solution_path = optimized_solution_file
+                    print(f"  💾 Saved baseline for next scenario: {previous_solution_path}")
             else:
                 print("  ⚠️  No llm_payloads.json found in optimizer output")
                 scenario_output["explainability_agent"] = {

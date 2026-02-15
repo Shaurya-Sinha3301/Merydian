@@ -857,7 +857,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_87",
@@ -887,7 +888,8 @@
     "duration_min": 7,
     "cost": 12,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_90",
@@ -927,7 +929,8 @@
     "duration_min": 16,
     "cost": 25,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_94",
@@ -1057,7 +1060,8 @@
     "duration_min": 10,
     "cost": 17,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_107",
@@ -1147,7 +1151,8 @@
     "duration_min": 27,
     "cost": 40,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_116",
@@ -1177,7 +1182,8 @@
     "duration_min": 24,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_119",
@@ -1207,7 +1213,8 @@
     "duration_min": 10,
     "cost": 16,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_122",
@@ -1267,7 +1274,8 @@
     "duration_min": 20,
     "cost": 30,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_128",
@@ -1407,7 +1415,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_142",
@@ -1447,7 +1456,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_146",
@@ -1507,7 +1517,8 @@
     "duration_min": 23,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_152",
@@ -1527,7 +1538,8 @@
     "duration_min": 19,
     "cost": 28,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_154",
@@ -1567,7 +1579,8 @@
     "duration_min": 25,
     "cost": 37,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_158",
@@ -1597,7 +1610,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_161",
@@ -1627,7 +1641,8 @@
     "duration_min": 29,
     "cost": 43,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_164",
@@ -1657,7 +1672,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_167",
@@ -1697,7 +1713,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_171",
@@ -2567,7 +2584,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_258",
@@ -2617,7 +2635,8 @@
     "duration_min": 31,
     "cost": 45,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_263",
@@ -2647,7 +2666,8 @@
     "duration_min": 24,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_266",
@@ -2747,7 +2767,8 @@
     "duration_min": 24,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_276",
@@ -2857,7 +2878,8 @@
     "duration_min": 23,
     "cost": 34,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_287",
@@ -2887,7 +2909,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_290",
@@ -2917,7 +2940,8 @@
     "duration_min": 27,
     "cost": 39,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_293",
@@ -2977,7 +3001,8 @@
     "duration_min": 14,
     "cost": 22,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_299",
@@ -3097,7 +3122,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_311",
@@ -3127,7 +3153,8 @@
     "duration_min": 20,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_314",
@@ -3177,7 +3204,8 @@
     "duration_min": 11,
     "cost": 19,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_319",
@@ -3207,7 +3235,8 @@
     "duration_min": 24,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_322",
@@ -3237,7 +3266,8 @@
     "duration_min": 9,
     "cost": 16,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_325",
@@ -3277,7 +3307,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_329",
@@ -3307,7 +3338,8 @@
     "duration_min": 5,
     "cost": 10,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_332",
@@ -3347,7 +3379,8 @@
     "duration_min": 21,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_336",
@@ -3377,7 +3410,8 @@
     "duration_min": 21,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_339",
@@ -3457,7 +3491,8 @@
     "duration_min": 7,
     "cost": 12,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_347",
@@ -3527,7 +3562,8 @@
     "duration_min": 31,
     "cost": 45,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_354",
@@ -3557,7 +3593,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_357",
@@ -3677,7 +3714,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_369",
@@ -3767,7 +3805,8 @@
     "duration_min": 28,
     "cost": 41,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_378",
@@ -3797,7 +3836,8 @@
     "duration_min": 25,
     "cost": 37,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_381",
@@ -3827,7 +3867,8 @@
     "duration_min": 12,
     "cost": 19,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_384",
@@ -3887,7 +3928,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_390",
@@ -4017,7 +4059,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_403",
@@ -4057,7 +4100,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_407",
@@ -4117,7 +4161,8 @@
     "duration_min": 26,
     "cost": 38,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_413",
@@ -4137,7 +4182,8 @@
     "duration_min": 21,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_415",
@@ -4167,7 +4213,8 @@
     "duration_min": 27,
     "cost": 40,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_418",
@@ -4197,7 +4244,8 @@
     "duration_min": 31,
     "cost": 44,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_421",
@@ -4227,7 +4275,8 @@
     "duration_min": 31,
     "cost": 45,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_424",
@@ -4257,7 +4306,8 @@
     "duration_min": 15,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_427",
@@ -4297,7 +4347,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_431",
@@ -4387,7 +4438,8 @@
     "duration_min": 16,
     "cost": 25,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_440",
@@ -4457,7 +4509,8 @@
     "duration_min": 24,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_447",
@@ -4487,7 +4540,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_450",
@@ -4617,7 +4671,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_463",
@@ -4707,7 +4762,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_472",
@@ -4747,7 +4803,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_476",
@@ -4787,7 +4844,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_480",
@@ -4857,7 +4915,8 @@
     "duration_min": 15,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_487",
@@ -4987,7 +5046,8 @@
     "duration_min": 9,
     "cost": 16,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_500",
@@ -5027,7 +5087,8 @@
     "duration_min": 9,
     "cost": 15,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_504",
@@ -5087,7 +5148,8 @@
     "duration_min": 21,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_510",
@@ -5107,7 +5169,8 @@
     "duration_min": 25,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_512",
@@ -5137,7 +5200,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_515",
@@ -5167,7 +5231,8 @@
     "duration_min": 20,
     "cost": 30,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_518",
@@ -5197,7 +5262,8 @@
     "duration_min": 24,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_521",
@@ -5227,7 +5293,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_524",
@@ -5267,7 +5334,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_528",
@@ -7797,7 +7865,8 @@
     "duration_min": 10,
     "cost": 17,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_781",
@@ -7847,7 +7916,8 @@
     "duration_min": 24,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_786",
@@ -7867,7 +7937,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_788",
@@ -7897,7 +7968,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_791",
@@ -8017,7 +8089,8 @@
     "duration_min": 25,
     "cost": 37,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_803",
@@ -8037,7 +8110,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_805",
@@ -8057,7 +8131,8 @@
     "duration_min": 9,
     "cost": 15,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_807",
@@ -8107,7 +8182,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_812",
@@ -8207,7 +8283,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_822",
@@ -8237,7 +8314,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_825",
@@ -8277,7 +8355,8 @@
     "duration_min": 18,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_829",
@@ -8307,7 +8386,8 @@
     "duration_min": 14,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_832",
@@ -8337,7 +8417,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_835",
@@ -8367,7 +8448,8 @@
     "duration_min": 25,
     "cost": 37,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_838",
@@ -8387,7 +8469,8 @@
     "duration_min": 24,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_840",
@@ -8407,7 +8490,8 @@
     "duration_min": 7,
     "cost": 12,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_842",
@@ -8437,7 +8521,8 @@
     "duration_min": 8,
     "cost": 14,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_845",
@@ -10667,7 +10752,8 @@
     "duration_min": 27,
     "cost": 40,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1068",
@@ -10717,7 +10803,8 @@
     "duration_min": 23,
     "cost": 34,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1073",
@@ -10747,7 +10834,8 @@
     "duration_min": 28,
     "cost": 41,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1076",
@@ -10777,7 +10865,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1079",
@@ -10897,7 +10986,8 @@
     "duration_min": 25,
     "cost": 37,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_1091",
@@ -10987,7 +11077,8 @@
     "duration_min": 8,
     "cost": 14,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1100",
@@ -11027,7 +11118,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1104",
@@ -11087,7 +11179,8 @@
     "duration_min": 18,
     "cost": 28,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1110",
@@ -11197,7 +11290,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1121",
@@ -11237,7 +11331,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1125",
@@ -11287,7 +11382,8 @@
     "duration_min": 24,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_1130",
@@ -11307,7 +11403,8 @@
     "duration_min": 33,
     "cost": 47,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1132",
@@ -11337,7 +11434,8 @@
     "duration_min": 23,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1135",
@@ -11367,7 +11465,8 @@
     "duration_min": 15,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1138",
@@ -11397,7 +11496,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1141",
@@ -11427,7 +11527,8 @@
     "duration_min": 24,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1144",
@@ -11457,7 +11558,8 @@
     "duration_min": 24,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1147",
@@ -11527,7 +11629,8 @@
     "duration_min": 24,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1154",
@@ -11577,7 +11680,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1159",
@@ -11607,7 +11711,8 @@
     "duration_min": 25,
     "cost": 37,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1162",
@@ -11637,7 +11742,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1165",
@@ -11767,7 +11873,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_1178",
@@ -11857,7 +11964,8 @@
     "duration_min": 8,
     "cost": 14,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1187",
@@ -11897,7 +12005,8 @@
     "duration_min": 26,
     "cost": 38,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1191",
@@ -11957,7 +12066,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1197",
@@ -12077,7 +12187,8 @@
     "duration_min": 16,
     "cost": 25,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1209",
@@ -12117,7 +12228,8 @@
     "duration_min": 14,
     "cost": 22,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1213",
@@ -12177,7 +12289,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_1219",
@@ -12197,7 +12310,8 @@
     "duration_min": 30,
     "cost": 43,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1221",
@@ -12227,7 +12341,8 @@
     "duration_min": 22,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1224",
@@ -12257,7 +12372,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1227",
@@ -12287,7 +12403,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1230",
@@ -12317,7 +12434,8 @@
     "duration_min": 21,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1233",
@@ -12347,7 +12465,8 @@
     "duration_min": 21,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1236",
@@ -12427,7 +12546,8 @@
     "duration_min": 10,
     "cost": 16,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1244",
@@ -12497,7 +12617,8 @@
     "duration_min": 27,
     "cost": 39,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1251",
@@ -12527,7 +12648,8 @@
     "duration_min": 12,
     "cost": 19,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1254",
@@ -12567,7 +12689,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1258",
@@ -12697,7 +12820,8 @@
     "duration_min": 9,
     "cost": 15,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_1271",
@@ -12787,7 +12911,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1280",
@@ -12817,7 +12942,8 @@
     "duration_min": 26,
     "cost": 38,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1283",
@@ -12867,7 +12993,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1288",
@@ -13007,7 +13134,8 @@
     "duration_min": 20,
     "cost": 30,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1302",
@@ -13037,7 +13165,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1305",
@@ -13097,7 +13226,8 @@
     "duration_min": 21,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_1311",
@@ -13117,7 +13247,8 @@
     "duration_min": 14,
     "cost": 22,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1313",
@@ -13157,7 +13288,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1317",
@@ -13187,7 +13319,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1320",
@@ -13217,7 +13350,8 @@
     "duration_min": 27,
     "cost": 40,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1323",
@@ -13247,7 +13381,8 @@
     "duration_min": 10,
     "cost": 17,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1326",
@@ -13287,7 +13422,8 @@
     "duration_min": 11,
     "cost": 18,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1330",
@@ -14157,7 +14293,8 @@
     "duration_min": 20,
     "cost": 30,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1417",
@@ -14207,7 +14344,8 @@
     "duration_min": 14,
     "cost": 22,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1422",
@@ -14237,7 +14375,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1425",
@@ -14267,7 +14406,8 @@
     "duration_min": 15,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1428",
@@ -14357,7 +14497,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_1437",
@@ -14437,7 +14578,8 @@
     "duration_min": 18,
     "cost": 28,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1445",
@@ -14467,7 +14609,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1448",
@@ -14497,7 +14640,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1451",
@@ -14617,7 +14761,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1463",
@@ -14647,7 +14792,8 @@
     "duration_min": 11,
     "cost": 18,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1466",
@@ -14697,7 +14843,8 @@
     "duration_min": 12,
     "cost": 19,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_1471",
@@ -14717,7 +14864,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1473",
@@ -14747,7 +14895,8 @@
     "duration_min": 12,
     "cost": 19,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1476",
@@ -14777,7 +14926,8 @@
     "duration_min": 14,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1479",
@@ -14807,7 +14957,8 @@
     "duration_min": 14,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1482",
@@ -14837,7 +14988,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1485",
@@ -14867,7 +15019,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1488",
@@ -17887,7 +18040,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1790",
@@ -17957,7 +18111,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1797",
@@ -17987,7 +18142,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1800",
@@ -18027,7 +18183,8 @@
     "duration_min": 9,
     "cost": 16,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1804",
@@ -18157,7 +18314,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_1817",
@@ -18247,7 +18405,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1826",
@@ -18287,7 +18446,8 @@
     "duration_min": 16,
     "cost": 25,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1830",
@@ -18327,7 +18487,8 @@
     "duration_min": 20,
     "cost": 30,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1834",
@@ -18377,7 +18538,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1839",
@@ -18497,7 +18659,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1851",
@@ -18557,7 +18720,8 @@
     "duration_min": 26,
     "cost": 38,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_1857",
@@ -18577,7 +18741,8 @@
     "duration_min": 27,
     "cost": 39,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1859",
@@ -18607,7 +18772,8 @@
     "duration_min": 26,
     "cost": 39,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1862",
@@ -18637,7 +18803,8 @@
     "duration_min": 25,
     "cost": 37,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1865",
@@ -18667,7 +18834,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1868",
@@ -18697,7 +18865,8 @@
     "duration_min": 18,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1871",
@@ -18737,7 +18906,8 @@
     "duration_min": 18,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1875",
@@ -18817,7 +18987,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1883",
@@ -18867,7 +19038,8 @@
     "duration_min": 20,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1888",
@@ -18897,7 +19069,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1891",
@@ -18927,7 +19100,8 @@
     "duration_min": 9,
     "cost": 15,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1894",
@@ -19017,7 +19191,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_1903",
@@ -19097,7 +19272,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1911",
@@ -19127,7 +19303,8 @@
     "duration_min": 14,
     "cost": 22,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1914",
@@ -19157,7 +19334,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1917",
@@ -19207,7 +19385,8 @@
     "duration_min": 11,
     "cost": 18,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1922",
@@ -19307,7 +19486,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1932",
@@ -19357,7 +19537,8 @@
     "duration_min": 17,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_1937",
@@ -19377,7 +19558,8 @@
     "duration_min": 21,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1939",
@@ -19407,7 +19589,8 @@
     "duration_min": 18,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1942",
@@ -19437,7 +19620,8 @@
     "duration_min": 18,
     "cost": 28,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1945",
@@ -19467,7 +19651,8 @@
     "duration_min": 21,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1948",
@@ -19497,7 +19682,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1951",
@@ -19527,7 +19713,8 @@
     "duration_min": 12,
     "cost": 19,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_1954",
@@ -20417,7 +20604,8 @@
     "duration_min": 23,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2043",
@@ -20447,7 +20635,8 @@
     "duration_min": 11,
     "cost": 19,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2046",
@@ -20477,7 +20666,8 @@
     "duration_min": 26,
     "cost": 38,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2049",
@@ -20497,7 +20687,8 @@
     "duration_min": 21,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2051",
@@ -20557,7 +20748,8 @@
     "duration_min": 18,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2057",
@@ -20647,7 +20839,8 @@
     "duration_min": 24,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2066",
@@ -20667,7 +20860,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2068",
@@ -20687,7 +20881,8 @@
     "duration_min": 21,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2070",
@@ -20727,7 +20922,8 @@
     "duration_min": 12,
     "cost": 19,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2074",
@@ -20807,7 +21003,8 @@
     "duration_min": 26,
     "cost": 38,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2082",
@@ -20827,7 +21024,8 @@
     "duration_min": 17,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2084",
@@ -20867,7 +21065,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2088",
@@ -20897,7 +21096,8 @@
     "duration_min": 7,
     "cost": 12,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2091",
@@ -20927,7 +21127,8 @@
     "duration_min": 17,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2094",
@@ -20947,7 +21148,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2096",
@@ -20977,7 +21179,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2099",
@@ -21007,7 +21210,8 @@
     "duration_min": 15,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2102",
@@ -21077,7 +21281,8 @@
     "duration_min": 19,
     "cost": 28,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2109",
@@ -21147,7 +21352,8 @@
     "duration_min": 24,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2116",
@@ -21177,7 +21383,8 @@
     "duration_min": 21,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2119",
@@ -21207,7 +21414,8 @@
     "duration_min": 25,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2122",
@@ -21297,7 +21505,8 @@
     "duration_min": 14,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2131",
@@ -21387,7 +21596,8 @@
     "duration_min": 33,
     "cost": 47,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2140",
@@ -21417,7 +21627,8 @@
     "duration_min": 30,
     "cost": 43,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2143",
@@ -21447,7 +21658,8 @@
     "duration_min": 14,
     "cost": 22,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2146",
@@ -21507,7 +21719,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2152",
@@ -21627,7 +21840,8 @@
     "duration_min": 27,
     "cost": 39,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2164",
@@ -21657,7 +21871,8 @@
     "duration_min": 21,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2167",
@@ -21717,7 +21932,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2173",
@@ -21747,7 +21963,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2176",
@@ -21787,7 +22004,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2180",
@@ -21817,7 +22035,8 @@
     "duration_min": 24,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2183",
@@ -21847,7 +22066,8 @@
     "duration_min": 14,
     "cost": 22,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2186",
@@ -21887,7 +22107,8 @@
     "duration_min": 14,
     "cost": 22,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2190",
@@ -21967,7 +22188,8 @@
     "duration_min": 25,
     "cost": 37,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2198",
@@ -22017,7 +22239,8 @@
     "duration_min": 9,
     "cost": 16,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2203",
@@ -22057,7 +22280,8 @@
     "duration_min": 27,
     "cost": 40,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2207",
@@ -22087,7 +22311,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2210",
@@ -22187,7 +22412,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2220",
@@ -22307,7 +22533,8 @@
     "duration_min": 23,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2232",
@@ -22337,7 +22564,8 @@
     "duration_min": 22,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2235",
@@ -22367,7 +22595,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2238",
@@ -22427,7 +22656,8 @@
     "duration_min": 12,
     "cost": 19,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2244",
@@ -22547,7 +22777,8 @@
     "duration_min": 26,
     "cost": 39,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2256",
@@ -22577,7 +22808,8 @@
     "duration_min": 18,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2259",
@@ -22637,7 +22869,8 @@
     "duration_min": 7,
     "cost": 12,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2265",
@@ -22667,7 +22900,8 @@
     "duration_min": 19,
     "cost": 29,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2268",
@@ -22707,7 +22941,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2272",
@@ -22737,7 +22972,8 @@
     "duration_min": 10,
     "cost": 17,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2275",
@@ -22777,7 +23013,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2279",
@@ -22817,7 +23054,8 @@
     "duration_min": 16,
     "cost": 25,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2283",
@@ -22897,7 +23135,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2291",
@@ -22947,7 +23186,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2296",
@@ -22977,7 +23217,8 @@
     "duration_min": 31,
     "cost": 44,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2299",
@@ -23007,7 +23248,8 @@
     "duration_min": 20,
     "cost": 30,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2302",
@@ -23097,7 +23339,8 @@
     "duration_min": 25,
     "cost": 37,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2311",
@@ -23177,7 +23420,8 @@
     "duration_min": 15,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2319",
@@ -23207,7 +23451,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2322",
@@ -23237,7 +23482,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2325",
@@ -23287,7 +23533,8 @@
     "duration_min": 14,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2330",
@@ -23387,7 +23634,8 @@
     "duration_min": 25,
     "cost": 37,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2340",
@@ -23417,7 +23665,8 @@
     "duration_min": 18,
     "cost": 28,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2343",
@@ -23467,7 +23716,8 @@
     "duration_min": 17,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2348",
@@ -23487,7 +23737,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2350",
@@ -23517,7 +23768,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2353",
@@ -23547,7 +23799,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2356",
@@ -23577,7 +23830,8 @@
     "duration_min": 23,
     "cost": 34,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2359",
@@ -23607,7 +23861,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2362",
@@ -23677,7 +23932,8 @@
     "duration_min": 29,
     "cost": 43,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2369",
@@ -23727,7 +23983,8 @@
     "duration_min": 5,
     "cost": 10,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2374",
@@ -23767,7 +24024,8 @@
     "duration_min": 31,
     "cost": 45,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2378",
@@ -23797,7 +24055,8 @@
     "duration_min": 24,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2381",
@@ -23897,7 +24156,8 @@
     "duration_min": 24,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_C_2391",
@@ -24007,7 +24267,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2402",
@@ -24037,7 +24298,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2405",
@@ -24067,7 +24329,8 @@
     "duration_min": 27,
     "cost": 40,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2408",
@@ -24127,7 +24390,8 @@
     "duration_min": 14,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2414",
@@ -24247,7 +24511,8 @@
     "duration_min": 29,
     "cost": 42,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2426",
@@ -24277,7 +24542,8 @@
     "duration_min": 21,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2429",
@@ -24327,7 +24593,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2434",
@@ -24357,7 +24624,8 @@
     "duration_min": 24,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2437",
@@ -24387,7 +24655,8 @@
     "duration_min": 10,
     "cost": 17,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2440",
@@ -24427,7 +24696,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2444",
@@ -24457,7 +24727,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2447",
@@ -24487,7 +24758,8 @@
     "duration_min": 21,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2450",
@@ -24567,7 +24839,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2458",
@@ -24637,7 +24910,8 @@
     "duration_min": 21,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2465",
@@ -24667,7 +24941,8 @@
     "duration_min": 15,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2468",
@@ -24707,7 +24982,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2472",
@@ -24837,7 +25113,8 @@
     "duration_min": 7,
     "cost": 12,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2485",
@@ -24937,7 +25214,8 @@
     "duration_min": 24,
     "cost": 36,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2495",
@@ -24967,7 +25245,8 @@
     "duration_min": 21,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2498",
@@ -24997,7 +25276,8 @@
     "duration_min": 10,
     "cost": 17,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2501",
@@ -25067,7 +25347,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2508",
@@ -25207,7 +25488,8 @@
     "duration_min": 18,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2522",
@@ -25247,7 +25529,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2526",
@@ -25307,7 +25590,8 @@
     "duration_min": 16,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2532",
@@ -25337,7 +25621,8 @@
     "duration_min": 14,
     "cost": 22,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2535",
@@ -25377,7 +25662,8 @@
     "duration_min": 17,
     "cost": 26,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2539",
@@ -25417,7 +25703,8 @@
     "duration_min": 23,
     "cost": 34,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2543",
@@ -25447,7 +25734,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2546",
@@ -25477,7 +25765,8 @@
     "duration_min": 5,
     "cost": 11,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2549",
@@ -25567,7 +25856,8 @@
     "duration_min": 13,
     "cost": 21,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2558",
@@ -25637,7 +25927,8 @@
     "duration_min": 21,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2565",
@@ -25667,7 +25958,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2568",
@@ -25707,7 +25999,8 @@
     "duration_min": 15,
     "cost": 24,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2572",
@@ -25837,7 +26130,8 @@
     "duration_min": 8,
     "cost": 14,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2585",
@@ -25937,7 +26231,8 @@
     "duration_min": 24,
     "cost": 35,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2595",
@@ -25967,7 +26262,8 @@
     "duration_min": 21,
     "cost": 31,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2598",
@@ -25997,7 +26293,8 @@
     "duration_min": 11,
     "cost": 18,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2601",
@@ -26067,7 +26364,8 @@
     "duration_min": 12,
     "cost": 20,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2608",
@@ -26207,7 +26505,8 @@
     "duration_min": 18,
     "cost": 27,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2622",
@@ -26247,7 +26546,8 @@
     "duration_min": 12,
     "cost": 19,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2626",
@@ -26307,7 +26607,8 @@
     "duration_min": 15,
     "cost": 23,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_A_2632",
@@ -26337,7 +26638,8 @@
     "duration_min": 14,
     "cost": 22,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2635",
@@ -26377,7 +26679,8 @@
     "duration_min": 16,
     "cost": 25,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2639",
@@ -26417,7 +26720,8 @@
     "duration_min": 22,
     "cost": 33,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2643",
@@ -26447,7 +26751,8 @@
     "duration_min": 21,
     "cost": 32,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2646",
@@ -26477,7 +26782,8 @@
     "duration_min": 5,
     "cost": 11,
     "reliability": 0.98,
-    "available": true
+    "available": false,
+    "disruption_reason": "USER_REPORTED"
   },
   {
     "edge_id": "EDGE_B_2649",
