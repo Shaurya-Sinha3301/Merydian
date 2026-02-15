@@ -10,6 +10,7 @@ from typing import Dict, Any, Optional
 from .config import Config
 from .poi_mapper import load_locations_map, get_poi_id
 from .preference_builder import load_base_preferences, apply_event_to_preferences, save_preferences
+from .transport_graph_modifier import create_disrupted_transport_graph
 
 logger = logging.getLogger(__name__)
 
@@ -219,18 +220,29 @@ class OptimizerAgent:
         
         # Apply transport disruption if needed
         transport_file_to_use = str(self.transport_path)
-        if preferences and preferences.get('event_type') == EventType.TRANSPORT_ISSUE:
+        transport_disruption_active = False
+        
+        # Fix: Check if event_type string contains TRANSPORT_ISSUE
+        event_type_str = str(preferences.get('event_type', '')) if preferences else ''
+        if 'TRANSPORT_ISSUE' in event_type_str:
             transport_mode = preferences.get('transport_mode')
             from_poi = preferences.get('disruption_from_poi')
             to_poi = preferences.get('disruption_to_poi')
             
             if transport_mode:
-                transport_file_to_use = self._apply_transport_disruption(
-                    str(self.transport_path),
-                    transport_mode,
-                    from_poi,
-                    to_poi
+                logger.info(f"Applying transport disruption: {transport_mode}" + 
+                          (f" from {from_poi} to {to_poi}" if from_poi and to_poi else " (global)"))
+                
+                # Use the new utility function
+                transport_file_to_use = create_disrupted_transport_graph(
+                    transport_graph_path=str(self.transport_path),
+                    transport_mode=transport_mode,
+                    from_poi=from_poi,
+                    to_poi=to_poi,
+                    output_dir=str(run_dir) if run_dir else None
                 )
+                transport_disruption_active = True
+                logger.info(f"Using disrupted transport graph: {transport_file_to_use}")
         
         logger.info("Initializing ItineraryOptimizer...")
         optimizer = ItineraryOptimizer(
@@ -308,7 +320,27 @@ class OptimizerAgent:
         
         # Tag changes with causal reasoning
         tagger = CausalTagger()
+        
+        # Build decision traces with disruption info
         decision_traces = optimizer.decision_traces
+        if transport_disruption_active and preferences:
+            # Add active_disruptions to each day's decision trace
+            transport_mode = preferences.get('transport_mode')
+            for day_idx in range(len(new_solution.get('days', []))):
+                if day_idx not in decision_traces:
+                    decision_traces[day_idx] = {"candidates": [], "constraints": []}
+                
+                # Add disruption information
+                if "active_disruptions" not in decision_traces[day_idx]:
+                    decision_traces[day_idx]["active_disruptions"] = []
+                
+                decision_traces[day_idx]["active_disruptions"].append({
+                    "disruption_id": f"{transport_mode}_DISRUPTION",
+                    "affected_modes": [transport_mode],
+                    "reason": "USER_REPORTED",
+                    "severity": "SEVERE"
+                })
+        
         tagged_diffs = tagger.tag_changes(diffs, decision_traces)
         
         # Calculate cost/satisfaction deltas
