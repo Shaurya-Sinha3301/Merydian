@@ -1,0 +1,139 @@
+export interface SearchCriteria {
+    type: 'Flight' | 'Hotel' | 'Train' | 'Bus' | 'Metro' | 'Cab';
+    origin?: string;
+    destination?: string;
+    date: string;
+    returnDate?: string;
+    travelers: number;
+    class?: string;
+}
+
+export interface SearchResult {
+    id: string;
+    type: 'Flight' | 'Hotel' | 'Train' | 'Bus' | 'Metro' | 'Cab';
+    provider: string; // "Air India", "Marriott"
+    logo?: string;
+    title: string; // "New Delhi (DEL) → Mumbai (BOM)"
+    subtitle: string; // "10:00 AM - 12:10 PM • 2h 10m"
+    details: {
+        startTime: string;
+        endTime?: string;
+        duration?: string;
+        location?: string; // For hotels
+        rating?: number;
+    };
+    price: {
+        amount: number;
+        currency: string;
+    };
+    tags: string[]; // "Non-stop", "Refundable"
+}
+
+// Mock Data Generators
+
+const generateFlights = (criteria: SearchCriteria): SearchResult[] => {
+    return [
+        {
+            id: 'FL-001',
+            type: 'Flight',
+            provider: 'Indigo',
+            title: `${criteria.origin || 'DEL'} → ${criteria.destination || 'BOM'}`,
+            subtitle: '06:00 AM - 08:15 AM • 2h 15m',
+            details: { startTime: '06:00', endTime: '08:15', duration: '2h 15m' },
+            price: { amount: 5400, currency: 'INR' },
+            tags: ['Non-stop', 'Economy']
+        },
+        {
+            id: 'FL-002',
+            type: 'Flight',
+            provider: 'Air India',
+            title: `${criteria.origin || 'DEL'} → ${criteria.destination || 'BOM'}`,
+            subtitle: '10:00 AM - 12:10 PM • 2h 10m',
+            details: { startTime: '10:00', endTime: '12:10', duration: '2h 10m' },
+            price: { amount: 6200, currency: 'INR' },
+            tags: ['Meal Included', 'Refundable']
+        },
+        {
+            id: 'FL-003',
+            type: 'Flight',
+            provider: 'Vistara',
+            title: `${criteria.origin || 'DEL'} → ${criteria.destination || 'BOM'}`,
+            subtitle: '05:30 PM - 07:45 PM • 2h 15m',
+            details: { startTime: '17:30', endTime: '19:45', duration: '2h 15m' },
+            price: { amount: 7500, currency: 'INR' },
+            tags: ['Business Class Available']
+        }
+    ];
+};
+
+const generateHotels = (criteria: SearchCriteria): SearchResult[] => {
+    return [
+        {
+            id: 'HT-001',
+            type: 'Hotel',
+            provider: 'Taj Palace',
+            title: 'Taj Palace, New Delhi',
+            subtitle: 'Luxury Hotel • 5 Star',
+            details: { location: 'Chanakyapuri, New Delhi', rating: 4.8 },
+            price: { amount: 18000, currency: 'INR' },
+            tags: ['Breakfast Included', 'Free Cancellation']
+        },
+        {
+            id: 'HT-002',
+            type: 'Hotel',
+            provider: 'Ibis Aerocity',
+            title: 'Ibis New Delhi Aerocity',
+            subtitle: 'Business Hotel • 4 Star',
+            details: { location: 'Aerocity, New Delhi', rating: 4.2 },
+            price: { amount: 6500, currency: 'INR' },
+            tags: ['Airport Transfer']
+        },
+        {
+            id: 'HT-003',
+            type: 'Hotel',
+            provider: 'The Leela Palace',
+            title: 'The Leela Palace',
+            subtitle: 'Ultra Luxury • 5 Star',
+            details: { location: 'Diplomatic Enclave, New Delhi', rating: 4.9 },
+            price: { amount: 25000, currency: 'INR' },
+            tags: ['Spa', 'Pool View']
+        }
+    ];
+};
+
+const generateOthers = (criteria: SearchCriteria): SearchResult[] => {
+    return [
+        {
+            id: `OT-${Math.random().toString(36).substr(2, 5)}`,
+            type: criteria.type,
+            provider: 'Uber Intercity',
+            title: `${criteria.origin || 'City Center'} → ${criteria.destination || 'Airport'}`,
+            subtitle: 'Sedan • 4 Seater',
+            details: { startTime: 'Now', duration: '45m' },
+            price: { amount: 800, currency: 'INR' },
+            tags: ['Instant Confirmation']
+        }
+    ];
+};
+
+
+export const apiService = {
+    search: async (criteria: SearchCriteria): Promise<SearchResult[]> => {
+        // Simulate API delay
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                switch (criteria.type) {
+                    case 'Flight':
+                        resolve(generateFlights(criteria));
+                        break;
+                    case 'Hotel':
+                        resolve(generateHotels(criteria));
+                        break;
+                    default:
+                        resolve(generateOthers(criteria));
+                        break;
+                }
+            }, 1000); // 1 second delay
+        });
+    }
+};
