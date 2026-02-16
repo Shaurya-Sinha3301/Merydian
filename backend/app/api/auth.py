@@ -6,7 +6,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from app.core import security
 from app.core.config import settings
-from app.schemas.auth import Token
+from app.schemas.auth import Token, UserCreate
+from app.services.user_service import UserService
 
 router = APIRouter()
 
@@ -16,31 +17,66 @@ async def login_access_token(
 ) -> Any:
     """
     OAuth2 compatible token login, get an access token for future requests.
-    Validates username/password (mocked for now) and issues JWT.
+    Validates username/password against database and issues JWT.
     """
-    # Verify user logic here
-    # For now, we mock validation and role assignment based on username
-    # In a real app, you would query the DB
-    
-    # Mock user data
-    user = None
-    if form_data.username == "traveller@example.com" and form_data.password == "password":
-        user = {"id": "user_id_123", "role": "traveller", "family_id": "fam_A"}
-    elif form_data.username == "agent@example.com" and form_data.password == "password":
-         user = {"id": "agent_id_456", "role": "agent", "family_id": None}
+    # Authenticate user against database
+    user = UserService.authenticate_user(form_data.username, form_data.password)
     
     if not user:
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive"
+        )
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     
     additional_claims = {
-        "role": user["role"],
-        "family_id": user["family_id"]
+        "role": user.role,
+        "family_id": str(user.family_id) if user.family_id else None
     }
 
     access_token = security.create_access_token(
-        user["id"], expires_delta=access_token_expires, additional_claims=additional_claims
+        str(user.id), expires_delta=access_token_expires, additional_claims=additional_claims
+    )
+    
+    return Token(access_token=access_token, token_type="bearer")
+
+@router.post("/signup", response_model=Token)
+async def signup(
+    user_in: UserCreate,
+) -> Any:
+    """
+    Create new user without the need to be logged in.
+    """
+    user = UserService.get_user_by_email(email=user_in.email)
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this email already exists in the system",
+        )
+    
+    user = UserService.create_user(
+        email=user_in.email,
+        password=user_in.password,
+        role=user_in.role,
+        full_name=user_in.full_name,
+    )
+    
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    additional_claims = {
+        "role": user.role,
+        "family_id": str(user.family_id) if user.family_id else None
+    }
+    
+    access_token = security.create_access_token(
+        str(user.id), expires_delta=access_token_expires, additional_claims=additional_claims
     )
     
     return Token(access_token=access_token, token_type="bearer")

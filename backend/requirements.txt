@@ -14,3 +14,6 @@ httpx
 sqlmodel
 celery[redis]
 redis
+groq
+google-generativeai
+ortools

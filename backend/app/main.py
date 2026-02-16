@@ -30,4 +30,8 @@ from app.api import bookings
 app.include_router(bookings.router, prefix=f"{settings.API_V1_STR}/bookings", tags=["bookings"])
 from app.api import policy
 app.include_router(policy.router, prefix=f"{settings.API_V1_STR}/agent", tags=["agent-policy"])
+from app.api import trips
+app.include_router(trips.router, prefix=f"{settings.API_V1_STR}", tags=["trips"])
+from app.api import demo_feedback
+app.include_router(demo_feedback.router, prefix=f"{settings.API_V1_STR}/demo", tags=["demo"])
 
