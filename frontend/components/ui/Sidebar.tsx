@@ -11,7 +11,8 @@ import {
     UserGroupIcon, // Group Details
     ChevronDownIcon,
     ChevronRightIcon,
-    Cog6ToothIcon
+    Cog6ToothIcon,
+    TicketIcon
 } from "@heroicons/react/24/outline";
 
 interface SidebarItem {
@@ -42,6 +43,11 @@ const sidebarStructure: { label: string; icon: React.ElementType; children?: Sid
         label: "Group Details",
         icon: UserGroupIcon,
         href: "/agent-dashboard/GRP-2026-001"
+    },
+    {
+        label: "Bookings",
+        icon: TicketIcon,
+        href: "/agent-dashboard/bookings"
     },
     {
         label: "Data Analytics",
