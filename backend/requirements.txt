@@ -10,3 +10,7 @@ redis
 psycopg2-binary
 pytest
 pytest-asyncio
+httpx
+sqlmodel
+celery[redis]
+redis

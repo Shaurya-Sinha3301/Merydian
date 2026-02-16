@@ -20,3 +20,14 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+from app.api import events
+app.include_router(events.router, prefix=f"{settings.API_V1_STR}/events", tags=["events"])
+from app.api import itinerary
+app.include_router(itinerary.router, prefix=f"{settings.API_V1_STR}/itinerary", tags=["itinerary"])
+from app.api import agent_dashboard
+app.include_router(agent_dashboard.router, prefix=f"{settings.API_V1_STR}/agent", tags=["agent"])
+from app.api import bookings
+app.include_router(bookings.router, prefix=f"{settings.API_V1_STR}/bookings", tags=["bookings"])
+from app.api import policy
+app.include_router(policy.router, prefix=f"{settings.API_V1_STR}/agent", tags=["agent-policy"])
+

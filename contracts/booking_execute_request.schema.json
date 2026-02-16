@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Booking Execute Request Schema",
+  "description": "Request schema for executing bookings",
+  "type": "object",
+  "properties": {
+    "itinerary_id": {
+      "type": "string",
+      "description": "ID of the itinerary to book",
+      "examples": ["it_001", "it_002"]
+    },
+    "items": {
+      "type": "array",
+      "description": "List of items to book",
+      "items": {
+        "type": "string",
+        "enum": ["flight", "bus", "train", "hotel", "restaurant", "activity", "transfer"]
+      },
+      "minItems": 1,
+      "examples": [["flight", "bus", "restaurant"]]
+    }
+  },
+  "required": ["itinerary_id", "items"],
+  "additionalProperties": false
+}

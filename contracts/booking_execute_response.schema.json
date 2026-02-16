@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Booking Execute Response Schema",
+  "description": "Response schema for booking execution",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["booking_in_progress", "completed", "partial_failure", "failed"],
+      "description": "Current booking status",
+      "examples": ["booking_in_progress"]
+    },
+    "job_id": {
+      "type": "string",
+      "description": "Async job ID for tracking",
+      "pattern": "^job_[a-zA-Z0-9_]+$",
+      "examples": ["job_it_001_1642781234"]
+    },
+    "message": {
+      "type": "string",
+      "description": "Status message",
+      "examples": ["Booking started for 3 items: flight, bus, restaurant"]
+    }
+  },
+  "required": ["status", "job_id", "message"],
+  "additionalProperties": false
+}
