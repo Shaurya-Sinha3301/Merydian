@@ -30,8 +30,7 @@ class DecisionPolicyAgent:
     
     # Events acknowledged but not yet handled (future features)
     MOCKED_EVENTS = {
-        EventType.DELAY_REPORTED,
-        EventType.TRANSPORT_ISSUE
+        EventType.DELAY_REPORTED
     }
     
     def __init__(self):
@@ -64,6 +63,21 @@ class DecisionPolicyAgent:
             return PolicyDecision(
                 action=ActionType.UPDATE_PREFERENCES_ONLY,
                 reason=f"Soft preference updated: {event.event_type}",
+                requires_approval=False,
+                event_context=event
+            )
+        
+        # Transport issue - re-optimize with disrupted transport graph
+        if event.event_type == EventType.TRANSPORT_ISSUE:
+            disruption_desc = f"{event.transport_mode} disruption"
+            if event.disruption_from_poi and event.disruption_to_poi:
+                disruption_desc += f" on route from {event.disruption_from_poi} to {event.disruption_to_poi}"
+            else:
+                disruption_desc += " (global)"
+            
+            return PolicyDecision(
+                action=ActionType.RUN_OPTIMIZER,
+                reason=f"{disruption_desc} requires itinerary re-optimization with updated transport graph",
                 requires_approval=False,
                 event_context=event
             )

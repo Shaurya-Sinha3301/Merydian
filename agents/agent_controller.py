@@ -85,7 +85,11 @@ class AgentController:
                 "event_type": event.event_type,
                 "family_id": event.family_id,
                 "poi_name": event.poi_name,
-                "poi_id": event.poi_id
+                "poi_id": event.poi_id,
+                # Transport disruption fields (FIX: pass these to optimizer)
+                "transport_mode": getattr(event, 'transport_mode', None),
+                "disruption_from_poi": getattr(event, 'disruption_from_poi', None),
+                "disruption_to_poi": getattr(event, 'disruption_to_poi', None)
             }
             
             # Get previous optimized solution for comparison (NOT base_itinerary)

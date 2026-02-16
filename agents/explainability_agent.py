@@ -97,10 +97,27 @@ Decision Payload:
 {payload_str}
 
 CAUSAL TAG DEFINITIONS (use these to explain WHY changes happened):
-- SHARED_ANCHOR_REQUIRED: This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together
+
+**Interest-Based Tags:**
 - INTEREST_VECTOR_DOMINANCE: This POI matches the family's interest tags very strongly (interest score > 1.2)
+- SHARED_ANCHOR_REQUIRED: This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together
+- OPTIMIZER_SELECTED: This POI was selected by the optimizer with moderate interest (score 0.8-1.2)
+- OPTIMIZER_TRADEOFF: This POI was added despite low interest because it optimizes other factors (time, routing, etc.)
+
+**Transport Disruption Tags:**
+- TRANSPORT_ROUTING_OPTIMIZATION: The route/POI selection was optimized due to transport changes
+- BUS_UNAVAILABLE: BUS transport is unavailable (strike, closure, etc.)
+- METRO_UNAVAILABLE: METRO transport is unavailable
+- AUTO_UNAVAILABLE: AUTO transport is unavailable
+- CAB_FALLBACK_UNAVAILABLE: CAB transport is unavailable
+- TRANSPORT_DISRUPTED: The original transport mode was disrupted
+- ROUTE_REROUTED: Successfully found an alternative transport mode
+- REROUTED_TO_METRO / REROUTED_TO_BUS / REROUTED_TO_CAB_FALLBACK: Rerouted to specific transport mode
+- ROUTE_OPTIMIZED: Route was optimized for better efficiency (no disruption)
+
+**Removal Tags:**
 - LOW_INTEREST_DROPPED: This POI was removed because it has low relevance to the family's interests (score < 0.8)
-- OBJECTIVE_DOMINATED: This POI was removed due to optimization tradeoffs (cost, time, or other constraints)
+- OBJECTIVE_DOMINATED: This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)
 
 Generate a brief, clear explanation (1-2 sentences) that describes:
 1. What changed in the itinerary (which POI, which day, which family)
@@ -144,10 +161,27 @@ Return ONLY the explanation text, nothing else."""
                 reason = " (needed for group coordination)"
             elif tag == "INTEREST_VECTOR_DOMINANCE":
                 reason = " (strongly matches interests)"
+            elif tag == "OPTIMIZER_SELECTED":
+                reason = " (good overall fit)"
+            elif tag == "TRANSPORT_ROUTING_OPTIMIZATION":
+                # Check for transport mode tag
+                mode_tag = next((t for t in causal_tags if "_UNAVAILABLE" in t), None)
+                if mode_tag:
+                    mode = mode_tag.replace("_UNAVAILABLE", "")
+                    reason = f" (route optimized because {mode} is unavailable)"
+                else:
+                    reason = " (route optimized due to transport changes)"
+            elif tag == "OPTIMIZER_TRADEOFF":
+                reason = " (optimizes schedule/routing)"
             elif tag == "LOW_INTEREST_DROPPED":
                 reason = " (low relevance to interests)"
             elif tag == "OBJECTIVE_DOMINATED":
                 reason = " (optimization tradeoff)"
+            elif tag == "ROUTE_REROUTED":
+                reason = " (rerouted to alternative transport)"
+            elif "_UNAVAILABLE" in tag:
+                mode = tag.replace("_UNAVAILABLE", "")
+                reason = f" ({mode} unavailable)"
         
         # Build summary based on change type
         if change_type == "POI_ADDED":

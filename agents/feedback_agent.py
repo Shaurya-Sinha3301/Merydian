@@ -112,6 +112,9 @@ Extract the following information and return ONLY valid JSON (no markdown, no ex
   "poi_name": "Name of the place" or null,
   "rating": 0-10 number or null,
   "day": integer or null,
+  "transport_mode": "BUS" | "METRO" | "AUTO" | "CAB" | null,
+  "disruption_from_poi": "POI name or LOC_XXX" | null,
+  "disruption_to_poi": "POI name or LOC_XXX" | null,
   "confidence": "HIGH" | "MEDIUM" | "LOW"
 }}
 
@@ -122,6 +125,9 @@ Event Type Guidelines:
 - DAY_RATING: User rates their experience for a day
 - DELAY_REPORTED: User mentions being late or delayed
 - TRANSPORT_ISSUE: User mentions transport problems
+  * Global disruption: "METRO is shut down", "All buses unavailable" → set transport_mode only
+  * Route-specific disruption: "METRO from India Gate to Lotus Temple is closed" → set transport_mode, disruption_from_poi, disruption_to_poi
+  * Extract POI names or IDs if specific route mentioned
 - UNKNOWN: Cannot determine intent
 
 Return ONLY the JSON object, nothing else."""
@@ -149,6 +155,30 @@ Return ONLY the JSON object, nothing else."""
         elif "delay" in user_lower or "late" in user_lower or "running" in user_lower:
             event_type = EventType.DELAY_REPORTED
             confidence = ConfidenceLevel.MEDIUM
+        elif "metro" in user_lower or "bus" in user_lower or "transport" in user_lower or "auto" in user_lower or "cab" in user_lower:
+            event_type = EventType.TRANSPORT_ISSUE
+            confidence = ConfidenceLevel.HIGH
+            # Extract transport mode
+            transport_mode = None
+            if "metro" in user_lower:
+                transport_mode = "METRO"
+            elif "bus" in user_lower:
+                transport_mode = "BUS"
+            elif "auto" in user_lower:
+                transport_mode = "AUTO"
+            elif "cab" in user_lower:
+                transport_mode = "CAB"
+            
+            return FeedbackEvent(
+                event_type=event_type,
+                confidence=confidence,
+                raw_input=user_input,
+                family_id=context.get("family_id") if context else None,
+                transport_mode=transport_mode,
+                disruption_from_poi=context.get("from_poi") if context else None,
+                disruption_to_poi=context.get("to_poi") if context else None,
+                metadata={"demo_mode": True}
+            )
         else:
             event_type = EventType.UNKNOWN
             confidence = ConfidenceLevel.LOW

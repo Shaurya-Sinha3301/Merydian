@@ -10,6 +10,7 @@ from typing import Dict, Any, Optional
 from .config import Config
 from .poi_mapper import load_locations_map, get_poi_id
 from .preference_builder import load_base_preferences, apply_event_to_preferences, save_preferences
+from .transport_graph_modifier import create_disrupted_transport_graph
 
 logger = logging.getLogger(__name__)
 
@@ -40,13 +41,54 @@ class OptimizerAgent:
         
         logger.info("OptimizerAgent initialized with real optimizer")
     
+    def _apply_transport_disruption(
+        self,
+        transport_file: str,
+        disruption_mode: str,
+        from_poi: Optional[str] = None,
+        to_poi: Optional[str] = None
+    ) -> str:
+        """Create temporary transport graph with disruptions."""
+        import json
+        from pathlib import Path
+        
+        with open(transport_file, 'r') as f:
+            graph = json.load(f)
+        
+        disrupted_count = 0
+        
+        if from_poi and to_poi:
+            for edge in graph:
+                if edge.get("mode") == disruption_mode:
+                    if (edge["from"] == from_poi and edge["to"] == to_poi) or \
+                       (edge["from"] == to_poi and edge["to"] == from_poi):
+                        edge["available"] = False
+                        disrupted_count += 1
+            logger.info(f"Applied route-specific disruption: {disruption_mode} from {from_poi} to {to_poi} ({disrupted_count} edges)")
+        else:
+            for edge in graph:
+                if edge.get("mode") == disruption_mode:
+                    edge["available"] = False
+                    disrupted_count += 1
+            logger.info(f"Applied global disruption: All {disruption_mode} routes ({disrupted_count} edges)")
+        
+        temp_file = Path(transport_file).parent / f"transport_disrupted_{disruption_mode}.json"
+        with open(temp_file, 'w') as f:
+            json.dump(graph, f, indent=2)
+        
+        logger.info(f"Temporary transport graph saved: {temp_file}")
+        return str(temp_file)
+    
     def run(
         self,
         preferences: Optional[Dict[str, Any]] = None,
         constraints: Optional[Dict[str, Any]] = None,
         base_solution_path: Optional[Path] = None,
         output_dir: Optional[Path] = None,
-        current_prefs_path: Optional[Path] = None
+        current_prefs_path: Optional[Path] = None,
+        session_manager: Optional[Any] = None,  # TripSessionManager
+        trip_id: Optional[str] = None,
+        current_solution: Optional[Dict] = None  # Existing trip solution for re-opt
     ) -> Dict[str, Path]:
         """
         Run the optimizer with updated preferences/constraints.
@@ -114,25 +156,120 @@ class OptimizerAgent:
         save_preferences(updated_prefs, updated_prefs_path)
         
         # ═══════════════════════════════════════════════════════════════
+        # STEP 1.5: GEOGRAPHIC LOOK-AHEAD (NEW!)
+        # ═══════════════════════════════════════════════════════════════
+        
+        target_day = None
+        if session_manager and trip_id and preferences:
+            event_type = preferences.get('event_type')
+            before_day = preferences.get('before_day')  # From FeedbackEvent
+            
+            if event_type == 'MUST_VISIT_ADDED' and poi_id:
+                logger.info("[LOOK-AHEAD] Analyzing candidate days...")
+                
+                # Get current session
+                session = session_manager.get_session(trip_id)
+                
+                # Calculate candidate days
+                if before_day:
+                    candidate_days = session.get_candidate_days(
+                        constraint="before_day_N",
+                        before_day=before_day
+                    )
+                else:
+                    candidate_days = session.get_candidate_days(
+                        constraint="current_and_future"
+                    )
+                
+                logger.info(f"  Candidate days: {[d+1 for d in candidate_days]}")
+                
+                # Geographic look-ahead if multiple candidates
+                if len(candidate_days) > 1:
+                    # Load base itinerary
+                    with open(self.base_itinerary_path, 'r') as f:
+                        base_itinerary = json.load(f)
+                    
+                    # Create temporary optimizer just for look-ahead
+                    from ml_or.itinerary_optimizer import ItineraryOptimizer
+                    temp_optimizer = ItineraryOptimizer(
+                        locations_file=str(self.locations_path),
+                        transport_file=str(self.transport_path),
+                        base_itinerary_file=str(self.base_itinerary_path),
+                        family_prefs_file=str(self.base_prefs_path)
+                    )
+                    
+                    # Run geographic look-ahead
+                    best_day, distance = temp_optimizer.find_best_day_for_poi(
+                        poi_id=poi_id,
+                        candidate_days=candidate_days,
+                        base_itinerary=base_itinerary
+                    )
+                    
+                    logger.info(f"  [✓] Best day: Day {best_day + 1} (avg distance: {distance:.2f} km)")
+                    target_day = best_day
+                elif len(candidate_days) == 1:
+                    target_day = candidate_days[0]
+                    logger.info(f"  [✓] Single candidate day: Day {target_day + 1}")
+        
+        # ═══════════════════════════════════════════════════════════════
         # STEP 2: Initialize and Run Optimizer
         # ═══════════════════════════════════════════════════════════════
         
         from ml_or.itinerary_optimizer import ItineraryOptimizer
+        from .schemas import EventType
+        
+        # Apply transport disruption if needed
+        transport_file_to_use = str(self.transport_path)
+        transport_disruption_active = False
+        
+        # Fix: Check if event_type string contains TRANSPORT_ISSUE
+        event_type_str = str(preferences.get('event_type', '')) if preferences else ''
+        if 'TRANSPORT_ISSUE' in event_type_str:
+            transport_mode = preferences.get('transport_mode')
+            from_poi = preferences.get('disruption_from_poi')
+            to_poi = preferences.get('disruption_to_poi')
+            
+            if transport_mode:
+                logger.info(f"Applying transport disruption: {transport_mode}" + 
+                          (f" from {from_poi} to {to_poi}" if from_poi and to_poi else " (global)"))
+                
+                # Use the new utility function
+                transport_file_to_use = create_disrupted_transport_graph(
+                    transport_graph_path=str(self.transport_path),
+                    transport_mode=transport_mode,
+                    from_poi=from_poi,
+                    to_poi=to_poi,
+                    output_dir=str(run_dir) if run_dir else None
+                )
+                transport_disruption_active = True
+                logger.info(f"Using disrupted transport graph: {transport_file_to_use}")
         
         logger.info("Initializing ItineraryOptimizer...")
         optimizer = ItineraryOptimizer(
             locations_file=str(self.locations_path),
-            transport_file=str(self.transport_path),
+            transport_file=transport_file_to_use,
             base_itinerary_file=str(self.base_itinerary_path),
             family_prefs_file=str(updated_prefs_path)
         )
         
-        logger.info("Running optimization...")
-        new_solution = optimizer.optimize_trip(
-            family_ids=["FAM_A", "FAM_B", "FAM_C"],
-            num_days=3,
-            lambda_divergence=0.05
-        )
+        # Decide: Single-day re-opt or full trip?
+        if target_day is not None and current_solution:
+            # Single-day re-optimization (faster, preserves completed days)
+            logger.info(f"Running single-day re-optimization for Day {target_day + 1}...")
+            new_solution = optimizer.reoptimize_from_current_state(
+                current_solution=current_solution,
+                target_day_index=target_day,
+                family_ids=["FAM_A", "FAM_B", "FAM_C"],
+                lambda_divergence=0.05
+            )
+        else:
+            # Full trip optimization (default, original behavior)
+            logger.info("Running full trip optimization...")
+            new_solution = optimizer.optimize_trip(
+                family_ids=["FAM_A", "FAM_B", "FAM_C"],
+                num_days=3,
+                lambda_divergence=0.05
+            )
         
         if not new_solution:
             logger.error("Optimizer failed to find a solution")
@@ -168,13 +305,17 @@ class OptimizerAgent:
         
         logger.info("Running explainability pipeline...")
         
+        # Initialize decision traces (will be populated later with disruption info)
+        decision_traces = optimizer.decision_traces
+        
         # Compare solutions
         diff_engine = ItineraryDiffEngine()
         if baseline_solution:
             diffs = diff_engine.compare_optimized_solutions(
                 baseline_optimized=baseline_solution,
                 new_optimized=new_solution,
-                days_to_compare=None
+                days_to_compare=None,
+                decision_traces=decision_traces  # Pass for transport disruption detection
             )
         else:
             # First run - no baseline
@@ -183,7 +324,26 @@ class OptimizerAgent:
         
         # Tag changes with causal reasoning
         tagger = CausalTagger()
-        decision_traces = optimizer.decision_traces
+        
+        # Add disruption info to decision traces if needed
+        if transport_disruption_active and preferences:
+            # Add active_disruptions to each day's decision trace
+            transport_mode = preferences.get('transport_mode')
+            for day_idx in range(len(new_solution.get('days', []))):
+                if day_idx not in decision_traces:
+                    decision_traces[day_idx] = {"candidates": [], "constraints": []}
+                
+                # Add disruption information
+                if "active_disruptions" not in decision_traces[day_idx]:
+                    decision_traces[day_idx]["active_disruptions"] = []
+                
+                decision_traces[day_idx]["active_disruptions"].append({
+                    "disruption_id": f"{transport_mode}_DISRUPTION",
+                    "affected_modes": [transport_mode],
+                    "reason": "USER_REPORTED",
+                    "severity": "SEVERE"
+                })
+        
         tagged_diffs = tagger.tag_changes(diffs, decision_traces)
         
         # Calculate cost/satisfaction deltas
