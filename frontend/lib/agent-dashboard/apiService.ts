@@ -27,6 +27,8 @@ export interface SearchResult {
         currency: string;
     };
     tags: string[]; // "Non-stop", "Refundable"
+    images?: string[]; // For hotels/listings
+    facilities?: string[]; // "Wifi", "Pool", "Gym"
 }
 
 // Mock Data Generators
@@ -76,7 +78,13 @@ const generateHotels = (criteria: SearchCriteria): SearchResult[] => {
             subtitle: 'Luxury Hotel • 5 Star',
             details: { location: 'Chanakyapuri, New Delhi', rating: 4.8 },
             price: { amount: 18000, currency: 'INR' },
-            tags: ['Breakfast Included', 'Free Cancellation']
+            tags: ['Breakfast Included', 'Free Cancellation'],
+            images: [
+                'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+                'https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+                'https://images.unsplash.com/photo-1571896349842-6e53ce41be03?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+            ],
+            facilities: ['Free Wifi', 'Swimming Pool', 'Spa', 'Gym', 'Restaurant']
         },
         {
             id: 'HT-002',
@@ -86,7 +94,12 @@ const generateHotels = (criteria: SearchCriteria): SearchResult[] => {
             subtitle: 'Business Hotel • 4 Star',
             details: { location: 'Aerocity, New Delhi', rating: 4.2 },
             price: { amount: 6500, currency: 'INR' },
-            tags: ['Airport Transfer']
+            tags: ['Airport Transfer'],
+            images: [
+                'https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+                'https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+            ],
+            facilities: ['Free Wifi', 'Airport Shuttle', 'Bar', '24h Front Desk']
         },
         {
             id: 'HT-003',
@@ -96,7 +109,12 @@ const generateHotels = (criteria: SearchCriteria): SearchResult[] => {
             subtitle: 'Ultra Luxury • 5 Star',
             details: { location: 'Diplomatic Enclave, New Delhi', rating: 4.9 },
             price: { amount: 25000, currency: 'INR' },
-            tags: ['Spa', 'Pool View']
+            tags: ['Spa', 'Pool View'],
+            images: [
+                'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+                'https://images.unsplash.com/photo-1590490360182-c87295ecc039?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+            ],
+            facilities: ['Butler Service', 'Rooftop Pool', 'Fine Dining', 'Spa']
         }
     ];
 };
