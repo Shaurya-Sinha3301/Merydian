@@ -15,8 +15,9 @@ export interface SearchResult {
     logo?: string;
     title: string; // "New Delhi (DEL) → Mumbai (BOM)"
     subtitle: string; // "10:00 AM - 12:10 PM • 2h 10m"
+    description?: string; // Full description for details page
     details: {
-        startTime: string;
+        startTime?: string;
         endTime?: string;
         duration?: string;
         location?: string; // For hotels
@@ -76,6 +77,7 @@ const generateHotels = (criteria: SearchCriteria): SearchResult[] => {
             provider: 'Taj Palace',
             title: 'Taj Palace, New Delhi',
             subtitle: 'Luxury Hotel • 5 Star',
+            description: 'Experience the grandeur of Taj Palace, New Delhi. Nestled in the heart of the diplomatic enclave, our 5-star hotel is an oasis of calm and luxury. Enjoy world-class dining, a rejuvenating spa, and lush gardens. Perfect for both business and leisure travelers seeking an unforgettable stay.',
             details: { location: 'Chanakyapuri, New Delhi', rating: 4.8 },
             price: { amount: 18000, currency: 'INR' },
             tags: ['Breakfast Included', 'Free Cancellation'],
@@ -92,6 +94,7 @@ const generateHotels = (criteria: SearchCriteria): SearchResult[] => {
             provider: 'Ibis Aerocity',
             title: 'Ibis New Delhi Aerocity',
             subtitle: 'Business Hotel • 4 Star',
+            description: 'Modern, vibrant, and perfectly located. Ibis New Delhi Aerocity offers comfortable rooms, a lively bar, and easy access to the airport and metro. Ideal for transit passengers and business travelers looking for value and convenience.',
             details: { location: 'Aerocity, New Delhi', rating: 4.2 },
             price: { amount: 6500, currency: 'INR' },
             tags: ['Airport Transfer'],
@@ -107,6 +110,7 @@ const generateHotels = (criteria: SearchCriteria): SearchResult[] => {
             provider: 'The Leela Palace',
             title: 'The Leela Palace',
             subtitle: 'Ultra Luxury • 5 Star',
+            description: 'Ranked among the best hotels in the world, The Leela Palace New Delhi represents the magnificent architecture and elegance of Lutyens Delhi. Indulge in royal luxury, exceptional service, and culinary masterpieces at our award-winning restaurants.',
             details: { location: 'Diplomatic Enclave, New Delhi', rating: 4.9 },
             price: { amount: 25000, currency: 'INR' },
             tags: ['Spa', 'Pool View'],

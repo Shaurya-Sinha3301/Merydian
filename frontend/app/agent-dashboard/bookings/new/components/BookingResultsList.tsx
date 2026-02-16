@@ -84,7 +84,15 @@ export default function BookingResultsList({ results, onSelect }: BookingResults
                                         </p>
                                         <p className="text-xs text-slate-400 mt-0.5">Includes taxes & fees</p>
                                     </div>
-                                    <button className="px-6 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl shadow-lg shadow-slate-900/10 group-hover:bg-indigo-600 group-hover:shadow-indigo-600/20 transition-all active:scale-95">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Get the current groupId from URL context if possible, or we assume the parent passed it
+                                            // For now, simpler to just use click handler
+                                            window.location.href = `/agent-dashboard/bookings/hotel/${result.id}?groupId=${new URLSearchParams(window.location.search).get('groupId')}`;
+                                        }}
+                                        className="px-6 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl shadow-lg shadow-slate-900/10 group-hover:bg-indigo-600 group-hover:shadow-indigo-600/20 transition-all active:scale-95"
+                                    >
                                         View Details
                                     </button>
                                 </div>

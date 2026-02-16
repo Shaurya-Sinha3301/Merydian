@@ -39,6 +39,33 @@ export default function NewBookingPage() {
         }
     }, [groupId]);
 
+    // Handle pre-selection from Details Page (Simulated)
+    useEffect(() => {
+        const selectedId = searchParams.get('selectedId');
+        const stepParam = searchParams.get('step');
+
+        if (selectedId && stepParam === 'book') {
+            const fetchAndSelect = async () => {
+                const results = await apiService.search({
+                    type: type as any,
+                    date: '2026-03-15',
+                    travelers: 1
+                });
+                const found = results.find(r => r.id === selectedId);
+                if (found) {
+                    setSearchCriteria({
+                        type: type as any,
+                        date: '2026-03-15',
+                        travelers: 1
+                    }); // Mock props
+                    setSelectedResult(found);
+                    setStep('book');
+                }
+            };
+            fetchAndSelect();
+        }
+    }, [searchParams, type]);
+
     const handleSearch = async (criteria: SearchCriteria) => {
         setSearchCriteria(criteria);
         setIsLoading(true);
@@ -190,8 +217,8 @@ export default function NewBookingPage() {
                                             key={member.id}
                                             onClick={() => handleTravelerToggle(member.id)}
                                             className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${selectedTravelers.includes(member.id)
-                                                    ? 'bg-indigo-50 border-indigo-200 shadow-sm'
-                                                    : 'bg-white border-slate-100 hover:border-slate-300'
+                                                ? 'bg-indigo-50 border-indigo-200 shadow-sm'
+                                                : 'bg-white border-slate-100 hover:border-slate-300'
                                                 }`}
                                         >
                                             <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${selectedTravelers.includes(member.id) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 bg-white'
