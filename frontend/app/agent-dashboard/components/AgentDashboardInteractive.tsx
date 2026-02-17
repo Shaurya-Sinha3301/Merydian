@@ -6,17 +6,22 @@ import RequestFilters, { FilterState } from './RequestFilters';
 import RequestsTable from './RequestsTable';
 import MobileRequestsList from './MobileRequestsList';
 import { TripRequest } from '@/lib/agent-dashboard/types';
-import { mockRequests } from '@/lib/agent-dashboard/data';
+import { activeGroups } from '@/lib/agent-dashboard/data';
+import BookingExplorer from './BookingExplorer';
+import { ArrowLeft } from 'lucide-react';
 
 const AgentDashboardInteractive = () => {
   const [isHydrated, setIsHydrated] = useState(false);
-  const [filteredRequests, setFilteredRequests] = useState<TripRequest[]>(mockRequests);
+  const [filteredRequests, setFilteredRequests] = useState<TripRequest[]>(activeGroups);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<FilterState>({
     status: 'all',
     priority: 'all',
     sortBy: 'newest',
   });
+
+  // New State for Booking View
+  const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -25,7 +30,7 @@ const AgentDashboardInteractive = () => {
   useEffect(() => {
     if (!isHydrated) return;
 
-    let filtered = [...mockRequests];
+    let filtered = [...activeGroups];
 
     // Apply search filter
     if (searchTerm) {
@@ -79,12 +84,14 @@ const AgentDashboardInteractive = () => {
 
   const handleQuickAction = (requestId: string, action: string) => {
     console.log(`Quick action: ${action} for request ${requestId}`);
-    // In a real application, this would trigger an API call
+    if (action === 'approve' || action === 'review') { // Assuming 'approve' or entering review opens booking
+      setSelectedRequest(requestId);
+    }
   };
 
   const metrics = {
-    pendingRequests: mockRequests.filter((r) => r.status === 'new').length,
-    inReview: mockRequests.filter((r) => r.status === 'in-review').length,
+    pendingRequests: activeGroups.filter((r) => r.status === 'new').length,
+    inReview: activeGroups.filter((r) => r.status === 'in-review').length,
     completionRate: 87,
     revenueProjection: '$124,500',
     marginAverage: '18.5%',
@@ -102,6 +109,25 @@ const AgentDashboardInteractive = () => {
           </div>
           <div className="h-64 bg-muted rounded-lg" />
         </div>
+      </div>
+    );
+  }
+
+  // Render Booking Explorer if a request is selected
+  if (selectedRequest) {
+    const request = activeGroups.find(r => r.id === selectedRequest);
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <button
+          onClick={() => setSelectedRequest(null)}
+          className="mb-4 flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+        </button>
+        <BookingExplorer
+          requestId={selectedRequest}
+          initialLocation={request?.destination || "Goa"}
+        />
       </div>
     );
   }
@@ -126,7 +152,7 @@ const AgentDashboardInteractive = () => {
       <div className="mb-4">
         <p className="text-sm text-muted-foreground">
           Showing <span className="font-medium text-foreground">{filteredRequests.length}</span> of{' '}
-          <span className="font-medium text-foreground">{mockRequests.length}</span> requests
+          <span className="font-medium text-foreground">{activeGroups.length}</span> active groups
         </p>
       </div>
 

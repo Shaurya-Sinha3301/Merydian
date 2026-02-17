@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/ui/Sidebar';
 import NavigationBreadcrumbs from '@/components/common/NavigationBreadcrumbs';
 import Icon from '@/components/ui/AppIcon';
-import { mockRequests } from '@/lib/agent-dashboard/data';
+import { allGroups } from '@/lib/agent-dashboard/data';
 import { TripRequest, Booking } from '@/lib/agent-dashboard/types';
 
 export default function BookingsPage() {
@@ -13,7 +13,7 @@ export default function BookingsPage() {
     const router = useRouter();
     const initialGroupId = searchParams.get('groupId');
 
-    const [selectedGroupId, setSelectedGroupId] = useState<string | null>(initialGroupId || (mockRequests.length > 0 ? mockRequests[0].id : null));
+    const [selectedGroupId, setSelectedGroupId] = useState<string | null>(initialGroupId || (allGroups.length > 0 ? allGroups[0].id : null));
     const [selectedGroup, setSelectedGroup] = useState<TripRequest | null>(null);
     const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -38,7 +38,7 @@ export default function BookingsPage() {
 
     useEffect(() => {
         if (selectedGroupId) {
-            const group = mockRequests.find(r => r.id === selectedGroupId) || null;
+            const group = allGroups.find(r => r.id === selectedGroupId) || null;
             setSelectedGroup(group);
         }
     }, [selectedGroupId]);
@@ -111,10 +111,11 @@ export default function BookingsPage() {
                     {/* Groups List Sidebar */}
                     <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
                         <div className="p-4 border-b border-slate-100 bg-slate-50/30">
-                            <h2 className="font-bold text-slate-700">Active Groups</h2>
+                            <h2 className="font-bold text-slate-700">All Groups</h2>
+                            <p className="text-xs text-slate-500 mt-1">Active & Upcoming</p>
                         </div>
                         <div className="overflow-y-auto flex-1 p-2 space-y-1">
-                            {mockRequests.map(group => (
+                            {allGroups.map(group => (
                                 <div
                                     key={group.id}
                                     onClick={() => handleGroupSelect(group.id)}
@@ -128,13 +129,20 @@ export default function BookingsPage() {
                                             }`}>
                                             {group.id}
                                         </span>
-                                        <span className={`text-xs ${selectedGroupId === group.id ? 'text-slate-300' : 'text-slate-400'}`}>
-                                            {new Date(group.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                            group.status === 'booked' 
+                                                ? (selectedGroupId === group.id ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700')
+                                                : (selectedGroupId === group.id ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-700')
+                                        }`}>
+                                            {group.status === 'booked' ? 'Active' : 'Upcoming'}
                                         </span>
                                     </div>
                                     <h3 className="font-bold text-sm truncate">{group.customerName}</h3>
                                     <p className={`text-xs mt-1 truncate ${selectedGroupId === group.id ? 'text-slate-400' : 'text-slate-500'}`}>
                                         {group.destination}
+                                    </p>
+                                    <p className={`text-xs mt-1 ${selectedGroupId === group.id ? 'text-slate-300' : 'text-slate-400'}`}>
+                                        {new Date(group.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                     </p>
                                 </div>
                             ))}

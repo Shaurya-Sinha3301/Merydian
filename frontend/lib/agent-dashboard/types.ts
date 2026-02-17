@@ -23,6 +23,47 @@ export interface Traveler {
     familyId?: string; // Optional, to group by family within a large group
 }
 
+export interface SearchResult {
+    id: string;
+    type: 'Flight' | 'Hotel' | 'Train' | 'Bus' | 'Metro' | 'Cab';
+    provider: string; // "Air India", "Marriott"
+    logo?: string;
+    title: string; // "New Delhi (DEL) → Mumbai (BOM)"
+    subtitle: string; // "10:00 AM - 12:10 PM • 2h 10m"
+    description?: string; // Full description for details page
+    details: {
+        startTime?: string;
+        endTime?: string;
+        duration?: string;
+        location?: string; // For hotels
+        rating?: number;
+    };
+    price: {
+        amount: number;
+        currency: string;
+    };
+    tags: string[]; // "Non-stop", "Refundable"
+    images?: string[]; // For hotels/listings
+    facilities?: string[]; // "Wifi", "Pool", "Gym"
+
+    // Agent-specific data
+    agentMetrics?: {
+        commission: number;
+        markup: number;
+        b2bPrice: number;
+    };
+}
+
+export interface SearchCriteria {
+    type: 'Flight' | 'Hotel' | 'Train' | 'Bus' | 'Metro' | 'Cab';
+    origin?: string;
+    destination?: string;
+    date: string;
+    returnDate?: string;
+    travelers: number;
+    class?: string;
+}
+
 export interface TripRequest {
     id: string;
     customerName: string;

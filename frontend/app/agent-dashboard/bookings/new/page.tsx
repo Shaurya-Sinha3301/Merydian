@@ -5,9 +5,10 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/ui/Sidebar';
 import NavigationBreadcrumbs from '@/components/common/NavigationBreadcrumbs';
 import Icon from '@/components/ui/AppIcon';
-import { mockRequests } from '@/lib/agent-dashboard/data';
+import { allGroups } from '@/lib/agent-dashboard/data';
 import { TripRequest, Traveler } from '@/lib/agent-dashboard/types';
-import { apiService, SearchCriteria, SearchResult } from '@/lib/agent-dashboard/apiService';
+import { apiService } from '@/lib/agent-dashboard/apiService';
+import type { SearchCriteria, SearchResult } from '@/lib/agent-dashboard/types';
 import BookingSearchForm from './components/BookingSearchForm';
 import BookingResultsList from './components/BookingResultsList';
 
@@ -31,7 +32,7 @@ export default function NewBookingPage() {
 
     useEffect(() => {
         if (groupId) {
-            const foundGroup = mockRequests.find(r => r.id === groupId) || null;
+            const foundGroup = allGroups.find(r => r.id === groupId) || null;
             setGroup(foundGroup);
             if (foundGroup && foundGroup.members) {
                 setSelectedTravelers(foundGroup.members.map(m => m.id));
@@ -147,6 +148,7 @@ export default function NewBookingPage() {
                             type={type}
                             onSearch={handleSearch}
                             isLoading={isLoading}
+                            group={group}
                         />
                     )}
 

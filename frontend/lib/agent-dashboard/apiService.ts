@@ -1,142 +1,91 @@
-export interface SearchCriteria {
-    type: 'Flight' | 'Hotel' | 'Train' | 'Bus' | 'Metro' | 'Cab';
-    origin?: string;
-    destination?: string;
-    date: string;
-    returnDate?: string;
-    travelers: number;
-    class?: string;
-}
+import { SearchCriteria, SearchResult } from './types';
+import hotelsData from './data/hotels.json';
+import flightsData from './data/flights.json';
+import trainsData from './data/trains.json';
+import cabsData from './data/cabs.json';
+import metroData from './data/metro.json';
 
-export interface SearchResult {
-    id: string;
-    type: 'Flight' | 'Hotel' | 'Train' | 'Bus' | 'Metro' | 'Cab';
-    provider: string; // "Air India", "Marriott"
-    logo?: string;
-    title: string; // "New Delhi (DEL) → Mumbai (BOM)"
-    subtitle: string; // "10:00 AM - 12:10 PM • 2h 10m"
-    description?: string; // Full description for details page
+// Helper to map Hotel JSON to SearchResult
+const mapHotelToResult = (hotel: any): SearchResult => ({
+    id: `HT-${hotel.id}`,
+    type: 'Hotel',
+    provider: hotel.name,
+    title: hotel.name,
+    subtitle: `${hotel.type} • ${hotel.rating} ★`,
+    description: hotel.description,
     details: {
-        startTime?: string;
-        endTime?: string;
-        duration?: string;
-        location?: string; // For hotels
-        rating?: number;
-    };
+        location: `${hotel.location.address}, ${hotel.location.city}`,
+        rating: hotel.rating,
+    },
     price: {
-        amount: number;
-        currency: string;
-    };
-    tags: string[]; // "Non-stop", "Refundable"
-    images?: string[]; // For hotels/listings
-    facilities?: string[]; // "Wifi", "Pool", "Gym"
-}
+        amount: hotel.price_per_night,
+        currency: 'INR',
+    },
+    tags: hotel.tags,
+    images: hotel.images,
+    facilities: hotel.facilities,
+    // Agent-specific data with business metrics
+    agentMetrics: {
+        commission: hotel.agent_commission_amount || (hotel.price_per_night * 0.12),
+        markup: hotel.markup_percent || 0,
+        b2bPrice: hotel.cost_price || (hotel.price_per_night * 0.85),
+    }
+});
 
-// Mock Data Generators
+// Helper to map Flight JSON to SearchResult
+const mapFlightToResult = (flight: any): SearchResult => ({
+    id: flight.id,
+    type: 'Flight',
+    provider: flight.airline,
+    title: `${flight.departure.city} (${flight.departure.airport}) → ${flight.arrival.city} (${flight.arrival.airport})`,
+    subtitle: `${new Date(flight.departure.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(flight.arrival.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${flight.duration}`,
+    details: {
+        startTime: flight.departure.time,
+        endTime: flight.arrival.time,
+        duration: flight.duration,
+    },
+    price: {
+        amount: flight.price,
+        currency: 'INR',
+    },
+    tags: [flight.class, `${flight.seats_available} seats left`],
+});
 
-const generateFlights = (criteria: SearchCriteria): SearchResult[] => {
-    return [
-        {
-            id: 'FL-001',
-            type: 'Flight',
-            provider: 'Indigo',
-            title: `${criteria.origin || 'DEL'} → ${criteria.destination || 'BOM'}`,
-            subtitle: '06:00 AM - 08:15 AM • 2h 15m',
-            details: { startTime: '06:00', endTime: '08:15', duration: '2h 15m' },
-            price: { amount: 5400, currency: 'INR' },
-            tags: ['Non-stop', 'Economy']
-        },
-        {
-            id: 'FL-002',
-            type: 'Flight',
-            provider: 'Air India',
-            title: `${criteria.origin || 'DEL'} → ${criteria.destination || 'BOM'}`,
-            subtitle: '10:00 AM - 12:10 PM • 2h 10m',
-            details: { startTime: '10:00', endTime: '12:10', duration: '2h 10m' },
-            price: { amount: 6200, currency: 'INR' },
-            tags: ['Meal Included', 'Refundable']
-        },
-        {
-            id: 'FL-003',
-            type: 'Flight',
-            provider: 'Vistara',
-            title: `${criteria.origin || 'DEL'} → ${criteria.destination || 'BOM'}`,
-            subtitle: '05:30 PM - 07:45 PM • 2h 15m',
-            details: { startTime: '17:30', endTime: '19:45', duration: '2h 15m' },
-            price: { amount: 7500, currency: 'INR' },
-            tags: ['Business Class Available']
-        }
-    ];
-};
+// Helper to map Train JSON to SearchResult
+const mapTrainToResult = (train: any): SearchResult => ({
+    id: train.id,
+    type: 'Train',
+    provider: train.train_name,
+    title: `${train.departure.city} (${train.departure.station}) → ${train.arrival.city} (${train.arrival.station})`,
+    subtitle: `${new Date(train.departure.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(train.arrival.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${train.duration}`,
+    details: {
+        startTime: train.departure.time,
+        endTime: train.arrival.time,
+        duration: train.duration,
+    },
+    price: {
+        amount: train.price,
+        currency: 'INR',
+    },
+    tags: [train.class, train.train_number],
+});
 
-const generateHotels = (criteria: SearchCriteria): SearchResult[] => {
-    return [
-        {
-            id: 'HT-001',
-            type: 'Hotel',
-            provider: 'Taj Palace',
-            title: 'Taj Palace, New Delhi',
-            subtitle: 'Luxury Hotel • 5 Star',
-            description: 'Experience the grandeur of Taj Palace, New Delhi. Nestled in the heart of the diplomatic enclave, our 5-star hotel is an oasis of calm and luxury. Enjoy world-class dining, a rejuvenating spa, and lush gardens. Perfect for both business and leisure travelers seeking an unforgettable stay.',
-            details: { location: 'Chanakyapuri, New Delhi', rating: 4.8 },
-            price: { amount: 18000, currency: 'INR' },
-            tags: ['Breakfast Included', 'Free Cancellation'],
-            images: [
-                'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-                'https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-                'https://images.unsplash.com/photo-1571896349842-6e53ce41be03?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
-            ],
-            facilities: ['Free Wifi', 'Swimming Pool', 'Spa', 'Gym', 'Restaurant']
-        },
-        {
-            id: 'HT-002',
-            type: 'Hotel',
-            provider: 'Ibis Aerocity',
-            title: 'Ibis New Delhi Aerocity',
-            subtitle: 'Business Hotel • 4 Star',
-            description: 'Modern, vibrant, and perfectly located. Ibis New Delhi Aerocity offers comfortable rooms, a lively bar, and easy access to the airport and metro. Ideal for transit passengers and business travelers looking for value and convenience.',
-            details: { location: 'Aerocity, New Delhi', rating: 4.2 },
-            price: { amount: 6500, currency: 'INR' },
-            tags: ['Airport Transfer'],
-            images: [
-                'https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-                'https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
-            ],
-            facilities: ['Free Wifi', 'Airport Shuttle', 'Bar', '24h Front Desk']
-        },
-        {
-            id: 'HT-003',
-            type: 'Hotel',
-            provider: 'The Leela Palace',
-            title: 'The Leela Palace',
-            subtitle: 'Ultra Luxury • 5 Star',
-            description: 'Ranked among the best hotels in the world, The Leela Palace New Delhi represents the magnificent architecture and elegance of Lutyens Delhi. Indulge in royal luxury, exceptional service, and culinary masterpieces at our award-winning restaurants.',
-            details: { location: 'Diplomatic Enclave, New Delhi', rating: 4.9 },
-            price: { amount: 25000, currency: 'INR' },
-            tags: ['Spa', 'Pool View'],
-            images: [
-                'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-                'https://images.unsplash.com/photo-1590490360182-c87295ecc039?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
-            ],
-            facilities: ['Butler Service', 'Rooftop Pool', 'Fine Dining', 'Spa']
-        }
-    ];
-};
-
-const generateOthers = (criteria: SearchCriteria): SearchResult[] => {
-    return [
-        {
-            id: `OT-${Math.random().toString(36).substr(2, 5)}`,
-            type: criteria.type,
-            provider: 'Uber Intercity',
-            title: `${criteria.origin || 'City Center'} → ${criteria.destination || 'Airport'}`,
-            subtitle: 'Sedan • 4 Seater',
-            details: { startTime: 'Now', duration: '45m' },
-            price: { amount: 800, currency: 'INR' },
-            tags: ['Instant Confirmation']
-        }
-    ];
-};
+// Helper to map Cab JSON to SearchResult
+const mapCabToResult = (cab: any): SearchResult => ({
+    id: cab.id,
+    type: 'Cab',
+    provider: cab.type,
+    title: `${cab.model} (${cab.type})`,
+    subtitle: `Driver: ${cab.driver.name} • ${cab.driver.rating} ★`,
+    details: {
+        duration: cab.estimated_arrival,
+    },
+    price: {
+        amount: cab.base_fare, // This is base fare, logic could be more complex
+        currency: 'INR',
+    },
+    tags: [`Capacity: ${cab.capacity}`, 'Instant Booking'],
+});
 
 
 export const apiService = {
@@ -144,18 +93,57 @@ export const apiService = {
         // Simulate API delay
         return new Promise((resolve) => {
             setTimeout(() => {
+                let results: SearchResult[] = [];
+
                 switch (criteria.type) {
                     case 'Flight':
-                        resolve(generateFlights(criteria));
+                        results = flightsData.flights.map(mapFlightToResult);
                         break;
                     case 'Hotel':
-                        resolve(generateHotels(criteria));
+                        results = hotelsData.hotels.map(mapHotelToResult);
+                        break;
+                    case 'Train':
+                        results = trainsData.trains.map(mapTrainToResult);
+                        break;
+                    case 'Cab':
+                        results = cabsData.cabs.map(mapCabToResult);
+                        break;
+                    case 'Metro':
+                        // Metro is slightly different structure, usually not "bookable" in the same way, but let's list routes
+                        results = metroData.metro_routes.map((route: any) => ({
+                            id: route.id,
+                            type: 'Metro',
+                            provider: 'Metro Rail',
+                            title: `${route.city} Metro - ${route.line_name}`,
+                            subtitle: `Frequency: Every ${route.frequency_minutes} mins`,
+                            details: {
+                                duration: 'N/A'
+                            },
+                            price: {
+                                amount: 20, // Dummy
+                                currency: 'INR'
+                            },
+                            tags: [`First: ${route.first_train}`, `Last: ${route.last_train}`]
+                        }));
                         break;
                     default:
-                        resolve(generateOthers(criteria));
+                        results = [];
                         break;
                 }
-            }, 1000); // 1 second delay
+
+                // Simple client-side filtering (mocking backend search)
+                if (criteria.destination && criteria.type !== 'Metro') { // Metro usually city based
+                    const dest = criteria.destination.toLowerCase();
+                    results = results.filter(r =>
+                        r.title.toLowerCase().includes(dest) ||
+                        r.details.location?.toLowerCase().includes(dest) ||
+                        (r.type === 'Flight' && r.title.toLowerCase().includes(dest)) // Flight title has destination
+                    );
+                }
+
+                resolve(results);
+            }, 800);
         });
     }
 };
+

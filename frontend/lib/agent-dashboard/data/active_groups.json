@@ -1,0 +1,113 @@
+{
+    "meta": {
+        "total_groups": 3,
+        "generated_for": "web_dev_testing"
+    },
+    "groups": [
+        {
+            "id": "GRP001",
+            "group_name": "Sharma Family Vacation",
+            "package_type": "Premium Goa Retreat",
+            "status": "Active",
+            "current_location": "Goa, India",
+            "start_date": "2023-11-14",
+            "end_date": "2023-11-20",
+            "members": [
+                {
+                    "id": "MEM001",
+                    "name": "Rajesh Sharma",
+                    "age": 45,
+                    "gender": "Male",
+                    "passport_number": "A1234567",
+                    "role": "Head"
+                },
+                {
+                    "id": "MEM002",
+                    "name": "Priya Sharma",
+                    "age": 42,
+                    "gender": "Female",
+                    "passport_number": "A1234568",
+                    "role": "Member"
+                },
+                {
+                    "id": "MEM003",
+                    "name": "Arjun Sharma",
+                    "age": 12,
+                    "gender": "Male",
+                    "passport_number": "A1234569",
+                    "role": "Child"
+                },
+                {
+                    "id": "MEM004",
+                    "name": "Riya Sharma",
+                    "age": 8,
+                    "gender": "Female",
+                    "passport_number": "A1234570",
+                    "role": "Child"
+                }
+            ]
+        },
+        {
+            "id": "GRP002",
+            "group_name": "Tech Corp Offsite",
+            "package_type": "Business Conference & Leisure",
+            "status": "Active",
+            "current_location": "Bangalore, India",
+            "start_date": "2023-11-15",
+            "end_date": "2023-11-18",
+            "members": [
+                {
+                    "id": "MEM005",
+                    "name": "Vikram Singh",
+                    "age": 35,
+                    "gender": "Male",
+                    "passport_number": "B9876543",
+                    "role": "Head"
+                },
+                {
+                    "id": "MEM006",
+                    "name": "Sarah Jenkins",
+                    "age": 29,
+                    "gender": "Female",
+                    "passport_number": "C1239876",
+                    "role": "Member"
+                },
+                {
+                    "id": "MEM007",
+                    "name": "Amit Patel",
+                    "age": 32,
+                    "gender": "Male",
+                    "passport_number": "D4561237",
+                    "role": "Member"
+                }
+            ]
+        },
+        {
+            "id": "GRP003",
+            "group_name": "Himalayan Trekkers",
+            "package_type": "Adventure Manali",
+            "status": "Active",
+            "current_location": "Manali, India",
+            "start_date": "2023-11-12",
+            "end_date": "2023-11-19",
+            "members": [
+                {
+                    "id": "MEM008",
+                    "name": "Kabir Khan",
+                    "age": 28,
+                    "gender": "Male",
+                    "passport_number": "E7894561",
+                    "role": "Head"
+                },
+                {
+                    "id": "MEM009",
+                    "name": "Zara Siddiqui",
+                    "age": 26,
+                    "gender": "Female",
+                    "passport_number": "F1597534",
+                    "role": "Member"
+                }
+            ]
+        }
+    ]
+}

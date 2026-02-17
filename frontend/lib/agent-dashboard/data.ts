@@ -1,4 +1,85 @@
 import { TripRequest } from './types';
+import activeGroupsData from './data/active_groups.json';
+import upcomingGroupsData from './data/upcoming_groups.json';
+import hotelsData from './data/hotels.json';
+import flightsData from './data/flights.json';
+import trainsData from './data/trains.json';
+import cabsData from './data/cabs.json';
+
+// Export the raw data for direct access
+export { activeGroupsData, upcomingGroupsData, hotelsData, flightsData, trainsData, cabsData };
+
+// Convert JSON groups to TripRequest format
+const convertGroupToTripRequest = (group: any, isActive: boolean): TripRequest => {
+    const adults = group.members.filter((m: any) => m.role === 'Head' || m.role === 'Member').length;
+    const children = group.members.filter((m: any) => m.role === 'Child').length;
+    const seniors = 0; // Not specified in the JSON
+
+    // Add sample bookings for active groups
+    const bookings = isActive ? [
+        {
+            id: `BK-${group.id}-001`,
+            type: 'Flight' as const,
+            status: 'Confirmed' as const,
+            details: {
+                provider: 'IndiGo',
+                reservationNumber: `6E${Math.floor(Math.random() * 10000)}`,
+                date: group.start_date,
+                time: '08:30 AM',
+                description: `Flight to ${group.current_location}`,
+                cost: 4500 * (adults + children),
+                currency: 'INR',
+                location: 'Indira Gandhi International Airport'
+            }
+        },
+        {
+            id: `BK-${group.id}-002`,
+            type: 'Hotel' as const,
+            status: 'Confirmed' as const,
+            details: {
+                provider: 'Ocean Breeze Resort',
+                reservationNumber: `HT${Math.floor(Math.random() * 10000)}`,
+                date: group.start_date,
+                description: `${Math.ceil((adults + children) / 2)}x Deluxe Rooms`,
+                cost: 5200 * Math.ceil((adults + children) / 2) * 
+                      Math.ceil((new Date(group.end_date).getTime() - new Date(group.start_date).getTime()) / (1000 * 60 * 60 * 24)),
+                currency: 'INR',
+                location: `${group.current_location}, India`
+            }
+        }
+    ] : [];
+
+    return {
+        id: group.id,
+        customerName: group.group_name,
+        destination: group.current_location === 'Not Started' ? group.package_type : group.current_location,
+        startDate: group.start_date,
+        endDate: group.end_date,
+        groupSize: { adults, children, seniors },
+        members: group.members.map((m: any) => ({
+            id: m.id,
+            name: m.name,
+            age: m.age,
+            type: m.role === 'Child' ? 'Child' : m.age >= 60 ? 'Senior' : 'Adult'
+        })),
+        budgetRange: { min: 5000, max: 15000 }, // Default values
+        status: group.status === 'Active' ? 'booked' : 'approved',
+        priority: 'medium',
+        constraints: [],
+        confidenceScore: 85,
+        submittedAt: new Date(group.start_date).toISOString(),
+        bookings
+    };
+};
+
+// Convert active groups
+export const activeGroups: TripRequest[] = activeGroupsData.groups.map(g => convertGroupToTripRequest(g, true));
+
+// Convert upcoming groups
+export const upcomingGroups: TripRequest[] = upcomingGroupsData.groups.map(g => convertGroupToTripRequest(g, false));
+
+// Combined groups for backward compatibility
+export const allGroups: TripRequest[] = [...activeGroups, ...upcomingGroups];
 
 export const mockRequests: TripRequest[] = [
     {

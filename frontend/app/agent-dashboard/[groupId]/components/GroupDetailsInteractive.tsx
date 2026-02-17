@@ -7,47 +7,109 @@ import Icon from '@/components/ui/AppIcon';
 import NavigationBreadcrumbs from '@/components/common/NavigationBreadcrumbs';
 import { Sidebar } from '@/components/ui/Sidebar';
 import { Map, MapMarker, MapTileLayer } from '@/components/ui/map';
-
-// Mock data for a specific group (in real app, fetch by ID)
-const groupDetails = {
-    id: 'GRP-2026-001',
-    name: 'The Johnson Family Group',
-    status: 'Active',
-    dates: 'Mar 15 - Mar 22, 2026',
-    destination: 'Paris, France',
-    totalTravelers: 12,
-    satisfactionScore: 88,
-    optimizationStatus: 'Optimized',
-    families: [
-        { id: 'FAM-001', name: 'Johnson Core', members: 4, satisfaction: 90, status: 'Confirmed' },
-        { id: 'FAM-002', name: 'Smith Cousins', members: 3, satisfaction: 85, status: 'Pending Review' },
-        { id: 'FAM-003', name: 'Grandparents', members: 2, satisfaction: 95, status: 'Confirmed' },
-        { id: 'FAM-004', name: 'Friends', members: 3, satisfaction: 82, status: 'Confirmed' },
-    ],
-    nextDestinations: [
-        { name: 'Eiffel Tower', time: '10:00 AM', date: 'Mar 16' },
-        { name: 'Louvre Museum', time: '2:00 PM', date: 'Mar 16' },
-        { name: 'Seine Cruise', time: '6:30 PM', date: 'Mar 17' },
-    ],
-    coordinates: { lat: 48.8566, lng: 2.3522 } // Paris
-};
+import { allGroups } from '@/lib/agent-dashboard/data';
 
 export default function GroupDetailsInteractive() {
     const params = useParams();
-    // const { groupId } = params; // Use this to fetch real data
+    const groupId = params.groupId as string;
+    
+    // Find the selected group from all groups
+    const selectedGroup = allGroups.find(g => g.id === groupId) || allGroups[0];
+    
+    // Mock data for group details (in real app, fetch by ID)
+    const groupDetails = {
+        id: selectedGroup.id,
+        name: selectedGroup.customerName,
+        status: selectedGroup.status === 'booked' ? 'Active' : 'Upcoming',
+        dates: `${new Date(selectedGroup.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(selectedGroup.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+        destination: selectedGroup.destination,
+        totalTravelers: selectedGroup.groupSize.adults + selectedGroup.groupSize.children + selectedGroup.groupSize.seniors,
+        satisfactionScore: 88,
+        optimizationStatus: 'Optimized',
+        families: selectedGroup.members ? 
+            // Group members by family (simplified - just create one family per group)
+            [{
+                id: 'FAM-001',
+                name: `${selectedGroup.customerName} Members`,
+                members: selectedGroup.members.length,
+                satisfaction: 90,
+                status: selectedGroup.status === 'booked' ? 'Confirmed' : 'Pending'
+            }] : [],
+        nextDestinations: [
+            { name: 'First Destination', time: '10:00 AM', date: new Date(selectedGroup.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) },
+            { name: 'Second Destination', time: '2:00 PM', date: new Date(selectedGroup.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) },
+        ],
+        coordinates: { lat: 15.2993, lng: 74.1240 } // Default to Goa
+    };
 
     return (
         <div className="flex bg-background h-[calc(100vh-4rem)] overflow-hidden">
             <Sidebar />
-            <main className="flex-1 p-8 overflow-y-auto">
-                <NavigationBreadcrumbs />
+            <main className="flex-1 overflow-y-auto">
+                <div className="p-8">
+                    <NavigationBreadcrumbs />
+
+                    {/* Groups Navigation Menu */}
+                    <div className="mb-6 bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-bold text-slate-700">All Groups</h3>
+                            <div className="flex gap-2">
+                                <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-semibold">
+                                    {allGroups.filter(g => g.status === 'booked').length} Active
+                                </span>
+                                <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full font-semibold">
+                                    {allGroups.filter(g => g.status === 'approved').length} Upcoming
+                                </span>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+                            {allGroups.map((group) => (
+                                <Link
+                                    key={group.id}
+                                    href={`/agent-dashboard/${group.id}`}
+                                    className={`p-3 rounded-xl border-2 transition-all hover:shadow-md ${
+                                        group.id === selectedGroup.id
+                                            ? 'bg-slate-900 text-white border-slate-900'
+                                            : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                                            group.id === selectedGroup.id
+                                                ? 'bg-slate-700 text-slate-200'
+                                                : 'bg-slate-100 text-slate-500'
+                                        }`}>
+                                            {group.id}
+                                        </span>
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                            group.status === 'booked'
+                                                ? (group.id === selectedGroup.id ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700')
+                                                : (group.id === selectedGroup.id ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-700')
+                                        }`}>
+                                            {group.status === 'booked' ? 'Active' : 'Upcoming'}
+                                        </span>
+                                    </div>
+                                    <h4 className="font-bold text-xs truncate">{group.customerName}</h4>
+                                    <p className={`text-[10px] mt-1 truncate ${
+                                        group.id === selectedGroup.id ? 'text-slate-300' : 'text-slate-500'
+                                    }`}>
+                                        {group.destination}
+                                    </p>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
 
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <h1 className="text-3xl font-bold font-heading text-foreground">{groupDetails.name}</h1>
-                            <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full uppercase tracking-wide">
+                            <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wide ${
+                                groupDetails.status === 'Active' 
+                                    ? 'bg-emerald-100 text-emerald-700' 
+                                    : 'bg-amber-100 text-amber-700'
+                            }`}>
                                 {groupDetails.status}
                             </span>
                         </div>
@@ -100,28 +162,29 @@ export default function GroupDetailsInteractive() {
                         </div>
 
                         {/* Families List */}
-                        <div className="bg-white rounded-2xl shadow-[4px_4px_10px_rgba(0,0,0,0.05)] border border-neutral-100 overflow-hidden">
-                            <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
-                                <h3 className="font-bold text-lg">Families ({groupDetails.families.length})</h3>
-                                <button className="text-xs font-semibold text-primary hover:underline">View All</button>
-                            </div>
-                            <div className="divide-y divide-neutral-50">
-                                {groupDetails.families.map((family) => (
-                                    <div key={family.id} className="p-4 hover:bg-neutral-50 transition-colors cursor-pointer group">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{family.name}</span>
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${family.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
-                                                {family.status}
-                                            </span>
+                        {groupDetails.families.length > 0 && (
+                            <div className="bg-white rounded-2xl shadow-[4px_4px_10px_rgba(0,0,0,0.05)] border border-neutral-100 overflow-hidden">
+                                <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
+                                    <h3 className="font-bold text-lg">Members ({groupDetails.families.length})</h3>
+                                </div>
+                                <div className="divide-y divide-neutral-50">
+                                    {groupDetails.families.map((family) => (
+                                        <div key={family.id} className="p-4 hover:bg-neutral-50 transition-colors cursor-pointer group">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{family.name}</span>
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${family.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                                                    {family.status}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                                <span>{family.members} members</span>
+                                                <span>Sat: <span className="text-foreground font-medium">{family.satisfaction}%</span></span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                            <span>{family.members} members</span>
-                                            <span>Sat: <span className="text-foreground font-medium">{family.satisfaction}%</span></span>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* AI Insights / Constraints */}
                         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-5 border border-indigo-100">
@@ -181,6 +244,7 @@ export default function GroupDetailsInteractive() {
                             </div>
                         </div>
                     </div>
+                </div>
                 </div>
             </main>
         </div>

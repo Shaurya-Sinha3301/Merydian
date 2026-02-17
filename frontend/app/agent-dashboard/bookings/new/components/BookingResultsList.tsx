@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { SearchResult } from '@/lib/agent-dashboard/apiService';
+import type { SearchResult } from '@/lib/agent-dashboard/types';
 import Icon from '@/components/ui/AppIcon';
 
 interface BookingResultsListProps {

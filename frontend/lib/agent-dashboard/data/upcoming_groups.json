@@ -1,0 +1,113 @@
+{
+    "meta": {
+        "total_groups": 3,
+        "generated_for": "web_dev_testing"
+    },
+    "groups": [
+        {
+            "id": "GRP004",
+            "group_name": "Mehta Anniversary Trip",
+            "package_type": "Royal Rajasthan",
+            "status": "Upcoming",
+            "current_location": "Not Started",
+            "start_date": "2023-12-01",
+            "end_date": "2023-12-07",
+            "members": [
+                {
+                    "id": "MEM010",
+                    "name": "Sanjay Mehta",
+                    "age": 55,
+                    "gender": "Male",
+                    "passport_number": "G3216549",
+                    "role": "Head"
+                },
+                {
+                    "id": "MEM011",
+                    "name": "Anita Mehta",
+                    "age": 52,
+                    "gender": "Female",
+                    "passport_number": "H9513574",
+                    "role": "Member"
+                }
+            ]
+        },
+        {
+            "id": "GRP005",
+            "group_name": "College Friends Reunion",
+            "package_type": "Backpacking Kerala",
+            "status": "Upcoming",
+            "current_location": "Not Started",
+            "start_date": "2023-12-10",
+            "end_date": "2023-12-18",
+            "members": [
+                {
+                    "id": "MEM012",
+                    "name": "Rohan Das",
+                    "age": 24,
+                    "gender": "Male",
+                    "passport_number": "J8524563",
+                    "role": "Head"
+                },
+                {
+                    "id": "MEM013",
+                    "name": "Sneha Roy",
+                    "age": 23,
+                    "gender": "Female",
+                    "passport_number": "K7418529",
+                    "role": "Member"
+                },
+                {
+                    "id": "MEM014",
+                    "name": "Aryan Gupta",
+                    "age": 24,
+                    "gender": "Male",
+                    "passport_number": "L9638527",
+                    "role": "Member"
+                },
+                {
+                    "id": "MEM015",
+                    "name": "Meera Iyer",
+                    "age": 23,
+                    "gender": "Female",
+                    "passport_number": "M1593574",
+                    "role": "Member"
+                }
+            ]
+        },
+        {
+            "id": "GRP006",
+            "group_name": "International Delegates",
+            "package_type": "Cultural Tour Delhi",
+            "status": "Upcoming",
+            "current_location": "Not Started",
+            "start_date": "2023-12-05",
+            "end_date": "2023-12-08",
+            "members": [
+                {
+                    "id": "MEM016",
+                    "name": "John Smith",
+                    "age": 45,
+                    "gender": "Male",
+                    "passport_number": "N7539514",
+                    "role": "Head"
+                },
+                {
+                    "id": "MEM017",
+                    "name": "Emily Davis",
+                    "age": 38,
+                    "gender": "Female",
+                    "passport_number": "P3571598",
+                    "role": "Member"
+                },
+                {
+                    "id": "MEM018",
+                    "name": "Michael Brown",
+                    "age": 50,
+                    "gender": "Male",
+                    "passport_number": "Q9517536",
+                    "role": "Member"
+                }
+            ]
+        }
+    ]
+}
