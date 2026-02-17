@@ -107,6 +107,7 @@ class OptimizerAgent:
         logger.info("Running optimizer with real ItineraryOptimizer...")
         
         # Determine output directory
+        context_start_day = 0 # Default initialization
         if output_dir:
             run_dir = Path(output_dir)
             run_dir.mkdir(parents=True, exist_ok=True)
@@ -292,18 +293,81 @@ class OptimizerAgent:
                 day_constraints=day_constraints  # NEW: Enforce look-ahead
             )
         else:
-            # Full trip optimization (default, original behavior)
-            logger.info("Running full trip optimization...")
-            new_solution = optimizer.optimize_trip(
-                family_ids=["FAM_A", "FAM_B", "FAM_C"],
-                num_days=3,
-                lambda_divergence=0.05,
-                day_constraints=day_constraints  # NEW: Enforce look-ahead
-            )
-        
-        if not new_solution:
-            logger.error("Optimizer failed to find a solution")
-            return {}
+            # Partial Optimization Architecture:
+            # 1. Load History (Immutable Past)
+            # 2. Optimize Future (Adaptive Future)
+            # 3. Stitch Together
+            
+            logger.info(f"Running partial optimization starting from Day {context_start_day + 1}...")
+            
+            initial_history = None
+            
+            # Step 1: Load History from Base Solution
+            if context_start_day > 0 and base_solution_path:
+                try:
+                    with open(base_solution_path, 'r') as f:
+                        base_sol = json.load(f)
+                    
+                    initial_history = {fid: set() for fid in ["FAM_A", "FAM_B", "FAM_C"]}
+                    # Extract history for days strictly BEFORE start_day
+                    for i in range(context_start_day):
+                        if i < len(base_sol.get('days', [])):
+                            day_data = base_sol['days'][i]
+                            # Handle both 'families' (new format) and 'family_itineraries' (old format if any)
+                            families_data = day_data.get('families', {})
+                            
+                            for fid, fam_data in families_data.items():
+                                if fid in initial_history:
+                                    for poi in fam_data.get('pois', []):
+                                        initial_history[fid].add(poi['location_id'])
+                                        
+                    logger.info(f"Loaded history for Days 1-{context_start_day} to ensure continuity.")
+                except Exception as e:
+                    logger.error(f"Failed to load base solution for history: {e}")
+                    initial_history = None
+
+            # Step 2: Optimize Future Days
+            try:
+                new_solution = optimizer.optimize_trip(
+                    family_ids=["FAM_A", "FAM_B", "FAM_C"],
+                    num_days=3,
+                    lambda_divergence=0.05,
+                    day_constraints=day_constraints,
+                    start_day_index=context_start_day,
+                    initial_visited_history=initial_history
+                )
+            except Exception as e:
+                logger.error(f"CRITICAL: optimize_trip failed with exception: {e}", exc_info=True)
+                new_solution = {}
+
+            # Step 3: Stitching (Merge History + Future)
+            if context_start_day > 0 and base_solution_path and new_solution:
+                try:
+                    logger.info(f"Stitching: Prepending immutable history (Days 1-{context_start_day}) to new plan...")
+                    with open(base_solution_path, 'r') as f:
+                        base_sol = json.load(f)
+                    
+                    preserved_days = []
+                    # Extract days strictly before start_day
+                    for i in range(context_start_day):
+                        if i < len(base_sol.get('days', [])):
+                            preserved_days.append(base_sol['days'][i])
+                            
+                    # Prepend preserved days to new solution
+                    new_solution['days'] = preserved_days + new_solution['days']
+                    
+                    # Recalculate totals
+                    new_solution['total_trip_cost'] = sum(d['total_transport_cost'] for d in new_solution['days'])
+                    new_solution['total_trip_time_min'] = sum(d['total_transport_time_min'] for d in new_solution['days'])
+                    
+                    logger.info(f"Stitching complete. Final itinerary has {len(new_solution['days'])} days.")
+                    
+                except Exception as e:
+                    logger.error(f"Failed to stitch partial solution: {e}")
+            
+            if not new_solution:
+                logger.error("Optimizer returned empty solution or failed.")
+                return {}
         
         logger.info("Optimization completed successfully")
         
@@ -441,6 +505,35 @@ class OptimizerAgent:
         except Exception as e:
             logger.error(f"Error loading solution from {solution_path}: {e}")
             return {}
+    
+    def _load_base_itinerary(self, base_path: str) -> Optional[Dict]:
+        """
+        Load the base itinerary for comparison.
+        Prioritizes 'solved_base_itinerary.json' (full details) over 'base_itinerary_final.json' (skeleton).
+        """
+        if not base_path:
+            return None
+            
+        p = Path(base_path)
+        
+        # Check if a solved version exists in the same directory
+        # This is CRITICAL for partial optimization to work correctly with transport history
+        solved_path = p.parent / "solved_base_itinerary.json"
+        if solved_path.exists():
+            logger.info(f"Found solved baseline at {solved_path}. Using this for history/comparison.")
+            target_path = solved_path
+        else:
+            logger.info(f"Using provided baseline at {p}")
+            target_path = p
+            
+        if target_path.exists():
+            try:
+                with open(target_path, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                logger.error(f"Failed to load baseline from {target_path}: {e}")
+                return None
+        return None
     
     def load_decision_traces(self, traces_path: Path) -> Dict[str, Any]:
         """Load decision traces from file."""

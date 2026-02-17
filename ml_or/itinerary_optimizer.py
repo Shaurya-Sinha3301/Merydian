@@ -1947,3 +1947,106 @@ class ItineraryOptimizer:
         print(f"[OK] Multi-family solution extracted for {len(family_ids)} families")
         
         return solution
+
+    def get_best_transport_edge(self, from_id: str, to_id: str) -> Optional[Dict]:
+        """
+        Find the best transport edge between two locations based on a cost function.
+        If multiple modes exist, picks the one with lowest weighted cost (time + money).
+        """
+        key = (from_id, to_id)
+        edges = self.transport_lookup.get(key, [])
+        
+        if not edges:
+            if from_id in self.locations and to_id in self.locations:
+                 return self._create_fallback_transport(from_id, to_id).__dict__
+            return None
+            
+        # Select best edge: minimum (cost + time_in_minutes) approximation
+        # Bias towards time (0.1 weight for cost implies 10 Rs ~ 1 min)
+        best_edge = min(edges, key=lambda e: e.duration_min + e.cost * 0.1) 
+        
+        return {
+            "from": best_edge.from_loc,
+            "to": best_edge.to_loc,
+            "mode": best_edge.mode,
+            "duration_min": best_edge.duration_min,
+            "cost": best_edge.cost,
+            "reliability": best_edge.reliability
+        }
+
+    def hydrate_itinerary_with_transport(self, base_itinerary: Dict) -> Dict:
+        """
+        Populate transport details for a fixed itinerary sequence using the loaded transport graph.
+        Useful for enriching base itineraries (like base_itinerary_final.json) that lack transport edges.
+        
+        Args:
+            base_itinerary: Dictionary matching the base itinerary structure
+            
+        Returns:
+            New dictionary with 'transport', 'total_transport_cost', and 'total_transport_time_min' populated per day.
+        """
+        import copy
+        enriched_itinerary = copy.deepcopy(base_itinerary)
+        
+        total_trip_cost = 0
+        total_trip_time = 0
+        
+        for day_data in enriched_itinerary['days']:
+            day_idx = day_data['day']
+            pois = day_data['pois']
+            
+            # Determine explicit start/end anchors or default to HOTEL
+            start_loc = day_data.get('start_location', 'LOC_HOTEL') 
+            end_loc = day_data.get('end_location', 'LOC_HOTEL')
+            
+            # Construct sequence: Start -> POI1 -> ... -> POIn -> End
+            sequence_ids = [start_loc] + [p['location_id'] for p in pois] + [end_loc]
+            
+            day_transport = []
+            day_cost = 0
+            day_time = 0
+            
+            for i in range(len(sequence_ids) - 1):
+                from_id = sequence_ids[i]
+                to_id = sequence_ids[i+1]
+                
+                if from_id == to_id:
+                    continue
+                    
+                edge = self.get_best_transport_edge(from_id, to_id)
+                
+                if edge:
+                    # Enrich edge with names for readability
+                    edge['from_name'] = self.locations.get(edge['from'], Location('', from_id, '', '', 0.0, 0.0, 0, 0, False, [], 0)).name
+                    edge['to_name'] = self.locations.get(edge['to'], Location('', to_id, '', '', 0.0, 0.0, 0, 0, False, [], 0)).name
+                    
+                    day_transport.append(edge)
+                    day_cost += edge['cost']
+                    day_time += edge['duration_min']
+                else:
+                    print(f"Warning: No transport found between {from_id} and {to_id} on Day {day_idx}")
+            
+            # Update Day Record
+            day_data['transport'] = day_transport
+            day_data['total_transport_cost'] = day_cost
+            day_data['total_transport_time_min'] = day_time
+            
+            # Propagate to 'families' structure for compatibility with OptimizerAgent results
+            families_structure = {}
+            for fid in self.family_prefs.keys():
+                 families_structure[fid] = {
+                    "family_id": fid,
+                    "pois": pois, # Shared skeleton
+                    "transport": day_transport, # Shared transport
+                    "total_transport_cost": day_cost,
+                    "total_transport_time_min": day_time
+                 }
+            day_data['families'] = families_structure
+            
+            total_trip_cost += day_cost
+            total_trip_time += day_time
+            
+        enriched_itinerary['total_trip_cost'] = total_trip_cost
+        enriched_itinerary['total_trip_time_min'] = total_trip_time
+        
+        return enriched_itinerary
