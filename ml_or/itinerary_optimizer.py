@@ -125,6 +125,18 @@ class ItineraryOptimizer:
         
         # DECISION TRACE COLLECTOR (Non-LLM Authority Layer)
         self.decision_traces = {}  # Key: f"{day_index}" -> Trace Dict
+
+        # Load Hotel Assignments
+        self.hotel_assignments = self._load_hotel_assignments("ml_or/data/hotel_assignments.json")
+
+    def _load_hotel_assignments(self, filepath: str) -> Dict:
+        """Load hotel assignments if available"""
+        try:
+            with open(filepath, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            print("Warning: Hotel assignments file not found. Using defaults.")
+            return {}
         
     def _load_locations(self, filepath: str) -> Dict[str, Location]:
         """Load locations from JSON"""
@@ -1641,16 +1653,58 @@ class ItineraryOptimizer:
                         continue
                     
                     # Physical Time Constraint
-                    best_edge = best_transport_edges.get((i, j))
-                    duration = best_edge.duration_min if best_edge else 0
-                    cost = best_edge.cost if best_edge else 0
+                    duration = 0
+                    cost = 0
                     
-                    # If adj[f, i, j] is used, travel constraints apply
                     if i == START_NODE:
+                         # FAMILY-SPECIFIC START (From Hotel)
+                         hotel_id = self.hotel_assignments.get(fid, {}).get("hotel_id", "LOC_HOTEL")
+                         edge_params = self.get_best_transport_edge(hotel_id, j)
+                         if edge_params:
+                             duration = edge_params['duration_min']
+                             cost = edge_params['cost']
+                         
                          model.Add(arr[(fid, j)] >= day_start_min + duration).OnlyEnforceIf(adj[(fid, i, j)])
+                         
+                         # Check-out Constraint (Last Day) - Assumes Day 3 is last
+                         if day_index == 2: # TODO: Make dynamic
+                             check_out_time = self._time_to_minutes(self.hotel_assignments.get(fid, {}).get("check_out_time", "11:00"))
+                             # Constraint: Must leave start node (hotel) by check-out time
+                             # But dep[START] is start of day. 
+                             # We actually just simply enforce day_start_min is effectively the departure?
+                             # Or better: arr[first_poi] >= day_start + duration.
+                             # If we leave hotel at 11:00 max, then arr[j] <= 11:00 + duration? relative to day start?
+                             # Actually, dep[START] is effectively day_start_min.
+                             # If we strictly must checkout, it means we cannot NOT leave. 
+                             # But here we model the tour start.
+                             pass
+
                     elif j == END_NODE:
+                         # FAMILY-SPECIFIC END (To Hotel)
+                         hotel_id = self.hotel_assignments.get(fid, {}).get("hotel_id", "LOC_HOTEL")
+                         edge_params = self.get_best_transport_edge(i, hotel_id)
+                         if edge_params:
+                             duration = edge_params['duration_min']
+                             cost = edge_params['cost']
+
                          model.Add(day_end_min >= dep[(fid, i)] + duration).OnlyEnforceIf(adj[(fid, i, j)])
+                         
+                         # Check-in Constraint (Day 1)
+                         if day_index == 0:
+                             check_in_time = self._time_to_minutes(self.hotel_assignments.get(fid, {}).get("check_in_time", "14:00"))
+                             # Arrival at Hotel (End Node) must be >= check_in_time
+                             # We model arr[END_NODE] implicitly via dep[i] + duration
+                             # So dep[i] + duration >= check_in_time
+                             # However, if we arrive EARLIER, we just wait.
+                             # This constraint is usually: IF we want to check in, we must be there after 14:00.
+                             # But usually we drop bags. Let's strictly enforce arrival at end > 14:00
+                             model.Add(dep[(fid, i)] + duration >= check_in_time).OnlyEnforceIf(adj[(fid, i, j)])
+
                     else:
+                         # POI to POI (Shared Edge)
+                         best_edge = best_transport_edges.get((i, j))
+                         duration = best_edge.duration_min if best_edge else 0
+                         cost = best_edge.cost if best_edge else 0
                          model.Add(arr[(fid, j)] >= dep[(fid, i)] + duration).OnlyEnforceIf(adj[(fid, i, j)])
                     
                     # Add to objective (Cost & Time)
@@ -1881,20 +1935,41 @@ class ItineraryOptimizer:
                 
                 if next_node:
                     # Extract transport details
-                    best_edge = best_transport_edges.get((current_node, next_node))
-                    if best_edge:
+                    edge_params = None
+                    
+                    if current_node == START_NODE:
+                        hotel_id = self.hotel_assignments.get(fid, {}).get("hotel_id", "LOC_HOTEL")
+                        # Recalculate best edge from Hotel -> Next Node
+                        edge_params = self.get_best_transport_edge(hotel_id, next_node)
+                    elif next_node == END_NODE:
+                        hotel_id = self.hotel_assignments.get(fid, {}).get("hotel_id", "LOC_HOTEL")
+                        # Recalculate best edge from Current Node -> Hotel
+                        edge_params = self.get_best_transport_edge(current_node, hotel_id)
+                    else:
+                        # Shared Edge
+                        best_edge = best_transport_edges.get((current_node, next_node))
+                        if best_edge:
+                            edge_params = {
+                                "from": current_node,
+                                "to": next_node,
+                                "mode": best_edge.mode,
+                                "duration_min": best_edge.duration_min,
+                                "cost": best_edge.cost
+                            }
+
+                    if edge_params:
                          # Track totals
-                         total_transport_cost += best_edge.cost
-                         total_transport_time += best_edge.duration_min
+                         total_transport_cost += edge_params['cost']
+                         total_transport_time += edge_params['duration_min']
                          
                          family_transport.append({
                             'from': current_node,
                             'from_name': self.locations[current_node].name if current_node in self.locations else current_node,
                             'to': next_node,
                             'to_name': self.locations[next_node].name if next_node in self.locations else next_node,
-                            'mode': best_edge.mode,
-                            'duration_min': best_edge.duration_min,
-                            'cost': best_edge.cost
+                            'mode': edge_params['mode'],
+                            'duration_min': edge_params['duration_min'],
+                            'cost': edge_params['cost']
                          })
                     
                     if next_node != END_NODE:

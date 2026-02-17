@@ -1,0 +1,20 @@
+{
+    "FAM_A": {
+        "hotel_id": "LOC_TBO_1011664",
+        "check_in_time": "14:00",
+        "check_out_time": "11:00",
+        "assigned_cost": 3000
+    },
+    "FAM_B": {
+        "hotel_id": "LOC_TBO_1016321",
+        "check_in_time": "14:00",
+        "check_out_time": "11:00",
+        "assigned_cost": 5000
+    },
+    "FAM_C": {
+        "hotel_id": "LOC_TBO_1016321",
+        "check_in_time": "14:00",
+        "check_out_time": "11:00",
+        "assigned_cost": 5000
+    }
+}
