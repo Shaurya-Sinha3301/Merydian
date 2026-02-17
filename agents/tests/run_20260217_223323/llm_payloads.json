@@ -1,0 +1,86 @@
+[
+  {
+    "family": "FAM_A",
+    "day": 3,
+    "change_type": "POI_ADDED",
+    "poi": {
+      "id": "LOC_015",
+      "name": "Chandni Chowk"
+    },
+    "causal_tags": [
+      "INTEREST_VECTOR_DOMINANCE"
+    ],
+    "cost_delta": {
+      "extra_cost": 276.0,
+      "currency": "INR",
+      "transport_cost": 76.0
+    },
+    "satisfaction_delta": {
+      "gain": 1.35
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_B",
+    "day": 2,
+    "change_type": "POI_REMOVED",
+    "poi": {
+      "id": "LOC_006",
+      "name": "Akshardham"
+    },
+    "causal_tags": [
+      "OBJECTIVE_DOMINATED"
+    ],
+    "cost_delta": {
+      "saved_cost": 43.0,
+      "currency": "INR",
+      "transport_savings": -7.0
+    },
+    "satisfaction_delta": {
+      "loss": 1.09
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_B",
+    "day": 3,
+    "change_type": "POI_ADDED",
+    "poi": {
+      "id": "LOC_015",
+      "name": "Chandni Chowk"
+    },
+    "causal_tags": [
+      "INTEREST_VECTOR_DOMINANCE"
+    ],
+    "cost_delta": {
+      "extra_cost": 276.0,
+      "currency": "INR",
+      "transport_cost": 76.0
+    },
+    "satisfaction_delta": {
+      "gain": 1.47
+    },
+    "audience": "TRAVEL_AGENT"
+  },
+  {
+    "family": "FAM_C",
+    "day": 3,
+    "change_type": "POI_ADDED",
+    "poi": {
+      "id": "LOC_015",
+      "name": "Chandni Chowk"
+    },
+    "causal_tags": [
+      "INTEREST_VECTOR_DOMINANCE"
+    ],
+    "cost_delta": {
+      "extra_cost": 276.0,
+      "currency": "INR",
+      "transport_cost": 76.0
+    },
+    "satisfaction_delta": {
+      "gain": 1.35
+    },
+    "audience": "TRAVEL_AGENT"
+  }
+]

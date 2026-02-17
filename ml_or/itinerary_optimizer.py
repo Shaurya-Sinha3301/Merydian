@@ -951,7 +951,8 @@ class ItineraryOptimizer:
         self,
         family_ids: List[str],
         num_days: int = 3,
-        lambda_divergence: float = 0.05
+        lambda_divergence: float = 0.05,
+        day_constraints: Dict[int, Dict[str, List[str]]] = None  # NEW: Per-day constraints
     ) -> Dict:
         """
         STEP 10: Multi-Day Trip Optimization
@@ -975,6 +976,13 @@ class ItineraryOptimizer:
         for day_idx in range(num_days):
             print(f"\n>>> OPTIMIZING DAY {day_idx + 1} / {num_days} <<<")
             
+            # Extract constraints for this day
+            forced_include = None
+            forced_exclude = None
+            if day_constraints and day_idx in day_constraints:
+                forced_include = day_constraints[day_idx].get("force_include")
+                forced_exclude = day_constraints[day_idx].get("force_exclude")
+            
             # Simple assumption: default time limits
             day_result = self.optimize_multi_family_single_day(
                 family_ids,
@@ -982,7 +990,9 @@ class ItineraryOptimizer:
                 max_pois=5, # Allow more POIs
                 time_limit_seconds=60,
                 lambda_divergence=lambda_divergence,
-                visited_history=visited_history # STEP 16: Pass history
+                visited_history=visited_history, # STEP 16: Pass history
+                forced_include_pois=forced_include,
+                forced_exclude_pois=forced_exclude
             )
             
             if day_result:
@@ -1072,7 +1082,8 @@ class ItineraryOptimizer:
         current_solution: Dict,
         target_day_index: int,
         family_ids: List[str],
-        lambda_divergence: float = 0.05
+        lambda_divergence: float = 0.05,
+        day_constraints: Dict[int, Dict[str, List[str]]] = None  # NEW: Per-day constraints
     ) -> Dict:
         """
         Re-optimize trip from current state, re-optimizing a specific day.
@@ -1121,13 +1132,22 @@ class ItineraryOptimizer:
         # Step 2: Re-optimize target day with history
         print(f"\n[REOPT] Re-optimizing Day {target_day_index + 1}...")
         
+        # Extract constraints for this day
+        forced_include = None
+        forced_exclude = None
+        if day_constraints and target_day_index in day_constraints:
+            forced_include = day_constraints[target_day_index].get("force_include")
+            forced_exclude = day_constraints[target_day_index].get("force_exclude")
+        
         day_result = self.optimize_multi_family_single_day(
             family_ids=family_ids,
             day_index=target_day_index,
             max_pois=5,
             time_limit_seconds=60,
             lambda_divergence=lambda_divergence,
-            visited_history=visited_history  # ← Preserves past days!
+            visited_history=visited_history,  # ← Preserves past days!
+            forced_include_pois=forced_include,
+            forced_exclude_pois=forced_exclude
         )
         
         if not day_result:
@@ -1183,6 +1203,8 @@ class ItineraryOptimizer:
         time_limit_seconds: int = 60,
         lambda_divergence: float = 0.05,
         visited_history: Dict[str, set] = None, # STEP 16: Added argument
+        forced_include_pois: List[str] = None, # NEW: Force specific POIs (Look-Ahead)
+        forced_exclude_pois: List[str] = None, # NEW: Exclude specific POIs (Look-Ahead)
         enable_trace: bool = True  # NEW: Enable decision tracing
     ) -> Optional[Dict]:
         """
@@ -1245,7 +1267,6 @@ class ItineraryOptimizer:
         # Since they are not in skeleton_pois, they are implicitly treated as BRANCH role
         # equivalent once we set their role attribute dynamically or handle them as non-skeleton.
         
-        original_count = len(candidate_pois)
         for new_poi in expanded_pois:
             if new_poi not in candidate_pois:
                 candidate_pois.append(new_poi)
@@ -1254,11 +1275,45 @@ class ItineraryOptimizer:
                 if hasattr(self.locations[new_poi], 'role'):
                      self.locations[new_poi].role = 'BRANCH'
         
+        # STEP 15B: Apply Forced Includes/Excludes (Look-Ahead)
+        if forced_include_pois:
+            print(f"  [CONSTRAINT] Forcing inclusion of: {forced_include_pois}")
+            for pid in forced_include_pois:
+                if pid not in self.locations:
+                    print(f"  [WARNING] Forced POI {pid} not found in locations DB")
+                    continue
+                    
+                if pid not in candidate_pois:
+                    candidate_pois.append(pid)
+                    branch_pois.append(pid) # Assume branch if forced
+                    
+        if forced_exclude_pois:
+            print(f"  [CONSTRAINT] Forcing exclusion of: {forced_exclude_pois}")
+            candidate_pois = [p for p in candidate_pois if p not in forced_exclude_pois]
+            branch_pois = [p for p in branch_pois if p not in forced_exclude_pois]
+        
         # Safety Cap (Exponential complexity protection)
+        # Ensure forced_include_pois are NOT pruned
         MAX_TOTAL_CANDIDATES = 12
         if len(candidate_pois) > MAX_TOTAL_CANDIDATES:
-             print(f"[WARNING] Pruning candidates from {len(candidate_pois)} to {MAX_TOTAL_CANDIDATES}")
-             candidate_pois = candidate_pois[:MAX_TOTAL_CANDIDATES]
+             # Prioritize: Skeleton + Forced + others
+             priority_pois = set(skeleton_pois)
+             if forced_include_pois:
+                 priority_pois.update(forced_include_pois)
+             
+             kept_pois = list(priority_pois)
+             remaining_slots = MAX_TOTAL_CANDIDATES - len(kept_pois)
+             
+             if remaining_slots > 0:
+                 for p in candidate_pois:
+                     if p not in priority_pois:
+                         kept_pois.append(p)
+                         remaining_slots -= 1
+                         if remaining_slots == 0:
+                             break
+             
+             print(f"[WARNING] Pruning candidates from {len(candidate_pois)} to {len(kept_pois)}")
+             candidate_pois = kept_pois
              
         print(f"\n[DAY {day_index+1}] POI Classification (After Expansion):")
         print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")

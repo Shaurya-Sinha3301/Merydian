@@ -32,7 +32,7 @@ def main():
     scenarios = [
         {
             "name": "Must-Visit Location Added",
-            "input": "We loved Akshardham, we definitely want to visit it tomorrow.",
+            "input": "We really want to visit Chandni Chowk for some street food.",
             "context": {"family_id": "FAM_B"},
         },
         {

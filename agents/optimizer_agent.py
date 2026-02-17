@@ -160,17 +160,18 @@ class OptimizerAgent:
         # ═══════════════════════════════════════════════════════════════
         
         target_day = None
-        if session_manager and trip_id and preferences:
-            event_type = preferences.get('event_type')
-            before_day = preferences.get('before_day')  # From FeedbackEvent
+        day_constraints = None
+        
+        event_type = preferences.get('event_type') if preferences else None
+        
+        if event_type == 'MUST_VISIT_ADDED' and poi_id:
+            logger.info("[LOOK-AHEAD] Analyzing candidate days...")
+            candidate_days = []
             
-            if event_type == 'MUST_VISIT_ADDED' and poi_id:
-                logger.info("[LOOK-AHEAD] Analyzing candidate days...")
-                
-                # Get current session
+            # Case A: Use Session Manager (if available)
+            if session_manager and trip_id:
                 session = session_manager.get_session(trip_id)
-                
-                # Calculate candidate days
+                before_day = preferences.get('before_day')
                 if before_day:
                     candidate_days = session.get_candidate_days(
                         constraint="before_day_N",
@@ -180,36 +181,63 @@ class OptimizerAgent:
                     candidate_days = session.get_candidate_days(
                         constraint="current_and_future"
                     )
+            # Case B: Standalone / Demo Mode (Fallback)
+            else:
+                # Assume standard 3-day trip or derive from base itinerary
+                num_days = 3
+                with open(self.base_itinerary_path, 'r') as f:
+                    base_data = json.load(f)
+                    if 'days' in base_data:
+                        num_days = len(base_data['days'])
+                candidate_days = list(range(num_days))
+                logger.info(f"  [Fallback] No session manager, considering all {num_days} days")
+            
+            logger.info(f"  Candidate days: {[d+1 for d in candidate_days]}")
+            
+            # Geographic look-ahead if candidates exist
+            if len(candidate_days) > 0:
+                # Load base itinerary
+                with open(self.base_itinerary_path, 'r') as f:
+                    base_itinerary = json.load(f)
                 
-                logger.info(f"  Candidate days: {[d+1 for d in candidate_days]}")
+                # Create temporary optimizer just for look-ahead
+                from ml_or.itinerary_optimizer import ItineraryOptimizer
+                temp_optimizer = ItineraryOptimizer(
+                    locations_file=str(self.locations_path),
+                    transport_file=str(self.transport_path),
+                    base_itinerary_file=str(self.base_itinerary_path),
+                    family_prefs_file=str(self.base_prefs_path)
+                )
                 
-                # Geographic look-ahead if multiple candidates
-                if len(candidate_days) > 1:
-                    # Load base itinerary
-                    with open(self.base_itinerary_path, 'r') as f:
-                        base_itinerary = json.load(f)
-                    
-                    # Create temporary optimizer just for look-ahead
-                    from ml_or.itinerary_optimizer import ItineraryOptimizer
-                    temp_optimizer = ItineraryOptimizer(
-                        locations_file=str(self.locations_path),
-                        transport_file=str(self.transport_path),
-                        base_itinerary_file=str(self.base_itinerary_path),
-                        family_prefs_file=str(self.base_prefs_path)
-                    )
-                    
-                    # Run geographic look-ahead
-                    best_day, distance = temp_optimizer.find_best_day_for_poi(
-                        poi_id=poi_id,
-                        candidate_days=candidate_days,
-                        base_itinerary=base_itinerary
-                    )
-                    
-                    logger.info(f"  [✓] Best day: Day {best_day + 1} (avg distance: {distance:.2f} km)")
-                    target_day = best_day
-                elif len(candidate_days) == 1:
-                    target_day = candidate_days[0]
-                    logger.info(f"  [✓] Single candidate day: Day {target_day + 1}")
+                # Run geographic look-ahead
+                best_day, distance = temp_optimizer.find_best_day_for_poi(
+                    poi_id=poi_id,
+                    candidate_days=candidate_days,
+                    base_itinerary=base_itinerary
+                )
+                
+                logger.info(f"  [✓] Best day: Day {best_day + 1} (avg distance: {distance:.2f} km)")
+                target_day = best_day
+                
+                # Create Constraints to ENFORCE this decision
+                # 1. Force Include on Best Day
+                # 2. Force Exclude on All Other Candidate Days
+                day_constraints = {}
+                
+                # Force Include
+                day_constraints[best_day] = {
+                    "force_include": [poi_id],
+                    "force_exclude": []
+                }
+                
+                # Force Exclude on others to prevent "greedy theft" by earlier days
+                for d in candidate_days:
+                    if d != best_day:
+                        if d not in day_constraints:
+                            day_constraints[d] = {"force_include": [], "force_exclude": []}
+                        day_constraints[d]["force_exclude"].append(poi_id)
+                
+                logger.info(f"  [CONSTRAINT] Enforcing placement on Day {best_day + 1}")
         
         # ═══════════════════════════════════════════════════════════════
         # STEP 2: Initialize and Run Optimizer
@@ -260,7 +288,8 @@ class OptimizerAgent:
                 current_solution=current_solution,
                 target_day_index=target_day,
                 family_ids=["FAM_A", "FAM_B", "FAM_C"],
-                lambda_divergence=0.05
+                lambda_divergence=0.05,
+                day_constraints=day_constraints  # NEW: Enforce look-ahead
             )
         else:
             # Full trip optimization (default, original behavior)
@@ -268,7 +297,8 @@ class OptimizerAgent:
             new_solution = optimizer.optimize_trip(
                 family_ids=["FAM_A", "FAM_B", "FAM_C"],
                 num_days=3,
-                lambda_divergence=0.05
+                lambda_divergence=0.05,
+                day_constraints=day_constraints  # NEW: Enforce look-ahead
             )
         
         if not new_solution:

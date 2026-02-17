@@ -1,0 +1,50 @@
+[
+  {
+    "scenario_number": 1,
+    "scenario_name": "Must-Visit Location Added",
+    "timestamp": "2026-02-17T22:30:25.082665",
+    "user_input": "We loved Akshardham, we definitely want to visit it tomorrow.",
+    "context": {
+      "family_id": "FAM_B"
+    },
+    "feedback_agent": {
+      "input": "We loved Akshardham, we definitely want to visit it tomorrow.",
+      "output": {
+        "event_type": "MUST_VISIT_ADDED",
+        "confidence": "HIGH",
+        "poi_name": "Akshardham",
+        "poi_id": null,
+        "rating": null,
+        "day": null,
+        "family_id": "FAM_B"
+      }
+    },
+    "decision_agent": {
+      "input": {
+        "agent": "FeedbackAgent",
+        "family_id": "FAM_B",
+        "event_type": "MUST_VISIT_ADDED",
+        "poi_id": null,
+        "poi_name": "Akshardham",
+        "rating": null,
+        "day": null,
+        "confidence": "HIGH",
+        "raw_input": "We loved Akshardham, we definitely want to visit it tomorrow.",
+        "transport_mode": null,
+        "disruption_from_poi": null,
+        "disruption_to_poi": null,
+        "metadata": {}
+      },
+      "output": {
+        "action": "RUN_OPTIMIZER",
+        "reason": "Hard constraint changed: MUST_VISIT_ADDED"
+      }
+    },
+    "optimizer_triggered": true,
+    "explainability_agent": {
+      "input": [],
+      "output": []
+    },
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260217_223024"
+  }
+]
