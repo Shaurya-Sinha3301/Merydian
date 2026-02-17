@@ -952,7 +952,9 @@ class ItineraryOptimizer:
         family_ids: List[str],
         num_days: int = 3,
         lambda_divergence: float = 0.05,
-        day_constraints: Dict[int, Dict[str, List[str]]] = None  # NEW: Per-day constraints
+        day_constraints: Dict[int, Dict[str, List[str]]] = None,  # NEW: Per-day constraints
+        start_day_index: int = 0,               # NEW: Where to begin optimization
+        initial_visited_history: Dict[str, set] = None  # NEW: Context from previous days
     ) -> Dict:
         """
         STEP 10: Multi-Day Trip Optimization
@@ -960,6 +962,8 @@ class ItineraryOptimizer:
         """
         print(f"\n{'='*80}")
         print(f"STEP 10: MULTI-DAY TRIP OPTIMIZATION ({num_days} Days)")
+        if start_day_index > 0:
+            print(f"  Starting from Day {start_day_index + 1} (Partial Optimization)")
         print(f"{'='*80}\n")
         
         trip_solution = {
@@ -971,9 +975,14 @@ class ItineraryOptimizer:
         }
         
         # STEP 16: Initialize visited history for multi-day tracking
-        visited_history: Dict[str, set] = {fid: set() for fid in family_ids}
+        import copy
+        if initial_visited_history:
+             visited_history = copy.deepcopy(initial_visited_history)
+             print(f"[HISTORY] Initialized with history from previous days")
+        else:
+             visited_history = {fid: set() for fid in family_ids}
         
-        for day_idx in range(num_days):
+        for day_idx in range(start_day_index, num_days):
             print(f"\n>>> OPTIMIZING DAY {day_idx + 1} / {num_days} <<<")
             
             # Extract constraints for this day
