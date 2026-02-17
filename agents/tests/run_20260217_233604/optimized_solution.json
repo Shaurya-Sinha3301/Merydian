@@ -9,7 +9,7 @@
     {
       "day": 1,
       "objective_value": -760.5336599969833,
-      "solve_time_seconds": 0.25561500000000004,
+      "solve_time_seconds": 0.1947607,
       "shared_poi_order": [
         "LOC_008",
         "LOC_LUNCH",
@@ -65,8 +65,8 @@
               "sequence": 5,
               "location_id": "LOC_003",
               "location_name": "India Gate",
-              "arrival_time": "13:53",
-              "departure_time": "14:38",
+              "arrival_time": "13:55",
+              "departure_time": "14:40",
               "visit_duration_min": 45,
               "satisfaction_score": 1.13
             },
@@ -74,8 +74,8 @@
               "sequence": 6,
               "location_id": "LOC_046",
               "location_name": "Parikrama",
-              "arrival_time": "14:50",
-              "departure_time": "15:50",
+              "arrival_time": "14:52",
+              "departure_time": "15:52",
               "visit_duration_min": 60,
               "satisfaction_score": 1.04
             },
@@ -83,8 +83,8 @@
               "sequence": 7,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:04",
-              "departure_time": "18:04",
+              "arrival_time": "17:05",
+              "departure_time": "18:05",
               "visit_duration_min": 60,
               "satisfaction_score": 1.17
             },
@@ -253,8 +253,8 @@
               "sequence": 8,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:04",
-              "departure_time": "18:04",
+              "arrival_time": "17:05",
+              "departure_time": "18:05",
               "visit_duration_min": 60,
               "satisfaction_score": 0.88
             },
@@ -432,8 +432,8 @@
               "sequence": 8,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:04",
-              "departure_time": "18:04",
+              "arrival_time": "17:05",
+              "departure_time": "18:05",
               "visit_duration_min": 60,
               "satisfaction_score": 0.95
             },
@@ -545,8 +545,8 @@
     },
     {
       "day": 2,
-      "objective_value": 232.0,
-      "solve_time_seconds": 0.1060683,
+      "objective_value": -2109.0,
+      "solve_time_seconds": 0.07319500000000001,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_009",
@@ -554,8 +554,8 @@
         "LOC_005",
         "LOC_DINNER"
       ],
-      "total_transport_cost": 339,
-      "total_transport_time_min": 291,
+      "total_transport_cost": 346,
+      "total_transport_time_min": 300,
       "transport": [],
       "families": {
         "FAM_A": {
@@ -667,7 +667,7 @@
         },
         "FAM_B": {
           "family_id": "FAM_B",
-          "total_satisfaction": 6.0,
+          "total_satisfaction": 4.91,
           "pois": [
             {
               "sequence": 1,
@@ -689,15 +689,6 @@
             },
             {
               "sequence": 3,
-              "location_id": "LOC_006",
-              "location_name": "Akshardham",
-              "arrival_time": "15:48",
-              "departure_time": "17:48",
-              "visit_duration_min": 120,
-              "satisfaction_score": 1.09
-            },
-            {
-              "sequence": 4,
               "location_id": "LOC_005",
               "location_name": "Humayun Tomb",
               "arrival_time": "18:05",
@@ -706,7 +697,7 @@
               "satisfaction_score": 0.99
             },
             {
-              "sequence": 5,
+              "sequence": 4,
               "location_id": "LOC_DINNER",
               "location_name": "Evening Fine Dining (Dinner)",
               "arrival_time": "19:30",
@@ -737,20 +728,11 @@
             {
               "from": "LOC_009",
               "from_name": "Purana Qila",
-              "to": "LOC_006",
-              "to_name": "Akshardham",
-              "mode": "BUS",
-              "duration_min": 13,
-              "cost": 9
-            },
-            {
-              "from": "LOC_006",
-              "from_name": "Akshardham",
               "to": "LOC_005",
               "to_name": "Humayun Tomb",
-              "mode": "METRO",
-              "duration_min": 17,
-              "cost": 26
+              "mode": "BUS",
+              "duration_min": 39,
+              "cost": 42
             },
             {
               "from": "LOC_005",
@@ -885,7 +867,7 @@
     {
       "day": 3,
       "objective_value": 517.0,
-      "solve_time_seconds": 0.0471371,
+      "solve_time_seconds": 0.035779000000000005,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_DINNER"
@@ -1111,6 +1093,6 @@
       "num_families": 3
     }
   ],
-  "total_trip_cost": 1301.7668299984916,
-  "total_trip_time_min": 830
+  "total_trip_cost": 1308.7668299984916,
+  "total_trip_time_min": 839
 }

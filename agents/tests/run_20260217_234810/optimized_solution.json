@@ -8,8 +8,8 @@
   "days": [
     {
       "day": 1,
-      "objective_value": -760.5336599969833,
-      "solve_time_seconds": 0.18226830000000002,
+      "objective_value": -1158.5336599969833,
+      "solve_time_seconds": 3.1694486000000004,
       "shared_poi_order": [
         "LOC_008",
         "LOC_LUNCH",
@@ -17,8 +17,8 @@
         "LOC_010",
         "LOC_DINNER"
       ],
-      "total_transport_cost": 788.7668299984916,
-      "total_transport_time_min": 386,
+      "total_transport_cost": 975.7668299984916,
+      "total_transport_time_min": 398,
       "transport": [],
       "families": {
         "FAM_A": {
@@ -83,8 +83,8 @@
               "sequence": 7,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:03",
-              "departure_time": "18:03",
+              "arrival_time": "17:02",
+              "departure_time": "18:02",
               "visit_duration_min": 60,
               "satisfaction_score": 1.17
             },
@@ -158,27 +158,27 @@
               "from_name": "Parikrama",
               "to": "LOC_010",
               "to_name": "Safdarjung Tomb",
-              "mode": "METRO",
-              "duration_min": 9,
-              "cost": 15
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50
             },
             {
               "from": "LOC_010",
               "from_name": "Safdarjung Tomb",
               "to": "LOC_DINNER",
               "to_name": "Evening Fine Dining (Dinner)",
-              "mode": "METRO",
-              "duration_min": 7,
-              "cost": 12
+              "mode": "AUTO",
+              "duration_min": 5,
+              "cost": 44
             },
             {
               "from": "LOC_DINNER",
               "from_name": "Evening Fine Dining (Dinner)",
               "to": "END_DAY_1",
               "to_name": "END_DAY_1",
-              "mode": "METRO",
-              "duration_min": 5,
-              "cost": 11
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 7
             }
           ]
         },
@@ -224,37 +224,37 @@
             },
             {
               "sequence": 5,
-              "location_id": "LOC_001",
-              "location_name": "Red Fort",
-              "arrival_time": "13:53",
-              "departure_time": "14:38",
-              "visit_duration_min": 45,
-              "satisfaction_score": 0.91
-            },
-            {
-              "sequence": 6,
               "location_id": "LOC_003",
               "location_name": "India Gate",
-              "arrival_time": "14:57",
-              "departure_time": "15:42",
+              "arrival_time": "13:53",
+              "departure_time": "14:38",
               "visit_duration_min": 45,
               "satisfaction_score": 1.55
             },
             {
-              "sequence": 7,
+              "sequence": 6,
               "location_id": "LOC_046",
               "location_name": "Parikrama",
-              "arrival_time": "15:54",
-              "departure_time": "16:54",
+              "arrival_time": "14:50",
+              "departure_time": "15:50",
               "visit_duration_min": 60,
               "satisfaction_score": 1.41
+            },
+            {
+              "sequence": 7,
+              "location_id": "LOC_001",
+              "location_name": "Red Fort",
+              "arrival_time": "16:10",
+              "departure_time": "16:55",
+              "visit_duration_min": 45,
+              "satisfaction_score": 0.91
             },
             {
               "sequence": 8,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:03",
-              "departure_time": "18:03",
+              "arrival_time": "17:02",
+              "departure_time": "18:02",
               "visit_duration_min": 60,
               "satisfaction_score": 0.88
             },
@@ -308,20 +308,11 @@
             {
               "from": "LOC_LUNCH",
               "from_name": "Connaught Place Restaurants (Lunch)",
-              "to": "LOC_001",
-              "to_name": "Red Fort",
-              "mode": "BUS",
-              "duration_min": 22,
-              "cost": 20
-            },
-            {
-              "from": "LOC_001",
-              "from_name": "Red Fort",
               "to": "LOC_003",
               "to_name": "India Gate",
               "mode": "BUS",
-              "duration_min": 19,
-              "cost": 16
+              "duration_min": 22,
+              "cost": 20
             },
             {
               "from": "LOC_003",
@@ -335,29 +326,38 @@
             {
               "from": "LOC_046",
               "from_name": "Parikrama",
+              "to": "LOC_001",
+              "to_name": "Red Fort",
+              "mode": "BUS",
+              "duration_min": 20,
+              "cost": 18
+            },
+            {
+              "from": "LOC_001",
+              "from_name": "Red Fort",
               "to": "LOC_010",
               "to_name": "Safdarjung Tomb",
-              "mode": "METRO",
-              "duration_min": 9,
-              "cost": 15
+              "mode": "AUTO",
+              "duration_min": 6,
+              "cost": 47
             },
             {
               "from": "LOC_010",
               "from_name": "Safdarjung Tomb",
               "to": "LOC_DINNER",
               "to_name": "Evening Fine Dining (Dinner)",
-              "mode": "METRO",
-              "duration_min": 7,
-              "cost": 12
+              "mode": "AUTO",
+              "duration_min": 5,
+              "cost": 44
             },
             {
               "from": "LOC_DINNER",
               "from_name": "Evening Fine Dining (Dinner)",
               "to": "END_DAY_1",
               "to_name": "END_DAY_1",
-              "mode": "METRO",
-              "duration_min": 5,
-              "cost": 11
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 7
             }
           ]
         },
@@ -403,37 +403,37 @@
             },
             {
               "sequence": 5,
-              "location_id": "LOC_001",
-              "location_name": "Red Fort",
-              "arrival_time": "13:53",
-              "departure_time": "14:38",
-              "visit_duration_min": 45,
-              "satisfaction_score": 1.04
-            },
-            {
-              "sequence": 6,
               "location_id": "LOC_003",
               "location_name": "India Gate",
-              "arrival_time": "14:57",
-              "departure_time": "15:42",
+              "arrival_time": "13:53",
+              "departure_time": "14:38",
               "visit_duration_min": 45,
               "satisfaction_score": 1.3
             },
             {
-              "sequence": 7,
+              "sequence": 6,
               "location_id": "LOC_046",
               "location_name": "Parikrama",
-              "arrival_time": "15:54",
-              "departure_time": "16:54",
+              "arrival_time": "14:50",
+              "departure_time": "15:50",
               "visit_duration_min": 60,
               "satisfaction_score": 1.18
+            },
+            {
+              "sequence": 7,
+              "location_id": "LOC_001",
+              "location_name": "Red Fort",
+              "arrival_time": "16:11",
+              "departure_time": "16:56",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.04
             },
             {
               "sequence": 8,
               "location_id": "LOC_010",
               "location_name": "Safdarjung Tomb",
-              "arrival_time": "17:03",
-              "departure_time": "18:03",
+              "arrival_time": "17:02",
+              "departure_time": "18:02",
               "visit_duration_min": 60,
               "satisfaction_score": 0.95
             },
@@ -487,20 +487,11 @@
             {
               "from": "LOC_LUNCH",
               "from_name": "Connaught Place Restaurants (Lunch)",
-              "to": "LOC_001",
-              "to_name": "Red Fort",
-              "mode": "BUS",
-              "duration_min": 22,
-              "cost": 20
-            },
-            {
-              "from": "LOC_001",
-              "from_name": "Red Fort",
               "to": "LOC_003",
               "to_name": "India Gate",
               "mode": "BUS",
-              "duration_min": 19,
-              "cost": 16
+              "duration_min": 22,
+              "cost": 20
             },
             {
               "from": "LOC_003",
@@ -514,29 +505,38 @@
             {
               "from": "LOC_046",
               "from_name": "Parikrama",
+              "to": "LOC_001",
+              "to_name": "Red Fort",
+              "mode": "BUS",
+              "duration_min": 20,
+              "cost": 18
+            },
+            {
+              "from": "LOC_001",
+              "from_name": "Red Fort",
               "to": "LOC_010",
               "to_name": "Safdarjung Tomb",
-              "mode": "METRO",
-              "duration_min": 9,
-              "cost": 15
+              "mode": "AUTO",
+              "duration_min": 6,
+              "cost": 47
             },
             {
               "from": "LOC_010",
               "from_name": "Safdarjung Tomb",
               "to": "LOC_DINNER",
               "to_name": "Evening Fine Dining (Dinner)",
-              "mode": "METRO",
-              "duration_min": 7,
-              "cost": 12
+              "mode": "AUTO",
+              "duration_min": 5,
+              "cost": 44
             },
             {
               "from": "LOC_DINNER",
               "from_name": "Evening Fine Dining (Dinner)",
               "to": "END_DAY_1",
               "to_name": "END_DAY_1",
-              "mode": "METRO",
-              "duration_min": 5,
-              "cost": 11
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 7
             }
           ]
         }
@@ -545,25 +545,34 @@
     },
     {
       "day": 2,
-      "objective_value": -2109.0,
-      "solve_time_seconds": 0.0907405,
+      "objective_value": -2529.0,
+      "solve_time_seconds": 0.0779856,
       "shared_poi_order": [
+        "LOC_005",
         "LOC_LUNCH",
         "LOC_009",
         "LOC_006",
-        "LOC_005",
         "LOC_DINNER"
       ],
-      "total_transport_cost": 346,
-      "total_transport_time_min": 300,
+      "total_transport_cost": 558,
+      "total_transport_time_min": 564,
       "transport": [],
       "families": {
         "FAM_A": {
           "family_id": "FAM_A",
-          "total_satisfaction": 5.4,
+          "total_satisfaction": 6.35,
           "pois": [
             {
               "sequence": 1,
+              "location_id": "LOC_005",
+              "location_name": "Humayun Tomb",
+              "arrival_time": "09:38",
+              "departure_time": "10:38",
+              "visit_duration_min": 60,
+              "satisfaction_score": 1.2
+            },
+            {
+              "sequence": 2,
               "location_id": "LOC_LUNCH",
               "location_name": "Connaught Place Restaurants (Lunch)",
               "arrival_time": "13:00",
@@ -572,7 +581,7 @@
               "satisfaction_score": 1.2
             },
             {
-              "sequence": 2,
+              "sequence": 3,
               "location_id": "LOC_009",
               "location_name": "Purana Qila",
               "arrival_time": "14:35",
@@ -581,7 +590,7 @@
               "satisfaction_score": 1.06
             },
             {
-              "sequence": 3,
+              "sequence": 4,
               "location_id": "LOC_006",
               "location_name": "Akshardham",
               "arrival_time": "15:48",
@@ -590,16 +599,16 @@
               "satisfaction_score": 0.77
             },
             {
-              "sequence": 4,
-              "location_id": "LOC_005",
-              "location_name": "Humayun Tomb",
-              "arrival_time": "18:05",
-              "departure_time": "19:05",
-              "visit_duration_min": 60,
-              "satisfaction_score": 1.2
+              "sequence": 5,
+              "location_id": "LOC_050",
+              "location_name": "Barbeque Nation",
+              "arrival_time": "18:12",
+              "departure_time": "18:42",
+              "visit_duration_min": 30,
+              "satisfaction_score": 0.95
             },
             {
-              "sequence": 5,
+              "sequence": 6,
               "location_id": "LOC_DINNER",
               "location_name": "Evening Fine Dining (Dinner)",
               "arrival_time": "19:30",
@@ -612,11 +621,20 @@
             {
               "from": "START_DAY_2",
               "from_name": "START_DAY_2",
+              "to": "LOC_005",
+              "to_name": "Humayun Tomb",
+              "mode": "BUS",
+              "duration_min": 38,
+              "cost": 40
+            },
+            {
+              "from": "LOC_005",
+              "from_name": "Humayun Tomb",
               "to": "LOC_LUNCH",
               "to_name": "Connaught Place Restaurants (Lunch)",
               "mode": "BUS",
-              "duration_min": 12,
-              "cost": 7
+              "duration_min": 36,
+              "cost": 38
             },
             {
               "from": "LOC_LUNCH",
@@ -639,38 +657,47 @@
             {
               "from": "LOC_006",
               "from_name": "Akshardham",
-              "to": "LOC_005",
-              "to_name": "Humayun Tomb",
-              "mode": "METRO",
-              "duration_min": 17,
-              "cost": 26
+              "to": "LOC_050",
+              "to_name": "Barbeque Nation",
+              "mode": "BUS",
+              "duration_min": 24,
+              "cost": 23
             },
             {
-              "from": "LOC_005",
-              "from_name": "Humayun Tomb",
+              "from": "LOC_050",
+              "from_name": "Barbeque Nation",
               "to": "LOC_DINNER",
               "to_name": "Evening Fine Dining (Dinner)",
-              "mode": "METRO",
-              "duration_min": 15,
-              "cost": 23
+              "mode": "BUS",
+              "duration_min": 34,
+              "cost": 35
             },
             {
               "from": "LOC_DINNER",
               "from_name": "Evening Fine Dining (Dinner)",
               "to": "END_DAY_2",
               "to_name": "END_DAY_2",
-              "mode": "METRO",
-              "duration_min": 5,
-              "cost": 11
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 7
             }
           ]
         },
         "FAM_B": {
           "family_id": "FAM_B",
-          "total_satisfaction": 4.91,
+          "total_satisfaction": 6.2,
           "pois": [
             {
               "sequence": 1,
+              "location_id": "LOC_005",
+              "location_name": "Humayun Tomb",
+              "arrival_time": "09:38",
+              "departure_time": "10:38",
+              "visit_duration_min": 60,
+              "satisfaction_score": 0.99
+            },
+            {
+              "sequence": 2,
               "location_id": "LOC_LUNCH",
               "location_name": "Connaught Place Restaurants (Lunch)",
               "arrival_time": "13:00",
@@ -679,7 +706,7 @@
               "satisfaction_score": 1.45
             },
             {
-              "sequence": 2,
+              "sequence": 3,
               "location_id": "LOC_009",
               "location_name": "Purana Qila",
               "arrival_time": "14:35",
@@ -688,16 +715,16 @@
               "satisfaction_score": 0.84
             },
             {
-              "sequence": 3,
-              "location_id": "LOC_005",
-              "location_name": "Humayun Tomb",
-              "arrival_time": "18:05",
-              "departure_time": "19:05",
-              "visit_duration_min": 60,
-              "satisfaction_score": 0.99
+              "sequence": 4,
+              "location_id": "LOC_050",
+              "location_name": "Barbeque Nation",
+              "arrival_time": "18:26",
+              "departure_time": "18:56",
+              "visit_duration_min": 30,
+              "satisfaction_score": 1.29
             },
             {
-              "sequence": 4,
+              "sequence": 5,
               "location_id": "LOC_DINNER",
               "location_name": "Evening Fine Dining (Dinner)",
               "arrival_time": "19:30",
@@ -710,11 +737,20 @@
             {
               "from": "START_DAY_2",
               "from_name": "START_DAY_2",
+              "to": "LOC_005",
+              "to_name": "Humayun Tomb",
+              "mode": "BUS",
+              "duration_min": 38,
+              "cost": 40
+            },
+            {
+              "from": "LOC_005",
+              "from_name": "Humayun Tomb",
               "to": "LOC_LUNCH",
               "to_name": "Connaught Place Restaurants (Lunch)",
               "mode": "BUS",
-              "duration_min": 12,
-              "cost": 7
+              "duration_min": 36,
+              "cost": 38
             },
             {
               "from": "LOC_LUNCH",
@@ -728,38 +764,47 @@
             {
               "from": "LOC_009",
               "from_name": "Purana Qila",
-              "to": "LOC_005",
-              "to_name": "Humayun Tomb",
+              "to": "LOC_050",
+              "to_name": "Barbeque Nation",
               "mode": "BUS",
-              "duration_min": 39,
-              "cost": 42
+              "duration_min": 25,
+              "cost": 23
             },
             {
-              "from": "LOC_005",
-              "from_name": "Humayun Tomb",
+              "from": "LOC_050",
+              "from_name": "Barbeque Nation",
               "to": "LOC_DINNER",
               "to_name": "Evening Fine Dining (Dinner)",
-              "mode": "METRO",
-              "duration_min": 15,
-              "cost": 23
+              "mode": "BUS",
+              "duration_min": 34,
+              "cost": 35
             },
             {
               "from": "LOC_DINNER",
               "from_name": "Evening Fine Dining (Dinner)",
               "to": "END_DAY_2",
               "to_name": "END_DAY_2",
-              "mode": "METRO",
-              "duration_min": 5,
-              "cost": 11
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 7
             }
           ]
         },
         "FAM_C": {
           "family_id": "FAM_C",
-          "total_satisfaction": 5.59,
+          "total_satisfaction": 6.67,
           "pois": [
             {
               "sequence": 1,
+              "location_id": "LOC_005",
+              "location_name": "Humayun Tomb",
+              "arrival_time": "09:38",
+              "departure_time": "10:38",
+              "visit_duration_min": 60,
+              "satisfaction_score": 1.09
+            },
+            {
+              "sequence": 2,
               "location_id": "LOC_LUNCH",
               "location_name": "Connaught Place Restaurants (Lunch)",
               "arrival_time": "13:00",
@@ -768,7 +813,7 @@
               "satisfaction_score": 1.3
             },
             {
-              "sequence": 2,
+              "sequence": 3,
               "location_id": "LOC_009",
               "location_name": "Purana Qila",
               "arrival_time": "14:35",
@@ -777,7 +822,7 @@
               "satisfaction_score": 0.91
             },
             {
-              "sequence": 3,
+              "sequence": 4,
               "location_id": "LOC_006",
               "location_name": "Akshardham",
               "arrival_time": "15:48",
@@ -786,16 +831,16 @@
               "satisfaction_score": 0.91
             },
             {
-              "sequence": 4,
-              "location_id": "LOC_005",
-              "location_name": "Humayun Tomb",
-              "arrival_time": "18:05",
-              "departure_time": "19:05",
-              "visit_duration_min": 60,
+              "sequence": 5,
+              "location_id": "LOC_050",
+              "location_name": "Barbeque Nation",
+              "arrival_time": "18:12",
+              "departure_time": "18:42",
+              "visit_duration_min": 30,
               "satisfaction_score": 1.09
             },
             {
-              "sequence": 5,
+              "sequence": 6,
               "location_id": "LOC_DINNER",
               "location_name": "Evening Fine Dining (Dinner)",
               "arrival_time": "19:30",
@@ -808,11 +853,20 @@
             {
               "from": "START_DAY_2",
               "from_name": "START_DAY_2",
+              "to": "LOC_005",
+              "to_name": "Humayun Tomb",
+              "mode": "BUS",
+              "duration_min": 38,
+              "cost": 40
+            },
+            {
+              "from": "LOC_005",
+              "from_name": "Humayun Tomb",
               "to": "LOC_LUNCH",
               "to_name": "Connaught Place Restaurants (Lunch)",
               "mode": "BUS",
-              "duration_min": 12,
-              "cost": 7
+              "duration_min": 36,
+              "cost": 38
             },
             {
               "from": "LOC_LUNCH",
@@ -835,29 +889,29 @@
             {
               "from": "LOC_006",
               "from_name": "Akshardham",
-              "to": "LOC_005",
-              "to_name": "Humayun Tomb",
-              "mode": "METRO",
-              "duration_min": 17,
-              "cost": 26
+              "to": "LOC_050",
+              "to_name": "Barbeque Nation",
+              "mode": "BUS",
+              "duration_min": 24,
+              "cost": 23
             },
             {
-              "from": "LOC_005",
-              "from_name": "Humayun Tomb",
+              "from": "LOC_050",
+              "from_name": "Barbeque Nation",
               "to": "LOC_DINNER",
               "to_name": "Evening Fine Dining (Dinner)",
-              "mode": "METRO",
-              "duration_min": 15,
-              "cost": 23
+              "mode": "BUS",
+              "duration_min": 34,
+              "cost": 35
             },
             {
               "from": "LOC_DINNER",
               "from_name": "Evening Fine Dining (Dinner)",
               "to": "END_DAY_2",
               "to_name": "END_DAY_2",
-              "mode": "METRO",
-              "duration_min": 5,
-              "cost": 11
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 7
             }
           ]
         }
@@ -866,31 +920,22 @@
     },
     {
       "day": 3,
-      "objective_value": 517.0,
-      "solve_time_seconds": 0.0509761,
+      "objective_value": 492.0,
+      "solve_time_seconds": 0.046426,
       "shared_poi_order": [
         "LOC_LUNCH",
         "LOC_DINNER"
       ],
-      "total_transport_cost": 174,
-      "total_transport_time_min": 153,
+      "total_transport_cost": 57,
+      "total_transport_time_min": 102,
       "transport": [],
       "families": {
         "FAM_A": {
           "family_id": "FAM_A",
-          "total_satisfaction": 3.4,
+          "total_satisfaction": 2.37,
           "pois": [
             {
               "sequence": 1,
-              "location_id": "LOC_046",
-              "location_name": "Parikrama",
-              "arrival_time": "09:11",
-              "departure_time": "10:11",
-              "visit_duration_min": 60,
-              "satisfaction_score": 1.04
-            },
-            {
-              "sequence": 2,
               "location_id": "LOC_LUNCH",
               "location_name": "Connaught Place Restaurants (Lunch)",
               "arrival_time": "13:00",
@@ -899,7 +944,7 @@
               "satisfaction_score": 1.2
             },
             {
-              "sequence": 3,
+              "sequence": 2,
               "location_id": "LOC_DINNER",
               "location_name": "Evening Fine Dining (Dinner)",
               "arrival_time": "19:30",
@@ -912,20 +957,11 @@
             {
               "from": "START_DAY_3",
               "from_name": "START_DAY_3",
-              "to": "LOC_046",
-              "to_name": "Parikrama",
-              "mode": "METRO",
-              "duration_min": 11,
-              "cost": 18
-            },
-            {
-              "from": "LOC_046",
-              "from_name": "Parikrama",
               "to": "LOC_LUNCH",
               "to_name": "Connaught Place Restaurants (Lunch)",
               "mode": "BUS",
-              "duration_min": 25,
-              "cost": 24
+              "duration_min": 12,
+              "cost": 7
             },
             {
               "from": "LOC_LUNCH",
@@ -941,27 +977,18 @@
               "from_name": "Evening Fine Dining (Dinner)",
               "to": "END_DAY_3",
               "to_name": "END_DAY_3",
-              "mode": "METRO",
-              "duration_min": 5,
-              "cost": 11
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 7
             }
           ]
         },
         "FAM_B": {
           "family_id": "FAM_B",
-          "total_satisfaction": 4.49,
+          "total_satisfaction": 3.08,
           "pois": [
             {
               "sequence": 1,
-              "location_id": "LOC_046",
-              "location_name": "Parikrama",
-              "arrival_time": "09:11",
-              "departure_time": "10:11",
-              "visit_duration_min": 60,
-              "satisfaction_score": 1.41
-            },
-            {
-              "sequence": 2,
               "location_id": "LOC_LUNCH",
               "location_name": "Connaught Place Restaurants (Lunch)",
               "arrival_time": "13:00",
@@ -970,7 +997,7 @@
               "satisfaction_score": 1.45
             },
             {
-              "sequence": 3,
+              "sequence": 2,
               "location_id": "LOC_DINNER",
               "location_name": "Evening Fine Dining (Dinner)",
               "arrival_time": "19:30",
@@ -983,20 +1010,11 @@
             {
               "from": "START_DAY_3",
               "from_name": "START_DAY_3",
-              "to": "LOC_046",
-              "to_name": "Parikrama",
-              "mode": "METRO",
-              "duration_min": 11,
-              "cost": 18
-            },
-            {
-              "from": "LOC_046",
-              "from_name": "Parikrama",
               "to": "LOC_LUNCH",
               "to_name": "Connaught Place Restaurants (Lunch)",
               "mode": "BUS",
-              "duration_min": 25,
-              "cost": 24
+              "duration_min": 12,
+              "cost": 7
             },
             {
               "from": "LOC_LUNCH",
@@ -1012,27 +1030,18 @@
               "from_name": "Evening Fine Dining (Dinner)",
               "to": "END_DAY_3",
               "to_name": "END_DAY_3",
-              "mode": "METRO",
-              "duration_min": 5,
-              "cost": 11
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 7
             }
           ]
         },
         "FAM_C": {
           "family_id": "FAM_C",
-          "total_satisfaction": 3.85,
+          "total_satisfaction": 2.67,
           "pois": [
             {
               "sequence": 1,
-              "location_id": "LOC_046",
-              "location_name": "Parikrama",
-              "arrival_time": "09:11",
-              "departure_time": "10:11",
-              "visit_duration_min": 60,
-              "satisfaction_score": 1.18
-            },
-            {
-              "sequence": 2,
               "location_id": "LOC_LUNCH",
               "location_name": "Connaught Place Restaurants (Lunch)",
               "arrival_time": "13:00",
@@ -1041,7 +1050,7 @@
               "satisfaction_score": 1.3
             },
             {
-              "sequence": 3,
+              "sequence": 2,
               "location_id": "LOC_DINNER",
               "location_name": "Evening Fine Dining (Dinner)",
               "arrival_time": "19:30",
@@ -1054,20 +1063,11 @@
             {
               "from": "START_DAY_3",
               "from_name": "START_DAY_3",
-              "to": "LOC_046",
-              "to_name": "Parikrama",
-              "mode": "METRO",
-              "duration_min": 11,
-              "cost": 18
-            },
-            {
-              "from": "LOC_046",
-              "from_name": "Parikrama",
               "to": "LOC_LUNCH",
               "to_name": "Connaught Place Restaurants (Lunch)",
               "mode": "BUS",
-              "duration_min": 25,
-              "cost": 24
+              "duration_min": 12,
+              "cost": 7
             },
             {
               "from": "LOC_LUNCH",
@@ -1083,9 +1083,9 @@
               "from_name": "Evening Fine Dining (Dinner)",
               "to": "END_DAY_3",
               "to_name": "END_DAY_3",
-              "mode": "METRO",
-              "duration_min": 5,
-              "cost": 11
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 7
             }
           ]
         }
@@ -1093,6 +1093,6 @@
       "num_families": 3
     }
   ],
-  "total_trip_cost": 1308.7668299984916,
-  "total_trip_time_min": 839
+  "total_trip_cost": 1590.7668299984916,
+  "total_trip_time_min": 1064
 }

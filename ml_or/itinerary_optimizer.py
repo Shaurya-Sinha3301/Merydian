@@ -951,7 +951,10 @@ class ItineraryOptimizer:
         self,
         family_ids: List[str],
         num_days: int = 3,
-        lambda_divergence: float = 0.05
+        lambda_divergence: float = 0.05,
+        day_constraints: Dict[int, Dict[str, List[str]]] = None,  # NEW: Per-day constraints
+        start_day_index: int = 0,               # NEW: Where to begin optimization
+        initial_visited_history: Dict[str, set] = None  # NEW: Context from previous days
     ) -> Dict:
         """
         STEP 10: Multi-Day Trip Optimization
@@ -959,6 +962,8 @@ class ItineraryOptimizer:
         """
         print(f"\n{'='*80}")
         print(f"STEP 10: MULTI-DAY TRIP OPTIMIZATION ({num_days} Days)")
+        if start_day_index > 0:
+            print(f"  Starting from Day {start_day_index + 1} (Partial Optimization)")
         print(f"{'='*80}\n")
         
         trip_solution = {
@@ -970,10 +975,22 @@ class ItineraryOptimizer:
         }
         
         # STEP 16: Initialize visited history for multi-day tracking
-        visited_history: Dict[str, set] = {fid: set() for fid in family_ids}
+        import copy
+        if initial_visited_history:
+             visited_history = copy.deepcopy(initial_visited_history)
+             print(f"[HISTORY] Initialized with history from previous days")
+        else:
+             visited_history = {fid: set() for fid in family_ids}
         
-        for day_idx in range(num_days):
+        for day_idx in range(start_day_index, num_days):
             print(f"\n>>> OPTIMIZING DAY {day_idx + 1} / {num_days} <<<")
+            
+            # Extract constraints for this day
+            forced_include = None
+            forced_exclude = None
+            if day_constraints and day_idx in day_constraints:
+                forced_include = day_constraints[day_idx].get("force_include")
+                forced_exclude = day_constraints[day_idx].get("force_exclude")
             
             # Simple assumption: default time limits
             day_result = self.optimize_multi_family_single_day(
@@ -982,7 +999,9 @@ class ItineraryOptimizer:
                 max_pois=5, # Allow more POIs
                 time_limit_seconds=60,
                 lambda_divergence=lambda_divergence,
-                visited_history=visited_history # STEP 16: Pass history
+                visited_history=visited_history, # STEP 16: Pass history
+                forced_include_pois=forced_include,
+                forced_exclude_pois=forced_exclude
             )
             
             if day_result:
@@ -1072,7 +1091,8 @@ class ItineraryOptimizer:
         current_solution: Dict,
         target_day_index: int,
         family_ids: List[str],
-        lambda_divergence: float = 0.05
+        lambda_divergence: float = 0.05,
+        day_constraints: Dict[int, Dict[str, List[str]]] = None  # NEW: Per-day constraints
     ) -> Dict:
         """
         Re-optimize trip from current state, re-optimizing a specific day.
@@ -1121,13 +1141,22 @@ class ItineraryOptimizer:
         # Step 2: Re-optimize target day with history
         print(f"\n[REOPT] Re-optimizing Day {target_day_index + 1}...")
         
+        # Extract constraints for this day
+        forced_include = None
+        forced_exclude = None
+        if day_constraints and target_day_index in day_constraints:
+            forced_include = day_constraints[target_day_index].get("force_include")
+            forced_exclude = day_constraints[target_day_index].get("force_exclude")
+        
         day_result = self.optimize_multi_family_single_day(
             family_ids=family_ids,
             day_index=target_day_index,
             max_pois=5,
             time_limit_seconds=60,
             lambda_divergence=lambda_divergence,
-            visited_history=visited_history  # ← Preserves past days!
+            visited_history=visited_history,  # ← Preserves past days!
+            forced_include_pois=forced_include,
+            forced_exclude_pois=forced_exclude
         )
         
         if not day_result:
@@ -1183,6 +1212,8 @@ class ItineraryOptimizer:
         time_limit_seconds: int = 60,
         lambda_divergence: float = 0.05,
         visited_history: Dict[str, set] = None, # STEP 16: Added argument
+        forced_include_pois: List[str] = None, # NEW: Force specific POIs (Look-Ahead)
+        forced_exclude_pois: List[str] = None, # NEW: Exclude specific POIs (Look-Ahead)
         enable_trace: bool = True  # NEW: Enable decision tracing
     ) -> Optional[Dict]:
         """
@@ -1245,7 +1276,6 @@ class ItineraryOptimizer:
         # Since they are not in skeleton_pois, they are implicitly treated as BRANCH role
         # equivalent once we set their role attribute dynamically or handle them as non-skeleton.
         
-        original_count = len(candidate_pois)
         for new_poi in expanded_pois:
             if new_poi not in candidate_pois:
                 candidate_pois.append(new_poi)
@@ -1254,11 +1284,45 @@ class ItineraryOptimizer:
                 if hasattr(self.locations[new_poi], 'role'):
                      self.locations[new_poi].role = 'BRANCH'
         
+        # STEP 15B: Apply Forced Includes/Excludes (Look-Ahead)
+        if forced_include_pois:
+            print(f"  [CONSTRAINT] Forcing inclusion of: {forced_include_pois}")
+            for pid in forced_include_pois:
+                if pid not in self.locations:
+                    print(f"  [WARNING] Forced POI {pid} not found in locations DB")
+                    continue
+                    
+                if pid not in candidate_pois:
+                    candidate_pois.append(pid)
+                    branch_pois.append(pid) # Assume branch if forced
+                    
+        if forced_exclude_pois:
+            print(f"  [CONSTRAINT] Forcing exclusion of: {forced_exclude_pois}")
+            candidate_pois = [p for p in candidate_pois if p not in forced_exclude_pois]
+            branch_pois = [p for p in branch_pois if p not in forced_exclude_pois]
+        
         # Safety Cap (Exponential complexity protection)
+        # Ensure forced_include_pois are NOT pruned
         MAX_TOTAL_CANDIDATES = 12
         if len(candidate_pois) > MAX_TOTAL_CANDIDATES:
-             print(f"[WARNING] Pruning candidates from {len(candidate_pois)} to {MAX_TOTAL_CANDIDATES}")
-             candidate_pois = candidate_pois[:MAX_TOTAL_CANDIDATES]
+             # Prioritize: Skeleton + Forced + others
+             priority_pois = set(skeleton_pois)
+             if forced_include_pois:
+                 priority_pois.update(forced_include_pois)
+             
+             kept_pois = list(priority_pois)
+             remaining_slots = MAX_TOTAL_CANDIDATES - len(kept_pois)
+             
+             if remaining_slots > 0:
+                 for p in candidate_pois:
+                     if p not in priority_pois:
+                         kept_pois.append(p)
+                         remaining_slots -= 1
+                         if remaining_slots == 0:
+                             break
+             
+             print(f"[WARNING] Pruning candidates from {len(candidate_pois)} to {len(kept_pois)}")
+             candidate_pois = kept_pois
              
         print(f"\n[DAY {day_index+1}] POI Classification (After Expansion):")
         print(f"  - SKELETON POIs ({len(skeleton_pois)}): {skeleton_pois}")
@@ -1883,3 +1947,106 @@ class ItineraryOptimizer:
         print(f"[OK] Multi-family solution extracted for {len(family_ids)} families")
         
         return solution
+
+    def get_best_transport_edge(self, from_id: str, to_id: str) -> Optional[Dict]:
+        """
+        Find the best transport edge between two locations based on a cost function.
+        If multiple modes exist, picks the one with lowest weighted cost (time + money).
+        """
+        key = (from_id, to_id)
+        edges = self.transport_lookup.get(key, [])
+        
+        if not edges:
+            if from_id in self.locations and to_id in self.locations:
+                 return self._create_fallback_transport(from_id, to_id).__dict__
+            return None
+            
+        # Select best edge: minimum (cost + time_in_minutes) approximation
+        # Bias towards time (0.1 weight for cost implies 10 Rs ~ 1 min)
+        best_edge = min(edges, key=lambda e: e.duration_min + e.cost * 0.1) 
+        
+        return {
+            "from": best_edge.from_loc,
+            "to": best_edge.to_loc,
+            "mode": best_edge.mode,
+            "duration_min": best_edge.duration_min,
+            "cost": best_edge.cost,
+            "reliability": best_edge.reliability
+        }
+
+    def hydrate_itinerary_with_transport(self, base_itinerary: Dict) -> Dict:
+        """
+        Populate transport details for a fixed itinerary sequence using the loaded transport graph.
+        Useful for enriching base itineraries (like base_itinerary_final.json) that lack transport edges.
+        
+        Args:
+            base_itinerary: Dictionary matching the base itinerary structure
+            
+        Returns:
+            New dictionary with 'transport', 'total_transport_cost', and 'total_transport_time_min' populated per day.
+        """
+        import copy
+        enriched_itinerary = copy.deepcopy(base_itinerary)
+        
+        total_trip_cost = 0
+        total_trip_time = 0
+        
+        for day_data in enriched_itinerary['days']:
+            day_idx = day_data['day']
+            pois = day_data['pois']
+            
+            # Determine explicit start/end anchors or default to HOTEL
+            start_loc = day_data.get('start_location', 'LOC_HOTEL') 
+            end_loc = day_data.get('end_location', 'LOC_HOTEL')
+            
+            # Construct sequence: Start -> POI1 -> ... -> POIn -> End
+            sequence_ids = [start_loc] + [p['location_id'] for p in pois] + [end_loc]
+            
+            day_transport = []
+            day_cost = 0
+            day_time = 0
+            
+            for i in range(len(sequence_ids) - 1):
+                from_id = sequence_ids[i]
+                to_id = sequence_ids[i+1]
+                
+                if from_id == to_id:
+                    continue
+                    
+                edge = self.get_best_transport_edge(from_id, to_id)
+                
+                if edge:
+                    # Enrich edge with names for readability
+                    edge['from_name'] = self.locations.get(edge['from'], Location('', from_id, '', '', 0.0, 0.0, 0, 0, False, [], 0)).name
+                    edge['to_name'] = self.locations.get(edge['to'], Location('', to_id, '', '', 0.0, 0.0, 0, 0, False, [], 0)).name
+                    
+                    day_transport.append(edge)
+                    day_cost += edge['cost']
+                    day_time += edge['duration_min']
+                else:
+                    print(f"Warning: No transport found between {from_id} and {to_id} on Day {day_idx}")
+            
+            # Update Day Record
+            day_data['transport'] = day_transport
+            day_data['total_transport_cost'] = day_cost
+            day_data['total_transport_time_min'] = day_time
+            
+            # Propagate to 'families' structure for compatibility with OptimizerAgent results
+            families_structure = {}
+            for fid in self.family_prefs.keys():
+                 families_structure[fid] = {
+                    "family_id": fid,
+                    "pois": pois, # Shared skeleton
+                    "transport": day_transport, # Shared transport
+                    "total_transport_cost": day_cost,
+                    "total_transport_time_min": day_time
+                 }
+            day_data['families'] = families_structure
+            
+            total_trip_cost += day_cost
+            total_trip_time += day_time
+            
+        enriched_itinerary['total_trip_cost'] = total_trip_cost
+        enriched_itinerary['total_trip_time_min'] = total_trip_time
+        
+        return enriched_itinerary

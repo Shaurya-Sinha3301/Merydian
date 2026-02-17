@@ -272,15 +272,15 @@
       "family": "ALL",
       "day": 1,
       "selected_pois": [
-        "LOC_013",
-        "LOC_018",
-        "LOC_003",
         "LOC_DINNER",
-        "LOC_008",
-        "LOC_010",
-        "LOC_046",
+        "LOC_013",
+        "LOC_001",
         "LOC_LUNCH",
-        "LOC_001"
+        "LOC_008",
+        "LOC_046",
+        "LOC_003",
+        "LOC_010",
+        "LOC_018"
       ],
       "objective_breakdown": {
         "total_satisfaction": 0,
@@ -475,14 +475,6 @@
     ],
     "constraints": [
       {
-        "constraint_id": "HISTORY_BAN_FAM_A_LOC_018",
-        "type": "HISTORY_BAN",
-        "applies_to": {
-          "family": "FAM_A",
-          "poi": "LOC_018"
-        }
-      },
-      {
         "constraint_id": "HISTORY_BAN_FAM_A_LOC_003",
         "type": "HISTORY_BAN",
         "applies_to": {
@@ -499,10 +491,10 @@
         }
       },
       {
-        "constraint_id": "HISTORY_BAN_FAM_B_LOC_018",
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_018",
         "type": "HISTORY_BAN",
         "applies_to": {
-          "family": "FAM_B",
+          "family": "FAM_A",
           "poi": "LOC_018"
         }
       },
@@ -523,10 +515,10 @@
         }
       },
       {
-        "constraint_id": "HISTORY_BAN_FAM_C_LOC_018",
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_018",
         "type": "HISTORY_BAN",
         "applies_to": {
-          "family": "FAM_C",
+          "family": "FAM_B",
           "poi": "LOC_018"
         }
       },
@@ -544,6 +536,14 @@
         "applies_to": {
           "family": "FAM_C",
           "poi": "LOC_010"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_018",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_018"
         }
       },
       {
@@ -647,10 +647,10 @@
       "family": "ALL",
       "day": 2,
       "selected_pois": [
-        "LOC_005",
+        "LOC_009",
         "LOC_006",
         "LOC_DINNER",
-        "LOC_009",
+        "LOC_005",
         "LOC_LUNCH",
         "LOC_050"
       ],
@@ -843,14 +843,6 @@
         }
       },
       {
-        "constraint_id": "HISTORY_BAN_FAM_A_LOC_018",
-        "type": "HISTORY_BAN",
-        "applies_to": {
-          "family": "FAM_A",
-          "poi": "LOC_018"
-        }
-      },
-      {
         "constraint_id": "HISTORY_BAN_FAM_A_LOC_003",
         "type": "HISTORY_BAN",
         "applies_to": {
@@ -867,19 +859,19 @@
         }
       },
       {
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_018",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_018"
+        }
+      },
+      {
         "constraint_id": "HISTORY_BAN_FAM_B_LOC_013",
         "type": "HISTORY_BAN",
         "applies_to": {
           "family": "FAM_B",
           "poi": "LOC_013"
-        }
-      },
-      {
-        "constraint_id": "HISTORY_BAN_FAM_B_LOC_018",
-        "type": "HISTORY_BAN",
-        "applies_to": {
-          "family": "FAM_B",
-          "poi": "LOC_018"
         }
       },
       {
@@ -899,19 +891,19 @@
         }
       },
       {
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_018",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_B",
+          "poi": "LOC_018"
+        }
+      },
+      {
         "constraint_id": "HISTORY_BAN_FAM_C_LOC_013",
         "type": "HISTORY_BAN",
         "applies_to": {
           "family": "FAM_C",
           "poi": "LOC_013"
-        }
-      },
-      {
-        "constraint_id": "HISTORY_BAN_FAM_C_LOC_018",
-        "type": "HISTORY_BAN",
-        "applies_to": {
-          "family": "FAM_C",
-          "poi": "LOC_018"
         }
       },
       {
@@ -928,6 +920,14 @@
         "applies_to": {
           "family": "FAM_C",
           "poi": "LOC_010"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_018",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_018"
         }
       },
       {

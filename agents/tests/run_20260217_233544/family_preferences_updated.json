@@ -42,9 +42,11 @@
     },
     "must_visit_locations": [
       "LOC_001",
+      "LOC_015"
+    ],
+    "never_visit_locations": [
       "LOC_006"
     ],
-    "never_visit_locations": [],
     "notes": "Time sensitive. Loves Nightlife. Must Red Fort. Hates Akshardham."
   },
   {

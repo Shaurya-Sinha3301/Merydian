@@ -30,30 +30,20 @@ def main():
     
     # Define scenarios
     scenarios = [
+        # {
+        #     "name": "Must-Visit (Simulated Day 2 Start)",
+        #     "input": "We really want to visit Chandni Chowk for some street food. It's the start of Day 2.",
+        #     "context": {"family_id": "FAM_B", "current_day": 1}, # 0-indexed, so 1 is Day 2
+        # },
+        # {
+        #     "name": "Location Excluded (Day 3 Preference)",
+        #     "input": "Please skip the Red Fort on Day 3, we're not interested.",
+        #     "context": {"family_id": "FAM_A", "current_day": 2}, # Day 3
+        # },
         {
-            "name": "Must-Visit Location Added",
-            "input": "We loved Akshardham, we definitely want to visit it tomorrow.",
-            "context": {"family_id": "FAM_B"},
-        },
-        {
-            "name": "Location Excluded",
-            "input": "Please skip the Red Fort, we're not interested.",
-            "context": {"family_id": "FAM_A"},
-        },
-        {
-            "name": "Day Rating (Soft Preference)",
-            "input": "I'd rate today a 9 out of 10!",
-            "context": {"family_id": "FAM_C", "day": 1},
-        },
-        {
-            "name": "METRO Global Disruption",
-            "input": "There's a METRO strike today, all metro services are unavailable",
-            "context": {},
-        },
-        {
-            "name": "Delay Reported (Mocked)",
-            "input": "We're running 30 minutes late due to traffic",
-            "context": None,
+            "name": "METRO Disruption (Start of Day 3)",
+            "input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+            "context": {"current_day": 2}, # Day 3
         }
     ]
     
