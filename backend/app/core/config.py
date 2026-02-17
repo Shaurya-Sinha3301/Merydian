@@ -26,6 +26,16 @@ class Settings(BaseSettings):
     TRIP_SESSION_STORAGE: str = "./trip_sessions"
     OPTIMIZER_OUTPUT_DIR: str = "./optimizer_outputs"
 
+    # TBO HOTEL API
+    TBO_API_URL: str = "http://api.tbotechnology.in/TBOHolidays_HotelAPI"
+    TBO_USERNAME: str = "hackathontest"
+    TBO_PASSWORD: str = "Hac@98147521"
+
+    # CELERY / REDIS
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
+    REDIS_URL: str = "redis://localhost:6379/0"
+
     class Config:
         case_sensitive = True
         env_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')

@@ -4,6 +4,7 @@ Itinerary Service
 Handles itinerary versioning and retrieval with real database operations.
 """
 
+import logging
 from datetime import datetime
 from typing import Optional, List
 from uuid import UUID
@@ -13,6 +14,8 @@ from app.core.db import engine
 from app.models.itinerary import Itinerary
 from app.models.family import Family
 from app.schemas.itinerary import Itinerary as ItinerarySchema
+
+logger = logging.getLogger(__name__)
 
 
 class ItineraryService:
@@ -132,3 +135,74 @@ class ItineraryService:
                 .limit(1)
             )
             return session.exec(statement).first()
+
+    @staticmethod
+    def publish_base_itinerary(
+        trip_id: str,
+        family_ids: List[str],
+        itinerary_data: dict,
+        created_reason: str = "Base itinerary approved by agent",
+    ) -> List[UUID]:
+        """
+        Publish an approved base itinerary to all families in a trip.
+
+        Creates an Itinerary record (version 1) for each family and updates
+        Family.current_itinerary_version so the customer-facing page sees it.
+
+        Args:
+            trip_id: Trip identifier
+            family_ids: List of family_code strings
+            itinerary_data: The approved itinerary JSON data
+            created_reason: Reason string for the itinerary record
+
+        Returns:
+            List of created Itinerary UUIDs
+        """
+        created_ids: List[UUID] = []
+
+        with Session(engine) as session:
+            for fam_code in family_ids:
+                # Look up family by family_code
+                statement = select(Family).where(Family.family_code == fam_code)
+                family = session.exec(statement).first()
+
+                if not family:
+                    logger.warning(
+                        f"Family {fam_code} not found in DB, skipping publish"
+                    )
+                    continue
+
+                # Calculate stats
+                total_cost = itinerary_data.get("total_cost", 0.0)
+                total_satisfaction = itinerary_data.get("total_satisfaction", 0.0)
+                duration_days = len(itinerary_data.get("days", []))
+
+                # Create Itinerary record
+                itinerary = Itinerary(
+                    family_id=family.id,
+                    version=1,
+                    data=itinerary_data,
+                    created_reason=created_reason,
+                    created_by="agent",
+                    total_cost=total_cost,
+                    total_satisfaction=total_satisfaction,
+                    duration_days=duration_days,
+                )
+                session.add(itinerary)
+                session.flush()
+
+                # Point family to this version
+                family.current_itinerary_version = itinerary.id
+                family.trip_name = trip_id
+                family.updated_at = datetime.utcnow()
+                session.add(family)
+
+                created_ids.append(itinerary.id)
+
+            session.commit()
+
+        logger.info(
+            f"Published base itinerary for trip {trip_id} to "
+            f"{len(created_ids)} families"
+        )
+        return created_ids

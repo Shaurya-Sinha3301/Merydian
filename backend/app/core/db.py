@@ -12,6 +12,10 @@ from app.models.itinerary import Itinerary
 from app.models.event import Event
 from app.models.preference import Preference
 from app.models.trip_session import TripSession
+from app.models.itinerary_option import ItineraryOptionDB
+from app.models.booking_job import BookingJob
+from app.models.hotel_booking import HotelBooking
+from app.models.policy import POIRequest, FamilyResponseMessage, DecisionLog
 
 # Create engine with connection pooling
 engine = create_engine(

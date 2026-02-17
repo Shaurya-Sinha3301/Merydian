@@ -150,6 +150,61 @@ class InitializeTripResponse(BaseModel):
     next_steps: List[str]
 
 
+# ---------- New: Initialize with optimizer ----------
+
+class InitializeTripWithOptiRequest(BaseModel):
+    """Simplified request — only basics + family IDs. Preferences auto-fetched from DB."""
+
+    trip_name: str = Field(..., min_length=1, max_length=200, description="Name of the trip")
+    destination: str = Field(..., min_length=1, max_length=100, description="Trip destination")
+    start_date: str = Field(..., description="Start date (YYYY-MM-DD)")
+    end_date: str = Field(..., description="End date (YYYY-MM-DD)")
+    family_ids: List[str] = Field(
+        ..., min_items=1, description="Family codes (e.g. ['FAM_A', 'FAM_B'])"
+    )
+    num_travellers: Optional[int] = Field(
+        default=None, ge=1, description="Total traveller count (informational)"
+    )
+
+    @validator("end_date")
+    def validate_dates(cls, v, values):
+        if "start_date" in values:
+            from datetime import datetime
+            try:
+                start = datetime.fromisoformat(values["start_date"])
+                end = datetime.fromisoformat(v)
+                if end < start:
+                    raise ValueError("end_date must be after start_date")
+            except ValueError as e:
+                if "must be after" not in str(e):
+                    raise ValueError(f"Invalid date format: {e}")
+                raise
+        return v
+
+
+class OptiSummary(BaseModel):
+    """Summary returned from optimizer-backed initialization"""
+    families_registered: int
+    total_members: int
+    total_children: int
+    trip_duration_days: int
+    baseline_itinerary: str
+    estimated_cost: float
+    predicted_satisfaction: float
+
+
+class InitializeTripWithOptiResponse(BaseModel):
+    """Response after optimizer-backed trip initialization"""
+    success: bool
+    trip_id: str
+    trip_session_id: str
+    option_id: str
+    event_id: str
+    optimizer_ran: bool
+    message: str
+    summary: OptiSummary
+
+
 class TripDetailResponse(BaseModel):
     """Detailed trip information"""
     trip_id: str
@@ -256,6 +311,50 @@ async def initialize_trip(
         )
 
 
+@router.post(
+    "/initialize-with-optimization",
+    response_model=InitializeTripWithOptiResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def initialize_trip_with_optimization(
+    request: InitializeTripWithOptiRequest,
+    current_user: Optional[TokenPayload] = Depends(lambda: None),
+):
+    """
+    Initialize a trip with automatic optimizer run.
+
+    This endpoint:
+    1. Auto-fetches family preferences from the database
+    2. Creates a TripSession
+    3. Runs the ML optimizer iteration 0 (falls back to baseline if unavailable)
+    4. Creates an ItineraryOption for the agent to review/approve
+
+    The agent can then approve the option via `POST /agent/itinerary/approve`.
+    """
+    try:
+        result = TripService.initialize_trip_with_optimization(
+            trip_name=request.trip_name,
+            destination=request.destination,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            family_ids=request.family_ids,
+            num_travellers=request.num_travellers,
+        )
+
+        return InitializeTripWithOptiResponse(**result)
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to initialize trip with optimization: {str(e)}",
+        )
+
+
 @router.get("/{trip_id}/summary", response_model=TripDetailResponse)
 async def get_trip_summary(trip_id: str):
     """
@@ -340,28 +439,55 @@ async def update_family_preferences(
 
 
 @router.get("/", response_model=List[TripDetailResponse])
-async def list_trips(limit: int = 10, offset: int = 0):
+async def list_trips(
+    limit: int = 10,
+    offset: int = 0,
+    trip_status: str = None,
+):
     """
     List all trips (with pagination).
-    
-    **Note:** This is a placeholder. Implement actual listing logic as needed.
+
+    Args:
+        limit: Maximum number of trips to return (default 10)
+        offset: Number of trips to skip for pagination (default 0)
+        trip_status: Optional filter by trip status ('active', 'archived')
+
+    Returns:
+        List of trip summaries ordered by creation date (newest first)
     """
-    # TODO: Implement listing from database
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Trip listing not yet implemented. Use trip_id directly."
-    )
+    try:
+        trips = TripService.list_trips(
+            limit=limit,
+            offset=offset,
+            status_filter=trip_status,
+        )
+        return [TripDetailResponse(**t) for t in trips]
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to list trips: {str(e)}"
+        )
+
 
 
 @router.delete("/{trip_id}")
 async def delete_trip(trip_id: str):
     """
-    Delete a trip and all associated data.
-    
-    **Note:** This is a placeholder. Implement with caution - should archive, not delete.
+    Archive a trip (soft delete).
+
+    Sets trip status to 'archived'. The trip data is preserved in the database
+    but will no longer appear in active trip listings.
     """
-    # TODO: Implement soft delete or archival
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Trip deletion not yet implemented"
-    )
+    try:
+        result = TripService.delete_trip(trip_id)
+        return result
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to archive trip: {str(e)}"
+        )

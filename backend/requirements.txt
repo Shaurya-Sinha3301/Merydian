@@ -6,14 +6,14 @@ python-multipart
 pydantic-settings
 email-validator
 sqlmodel
-redis
 psycopg2-binary
 pytest
 pytest-asyncio
 httpx
-sqlmodel
 celery[redis]
 redis
+websockets
 groq
 google-generativeai
 ortools
+requests

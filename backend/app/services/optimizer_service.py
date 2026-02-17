@@ -185,6 +185,110 @@ class OptimizerService:
 
     
     @staticmethod
+    def run_initial_optimization(
+        trip_id: str,
+        baseline_path: str,
+        preferences: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Run the ML optimizer's first iteration (iteration 0) to generate a
+        base itinerary from the baseline skeleton + family preferences.
+
+        Args:
+            trip_id: Trip identifier
+            baseline_path: Path to baseline itinerary JSON
+            preferences: Optimizer-formatted family preferences dict
+
+        Returns:
+            Dictionary with:
+            - itinerary_data: The optimized (or raw baseline) itinerary dict
+            - cost: Estimated total cost
+            - satisfaction: Predicted satisfaction score (0-1)
+            - optimizer_ran: Whether the ML optimizer actually ran
+        """
+        logger.info(f"Running initial optimization for trip {trip_id}")
+
+        # Load baseline itinerary
+        baseline_data: Dict[str, Any] = {}
+        try:
+            with open(baseline_path, "r") as f:
+                baseline_data = json.load(f)
+        except FileNotFoundError:
+            logger.error(f"Baseline itinerary not found: {baseline_path}")
+            raise ValueError(f"Baseline itinerary file not found: {baseline_path}")
+
+        # Try to run the ML optimizer
+        try:
+            import sys
+            project_root = Path(__file__).parent.parent.parent.parent
+            if str(project_root) not in sys.path:
+                sys.path.insert(0, str(project_root))
+
+            from ml_or.demos.reopt_hard_constraints.feedback_processor import FeedbackProcessor
+
+            # Prepare output dir for this run
+            output_dir = Path(settings.OPTIMIZER_OUTPUT_DIR) / trip_id / "iteration_0"
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            # Convert preferences dict to the list format the optimizer expects
+            pref_list = []
+            for fam_id, fam_prefs in preferences.items():
+                entry = {"family_id": fam_id}
+                entry["must_visit"] = fam_prefs.get("must_visit_locations", [])
+                entry["never_visit"] = fam_prefs.get("never_visit_locations", [])
+                entry["interest_vector"] = fam_prefs.get("interest_vector", {})
+                pref_list.append(entry)
+
+            # Write preferences file for the optimizer
+            prefs_file = output_dir / "preferences.json"
+            with open(prefs_file, "w") as f:
+                json.dump(pref_list, f, indent=2)
+
+            # Run optimizer via FeedbackProcessor
+            processor = FeedbackProcessor()
+            result = processor.run_optimizer(
+                baseline_path=str(baseline_path),
+                preferences_path=str(prefs_file),
+                output_dir=str(output_dir),
+            )
+
+            optimized_path = output_dir / "optimized_itinerary.json"
+            if optimized_path.exists():
+                with open(optimized_path, "r") as f:
+                    optimized_data = json.load(f)
+
+                cost = optimized_data.get("total_cost", 0.0)
+                satisfaction = optimized_data.get("total_satisfaction", 0.0)
+
+                logger.info(f"ML optimizer succeeded for trip {trip_id}")
+                return {
+                    "itinerary_data": optimized_data,
+                    "cost": cost,
+                    "satisfaction": min(satisfaction, 1.0),
+                    "optimizer_ran": True,
+                }
+
+            # Optimizer ran but no output file – fall through to baseline
+            logger.warning("Optimizer ran but produced no output file, using baseline")
+
+        except ImportError as e:
+            logger.warning(f"ML optimizer not available ({e}), using raw baseline")
+        except Exception as e:
+            logger.error(f"ML optimizer failed ({e}), falling back to baseline")
+
+        # Fallback: return the raw baseline as-is
+        cost = baseline_data.get("total_cost", 0.0)
+        num_pois = sum(len(day.get("pois", [])) for day in baseline_data.get("days", []))
+        satisfaction = min(0.5 + num_pois * 0.02, 1.0)  # rough heuristic
+
+        return {
+            "itinerary_data": baseline_data,
+            "cost": cost,
+            "satisfaction": satisfaction,
+            "optimizer_ran": False,
+        }
+
+    @staticmethod
     def process_feedback_with_agents(
         trip_id: str,
         family_id: str,

@@ -491,7 +491,193 @@ class TripService:
         logger.info(f"Updated preferences for {family_id} in trip {trip_id}")
         
         return family_prefs
-    
+
+    @staticmethod
+    def initialize_trip_with_optimization(
+        trip_name: str,
+        destination: str,
+        start_date: str,
+        end_date: str,
+        family_ids: List[str],
+        num_travellers: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """
+        Initialize a trip, auto-fetch family preferences, run optimizer iteration 0,
+        and create an ItineraryOption for agent review.
+
+        Args:
+            trip_name: Human-readable trip name
+            destination: Trip destination
+            start_date: ISO 8601 date string
+            end_date: ISO 8601 date string
+            family_ids: List of family_code strings (e.g. ["FAM_A", "FAM_B"])
+            num_travellers: Optional total traveller count (informational)
+
+        Returns:
+            Dictionary with trip_id, option_id, summary, and generated itinerary metadata
+        """
+        logger.info(
+            f"Initializing trip with optimization: {trip_name} for {family_ids}"
+        )
+
+        # -------------------------------------------------------------------
+        # 1. Fetch family preferences from DB
+        # -------------------------------------------------------------------
+        from sqlmodel import Session, select
+        from app.core.db import engine as db_engine
+        from app.models.family import Family
+        from app.services.itinerary_option_service import ItineraryOptionService
+
+        families_data: List[Dict[str, Any]] = []
+
+        with Session(db_engine) as session:
+            for fam_code in family_ids:
+                stmt = select(Family).where(Family.family_code == fam_code)
+                family = session.exec(stmt).first()
+
+                if not family:
+                    logger.warning(f"Family {fam_code} not found in DB, using defaults")
+                    families_data.append({
+                        "family_id": fam_code,
+                        "members": 2,
+                        "children": 0,
+                        "budget_sensitivity": 0.5,
+                        "energy_level": 0.5,
+                        "pace_preference": "moderate",
+                        "interest_vector": {
+                            "history": 0.5, "architecture": 0.5,
+                            "food": 0.5, "nature": 0.5, "nightlife": 0.3,
+                            "shopping": 0.3, "religious": 0.3,
+                        },
+                        "must_visit_locations": [],
+                        "never_visit_locations": [],
+                    })
+                    continue
+
+                # Pull preferences from the Family.preferences JSONB column
+                prefs = family.preferences or {}
+                families_data.append({
+                    "family_id": fam_code,
+                    "members": prefs.get("members", 2),
+                    "children": prefs.get("children", 0),
+                    "budget_sensitivity": prefs.get("budget_sensitivity", 0.5),
+                    "energy_level": prefs.get("energy_level", 0.5),
+                    "pace_preference": prefs.get("pace_preference", "moderate"),
+                    "interest_vector": prefs.get("interest_vector", {
+                        "history": 0.5, "architecture": 0.5,
+                        "food": 0.5, "nature": 0.5, "nightlife": 0.3,
+                        "shopping": 0.3, "religious": 0.3,
+                    }),
+                    "must_visit_locations": prefs.get("must_visit", prefs.get("must_visit_locations", [])),
+                    "never_visit_locations": prefs.get("never_visit", prefs.get("never_visit_locations", [])),
+                })
+
+        # -------------------------------------------------------------------
+        # 2. Generate trip ID and prepare data
+        # -------------------------------------------------------------------
+        trip_id = TripService._generate_trip_id(destination, start_date)
+        optimizer_prefs = TripService._convert_to_optimizer_format(families_data)
+
+        # Auto-resolve baseline based on destination
+        baseline_map = {
+            "delhi": "delhi_3day_skeleton",
+            "mumbai": "mumbai_3day",
+        }
+        dest_key = destination.lower().split(",")[0].strip()
+        baseline_name = baseline_map.get(dest_key, "delhi_3day_skeleton")
+        baseline_path = TripService._resolve_baseline_path(baseline_name)
+
+        # -------------------------------------------------------------------
+        # 3. Create TripSession
+        # -------------------------------------------------------------------
+        trip_session = OptimizerService.create_trip_session(
+            trip_id=trip_id,
+            family_ids=family_ids,
+            baseline_itinerary_path=baseline_path,
+            trip_name=trip_name,
+        )
+
+        # Add metadata
+        trip_session.destination = destination
+        trip_session.start_date = datetime.fromisoformat(start_date)
+        trip_session.end_date = datetime.fromisoformat(end_date)
+        trip_session.initial_preferences = optimizer_prefs
+        trip_session.current_preferences = optimizer_prefs.copy()
+        OptimizerService.update_trip_session(trip_session)
+
+        # -------------------------------------------------------------------
+        # 4. Run ML optimizer iteration 0
+        # -------------------------------------------------------------------
+        opti_result = OptimizerService.run_initial_optimization(
+            trip_id=trip_id,
+            baseline_path=baseline_path,
+            preferences=optimizer_prefs,
+        )
+
+        itinerary_data = opti_result["itinerary_data"]
+        cost = opti_result["cost"]
+        satisfaction = opti_result["satisfaction"]
+        optimizer_ran = opti_result["optimizer_ran"]
+
+        # -------------------------------------------------------------------
+        # 5. Create ItineraryOptionDB entry for agent review
+        # -------------------------------------------------------------------
+        event_id = f"trip_init_{trip_id}"
+
+        option = ItineraryOptionService.create_option(
+            event_id=event_id,
+            trip_id=trip_id,
+            summary=(
+                f"Base itinerary for '{trip_name}' ({destination}) — "
+                f"{len(itinerary_data.get('days', []))} days, "
+                f"{len(family_ids)} families"
+                + (" [optimizer ran]" if optimizer_ran else " [baseline skeleton]")
+            ),
+            cost=cost,
+            satisfaction=satisfaction,
+            details={
+                "itinerary": itinerary_data,
+                "optimizer_ran": optimizer_ran,
+                "family_ids": family_ids,
+                "destination": destination,
+                "start_date": start_date,
+                "end_date": end_date,
+                "num_travellers": num_travellers,
+                "type": "base_itinerary",
+            },
+        )
+
+        logger.info(
+            f"Trip {trip_id} initialized with optimization. "
+            f"Option ID: {option.id}, optimizer_ran={optimizer_ran}"
+        )
+
+        start_dt = datetime.fromisoformat(start_date)
+        end_dt = datetime.fromisoformat(end_date)
+        duration_days = (end_dt - start_dt).days + 1
+
+        return {
+            "success": True,
+            "trip_id": trip_id,
+            "trip_session_id": str(trip_session.id),
+            "option_id": str(option.id),
+            "event_id": event_id,
+            "optimizer_ran": optimizer_ran,
+            "message": (
+                f"Trip initialized and base itinerary generated. "
+                f"Review option '{option.id}' in the agent dashboard to approve."
+            ),
+            "summary": {
+                "families_registered": len(family_ids),
+                "total_members": sum(f.get("members", 1) for f in families_data),
+                "total_children": sum(f.get("children", 0) for f in families_data),
+                "trip_duration_days": duration_days,
+                "baseline_itinerary": baseline_name,
+                "estimated_cost": cost,
+                "predicted_satisfaction": satisfaction,
+            },
+        }
+
     @staticmethod
     def get_active_trip_for_family(family_id: str) -> Optional[TripSession]:
         """
@@ -537,3 +723,92 @@ class TripService:
             
             return trip
 
+    @staticmethod
+    def list_trips(
+        limit: int = 10,
+        offset: int = 0,
+        status_filter: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        List trips with pagination, optionally filtered by status.
+
+        Args:
+            limit: Maximum number of trips to return
+            offset: Number of trips to skip
+            status_filter: Optional status filter (e.g. 'active', 'archived')
+
+        Returns:
+            List of trip summary dictionaries
+        """
+        from sqlmodel import select
+
+        with get_db_session() as session:
+            statement = select(TripSession).order_by(TripSession.created_at.desc())
+
+            if status_filter:
+                statement = statement.where(TripSession.status == status_filter)
+
+            statement = statement.offset(offset).limit(limit)
+            trips = session.exec(statement).all()
+
+            results = []
+            for trip in trips:
+                # Force-load JSONB fields before detaching
+                _ = trip.family_ids
+                _ = trip.initial_preferences
+                _ = trip.current_preferences
+                _ = trip.feedback_history
+
+                results.append({
+                    "trip_id": trip.trip_id,
+                    "trip_name": trip.trip_name,
+                    "destination": trip.destination,
+                    "start_date": trip.start_date.isoformat() if trip.start_date else None,
+                    "end_date": trip.end_date.isoformat() if trip.end_date else None,
+                    "families": trip.family_ids,
+                    "iteration_count": trip.iteration_count,
+                    "initial_preferences": trip.initial_preferences,
+                    "current_preferences": trip.current_preferences,
+                    "feedback_count": len(trip.feedback_history) if trip.feedback_history else 0,
+                    "last_updated": trip.updated_at.isoformat() if trip.updated_at else None,
+                })
+
+            return results
+
+    @staticmethod
+    def delete_trip(trip_id: str) -> Dict[str, Any]:
+        """
+        Soft-delete a trip by setting its status to 'archived'.
+
+        Args:
+            trip_id: Trip identifier
+
+        Returns:
+            Dictionary confirming the archival
+
+        Raises:
+            ValueError: If trip not found or already archived
+        """
+        with get_db_session() as session:
+            from sqlmodel import select
+
+            statement = select(TripSession).where(TripSession.trip_id == trip_id)
+            trip = session.exec(statement).first()
+
+            if not trip:
+                raise ValueError(f"Trip not found: {trip_id}")
+
+            if trip.status == "archived":
+                raise ValueError(f"Trip {trip_id} is already archived")
+
+            trip.status = "archived"
+            trip.updated_at = datetime.utcnow()
+            session.add(trip)
+
+        logger.info(f"Trip {trip_id} archived (soft-deleted)")
+        return {
+            "success": True,
+            "trip_id": trip_id,
+            "status": "archived",
+            "message": f"Trip {trip_id} has been archived",
+        }
