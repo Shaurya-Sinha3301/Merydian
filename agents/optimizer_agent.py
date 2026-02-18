@@ -32,12 +32,14 @@ class OptimizerAgent:
         # Data paths
         self.data_dir = self.ml_or_dir / "data"
         self.locations_path = self.data_dir / "locations.json"
+        self.hotels_path = self.data_dir / "hotels.json"
         self.transport_path = self.data_dir / "transport_graph.json"
         self.base_itinerary_path = self.data_dir / "base_itinerary_clustered.json"
         self.base_prefs_path = self.data_dir / "family_preferences_3fam_strict.json"
         
-        # Load locations map once
+        # Load locations map (merge locations and hotels)
         self.locations_map = load_locations_map(self.locations_path)
+        self.locations_map.update(load_locations_map(self.hotels_path))
         
         logger.info("OptimizerAgent initialized with real optimizer")
     
@@ -207,6 +209,7 @@ class OptimizerAgent:
                 from ml_or.itinerary_optimizer import ItineraryOptimizer
                 temp_optimizer = ItineraryOptimizer(
                     locations_file=str(self.locations_path),
+                    hotels_file=str(self.hotels_path),
                     transport_file=str(self.transport_path),
                     base_itinerary_file=str(self.base_itinerary_path),
                     family_prefs_file=str(self.base_prefs_path)
@@ -253,6 +256,7 @@ class OptimizerAgent:
         # Uses updated preferences to respect constraints
         hotel_opt = HotelSkeletonOptimizer(
             locations_file=str(self.locations_path),
+            hotels_file=str(self.hotels_path),
             base_itinerary_file=str(self.base_itinerary_path),
             family_prefs_file=str(updated_prefs_path)
         )
@@ -299,6 +303,7 @@ class OptimizerAgent:
         logger.info("Initializing ItineraryOptimizer...")
         optimizer = ItineraryOptimizer(
             locations_file=str(self.locations_path),
+            hotels_file=str(self.hotels_path),
             transport_file=transport_file_to_use,
             base_itinerary_file=str(self.base_itinerary_path),
             family_prefs_file=str(updated_prefs_path),

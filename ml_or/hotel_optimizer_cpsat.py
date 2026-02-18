@@ -46,10 +46,11 @@ class FamilyPreference:
 class HotelSkeletonOptimizer:
     def __init__(self,
                  locations_file: str = "ml_or/data/locations.json",
+                 hotels_file: str = "ml_or/data/hotels.json",
                  base_itinerary_file: str = "ml_or/data/base_itinerary_clustered.json",
                  family_prefs_file: str = "ml_or/data/family_preferences_3fam_strict.json"):
         
-        self.locations = self._load_locations(locations_file)
+        self.locations = self._load_locations(locations_file, hotels_file)
         self.base_itinerary = self._load_json(base_itinerary_file)
         self.family_prefs = self._load_json(family_prefs_file)
         
@@ -69,8 +70,14 @@ class HotelSkeletonOptimizer:
         with open(filepath, 'r') as f:
             return json.load(f)
 
-    def _load_locations(self, filepath: str) -> Dict[str, Location]:
-        data = self._load_json(filepath)
+    def _load_locations(self, locations_file: str, hotels_file: str) -> Dict[str, Location]:
+        data = self._load_json(locations_file)
+        try:
+            hotels_data = self._load_json(hotels_file)
+            data.extend(hotels_data)
+        except Exception as e:
+            print(f"Warning: Could not load hotels from {hotels_file}: {e}")
+            
         locs = {}
         for item in data:
             locs[item['location_id']] = Location(

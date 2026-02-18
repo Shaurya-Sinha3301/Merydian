@@ -103,13 +103,14 @@ class ItineraryOptimizer:
     def __init__(
         self,
         locations_file: str = "ml_or/data/locations.json",
+        hotels_file: str = "ml_or/data/hotels.json",
         transport_file: str = "ml_or/data/transport_graph.json",
         base_itinerary_file: str = "ml_or/data/base_itinerary.json",
         family_prefs_file: str = "ml_or/data/family_preferences.json",
         optimized_backbone_file: str = "ml_or/data/optimized_backbone.json" # NEW Input
     ):
         """Initialize optimizer with data files"""
-        self.locations = self._load_locations(locations_file)
+        self.locations = self._load_locations(locations_file, hotels_file)
         self.transport_edges = self._load_transport(transport_file)
         self.base_itinerary = self._load_base_itinerary(base_itinerary_file)
         self.family_prefs = self._load_family_prefs(family_prefs_file)
@@ -147,10 +148,18 @@ class ItineraryOptimizer:
             print("Warning: Optimized backbone file not found. Using defaults/empty.")
             return {}, {}, {}
         
-    def _load_locations(self, filepath: str) -> Dict[str, Location]:
-        """Load locations from JSON"""
-        with open(filepath, 'r') as f:
+    def _load_locations(self, locations_file: str, hotels_file: str) -> Dict[str, Location]:
+        """Load locations and hotels from JSON"""
+        with open(locations_file, 'r') as f:
             data = json.load(f)
+            
+        try:
+            with open(hotels_file, 'r') as f:
+                hotels_data = json.load(f)
+                data.extend(hotels_data)
+        except Exception as e:
+            print(f"Warning: Could not load hotels from {hotels_file}: {e}")
+            
         return {
             loc['location_id']: Location(**loc)
             for loc in data
