@@ -127,6 +127,10 @@ export default function GroupDetailsInteractive() {
                             <Icon name="ChatBubbleLeftRightIcon" size={18} />
                             Contact Lead
                         </button>
+                        <Link href={`/agent-dashboard/${groupId}/itinerary`} className="flex items-center gap-2 px-4 py-2 bg-white border border-neutral-200 rounded-lg shadow-sm hover:bg-neutral-50 transition-colors font-medium text-sm">
+                            <Icon name="ClockIcon" size={18} />
+                            View Itinerary
+                        </Link>
                         <Link href="/optimizer" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg shadow-md hover:bg-primary/90 transition-transform active:scale-95 font-bold text-sm">
                             <Icon name="AdjustmentsHorizontalIcon" size={18} />
                             Optimize Itinerary

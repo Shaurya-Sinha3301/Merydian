@@ -1,0 +1,1042 @@
+{
+  "itineraries": [
+    {
+      "groupId": "GRP001",
+      "itineraryName": "Goa Beach Retreat 2026",
+      "totalDays": 3,
+      "startDate": "2026-02-10T00:00:00Z",
+      "endDate": "2026-02-12T23:59:59Z",
+      "days": [
+        {
+          "dayNumber": 1,
+          "date": "2026-02-10",
+          "title": "Arrival & Beach Welcome",
+          "timelineEvents": [
+            {
+              "id": "evt_grp001_001",
+              "type": "transport",
+              "startTime": "2026-02-10T07:00:00Z",
+              "endTime": "2026-02-10T09:30:00Z",
+              "title": "Flight to Goa",
+              "description": "Morning flight from Mumbai to Goa International Airport",
+              "transport": {
+                "mode": "Flight",
+                "providerName": "IndiGo",
+                "flightNumber": "6E-5124",
+                "pickupLocation": {
+                  "name": "Chhatrapati Shivaji Maharaj International Airport",
+                  "address": "Mumbai, MH 400099",
+                  "coordinates": { "lat": 19.0896, "lng": 72.8656 }
+                },
+                "dropLocation": {
+                  "name": "Goa International Airport (Dabolim)",
+                  "address": "Dabolim, Goa 403801",
+                  "coordinates": { "lat": 15.3808, "lng": 73.8314 }
+                },
+                "ticketStatus": {
+                  "confirmed": true,
+                  "bookingReference": "6E5124-10FEB26",
+                  "pnr": "GOAGRP1",
+                  "seatNumbers": ["12A", "12B", "12C", "13A", "13B", "13C", "14A", "14B"],
+                  "ticketUrl": "https://example.com/tickets/flight/6E5124-10FEB26"
+                }
+              }
+            },
+            {
+              "id": "evt_grp001_002",
+              "type": "transport",
+              "startTime": "2026-02-10T10:00:00Z",
+              "endTime": "2026-02-10T11:00:00Z",
+              "title": "Transfer to Resort",
+              "description": "Luxury coach transfer to beachfront resort",
+              "transport": {
+                "mode": "Cab",
+                "providerName": "Goa Premium Transfers",
+                "driverDetails": {
+                  "name": "Antonio D'Souza",
+                  "contact": "+91-9988776655",
+                  "vehicleNumber": "GA-01-XY-9876",
+                  "vehicleModel": "Mercedes Sprinter (22-seater)"
+                },
+                "pickupLocation": {
+                  "name": "Goa International Airport",
+                  "address": "Dabolim, Goa 403801",
+                  "coordinates": { "lat": 15.3808, "lng": 73.8314 }
+                },
+                "dropLocation": {
+                  "name": "Taj Exotica Resort & Spa",
+                  "address": "Calwaddo, Benaulim, Goa 403716",
+                  "coordinates": { "lat": 15.2593, "lng": 73.9270 }
+                },
+                "ticketStatus": {
+                  "confirmed": true,
+                  "bookingReference": "GOA-GRP001-001",
+                  "ticketUrl": "https://example.com/tickets/cab/GOA-GRP001-001"
+                }
+              }
+            },
+            {
+              "id": "evt_grp001_003",
+              "type": "accommodation",
+              "startTime": "2026-02-10T11:00:00Z",
+              "endTime": "2026-02-12T12:00:00Z",
+              "title": "Check-in at Taj Exotica",
+              "description": "Luxury beachfront resort with private beach access",
+              "accommodation": {
+                "hotelName": "Taj Exotica Resort & Spa",
+                "address": "Calwaddo, Benaulim, Goa 403716",
+                "coordinates": { "lat": 15.2593, "lng": 73.9270 },
+                "roomType": "Premium Sea View Villas",
+                "roomNumbers": ["Villa-12", "Villa-13", "Villa-14", "Villa-15", "Villa-16", "Villa-17"],
+                "checkInTime": "2026-02-10T11:00:00Z",
+                "checkOutTime": "2026-02-12T12:00:00Z",
+                "bookingReference": "TAJ-GRP001-2026",
+                "confirmationUrl": "https://example.com/bookings/hotel/TAJ-GRP001-2026"
+              }
+            },
+            {
+              "id": "evt_grp001_004",
+              "type": "meal",
+              "startTime": "2026-02-10T13:00:00Z",
+              "endTime": "2026-02-10T14:30:00Z",
+              "title": "Welcome Lunch",
+              "description": "Goan seafood specialties with ocean views",
+              "meal": {
+                "mealType": "Lunch",
+                "restaurantName": "Lobster Shack",
+                "location": "Taj Exotica Resort",
+                "cuisine": "Goan Seafood & Continental",
+                "reservationStatus": "Confirmed",
+                "bookingReference": "LOB-GRP001-001"
+              }
+            },
+            {
+              "id": "evt_grp001_005",
+              "type": "activity",
+              "startTime": "2026-02-10T16:00:00Z",
+              "endTime": "2026-02-10T18:00:00Z",
+              "title": "Beach Orientation & Sunset Walk",
+              "description": "Guided beach walk and resort orientation",
+              "activity": {
+                "locationName": "Benaulim Beach",
+                "address": "Benaulim Beach, Goa 403716",
+                "coordinates": { "lat": 15.2593, "lng": 73.9270 },
+                "activityType": "Beach Walk & Orientation",
+                "description": "Relaxing beach walk with resort orientation and welcome drinks at sunset point",
+                "entryFee": {
+                  "amount": 0,
+                  "currency": "INR",
+                  "perPerson": true,
+                  "includes": "Welcome drinks, Guide"
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "BEN-GRP001-001",
+                  "ticketUrl": "https://example.com/tickets/activity/BEN-GRP001-001"
+                }
+              }
+            },
+            {
+              "id": "evt_grp001_006",
+              "type": "meal",
+              "startTime": "2026-02-10T20:00:00Z",
+              "endTime": "2026-02-10T22:00:00Z",
+              "title": "Beach BBQ Dinner",
+              "description": "Private beach BBQ under the stars",
+              "meal": {
+                "mealType": "Dinner",
+                "restaurantName": "Private Beach Setup",
+                "location": "Taj Exotica Private Beach",
+                "cuisine": "BBQ & Grilled Seafood",
+                "reservationStatus": "Confirmed",
+                "bookingReference": "BBQ-GRP001-001",
+                "specialArrangements": "Private setup, Bonfire, Live acoustic music"
+              }
+            }
+          ]
+        },
+        {
+          "dayNumber": 2,
+          "date": "2026-02-11",
+          "title": "Water Sports & Adventure",
+          "timelineEvents": [
+            {
+              "id": "evt_grp001_007",
+              "type": "meal",
+              "startTime": "2026-02-11T08:00:00Z",
+              "endTime": "2026-02-11T09:30:00Z",
+              "title": "Breakfast Buffet",
+              "description": "Continental breakfast with fresh tropical fruits",
+              "meal": {
+                "mealType": "Breakfast",
+                "restaurantName": "Poolside Cafe",
+                "location": "Taj Exotica Resort",
+                "cuisine": "Continental & Indian",
+                "reservationStatus": "Confirmed",
+                "bookingReference": "POOL-GRP001-002"
+              }
+            },
+            {
+              "id": "evt_grp001_008",
+              "type": "activity",
+              "startTime": "2026-02-11T10:00:00Z",
+              "endTime": "2026-02-11T13:00:00Z",
+              "title": "Water Sports Package",
+              "description": "Jet skiing, parasailing, and banana boat rides",
+              "activity": {
+                "locationName": "Benaulim Beach Water Sports Center",
+                "address": "Benaulim Beach, Goa 403716",
+                "coordinates": { "lat": 15.2593, "lng": 73.9270 },
+                "activityType": "Water Sports",
+                "description": "Exciting water sports package including jet skiing (15 min), parasailing (1 round), and banana boat ride (15 min). All safety equipment provided.",
+                "entryFee": {
+                  "amount": 3500,
+                  "currency": "INR",
+                  "perPerson": true,
+                  "includes": "All equipment, Life jackets, Instructor"
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "BEN-GRP001-002",
+                  "ticketUrl": "https://example.com/tickets/activity/BEN-GRP001-002",
+                  "qrCode": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+                }
+              }
+            },
+            {
+              "id": "evt_grp001_009",
+              "type": "meal",
+              "startTime": "2026-02-11T13:30:00Z",
+              "endTime": "2026-02-11T14:30:00Z",
+              "title": "Beachside Lunch",
+              "description": "Light lunch at beach shack",
+              "meal": {
+                "mealType": "Lunch",
+                "restaurantName": "Fisherman's Wharf",
+                "location": "Benaulim Beach",
+                "cuisine": "Goan Seafood",
+                "reservationStatus": "Confirmed",
+                "bookingReference": "FISH-GRP001-001"
+              }
+            },
+            {
+              "id": "evt_grp001_010",
+              "type": "activity",
+              "startTime": "2026-02-11T16:00:00Z",
+              "endTime": "2026-02-11T18:00:00Z",
+              "title": "Dolphin Watching Cruise",
+              "description": "Boat cruise to spot dolphins at sunset",
+              "activity": {
+                "locationName": "Benaulim Beach Jetty",
+                "address": "Benaulim Beach, Goa 403716",
+                "coordinates": { "lat": 15.2593, "lng": 73.9270 },
+                "activityType": "Boat Cruise",
+                "description": "Enjoy a magical sunset cruise with opportunities to spot playful dolphins. Includes refreshments and live music on board.",
+                "entryFee": {
+                  "amount": 1500,
+                  "currency": "INR",
+                  "perPerson": true,
+                  "includes": "Refreshments, Music"
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "DOL-GRP001-001",
+                  "ticketUrl": "https://example.com/tickets/activity/DOL-GRP001-001",
+                  "qrCode": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+                },
+                "skipperDetails": {
+                  "name": "Captain Mike Fernandes",
+                  "contact": "+91-9876543211",
+                  "boatName": "Sea Breeze"
+                }
+              }
+            },
+            {
+              "id": "evt_grp001_011",
+              "type": "meal",
+              "startTime": "2026-02-11T20:00:00Z",
+              "endTime": "2026-02-11T22:00:00Z",
+              "title": "Goan Cultural Dinner",
+              "description": "Traditional Goan dinner with cultural performance",
+              "meal": {
+                "mealType": "Dinner",
+                "restaurantName": "Spice Garden",
+                "location": "Taj Exotica Resort",
+                "cuisine": "Traditional Goan",
+                "reservationStatus": "Confirmed",
+                "bookingReference": "SPICE-GRP001-001",
+                "specialArrangements": "Live Goan folk dance performance"
+              }
+            }
+          ]
+        },
+        {
+          "dayNumber": 3,
+          "date": "2026-02-12",
+          "title": "Heritage & Departure",
+          "timelineEvents": [
+            {
+              "id": "evt_grp001_012",
+              "type": "meal",
+              "startTime": "2026-02-12T08:00:00Z",
+              "endTime": "2026-02-12T09:00:00Z",
+              "title": "Breakfast",
+              "description": "Final breakfast at resort",
+              "meal": {
+                "mealType": "Breakfast",
+                "restaurantName": "Poolside Cafe",
+                "location": "Taj Exotica Resort",
+                "cuisine": "Continental & Indian",
+                "reservationStatus": "Confirmed",
+                "bookingReference": "POOL-GRP001-003"
+              }
+            },
+            {
+              "id": "evt_grp001_013",
+              "type": "activity",
+              "startTime": "2026-02-12T10:00:00Z",
+              "endTime": "2026-02-12T12:00:00Z",
+              "title": "Old Goa Heritage Tour",
+              "description": "Guided tour of UNESCO World Heritage churches",
+              "activity": {
+                "locationName": "Basilica of Bom Jesus",
+                "address": "Old Goa, Goa 403402",
+                "coordinates": { "lat": 15.5007, "lng": 73.9114 },
+                "activityType": "Heritage & Culture",
+                "description": "Explore the magnificent 16th-century churches of Old Goa including Basilica of Bom Jesus and Se Cathedral.",
+                "entryFee": {
+                  "amount": 500,
+                  "currency": "INR",
+                  "perPerson": true,
+                  "includes": "Guide, Entry fees"
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "OLD-GRP001-001",
+                  "ticketUrl": "https://example.com/tickets/activity/OLD-GRP001-001",
+                  "qrCode": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+                },
+                "guideDetails": {
+                  "name": "Maria Rodrigues",
+                  "contact": "+91-9123456780",
+                  "experience": "10 years"
+                }
+              }
+            },
+            {
+              "id": "evt_grp001_014",
+              "type": "meal",
+              "startTime": "2026-02-12T13:00:00Z",
+              "endTime": "2026-02-12T14:00:00Z",
+              "title": "Farewell Lunch",
+              "description": "Traditional Goan fish curry rice",
+              "meal": {
+                "mealType": "Lunch",
+                "restaurantName": "Mum's Kitchen",
+                "location": "Panaji, Goa",
+                "cuisine": "Authentic Goan",
+                "reservationStatus": "Confirmed",
+                "bookingReference": "MUM-GRP001-001"
+              }
+            },
+            {
+              "id": "evt_grp001_015",
+              "type": "transport",
+              "startTime": "2026-02-12T15:00:00Z",
+              "endTime": "2026-02-12T16:00:00Z",
+              "title": "Transfer to Airport",
+              "description": "Return transfer to Goa Airport",
+              "transport": {
+                "mode": "Cab",
+                "providerName": "Goa Premium Transfers",
+                "driverDetails": {
+                  "name": "Antonio D'Souza",
+                  "contact": "+91-9988776655",
+                  "vehicleNumber": "GA-01-XY-9876",
+                  "vehicleModel": "Mercedes Sprinter (22-seater)"
+                },
+                "pickupLocation": {
+                  "name": "Taj Exotica Resort & Spa",
+                  "address": "Calwaddo, Benaulim, Goa 403716",
+                  "coordinates": { "lat": 15.2593, "lng": 73.9270 }
+                },
+                "dropLocation": {
+                  "name": "Goa International Airport",
+                  "address": "Dabolim, Goa 403801",
+                  "coordinates": { "lat": 15.3808, "lng": 73.8314 }
+                },
+                "ticketStatus": {
+                  "confirmed": true,
+                  "bookingReference": "GOA-GRP001-002",
+                  "ticketUrl": "https://example.com/tickets/cab/GOA-GRP001-002"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "GRP002",
+      "itineraryName": "Himalayan Adventure Trek - Manali",
+      "totalDays": 2,
+      "startDate": "2026-02-12T00:00:00Z",
+      "endDate": "2026-02-13T23:59:59Z",
+      "days": [
+        {
+          "dayNumber": 1,
+          "date": "2026-02-12",
+          "title": "Journey to Manali",
+          "timelineEvents": [
+            {
+              "id": "evt_grp002_001",
+              "type": "transport",
+              "startTime": "2026-02-12T06:00:00Z",
+              "endTime": "2026-02-12T07:30:00Z",
+              "title": "Cab to Airport",
+              "description": "Early morning pickup to Delhi Airport",
+              "transport": {
+                "mode": "Cab",
+                "providerName": "Uber Premium",
+                "driverDetails": {
+                  "name": "Rajesh Kumar",
+                  "contact": "+91-9876543210",
+                  "vehicleNumber": "DL-01-AB-1234",
+                  "vehicleModel": "Toyota Innova Crysta"
+                },
+                "pickupLocation": {
+                  "name": "Residence - Sector 18, Noida",
+                  "address": "C-42, Sector 18, Noida, UP 201301",
+                  "coordinates": { "lat": 28.5706, "lng": 77.3272 }
+                },
+                "dropLocation": {
+                  "name": "Indira Gandhi International Airport - Terminal 3",
+                  "address": "New Delhi, DL 110037",
+                  "coordinates": { "lat": 28.5562, "lng": 77.1000 }
+                },
+                "ticketStatus": {
+                  "confirmed": true,
+                  "bookingReference": "UBR-GRP002-001",
+                  "ticketUrl": "https://example.com/tickets/cab/UBR-GRP002-001"
+                }
+              }
+            },
+            {
+              "id": "evt_grp002_002",
+              "type": "transport",
+              "startTime": "2026-02-12T09:00:00Z",
+              "endTime": "2026-02-12T10:45:00Z",
+              "title": "Flight to Kullu",
+              "description": "Direct flight to Kullu-Manali Airport",
+              "transport": {
+                "mode": "Flight",
+                "providerName": "Air India",
+                "flightNumber": "AI-467",
+                "pickupLocation": {
+                  "name": "IGI Airport Terminal 3",
+                  "address": "New Delhi, DL 110037",
+                  "coordinates": { "lat": 28.5562, "lng": 77.1000 }
+                },
+                "dropLocation": {
+                  "name": "Kullu-Manali Airport (Bhuntar)",
+                  "address": "Bhuntar, Kullu, HP 175125",
+                  "coordinates": { "lat": 31.8767, "lng": 77.1544 }
+                },
+                "ticketStatus": {
+                  "confirmed": true,
+                  "bookingReference": "AI467-12FEB26",
+                  "pnr": "MANAGRP2",
+                  "seatNumbers": ["12A", "12B", "12C", "13A", "13B"],
+                  "ticketUrl": "https://example.com/tickets/flight/AI467-12FEB26"
+                }
+              }
+            },
+            {
+              "id": "evt_grp002_003",
+              "type": "accommodation",
+              "startTime": "2026-02-12T13:00:00Z",
+              "endTime": "2026-02-13T11:00:00Z",
+              "title": "Check-in at The Himalayan Resort",
+              "description": "Luxury mountain resort with valley views",
+              "accommodation": {
+                "hotelName": "The Himalayan Resort",
+                "address": "Old Manali Road, Manali, HP 175131",
+                "coordinates": { "lat": 32.2432, "lng": 77.1892 },
+                "roomType": "Deluxe Valley View Suite",
+                "roomNumbers": ["201", "202", "203", "204"],
+                "checkInTime": "2026-02-12T13:00:00Z",
+                "checkOutTime": "2026-02-13T11:00:00Z",
+                "bookingReference": "HIM-GRP002-001",
+                "confirmationUrl": "https://example.com/bookings/hotel/HIM-GRP002-001"
+              }
+            },
+            {
+              "id": "evt_grp002_004",
+              "type": "activity",
+              "startTime": "2026-02-12T16:00:00Z",
+              "endTime": "2026-02-12T18:30:00Z",
+              "title": "Solang Valley Exploration",
+              "description": "Visit Solang Valley for adventure activities",
+              "activity": {
+                "locationName": "Solang Valley",
+                "address": "Solang Nala, Manali, HP 175103",
+                "coordinates": { "lat": 32.3191, "lng": 77.1542 },
+                "activityType": "Sightseeing & Adventure",
+                "description": "Explore scenic Solang Valley with optional paragliding and zorbing",
+                "entryFee": {
+                  "amount": 500,
+                  "currency": "INR",
+                  "perPerson": true
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "SOL-GRP002-001",
+                  "ticketUrl": "https://example.com/tickets/activity/SOL-GRP002-001"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "dayNumber": 2,
+          "date": "2026-02-13",
+          "title": "Manali Adventures",
+          "timelineEvents": [
+            {
+              "id": "evt_grp002_005",
+              "type": "activity",
+              "startTime": "2026-02-13T10:00:00Z",
+              "endTime": "2026-02-13T13:00:00Z",
+              "title": "Rohtang Pass Excursion",
+              "description": "Full morning trek to Rohtang Pass",
+              "activity": {
+                "locationName": "Rohtang Pass",
+                "address": "Manali-Leh Highway, Manali, HP 175103",
+                "coordinates": { "lat": 32.3726, "lng": 77.2493 },
+                "activityType": "Trekking & Sightseeing",
+                "description": "Experience Rohtang Pass at 13,050 feet with snow activities",
+                "entryFee": {
+                  "amount": 2500,
+                  "currency": "INR",
+                  "perPerson": true,
+                  "includes": "Guide, Permits, Snow Gear"
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "ROH-GRP002-001",
+                  "ticketUrl": "https://example.com/tickets/activity/ROH-GRP002-001"
+                },
+                "guideDetails": {
+                  "name": "Arun Thakur",
+                  "contact": "+91-9123456789",
+                  "experience": "15 years"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "GRP003",
+      "itineraryName": "Kerala Backwaters Experience",
+      "totalDays": 2,
+      "startDate": "2026-02-14T00:00:00Z",
+      "endDate": "2026-02-15T23:59:59Z",
+      "days": [
+        {
+          "dayNumber": 1,
+          "date": "2026-02-14",
+          "title": "Arrival & Houseboat Check-in",
+          "timelineEvents": [
+            {
+              "id": "evt_grp003_001",
+              "type": "transport",
+              "startTime": "2026-02-14T08:00:00Z",
+              "endTime": "2026-02-14T09:30:00Z",
+              "title": "Flight to Kochi",
+              "description": "Morning flight to Cochin International Airport",
+              "transport": {
+                "mode": "Flight",
+                "providerName": "IndiGo",
+                "flightNumber": "6E-345",
+                "pickupLocation": {
+                  "name": "Mumbai Airport",
+                  "address": "Mumbai, MH 400099",
+                  "coordinates": { "lat": 19.0896, "lng": 72.8656 }
+                },
+                "dropLocation": {
+                  "name": "Cochin International Airport",
+                  "address": "Kochi, Kerala 683111",
+                  "coordinates": { "lat": 10.1520, "lng": 76.3919 }
+                },
+                "ticketStatus": {
+                  "confirmed": true,
+                  "bookingReference": "6E345-14FEB26",
+                  "pnr": "KERGRP3",
+                  "seatNumbers": ["15A", "15B", "15C", "16A", "16B", "16C"],
+                  "ticketUrl": "https://example.com/tickets/flight/6E345-14FEB26"
+                }
+              }
+            },
+            {
+              "id": "evt_grp003_002",
+              "type": "accommodation",
+              "startTime": "2026-02-14T12:00:00Z",
+              "endTime": "2026-02-15T10:00:00Z",
+              "title": "Houseboat Check-in",
+              "description": "Traditional Kerala houseboat experience",
+              "accommodation": {
+                "hotelName": "Premium Kerala Houseboat",
+                "address": "Alleppey Backwaters, Kerala 688001",
+                "coordinates": { "lat": 9.4981, "lng": 76.3388 },
+                "roomType": "Deluxe Houseboat Cabins",
+                "roomNumbers": ["Boat-1", "Boat-2", "Boat-3"],
+                "checkInTime": "2026-02-14T12:00:00Z",
+                "checkOutTime": "2026-02-15T10:00:00Z",
+                "bookingReference": "HOUSE-GRP003-001",
+                "confirmationUrl": "https://example.com/bookings/hotel/HOUSE-GRP003-001"
+              }
+            },
+            {
+              "id": "evt_grp003_003",
+              "type": "activity",
+              "startTime": "2026-02-14T14:00:00Z",
+              "endTime": "2026-02-14T17:00:00Z",
+              "title": "Backwater Cruise",
+              "description": "Scenic cruise through Kerala backwaters",
+              "activity": {
+                "locationName": "Alleppey Backwaters",
+                "address": "Alleppey, Kerala 688001",
+                "coordinates": { "lat": 9.4981, "lng": 76.3388 },
+                "activityType": "Houseboat Cruise",
+                "description": "Relaxing cruise through palm-fringed canals and lagoons",
+                "entryFee": {
+                  "amount": 0,
+                  "currency": "INR",
+                  "perPerson": true,
+                  "includes": "Included in houseboat package"
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "BACK-GRP003-001",
+                  "ticketUrl": "https://example.com/tickets/activity/BACK-GRP003-001"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "dayNumber": 2,
+          "date": "2026-02-15",
+          "title": "Cultural Exploration",
+          "timelineEvents": [
+            {
+              "id": "evt_grp003_004",
+              "type": "activity",
+              "startTime": "2026-02-15T11:00:00Z",
+              "endTime": "2026-02-15T13:00:00Z",
+              "title": "Kathakali Dance Performance",
+              "description": "Traditional Kerala dance performance",
+              "activity": {
+                "locationName": "Kerala Kathakali Centre",
+                "address": "Fort Kochi, Kerala 682001",
+                "coordinates": { "lat": 9.9647, "lng": 76.2429 },
+                "activityType": "Cultural Performance",
+                "description": "Experience traditional Kathakali dance with elaborate costumes",
+                "entryFee": {
+                  "amount": 800,
+                  "currency": "INR",
+                  "perPerson": true
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "KATH-GRP003-001",
+                  "ticketUrl": "https://example.com/tickets/activity/KATH-GRP003-001"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "GRP004",
+      "itineraryName": "Rajasthan Heritage Tour",
+      "totalDays": 2,
+      "startDate": "2026-03-01T00:00:00Z",
+      "endDate": "2026-03-02T23:59:59Z",
+      "days": [
+        {
+          "dayNumber": 1,
+          "date": "2026-03-01",
+          "title": "Jaipur - The Pink City",
+          "timelineEvents": [
+            {
+              "id": "evt_grp004_001",
+              "type": "transport",
+              "startTime": "2026-03-01T07:00:00Z",
+              "endTime": "2026-03-01T08:30:00Z",
+              "title": "Flight to Jaipur",
+              "description": "Morning flight to Jaipur",
+              "transport": {
+                "mode": "Flight",
+                "providerName": "Air India",
+                "flightNumber": "AI-123",
+                "pickupLocation": {
+                  "name": "Delhi Airport",
+                  "address": "New Delhi, DL 110037",
+                  "coordinates": { "lat": 28.5562, "lng": 77.1000 }
+                },
+                "dropLocation": {
+                  "name": "Jaipur International Airport",
+                  "address": "Jaipur, RJ 302017",
+                  "coordinates": { "lat": 26.8242, "lng": 75.8122 }
+                },
+                "ticketStatus": {
+                  "confirmed": true,
+                  "bookingReference": "AI123-01MAR26",
+                  "pnr": "RAJGRP4",
+                  "seatNumbers": ["10A", "10B", "10C", "11A", "11B"],
+                  "ticketUrl": "https://example.com/tickets/flight/AI123-01MAR26"
+                }
+              }
+            },
+            {
+              "id": "evt_grp004_002",
+              "type": "accommodation",
+              "startTime": "2026-03-01T10:00:00Z",
+              "endTime": "2026-03-02T12:00:00Z",
+              "title": "Check-in at Heritage Hotel",
+              "description": "Royal heritage hotel experience",
+              "accommodation": {
+                "hotelName": "Rambagh Palace",
+                "address": "Bhawani Singh Road, Jaipur, RJ 302005",
+                "coordinates": { "lat": 26.8983, "lng": 75.7975 },
+                "roomType": "Palace Rooms",
+                "roomNumbers": ["301", "302", "303", "304"],
+                "checkInTime": "2026-03-01T10:00:00Z",
+                "checkOutTime": "2026-03-02T12:00:00Z",
+                "bookingReference": "RAM-GRP004-001",
+                "confirmationUrl": "https://example.com/bookings/hotel/RAM-GRP004-001"
+              }
+            },
+            {
+              "id": "evt_grp004_003",
+              "type": "activity",
+              "startTime": "2026-03-01T14:00:00Z",
+              "endTime": "2026-03-01T17:00:00Z",
+              "title": "Amber Fort Visit",
+              "description": "Explore the magnificent Amber Fort",
+              "activity": {
+                "locationName": "Amber Fort",
+                "address": "Devisinghpura, Amer, Jaipur, RJ 302001",
+                "coordinates": { "lat": 26.9855, "lng": 75.8513 },
+                "activityType": "Heritage Site",
+                "description": "Visit the stunning Amber Fort with elephant ride option",
+                "entryFee": {
+                  "amount": 500,
+                  "currency": "INR",
+                  "perPerson": true,
+                  "includes": "Entry fee, Guide"
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "AMBER-GRP004-001",
+                  "ticketUrl": "https://example.com/tickets/activity/AMBER-GRP004-001"
+                },
+                "guideDetails": {
+                  "name": "Ravi Singh",
+                  "contact": "+91-9876543222",
+                  "experience": "12 years"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "dayNumber": 2,
+          "date": "2026-03-02",
+          "title": "City Palace & Markets",
+          "timelineEvents": [
+            {
+              "id": "evt_grp004_004",
+              "type": "activity",
+              "startTime": "2026-03-02T10:00:00Z",
+              "endTime": "2026-03-02T12:00:00Z",
+              "title": "City Palace Tour",
+              "description": "Explore the royal City Palace",
+              "activity": {
+                "locationName": "City Palace",
+                "address": "Tulsi Marg, Gangori Bazaar, Jaipur, RJ 302002",
+                "coordinates": { "lat": 26.9258, "lng": 75.8237 },
+                "activityType": "Heritage Site",
+                "description": "Tour the magnificent City Palace complex",
+                "entryFee": {
+                  "amount": 700,
+                  "currency": "INR",
+                  "perPerson": true
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "CITY-GRP004-001",
+                  "ticketUrl": "https://example.com/tickets/activity/CITY-GRP004-001"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "GRP005",
+      "itineraryName": "Shimla Winter Wonderland",
+      "totalDays": 2,
+      "startDate": "2026-03-10T00:00:00Z",
+      "endDate": "2026-03-11T23:59:59Z",
+      "days": [
+        {
+          "dayNumber": 1,
+          "date": "2026-03-10",
+          "title": "Arrival & Snow Activities",
+          "timelineEvents": [
+            {
+              "id": "evt_grp005_001",
+              "type": "transport",
+              "startTime": "2026-03-10T06:00:00Z",
+              "endTime": "2026-03-10T13:00:00Z",
+              "title": "Road Trip to Shimla",
+              "description": "Scenic drive from Delhi to Shimla",
+              "transport": {
+                "mode": "Cab",
+                "providerName": "Himalayan Travels",
+                "driverDetails": {
+                  "name": "Suresh Kumar",
+                  "contact": "+91-9876543333",
+                  "vehicleNumber": "HP-01-XY-1234",
+                  "vehicleModel": "Tempo Traveller (24-seater)"
+                },
+                "pickupLocation": {
+                  "name": "Delhi",
+                  "address": "New Delhi, DL 110001",
+                  "coordinates": { "lat": 28.6139, "lng": 77.2090 }
+                },
+                "dropLocation": {
+                  "name": "Shimla",
+                  "address": "Shimla, HP 171001",
+                  "coordinates": { "lat": 31.1048, "lng": 77.1734 }
+                },
+                "ticketStatus": {
+                  "confirmed": true,
+                  "bookingReference": "HIM-GRP005-001",
+                  "ticketUrl": "https://example.com/tickets/cab/HIM-GRP005-001"
+                }
+              }
+            },
+            {
+              "id": "evt_grp005_002",
+              "type": "accommodation",
+              "startTime": "2026-03-10T13:00:00Z",
+              "endTime": "2026-03-11T12:00:00Z",
+              "title": "Check-in at Snow View Resort",
+              "description": "Mountain resort with snow views",
+              "accommodation": {
+                "hotelName": "Wildflower Hall",
+                "address": "Chharabra, Shimla, HP 171012",
+                "coordinates": { "lat": 31.0982, "lng": 77.1722 },
+                "roomType": "Deluxe Mountain View",
+                "roomNumbers": ["201", "202", "203", "204", "205"],
+                "checkInTime": "2026-03-10T13:00:00Z",
+                "checkOutTime": "2026-03-11T12:00:00Z",
+                "bookingReference": "WILD-GRP005-001",
+                "confirmationUrl": "https://example.com/bookings/hotel/WILD-GRP005-001"
+              }
+            },
+            {
+              "id": "evt_grp005_003",
+              "type": "activity",
+              "startTime": "2026-03-10T15:00:00Z",
+              "endTime": "2026-03-10T18:00:00Z",
+              "title": "Snow Activities",
+              "description": "Skiing and snowboarding",
+              "activity": {
+                "locationName": "Kufri Snow Point",
+                "address": "Kufri, Shimla, HP 171209",
+                "coordinates": { "lat": 31.0982, "lng": 77.2644 },
+                "activityType": "Snow Sports",
+                "description": "Enjoy skiing, snowboarding, and sledding",
+                "entryFee": {
+                  "amount": 2000,
+                  "currency": "INR",
+                  "perPerson": true,
+                  "includes": "Equipment rental, Instructor"
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "KUFRI-GRP005-001",
+                  "ticketUrl": "https://example.com/tickets/activity/KUFRI-GRP005-001"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "dayNumber": 2,
+          "date": "2026-03-11",
+          "title": "Mall Road & Departure",
+          "timelineEvents": [
+            {
+              "id": "evt_grp005_004",
+              "type": "activity",
+              "startTime": "2026-03-11T10:00:00Z",
+              "endTime": "2026-03-11T12:00:00Z",
+              "title": "Mall Road Shopping",
+              "description": "Explore Shimla's famous Mall Road",
+              "activity": {
+                "locationName": "Mall Road",
+                "address": "Mall Road, Shimla, HP 171001",
+                "coordinates": { "lat": 31.1048, "lng": 77.1722 },
+                "activityType": "Shopping & Sightseeing",
+                "description": "Walk along the iconic Mall Road with shopping",
+                "entryFee": {
+                  "amount": 0,
+                  "currency": "INR",
+                  "perPerson": true
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "MALL-GRP005-001",
+                  "ticketUrl": "https://example.com/tickets/activity/MALL-GRP005-001"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "GRP006",
+      "itineraryName": "Andaman Island Paradise",
+      "totalDays": 2,
+      "startDate": "2026-03-20T00:00:00Z",
+      "endDate": "2026-03-21T23:59:59Z",
+      "days": [
+        {
+          "dayNumber": 1,
+          "date": "2026-03-20",
+          "title": "Arrival & Beach Day",
+          "timelineEvents": [
+            {
+              "id": "evt_grp006_001",
+              "type": "transport",
+              "startTime": "2026-03-20T08:00:00Z",
+              "endTime": "2026-03-20T11:00:00Z",
+              "title": "Flight to Port Blair",
+              "description": "Morning flight to Andaman Islands",
+              "transport": {
+                "mode": "Flight",
+                "providerName": "Air India",
+                "flightNumber": "AI-789",
+                "pickupLocation": {
+                  "name": "Chennai Airport",
+                  "address": "Chennai, TN 600027",
+                  "coordinates": { "lat": 12.9941, "lng": 80.1709 }
+                },
+                "dropLocation": {
+                  "name": "Veer Savarkar International Airport",
+                  "address": "Port Blair, AN 744102",
+                  "coordinates": { "lat": 11.6410, "lng": 92.7296 }
+                },
+                "ticketStatus": {
+                  "confirmed": true,
+                  "bookingReference": "AI789-20MAR26",
+                  "pnr": "ANDGRP6",
+                  "seatNumbers": ["20A", "20B", "20C", "21A", "21B"],
+                  "ticketUrl": "https://example.com/tickets/flight/AI789-20MAR26"
+                }
+              }
+            },
+            {
+              "id": "evt_grp006_002",
+              "type": "accommodation",
+              "startTime": "2026-03-20T12:00:00Z",
+              "endTime": "2026-03-21T12:00:00Z",
+              "title": "Check-in at Beach Resort",
+              "description": "Beachfront resort on Havelock Island",
+              "accommodation": {
+                "hotelName": "Barefoot at Havelock",
+                "address": "Beach No. 7, Havelock Island, AN 744211",
+                "coordinates": { "lat": 12.0067, "lng": 92.9797 },
+                "roomType": "Beach Cottages",
+                "roomNumbers": ["Cottage-1", "Cottage-2", "Cottage-3", "Cottage-4"],
+                "checkInTime": "2026-03-20T12:00:00Z",
+                "checkOutTime": "2026-03-21T12:00:00Z",
+                "bookingReference": "BARE-GRP006-001",
+                "confirmationUrl": "https://example.com/bookings/hotel/BARE-GRP006-001"
+              }
+            },
+            {
+              "id": "evt_grp006_003",
+              "type": "activity",
+              "startTime": "2026-03-20T14:00:00Z",
+              "endTime": "2026-03-20T17:00:00Z",
+              "title": "Scuba Diving",
+              "description": "Explore underwater coral reefs",
+              "activity": {
+                "locationName": "Radhanagar Beach",
+                "address": "Havelock Island, AN 744211",
+                "coordinates": { "lat": 12.0067, "lng": 92.9797 },
+                "activityType": "Water Sports",
+                "description": "Scuba diving with professional instructors",
+                "entryFee": {
+                  "amount": 4500,
+                  "currency": "INR",
+                  "perPerson": true,
+                  "includes": "Equipment, Instructor, Boat"
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "SCUBA-GRP006-001",
+                  "ticketUrl": "https://example.com/tickets/activity/SCUBA-GRP006-001"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "dayNumber": 2,
+          "date": "2026-03-21",
+          "title": "Island Hopping",
+          "timelineEvents": [
+            {
+              "id": "evt_grp006_004",
+              "type": "activity",
+              "startTime": "2026-03-21T09:00:00Z",
+              "endTime": "2026-03-21T15:00:00Z",
+              "title": "Neil Island Tour",
+              "description": "Day trip to Neil Island",
+              "activity": {
+                "locationName": "Neil Island",
+                "address": "Neil Island, AN 744104",
+                "coordinates": { "lat": 11.8339, "lng": 93.0499 },
+                "activityType": "Island Tour",
+                "description": "Explore Neil Island beaches and natural bridge",
+                "entryFee": {
+                  "amount": 1500,
+                  "currency": "INR",
+                  "perPerson": true,
+                  "includes": "Ferry, Guide, Lunch"
+                },
+                "ticketReference": {
+                  "confirmed": true,
+                  "bookingId": "NEIL-GRP006-001",
+                  "ticketUrl": "https://example.com/tickets/activity/NEIL-GRP006-001"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

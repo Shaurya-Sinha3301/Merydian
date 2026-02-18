@@ -60,11 +60,11 @@
 
 @layer base {
   :root {
-    /* Color Combo 08 - Clean Light Grey (Reference Image Match) */
-    --background: #F3F4F6;
-    /* Light Grey (Tailwind Gray-100) */
-    --foreground: #111827;
-    /* Very Dark Grey (Gray-900) */
+    /* Neumorphic Black & White Design System */
+    --background: #E0E5EC;
+    /* Neumorphic Base - Light Grey for shadow visibility */
+    --foreground: #1F1F1F;
+    /* Almost Black for text */
 
     --card: #FFFFFF;
     /* Pure White Cards */
@@ -324,78 +324,224 @@
   }
 }
 
-@layer utilities {
+/* Neumorphic Utilities - Black & White Monochrome */
+/* These are custom CSS classes, not Tailwind utilities */
 
-  /* Neumorphic Utilities - Clean Light */
-  .neu-flat {
-    background: var(--background);
-    box-shadow: none;
-    /* Reference image is very flat, mostly white cards */
-  }
+/* Base Neumorphic Card - Raised Effect */
+.neu-card {
+  background: #E0E5EC;
+  border-radius: 1rem;
+  box-shadow: 5px 5px 10px #BEBEBE, -5px -5px 10px #FFFFFF;
+  transition: all 0.3s ease;
+}
 
-  .neu-pressed {
-    background: #E5E7EB;
-    /* Darker grey for active state if needed */
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
-  }
+.neu-card-hover:hover {
+  box-shadow: 8px 8px 16px #BEBEBE, -8px -8px 16px #FFFFFF;
+  transform: translateY(-2px);
+}
 
-  .neu-raised {
-    background: var(--card);
-    /* White card */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
+/* Pressed/Inset Effect - For inputs and pressed states */
+.neu-pressed {
+  background: #E0E5EC;
+  border-radius: 1rem;
+  box-shadow: inset 3px 3px 6px #BEBEBE, inset -3px -3px 6px #FFFFFF;
+}
 
-  .neu-concave {
-    /* Not really used in this flat style, defaulting to simple active */
-    background: #FFFFFF;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  }
+/* Flat Neumorphic - Subtle depth */
+.neu-flat {
+  background: #E0E5EC;
+  box-shadow: 2px 2px 5px #BEBEBE, -2px -2px 5px #FFFFFF;
+}
 
-  .neu-convex {
-    background: linear-gradient(145deg, #E1E7EE, #B9C1C9);
-    box-shadow: 6px 6px 12px #AAB4BE, -6px -6px 12px #F0F4F8;
-  }
+/* Neumorphic Button - Raised with hover/active states */
+.neu-button {
+  background: #E0E5EC;
+  color: #1F1F1F;
+  border-radius: 0.75rem;
+  box-shadow: 5px 5px 10px #BEBEBE, -5px -5px 10px #FFFFFF;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
 
-  .neu-button {
-    background: var(--background);
-    color: var(--foreground);
-    box-shadow: 6px 6px 12px #AAB4BE, -6px -6px 12px #F0F4F8;
-    transition: all 0.2s ease;
-  }
+.neu-button:hover {
+  box-shadow: 7px 7px 14px #BEBEBE, -7px -7px 14px #FFFFFF;
+  transform: translateY(-1px);
+}
 
-  .neu-button:hover {
-    box-shadow: 9px 9px 18px #9DA7B1, -9px -9px 18px #FFFFFF;
-    transform: translateY(-2px);
-    color: var(--primary);
-    /* Hover text becomes Teal */
-  }
+.neu-button:active {
+  box-shadow: inset 3px 3px 6px #BEBEBE, inset -3px -3px 6px #FFFFFF;
+  transform: translateY(0);
+}
 
-  .neu-button:active {
-    box-shadow: inset 4px 4px 8px #AAB4BE, inset -4px -4px 8px #F0F4F8;
-    transform: translateY(0);
-  }
+/* Neumorphic Input Field */
+.neu-input {
+  background: #E0E5EC;
+  border-radius: 0.75rem;
+  box-shadow: inset 2px 2px 5px #BEBEBE, inset -2px -2px 5px #FFFFFF;
+  border: none;
+  padding: 0.75rem 1rem;
+  color: #1F1F1F;
+  transition: all 0.2s ease;
+}
 
-  .dark .neu-flat {
-    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(45, 45, 45, 0.3);
-  }
+.neu-input:focus {
+  outline: none;
+  box-shadow: inset 3px 3px 7px #BEBEBE, inset -3px -3px 7px #FFFFFF;
+}
 
-  .dark .neu-pressed {
-    box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -4px -4px 8px rgba(45, 45, 45, 0.3);
-  }
+/* Timeline Connector Line */
+.neu-timeline-line {
+  background: linear-gradient(180deg, #BEBEBE 0%, #FFFFFF 100%);
+  width: 2px;
+}
 
-  .dark .neu-raised {
-    box-shadow: 9px 9px 16px rgba(0, 0, 0, 0.6), -9px -9px 16px rgba(45, 45, 45, 0.3);
-  }
+/* Event Type Icons - Circular Neumorphic */
+.neu-icon-circle {
+  background: #E0E5EC;
+  border-radius: 50%;
+  box-shadow: 3px 3px 6px #BEBEBE, -3px -3px 6px #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .dark .neu-button {
-    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.6), -6px -6px 12px rgba(45, 45, 45, 0.3);
-  }
+/* Modal Overlay */
+.neu-modal-overlay {
+  background: rgba(31, 31, 31, 0.5);
+  backdrop-filter: blur(4px);
+}
 
-  .dark .neu-button:hover {
-    box-shadow: 9px 9px 16px rgba(0, 0, 0, 0.6), -9px -9px 16px rgba(45, 45, 45, 0.3);
-  }
+/* Modal Content - Deep Inset */
+.neu-modal {
+  background: #E0E5EC;
+  border-radius: 1.5rem;
+  box-shadow: inset 8px 8px 16px #BEBEBE, inset -8px -8px 16px #FFFFFF,
+              5px 5px 10px rgba(0, 0, 0, 0.1);
+}
 
-  .dark .neu-button:active {
-    box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -4px -4px 8px rgba(45, 45, 45, 0.3);
-  }
+/* Badge - Small raised element */
+.neu-badge {
+  background: #E0E5EC;
+  border-radius: 0.5rem;
+  box-shadow: 2px 2px 4px #BEBEBE, -2px -2px 4px #FFFFFF;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1F1F1F;
+}
+
+/* Divider */
+.neu-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #BEBEBE, transparent);
+}
+
+/* Dark Mode Neumorphic Styles */
+.dark .neu-card {
+  background: #292929;
+  box-shadow: 5px 5px 10px #151515, -5px -5px 10px #3D3D3D;
+}
+
+.dark .neu-card-hover:hover {
+  box-shadow: 8px 8px 16px #151515, -8px -8px 16px #3D3D3D;
+}
+
+.dark .neu-pressed {
+  background: #292929;
+  box-shadow: inset 3px 3px 6px #151515, inset -3px -3px 6px #3D3D3D;
+}
+
+.dark .neu-flat {
+  background: #292929;
+  box-shadow: 2px 2px 5px #151515, -2px -2px 5px #3D3D3D;
+}
+
+.dark .neu-button {
+  background: #292929;
+  color: #E0E0E0;
+  box-shadow: 5px 5px 10px #151515, -5px -5px 10px #3D3D3D;
+}
+
+.dark .neu-button:hover {
+  box-shadow: 7px 7px 14px #151515, -7px -7px 14px #3D3D3D;
+}
+
+.dark .neu-button:active {
+  box-shadow: inset 3px 3px 6px #151515, inset -3px -3px 6px #3D3D3D;
+}
+
+.dark .neu-input {
+  background: #292929;
+  box-shadow: inset 2px 2px 5px #151515, inset -2px -2px 5px #3D3D3D;
+  color: #E0E0E0;
+}
+
+.dark .neu-input:focus {
+  box-shadow: inset 3px 3px 7px #151515, inset -3px -3px 7px #3D3D3D;
+}
+
+.dark .neu-timeline-line {
+  background: linear-gradient(180deg, #151515 0%, #3D3D3D 100%);
+}
+
+.dark .neu-icon-circle {
+  background: #292929;
+  box-shadow: 3px 3px 6px #151515, -3px -3px 6px #3D3D3D;
+}
+
+.dark .neu-modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.dark .neu-modal {
+  background: #292929;
+  box-shadow: inset 8px 8px 16px #151515, inset -8px -8px 16px #3D3D3D,
+              5px 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.dark .neu-badge {
+  background: #292929;
+  box-shadow: 2px 2px 4px #151515, -2px -2px 4px #3D3D3D;
+  color: #E0E0E0;
+}
+
+.dark .neu-divider {
+  background: linear-gradient(90deg, transparent, #3D3D3D, transparent);
+}
+
+/* Legacy utilities for backward compatibility */
+.neu-raised {
+  background: #E0E5EC;
+  border-radius: 1rem;
+  box-shadow: 5px 5px 10px #BEBEBE, -5px -5px 10px #FFFFFF;
+  transition: all 0.3s ease;
+}
+
+.neu-concave {
+  background: #E0E5EC;
+  border-radius: 1rem;
+  box-shadow: inset 3px 3px 6px #BEBEBE, inset -3px -3px 6px #FFFFFF;
+}
+
+.neu-convex {
+  background: #E0E5EC;
+  border-radius: 1rem;
+  box-shadow: 5px 5px 10px #BEBEBE, -5px -5px 10px #FFFFFF;
+  transition: all 0.3s ease;
+}
+
+.dark .neu-raised {
+  background: #292929;
+  box-shadow: 5px 5px 10px #151515, -5px -5px 10px #3D3D3D;
+}
+
+.dark .neu-concave {
+  background: #292929;
+  box-shadow: inset 3px 3px 6px #151515, inset -3px -3px 6px #3D3D3D;
+}
+
+.dark .neu-convex {
+  background: #292929;
+  box-shadow: 5px 5px 10px #151515, -5px -5px 10px #3D3D3D;
 }

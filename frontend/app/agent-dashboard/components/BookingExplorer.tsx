@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, SlidersHorizontal, MapPin, Calendar, Users, Eye, EyeOff, LayoutDashboard } from 'lucide-react';
-import { apiService, SearchResult } from '@/lib/agent-dashboard/apiService';
+import { Search, SlidersHorizontal, MapPin, Calendar, Users, Eye, EyeOff, LayoutDashboard, Star } from 'lucide-react';
+import { apiService } from '@/lib/agent-dashboard/apiService';
+import { SearchResult } from '@/lib/agent-dashboard/types';
 import HotelCard from './HotelCard';
 import DisruptionAlert from './DisruptionAlert';
 

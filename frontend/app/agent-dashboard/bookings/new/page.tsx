@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/ui/Sidebar';
 import NavigationBreadcrumbs from '@/components/common/NavigationBreadcrumbs';
@@ -12,7 +12,7 @@ import type { SearchCriteria, SearchResult } from '@/lib/agent-dashboard/types';
 import BookingSearchForm from './components/BookingSearchForm';
 import BookingResultsList from './components/BookingResultsList';
 
-export default function NewBookingPage() {
+function NewBookingContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const type = searchParams.get('type') || 'Flight';
@@ -257,5 +257,21 @@ export default function NewBookingPage() {
                 </div>
             </main>
         </div>
+    );
+}
+
+
+export default function NewBookingPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex bg-background h-[calc(100vh-4rem)] overflow-hidden">
+                <Sidebar />
+                <main className="flex-1 p-8 overflow-y-auto bg-slate-50/50 flex items-center justify-center">
+                    <div className="text-slate-400">Loading...</div>
+                </main>
+            </div>
+        }>
+            <NewBookingContent />
+        </Suspense>
     );
 }
