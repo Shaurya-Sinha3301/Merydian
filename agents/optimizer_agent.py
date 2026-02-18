@@ -250,7 +250,7 @@ class OptimizerAgent:
         # ═══════════════════════════════════════════════════════════════
         logger.info("Running HotelSkeletonOptimizer...")
         
-        from ml_or.hotel_optimizer_cpsat import HotelSkeletonOptimizer
+        from ml_or.hotel_optimizer import HotelSkeletonOptimizer
         
         # Initialize Hotel Optimizer
         # Uses updated preferences to respect constraints
