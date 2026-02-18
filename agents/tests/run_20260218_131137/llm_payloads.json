@@ -28,25 +28,6 @@
           "day": 1,
           "change_type": "POI_REMOVED",
           "poi": {
-            "id": "LOC_018",
-            "name": "Agrasen ki Baoli"
-          },
-          "causal_tags": [
-            "OBJECTIVE_DOMINATED"
-          ],
-          "cost_delta": {
-            "saved_cost": 105.26,
-            "currency": "INR",
-            "transport_savings": 105.26
-          },
-          "satisfaction_delta": {
-            "loss": 1.5
-          }
-        },
-        {
-          "day": 1,
-          "change_type": "POI_REMOVED",
-          "poi": {
             "id": "LOC_013",
             "name": "Lodhi Gardens"
           },
@@ -60,6 +41,25 @@
           },
           "satisfaction_delta": {
             "loss": 1.44
+          }
+        },
+        {
+          "day": 1,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_018",
+            "name": "Agrasen ki Baoli"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 105.26,
+            "currency": "INR",
+            "transport_savings": 105.26
+          },
+          "satisfaction_delta": {
+            "loss": 1.5
           }
         },
         {
@@ -168,25 +168,6 @@
           "day": 1,
           "change_type": "POI_REMOVED",
           "poi": {
-            "id": "LOC_018",
-            "name": "Agrasen ki Baoli"
-          },
-          "causal_tags": [
-            "OBJECTIVE_DOMINATED"
-          ],
-          "cost_delta": {
-            "saved_cost": 105.26,
-            "currency": "INR",
-            "transport_savings": 105.26
-          },
-          "satisfaction_delta": {
-            "loss": 1.13
-          }
-        },
-        {
-          "day": 1,
-          "change_type": "POI_REMOVED",
-          "poi": {
             "id": "LOC_013",
             "name": "Lodhi Gardens"
           },
@@ -203,6 +184,25 @@
           }
         },
         {
+          "day": 1,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_018",
+            "name": "Agrasen ki Baoli"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 105.26,
+            "currency": "INR",
+            "transport_savings": 105.26
+          },
+          "satisfaction_delta": {
+            "loss": 1.13
+          }
+        },
+        {
           "day": 2,
           "change_type": "POI_ADDED",
           "poi": {
@@ -213,9 +213,9 @@
             "INTEREST_VECTOR_DOMINANCE"
           ],
           "cost_delta": {
-            "extra_cost": 421.0,
+            "extra_cost": 458.0,
             "currency": "INR",
-            "transport_cost": 21.0
+            "transport_cost": 58.0
           },
           "satisfaction_delta": {
             "gain": 1.29
@@ -308,25 +308,6 @@
           "day": 1,
           "change_type": "POI_REMOVED",
           "poi": {
-            "id": "LOC_018",
-            "name": "Agrasen ki Baoli"
-          },
-          "causal_tags": [
-            "OBJECTIVE_DOMINATED"
-          ],
-          "cost_delta": {
-            "saved_cost": 105.26,
-            "currency": "INR",
-            "transport_savings": 105.26
-          },
-          "satisfaction_delta": {
-            "loss": 1.22
-          }
-        },
-        {
-          "day": 1,
-          "change_type": "POI_REMOVED",
-          "poi": {
             "id": "LOC_013",
             "name": "Lodhi Gardens"
           },
@@ -340,6 +321,25 @@
           },
           "satisfaction_delta": {
             "loss": 1.27
+          }
+        },
+        {
+          "day": 1,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_018",
+            "name": "Agrasen ki Baoli"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 105.26,
+            "currency": "INR",
+            "transport_savings": 105.26
+          },
+          "satisfaction_delta": {
+            "loss": 1.22
           }
         },
         {
@@ -449,26 +449,6 @@
         "day": 1,
         "change_type": "POI_REMOVED",
         "poi": {
-          "id": "LOC_018",
-          "name": "Agrasen ki Baoli"
-        },
-        "causal_tags": [
-          "OBJECTIVE_DOMINATED"
-        ],
-        "cost_delta": {
-          "saved_cost": 105.26,
-          "currency": "INR",
-          "transport_savings": 105.26
-        },
-        "satisfaction_delta": {
-          "loss": 1.5
-        },
-        "family_id": "FAM_A"
-      },
-      {
-        "day": 1,
-        "change_type": "POI_REMOVED",
-        "poi": {
           "id": "LOC_013",
           "name": "Lodhi Gardens"
         },
@@ -482,6 +462,26 @@
         },
         "satisfaction_delta": {
           "loss": 1.44
+        },
+        "family_id": "FAM_A"
+      },
+      {
+        "day": 1,
+        "change_type": "POI_REMOVED",
+        "poi": {
+          "id": "LOC_018",
+          "name": "Agrasen ki Baoli"
+        },
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        },
+        "satisfaction_delta": {
+          "loss": 1.5
         },
         "family_id": "FAM_A"
       },
@@ -569,26 +569,6 @@
         "day": 1,
         "change_type": "POI_REMOVED",
         "poi": {
-          "id": "LOC_018",
-          "name": "Agrasen ki Baoli"
-        },
-        "causal_tags": [
-          "OBJECTIVE_DOMINATED"
-        ],
-        "cost_delta": {
-          "saved_cost": 105.26,
-          "currency": "INR",
-          "transport_savings": 105.26
-        },
-        "satisfaction_delta": {
-          "loss": 1.13
-        },
-        "family_id": "FAM_B"
-      },
-      {
-        "day": 1,
-        "change_type": "POI_REMOVED",
-        "poi": {
           "id": "LOC_013",
           "name": "Lodhi Gardens"
         },
@@ -606,6 +586,26 @@
         "family_id": "FAM_B"
       },
       {
+        "day": 1,
+        "change_type": "POI_REMOVED",
+        "poi": {
+          "id": "LOC_018",
+          "name": "Agrasen ki Baoli"
+        },
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        },
+        "satisfaction_delta": {
+          "loss": 1.13
+        },
+        "family_id": "FAM_B"
+      },
+      {
         "day": 2,
         "change_type": "POI_ADDED",
         "poi": {
@@ -616,9 +616,9 @@
           "INTEREST_VECTOR_DOMINANCE"
         ],
         "cost_delta": {
-          "extra_cost": 421.0,
+          "extra_cost": 458.0,
           "currency": "INR",
-          "transport_cost": 21.0
+          "transport_cost": 58.0
         },
         "satisfaction_delta": {
           "gain": 1.29
@@ -689,26 +689,6 @@
         "day": 1,
         "change_type": "POI_REMOVED",
         "poi": {
-          "id": "LOC_018",
-          "name": "Agrasen ki Baoli"
-        },
-        "causal_tags": [
-          "OBJECTIVE_DOMINATED"
-        ],
-        "cost_delta": {
-          "saved_cost": 105.26,
-          "currency": "INR",
-          "transport_savings": 105.26
-        },
-        "satisfaction_delta": {
-          "loss": 1.22
-        },
-        "family_id": "FAM_C"
-      },
-      {
-        "day": 1,
-        "change_type": "POI_REMOVED",
-        "poi": {
           "id": "LOC_013",
           "name": "Lodhi Gardens"
         },
@@ -722,6 +702,26 @@
         },
         "satisfaction_delta": {
           "loss": 1.27
+        },
+        "family_id": "FAM_C"
+      },
+      {
+        "day": 1,
+        "change_type": "POI_REMOVED",
+        "poi": {
+          "id": "LOC_018",
+          "name": "Agrasen ki Baoli"
+        },
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        },
+        "satisfaction_delta": {
+          "loss": 1.22
         },
         "family_id": "FAM_C"
       },
@@ -787,11 +787,11 @@
       }
     ],
     "financial_summary": {
-      "total_cost_delta": 0,
-      "total_satisfaction_delta": 0,
+      "total_cost_delta": -284.33,
+      "total_satisfaction_delta": -4.1,
       "affected_families": [
-        "FAM_A",
         "FAM_B",
+        "FAM_A",
         "FAM_C"
       ]
     },

@@ -136,20 +136,27 @@ def main():
                         print(f"     Family: {payload.get('family_id')}")
                     
                     explanation = exp_agent.explain(payload)
-                    explanations.append({
-                        "input_payload": payload,
-                        "output_summary": explanation.summary
-                    })
+                    
+                    # Store only the key details, NO payloads
+                    output_entry = {
+                        "audience": payload.get("audience", "FAMILY"),
+                        "explanation": explanation.summary
+                    }
+                    if "family_id" in payload:
+                        output_entry["family_id"] = payload["family_id"]
+                        
+                    explanations.append(output_entry)
                     print(f"  📥 Explainability Agent Output: {explanation.summary}")
                     
                     # Rate limiting to avoid 429 errors
                     print("  ⏳ Sleeping 5s to respect API limits...")
                     time.sleep(5)
                 
+                # Clean output structure - just the explanations
                 scenario_output["explainability_agent"] = {
-                    "input": llm_payloads,
-                    "output": explanations
+                    "explanations": explanations
                 }
+                
                 # Store the optimizer folder for later use
                 scenario_output["optimizer_output_dir"] = str(optimizer_output_dir)
                 
@@ -160,16 +167,10 @@ def main():
                     print(f"  💾 Saved baseline for next scenario: {previous_solution_path}")
             else:
                 print("  ⚠️  No llm_payloads.json found in optimizer output")
-                scenario_output["explainability_agent"] = {
-                    "input": [],
-                    "output": []
-                }
+                scenario_output["explainability_agent"] = {"explanations": []}
         else:
             # No optimizer run, so no explainability needed
-            scenario_output["explainability_agent"] = {
-                "input": [],
-                "output": []
-            }
+            scenario_output["explainability_agent"] = {"explanations": []}
         
         all_results.append(scenario_output)
         
@@ -179,8 +180,8 @@ def main():
         print(f"Confidence: {result['event'].confidence}")
         print (f"Decision: {result['decision'].action}")
         print(f"Optimizer Run: {'Yes' if result['optimizer_output'] else 'No'}")
-        if scenario_output.get("explainability_agent", {}).get("output"):
-            print(f"Explanations Generated: {len(scenario_output['explainability_agent']['output'])}")
+        if scenario_output.get("explainability_agent", {}).get("explanations"):
+            print(f"Explanations Generated: {len(scenario_output['explainability_agent']['explanations'])}")
 
         # INTERMEDIATE SAVE: Save results after every scenario
         current_output_dir = None
@@ -221,37 +222,15 @@ def main():
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(all_results, f, indent=2, ensure_ascii=False, default=str)
     
-    # Save summary
-    summary_file = output_dir / "summary.txt"
-    with open(summary_file, 'w', encoding='utf-8') as f:
-        f.write(f"Demo Run Summary\n")
-        f.write(f"{'='*80}\n")
-        f.write(f"Output Directory: {output_dir}\n")
-        f.write(f"Total scenarios: {len(scenarios)}\n")
-        f.write(f"Optimizer triggered: {sum(1 for r in all_results if r['optimizer_triggered'])} times\n\n")
-        
-        for result in all_results:
-            f.write(f"\nScenario {result['scenario_number']}: {result['scenario_name']}\n")
-            f.write(f"  User Input: {result['user_input']}\n")
-            f.write(f"  Event Type: {result['feedback_agent']['output']['event_type']}\n")
-            f.write(f"  Decision: {result['decision_agent']['output']['action']}\n")
-            
-            explanations = result.get("explainability_agent", {}).get("output", [])
-            if explanations:
-                f.write(f"  Explanations ({len(explanations)}):\n")
-                for exp in explanations:
-                    f.write(f"    - {exp['output_summary']}\n")
-    
     print(f"\n{'='*80}")
     print("DEMO COMPLETED")
     print(f"{'='*80}\n")
     print(f"✅ All outputs consolidated in: {output_dir}")
     print(f"✅ LLM inputs/outputs: {output_file}")
-    print(f"✅ Summary: {summary_file}")
     print(f"\nResults:")
     print(f"  Scenarios run: {len(scenarios)}")
     print(f"  Optimizer triggered: {sum(1 for r in all_results if r['optimizer_triggered'])} times")
-    total_explanations = sum(len(r.get('explainability_agent', {}).get('output', [])) for r in all_results)
+    total_explanations = sum(len(r.get('explainability_agent', {}).get('explanations', [])) for r in all_results)
     print(f"  Explanations generated: {total_explanations}")
 
 

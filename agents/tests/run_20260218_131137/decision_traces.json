@@ -272,14 +272,14 @@
       "family": "ALL",
       "day": 1,
       "selected_pois": [
-        "LOC_015",
-        "LOC_010",
+        "LOC_LUNCH",
         "LOC_001",
         "LOC_008",
         "LOC_046",
-        "LOC_LUNCH",
-        "LOC_DINNER",
-        "LOC_003"
+        "LOC_003",
+        "LOC_015",
+        "LOC_010",
+        "LOC_DINNER"
       ],
       "objective_breakdown": {
         "total_satisfaction": 0,
@@ -475,14 +475,6 @@
     ],
     "constraints": [
       {
-        "constraint_id": "HISTORY_BAN_FAM_A_LOC_010",
-        "type": "HISTORY_BAN",
-        "applies_to": {
-          "family": "FAM_A",
-          "poi": "LOC_010"
-        }
-      },
-      {
         "constraint_id": "HISTORY_BAN_FAM_A_LOC_003",
         "type": "HISTORY_BAN",
         "applies_to": {
@@ -491,10 +483,10 @@
         }
       },
       {
-        "constraint_id": "HISTORY_BAN_FAM_B_LOC_010",
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_010",
         "type": "HISTORY_BAN",
         "applies_to": {
-          "family": "FAM_B",
+          "family": "FAM_A",
           "poi": "LOC_010"
         }
       },
@@ -507,10 +499,10 @@
         }
       },
       {
-        "constraint_id": "HISTORY_BAN_FAM_C_LOC_010",
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_010",
         "type": "HISTORY_BAN",
         "applies_to": {
-          "family": "FAM_C",
+          "family": "FAM_B",
           "poi": "LOC_010"
         }
       },
@@ -520,6 +512,14 @@
         "applies_to": {
           "family": "FAM_C",
           "poi": "LOC_003"
+        }
+      },
+      {
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_010",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_C",
+          "poi": "LOC_010"
         }
       },
       {
@@ -623,12 +623,12 @@
       "family": "ALL",
       "day": 2,
       "selected_pois": [
-        "LOC_050",
-        "LOC_005",
-        "LOC_006",
+        "LOC_009",
         "LOC_LUNCH",
-        "LOC_DINNER",
-        "LOC_009"
+        "LOC_005",
+        "LOC_050",
+        "LOC_006",
+        "LOC_DINNER"
       ],
       "objective_breakdown": {
         "total_satisfaction": 0,
@@ -811,6 +811,14 @@
     ],
     "constraints": [
       {
+        "constraint_id": "HISTORY_BAN_FAM_A_LOC_003",
+        "type": "HISTORY_BAN",
+        "applies_to": {
+          "family": "FAM_A",
+          "poi": "LOC_003"
+        }
+      },
+      {
         "constraint_id": "HISTORY_BAN_FAM_A_LOC_015",
         "type": "HISTORY_BAN",
         "applies_to": {
@@ -827,10 +835,10 @@
         }
       },
       {
-        "constraint_id": "HISTORY_BAN_FAM_A_LOC_003",
+        "constraint_id": "HISTORY_BAN_FAM_B_LOC_003",
         "type": "HISTORY_BAN",
         "applies_to": {
-          "family": "FAM_A",
+          "family": "FAM_B",
           "poi": "LOC_003"
         }
       },
@@ -851,10 +859,10 @@
         }
       },
       {
-        "constraint_id": "HISTORY_BAN_FAM_B_LOC_003",
+        "constraint_id": "HISTORY_BAN_FAM_C_LOC_003",
         "type": "HISTORY_BAN",
         "applies_to": {
-          "family": "FAM_B",
+          "family": "FAM_C",
           "poi": "LOC_003"
         }
       },
@@ -872,14 +880,6 @@
         "applies_to": {
           "family": "FAM_C",
           "poi": "LOC_010"
-        }
-      },
-      {
-        "constraint_id": "HISTORY_BAN_FAM_C_LOC_003",
-        "type": "HISTORY_BAN",
-        "applies_to": {
-          "family": "FAM_C",
-          "poi": "LOC_003"
         }
       },
       {
@@ -983,9 +983,9 @@
       "family": "ALL",
       "day": 3,
       "selected_pois": [
-        "LOC_DINNER",
         "LOC_046",
-        "LOC_LUNCH"
+        "LOC_LUNCH",
+        "LOC_DINNER"
       ],
       "objective_breakdown": {
         "total_satisfaction": 0,
