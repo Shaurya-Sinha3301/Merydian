@@ -36,7 +36,8 @@ class ItineraryDiffEngine:
         self, 
         baseline_optimized: Dict, 
         new_optimized: Dict, 
-        days_to_compare: Optional[List[int]] = None
+        days_to_compare: Optional[List[int]] = None,
+        decision_traces: Optional[Dict] = None
     ) -> Dict[str, Dict[int, List[Dict]]]:
         """
         Compare two optimized itineraries (rather than base vs optimized).
@@ -76,8 +77,9 @@ class ItineraryDiffEngine:
             
             # Use the existing _process_day_diff logic but compare
             # baseline_optimized POIs vs new_optimized POIs
+            day_trace = decision_traces.get(day_idx) if decision_traces else None
             self._process_day_diff_optimized(
-                diffs, day_idx, baseline_day, new_day
+                diffs, day_idx, baseline_day, new_day, day_trace
             )
         
         return diffs
@@ -87,7 +89,8 @@ class ItineraryDiffEngine:
         diffs: Dict, 
         day_idx: int, 
         baseline_day: Dict, 
-        new_day: Dict
+        new_day: Dict,
+        day_trace: Optional[Dict] = None
     ):
         """
         Process diff for a single day when comparing two optimized solutions.
@@ -122,12 +125,109 @@ class ItineraryDiffEngine:
                     "poi": pid
                 })
             
-            # 3. TODO: Rescheduled (POI exists in both but timing changed)
-            # For now, focusing on additions/removals
+            # 3. Transport route changes (NEW)
+            # Detect when transport modes change between identical POIs
+            self._detect_route_changes(
+                baseline_family_data, 
+                new_family_data, 
+                changes
+            )
+            
+            # 4. Transport disruption detection via CAB_FALLBACK
+            # Detect when CAB_FALLBACK indicates disrupted primary mode
+            if day_trace and day_trace.get("active_disruptions"):
+                self._detect_fallback_routes(
+                    new_family_data,
+                    day_trace["active_disruptions"],
+                    changes
+                )
             
             if changes:
                 diffs[family_id][day_idx + 1] = changes  # Use 1-based day index
+    
+    def _detect_route_changes(
+        self, 
+        baseline_family: Dict, 
+        new_family: Dict, 
+        changes: List[Dict]
+    ):
+        """
+        Detect transport mode changes between baseline and new solution.
+        Compares transport modes used between consecutive POIs.
+        """
+        baseline_pois = baseline_family.get("pois", [])
+        new_pois = new_family.get("pois", [])
+        
+        # Create mapping of POI pairs to transport modes for both solutions
+        baseline_routes = {}
+        for i in range(len(baseline_pois) - 1):
+            from_poi = baseline_pois[i]["location_id"]
+            to_poi = baseline_pois[i + 1]["location_id"]
+            mode = baseline_pois[i].get("transport_to_next", {}).get("mode", "UNKNOWN")
+            baseline_routes[(from_poi, to_poi)] = mode
+        
+        new_routes = {}
+        for i in range(len(new_pois) - 1):
+            from_poi = new_pois[i]["location_id"]
+            to_poi = new_pois[i + 1]["location_id"]
+            mode = new_pois[i].get("transport_to_next", {}).get("mode", "UNKNOWN")
+            new_routes[(from_poi, to_poi)] = mode
+        
+        # Find route pairs that exist in both solutions but with different modes
+        for route_pair, baseline_mode in baseline_routes.items():
+            if route_pair in new_routes:
+                new_mode = new_routes[route_pair]
+                if baseline_mode != new_mode:
+                    changes.append({
+                        "type": "ROUTE_CHANGED",
+                        "from_poi": route_pair[0],
+                        "to_poi": route_pair[1],
+                        "from_mode": baseline_mode,
+                        "to_mode": new_mode
+                    })
 
+    def _detect_fallback_routes(
+        self,
+        family_data: Dict,
+        active_disruptions: List[Dict],
+        changes: List[Dict]
+    ):
+        """
+        Detect CAB_FALLBACK usage indicating transport disruption.
+        When optimizer uses CAB_FALLBACK, it indicates the primary transport mode
+        (e.g., METRO, BUS) was unavailable due to disruption.
+        """
+        # Transport info is in pois list, not a separate "transport" field
+        pois = family_data.get("pois", [])
+        
+        # Check each POI's transport_to_next for CAB_FALLBACK
+        for i, poi in enumerate(pois):
+            transport_to_next = poi.get("transport_to_next", {})
+            mode = transport_to_next.get("mode")
+            
+            if mode == "CAB_FALLBACK":
+                # Infer which mode was disrupted from active_disruptions
+                for disruption in active_disruptions:
+                    affected_modes = disruption.get("affected_modes", [])
+                    
+                    if affected_modes:
+                        # Use the first affected mode as the inferred baseline
+                        from_mode = affected_modes[0]
+                        
+                        # Get from/to POIs
+                        from_poi = poi.get("id")
+                        to_poi = pois[i + 1].get("id") if i + 1 < len(pois) else None
+                        
+                        if from_poi and to_poi:
+                            changes.append({
+                                "type": "ROUTE_CHANGED",
+                                "from_poi": from_poi,
+                                "to_poi": to_poi,
+                                "from_mode": from_mode,
+                                "to_mode": "CAB_FALLBACK",
+                            "reason": f"{from_mode}_DISRUPTION"
+                        })
+                        break  # One disruption attribution per fallback
 
     def _process_day_diff(self, diffs: Dict, day_idx: int, base_itinerary: Dict, day_result: Dict):
         # Get base POIs for this day
@@ -163,7 +263,11 @@ class ItineraryDiffEngine:
                     "poi": pid
                 })
             
-            # 3. Rescheduled (implied if in both but order different? skipping for MV)
+            # 3. Transport route changes (detect mode changes)
+            base_family_data = {"pois": base_day_data.get("pois", [])}
+            self._detect_route_changes(base_family_data, family_data, changes)
             
             if changes:
                 diffs[family_id][day_idx + 1] = changes # Use 1-based day index for output consistency
+
+

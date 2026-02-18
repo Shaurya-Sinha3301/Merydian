@@ -74,7 +74,7 @@ optimized_v1 = optimizer.optimize_trip(
 # FAM_B now wants to visit LOC_006
 updated_preferences = modify_preferences(
     family_id="FAM_B",
-    must_visit=["LOC_006"]
+    must_visit_locations=["LOC_006"]
 )
 
 # Re-optimize with SAME base, NEW preferences

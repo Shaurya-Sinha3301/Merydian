@@ -1,130 +1,203 @@
+"""
+TBO Hotel API Service — REST Client
+
+Production-ready REST client for TBO Holidays Hotel API.
+Replaces the previous SOAP/WSDL implementation with the proven REST approach.
+
+API Docs: backend/test/TBO_HOTEL_API_DOCS.md
+"""
+
 import logging
-import datetime
-from zeep import Client, Settings as ZeepSettings
 from typing import Optional, List, Dict, Any
+from datetime import date
+
+import requests
+from requests.auth import HTTPBasicAuth
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# TBO specific constants (Move to config/env in real prod if sensitive changes often)
-WSDL_URL = "http://api.tbotechnology.in/hotelapi_v7/hotelservice.svc?wsdl"
-# In a real app, these should be in settings.HEADER_CREDENTIALS or similar
-# For now, we use the values we verified
-USERNAME = "hackathontest"
-PASSWORD = "Hac@98147521"
-END_USER_IP = "127.0.0.1"
 
-class TBOService:
-    def __init__(self):
-        self.wsdl_url = WSDL_URL
-        self.settings = ZeepSettings(strict=False, xml_huge_tree=True)
-        self.client = None
-        self._initialize_client()
+class TBOHotelClient:
+    """
+    REST client for TBO Holidays Hotel API.
 
-    def _initialize_client(self):
-        try:
-            self.client = Client(wsdl=self.wsdl_url, settings=self.settings)
-            logger.info("TBO Zeep Client initialized successfully.")
-        except Exception as e:
-            logger.error(f"Failed to initialize TBO Zeep Client: {e}")
-            raise
+    All endpoints use HTTP Basic Auth and JSON payloads.
+    Base URL: http://api.tbotechnology.in/TBOHolidays_HotelAPI
+    """
 
-    def get_auth_header(self) -> Dict[str, Any]:
-        """Constructs the Credentials header required for TBO V7 operations."""
-        return {
-            'Credentials': {
-                'UserName': USERNAME,
-                'Password': PASSWORD,
-                'IPAddress': END_USER_IP
-            }
+    def __init__(
+        self,
+        base_url: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+    ):
+        self.base_url = base_url or settings.TBO_API_URL
+        self.auth = HTTPBasicAuth(
+            username or settings.TBO_USERNAME,
+            password or settings.TBO_PASSWORD,
+        )
+        self.headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
         }
 
-    def search_hotels(self, city_name: str, checkin_date: datetime.date, checkout_date: datetime.date) -> Dict[str, Any]:
+    # ------------------------------------------------------------------ #
+    #  HTTP helpers
+    # ------------------------------------------------------------------ #
+
+    def _get(self, endpoint: str) -> dict:
+        url = f"{self.base_url}/{endpoint}"
+        logger.info("TBO GET %s", url)
+        resp = requests.get(url, auth=self.auth, headers=self.headers, timeout=30)
+        resp.raise_for_status()
+        return resp.json()
+
+    def _post(self, endpoint: str, payload: dict) -> dict:
+        url = f"{self.base_url}/{endpoint}"
+        logger.info("TBO POST %s", url)
+        resp = requests.post(
+            url, json=payload, auth=self.auth, headers=self.headers, timeout=60
+        )
+        logger.info("TBO HTTP %d", resp.status_code)
+        if resp.status_code >= 400:
+            logger.error("TBO Error: %s", resp.text[:1000])
+        resp.raise_for_status()
+        return resp.json()
+
+    # ------------------------------------------------------------------ #
+    #  Discovery
+    # ------------------------------------------------------------------ #
+
+    def get_countries(self) -> List[Dict[str, Any]]:
+        """GET /CountryList → [{"Code": "IN", "Name": "India"}, ...]"""
+        return self._get("CountryList").get("CountryList", [])
+
+    def get_cities(self, country_code: str) -> List[Dict[str, Any]]:
+        """POST /CityList → [{"Code": "418069", "Name": "Delhi NCR"}, ...]"""
+        data = self._post("CityList", {"CountryCode": country_code})
+        return data.get("CityList", [])
+
+    def get_hotel_codes(
+        self, city_code: str, detailed: bool = True
+    ) -> List[Dict[str, Any]]:
         """
-        Orchestrates the search:
-        1. Calls TopDestinations to find valid CityCode for `city_name`.
-        2. Calls HotelSearch using that CityCode.
+        POST /TBOHotelCodeList → hotel codes + metadata for a city.
+
+        Returns list of dicts with HotelCode, HotelName, HotelRating, etc.
         """
-        if not self.client:
-           self._initialize_client()
+        data = self._post(
+            "TBOHotelCodeList",
+            {"CityCode": city_code, "IsDetailedResponse": detailed},
+        )
+        return data.get("Hotels", [])
 
-        # 1. Find City Code
-        city_code = self._get_city_code(city_name)
-        if not city_code:
-            logger.warning(f"City '{city_name}' not found in TopDestinations. Defaulting to Delhi (130443).")
-            city_code = "130443"
+    # ------------------------------------------------------------------ #
+    #  Search
+    # ------------------------------------------------------------------ #
 
-        # 2. Execute Search
-        return self._execute_hotel_search(city_code, checkin_date, checkout_date)
+    def search_hotels(
+        self,
+        hotel_codes: List[str],
+        checkin: str,
+        checkout: str,
+        rooms: int = 1,
+        adults: int = 2,
+        children: int = 0,
+        children_ages: Optional[List[int]] = None,
+        nationality: str = "IN",
+    ) -> Dict[str, Any]:
+        """
+        POST /Search → Full search response with HotelResult and TraceId.
 
-    def _get_city_code(self, city_name_query: str) -> Optional[str]:
-        """Helper to fetch CityCode from TopDestinations."""
-        try:
-            res = self.client.service.TopDestinations(_soapheaders=self.get_auth_header())
-            
-            if res.Status.StatusCode == '01' and res.CityList:
-                 # Handle Zeep unpacking
-                 wrapper = res.CityList
-                 if hasattr(wrapper, 'CityList'): 
-                      raw_cities = wrapper.CityList
-                 elif hasattr(wrapper, 'City'):
-                      raw_cities = wrapper.City
-                 else:
-                      raw_cities = wrapper
-                 
-                 if not isinstance(raw_cities, list):
-                     raw_cities = [raw_cities]
-                     
-                 for city in raw_cities:
-                     if hasattr(city, 'CityCode') and city.CityName:
-                         if city_name_query.lower() in city.CityName.lower():
-                             logger.info(f"Found City: {city.CityName} ({city.CityCode})")
-                             return city.CityCode
-            return None
-        except Exception as e:
-            logger.error(f"TopDestinations lookup failed: {e}")
-            return None
+        Args:
+            hotel_codes: List of hotel code strings from get_hotel_codes()
+            checkin: YYYY-MM-DD format
+            checkout: YYYY-MM-DD format
+            rooms: Number of rooms
+            adults: Adults per room
+            children: Children per room
+            children_ages: Ages of children (if any)
+            nationality: ISO 2-letter country code
 
-    def _execute_hotel_search(self, city_code: str, checkin: datetime.date, checkout: datetime.date) -> Dict[str, Any]:
-        """Performs the actual HotelSearch operation."""
-        try:
-            # Construct strict RoomGuest
-            ns = 'http://TekTravel/HotelBookingApi'
-            room_guest_type = self.client.get_type(f'{{{ns}}}RoomGuest')
-            
-            room_guest = room_guest_type(
-                AdultCount=1, 
-                ChildCount=0, 
-                ChildAge={'int': []} # Singular ChildAge
-            )
-            
-            search_args = {
-                'CheckInDate': checkin,
-                'CheckOutDate': checkout,
-                'CityId': city_code, 
-                'IsNearBySearchAllowed': False,
-                'NoOfRooms': 1,
-                'GuestNationality': 'IN',
-                'RoomGuests': {'RoomGuest': [room_guest]}, 
-                'PreferredCurrencyCode': 'INR',
-                'ResultCount': 10,
-                'Filters': None,
-                'IsRoomInfoRequired': True, 
-                'GeoCodes': None,
-                'ResponseTime': 0
-            }
-            
-            logger.info(f"Calling TBO HotelSearch for CityId {city_code}...")
-            res = self.client.service.HotelSearch(**search_args, _soapheaders=self.get_auth_header())
-            
-            # Convert Zeep object to dict-like structure or return raw
-            # For simplicity, returning the Status and Result count for now
-            return res
-            
-        except Exception as e:
-            logger.error(f"HotelSearch Operation Failed: {e}")
-            # Return error dict
-            return {"error": str(e), "Status": {"StatusCode": "99", "Description": "Exception"}}
+        Returns:
+            Full API response with Status, TraceId, HotelResult[]
+        """
+        payload = {
+            "CheckIn": checkin,
+            "CheckOut": checkout,
+            "NoOfRooms": str(rooms),
+            "GuestNationality": nationality,
+            "PaxRooms": [
+                {
+                    "Adults": adults,
+                    "Children": children,
+                    "ChildrenAges": children_ages,
+                }
+                for _ in range(rooms)
+            ],
+            "ResponseTime": 23.0,
+            "IsDetailedResponse": True,
+            "Filters": {"Refundable": False, "NoOfRooms": 0, "MealType": 0},
+            "HotelCodes": ",".join(hotel_codes),
+        }
+        return self._post("Search", payload)
 
-tbo_service = TBOService()
+    # ------------------------------------------------------------------ #
+    #  Hotel Details
+    # ------------------------------------------------------------------ #
+
+    def get_hotel_details(
+        self, hotel_codes: str, language: str = "EN"
+    ) -> List[Dict[str, Any]]:
+        """POST /Hoteldetails → rich hotel metadata (name, address, images, facilities)."""
+        data = self._post(
+            "Hoteldetails", {"Hotelcodes": hotel_codes, "Language": language}
+        )
+        return data.get("HotelDetails", [])
+
+    # ------------------------------------------------------------------ #
+    #  Booking Flow
+    # ------------------------------------------------------------------ #
+
+    def pre_book(self, booking_code: str, trace_id: str) -> Dict[str, Any]:
+        """POST /PreBook → Confirm current pricing before final booking."""
+        return self._post(
+            "PreBook", {"BookingCode": booking_code, "TraceId": trace_id}
+        )
+
+    def book(
+        self, booking_code: str, trace_id: str, passengers: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        POST /Book → Create confirmed hotel booking.
+
+        Args:
+            booking_code: From Search → Rooms[].BookingCode
+            trace_id: From Search → TraceId
+            passengers: List of guest details:
+                - Title, FirstName, LastName, Phoneno, Email
+                - PaxType (1=Adult, 2=Child), LeadPassenger (bool)
+                - Optional: Age, PassportNo, PAN
+
+        Returns:
+            Full response with BookResult containing:
+            BookingStatus, ConfirmationNo, BookingId, TotalFare, etc.
+        """
+        return self._post(
+            "Book",
+            {
+                "BookingCode": booking_code,
+                "TraceId": trace_id,
+                "Passengers": passengers,
+            },
+        )
+
+    def get_booking_detail(self, booking_id: str) -> Dict[str, Any]:
+        """POST /BookingDetail → Retrieve confirmed booking details."""
+        return self._post("BookingDetail", {"BookingId": booking_id})
+
+
+# Module-level singleton
+tbo_client = TBOHotelClient()

@@ -25,7 +25,7 @@ try:
             
         def login(self):
             """Login to get authentication token"""
-            print("🔐 Testing Authentication...")
+            print("Testing Authentication...")
             login_payload = {
                 "username": "traveller@example.com",
                 "password": "password"

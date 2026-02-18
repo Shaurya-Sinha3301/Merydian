@@ -5,7 +5,15 @@ passlib[bcrypt]
 python-multipart
 pydantic-settings
 email-validator
-httpx
 sqlmodel
+psycopg2-binary
+pytest
+pytest-asyncio
+httpx
 celery[redis]
 redis
+websockets
+groq
+google-generativeai
+ortools
+requests

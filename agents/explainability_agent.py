@@ -87,7 +87,7 @@ class ExplainabilityAgent:
         return [self.explain(payload) for payload in payloads]
     
     def _build_prompt(self, payload: Dict[str, Any]) -> str:
-        """Build the prompt for Gemini API."""
+        """Build the prompt for Groq API with causal tag explanations."""
         
         payload_str = json.dumps(payload, indent=2)
         
@@ -96,16 +96,41 @@ class ExplainabilityAgent:
 Decision Payload:
 {payload_str}
 
+CAUSAL TAG DEFINITIONS (use these to explain WHY changes happened):
+
+**Interest-Based Tags:**
+- INTEREST_VECTOR_DOMINANCE: This POI matches the family's interest tags very strongly (interest score > 1.2)
+- SHARED_ANCHOR_REQUIRED: This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together
+- OPTIMIZER_SELECTED: This POI was selected by the optimizer with moderate interest (score 0.8-1.2)
+- OPTIMIZER_TRADEOFF: This POI was added despite low interest because it optimizes other factors (time, routing, etc.)
+
+**Transport Disruption Tags:**
+- TRANSPORT_ROUTING_OPTIMIZATION: The route/POI selection was optimized due to transport changes
+- BUS_UNAVAILABLE: BUS transport is unavailable (strike, closure, etc.)
+- METRO_UNAVAILABLE: METRO transport is unavailable
+- AUTO_UNAVAILABLE: AUTO transport is unavailable
+- CAB_FALLBACK_UNAVAILABLE: CAB transport is unavailable
+- TRANSPORT_DISRUPTED: The original transport mode was disrupted
+- ROUTE_REROUTED: Successfully found an alternative transport mode
+- REROUTED_TO_METRO / REROUTED_TO_BUS / REROUTED_TO_CAB_FALLBACK: Rerouted to specific transport mode
+- ROUTE_OPTIMIZED: Route was optimized for better efficiency (no disruption)
+
+**Removal Tags:**
+- LOW_INTEREST_DROPPED: This POI was removed because it has low relevance to the family's interests (score < 0.8)
+- OBJECTIVE_DOMINATED: This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)
+
 Generate a brief, clear explanation (1-2 sentences) that describes:
-1. What changed in the itinerary
-2. Why it changed (based on the data in the payload)
+1. What changed in the itinerary (which POI, which day, which family)
+2. Why it changed (use the causal_tags to explain the reason)
+3. If available, mention the cost impact or satisfaction gain
 
 Guidelines:
-- Write in active voice
+- Write in active voice for travelers/travel agents
 - Be concise and specific
-- Focus on user-facing impact
-- Don't mention technical details or field names
-- Don't infer causality beyond what's in the payload
+- Translate causal tags into natural language (don't say "SHARED_ANCHOR_REQUIRED", say "needed for group coordination")
+- Include actual POI names from the payload
+- Mention costs/satisfaction when relevant
+- Don't mention technical field names
 
 Return ONLY the explanation text, nothing else."""
         
@@ -114,18 +139,57 @@ Return ONLY the explanation text, nothing else."""
     def _demo_explain(self, payload: Dict[str, Any]) -> AgentExplanation:
         """Simple template-based explanation (fallback when no API key)."""
         
-        # Extract common fields
+        # Extract common fields - handle nested POI structure
         change_type = payload.get("change_type", "unknown")
-        poi_name = payload.get("poi_name", "location")
+        
+        # POI can be nested like {"id": "LOC_006", "name": "Akshardham"}
+        poi_data = payload.get("poi", {})
+        if isinstance(poi_data, dict):
+            poi_name = poi_data.get("name", "location")
+        else:
+            poi_name = str(poi_data)
+        
+        family = payload.get("family", "a family")
         day = payload.get("day", "?")
         
-        # Simple template
-        if change_type == "visit_added":
-            summary = f"Added {poi_name} to Day {day} visit list based on updated preferences."
-        elif change_type == "visit_removed":
-            summary = f"Removed {poi_name} from Day {day} visit list based on updated preferences."
+        # Extract causal tags for more context
+        causal_tags = payload.get("causal_tags", [])
+        reason = ""
+        if causal_tags:
+            tag = causal_tags[0]
+            if tag == "SHARED_ANCHOR_REQUIRED":
+                reason = " (needed for group coordination)"
+            elif tag == "INTEREST_VECTOR_DOMINANCE":
+                reason = " (strongly matches interests)"
+            elif tag == "OPTIMIZER_SELECTED":
+                reason = " (good overall fit)"
+            elif tag == "TRANSPORT_ROUTING_OPTIMIZATION":
+                # Check for transport mode tag
+                mode_tag = next((t for t in causal_tags if "_UNAVAILABLE" in t), None)
+                if mode_tag:
+                    mode = mode_tag.replace("_UNAVAILABLE", "")
+                    reason = f" (route optimized because {mode} is unavailable)"
+                else:
+                    reason = " (route optimized due to transport changes)"
+            elif tag == "OPTIMIZER_TRADEOFF":
+                reason = " (optimizes schedule/routing)"
+            elif tag == "LOW_INTEREST_DROPPED":
+                reason = " (low relevance to interests)"
+            elif tag == "OBJECTIVE_DOMINATED":
+                reason = " (optimization tradeoff)"
+            elif tag == "ROUTE_REROUTED":
+                reason = " (rerouted to alternative transport)"
+            elif "_UNAVAILABLE" in tag:
+                mode = tag.replace("_UNAVAILABLE", "")
+                reason = f" ({mode} unavailable)"
+        
+        # Build summary based on change type
+        if change_type == "POI_ADDED":
+            summary = f"Added {poi_name} to {family}'s Day {day} itinerary{reason}."
+        elif change_type == "POI_REMOVED":
+            summary = f"Removed {poi_name} from {family}'s Day {day} itinerary{reason}."
         else:
-            summary = f"Modified itinerary: {change_type} for {poi_name} on Day {day}."
+            summary = f"Modified itinerary: {change_type} for {poi_name} on Day {day}{reason}."
         
         return AgentExplanation(
             summary=summary,
