@@ -243,6 +243,27 @@ class OptimizerAgent:
                 logger.info(f"  [CONSTRAINT] Enforcing placement on Day {best_day + 1}")
         
         # ═══════════════════════════════════════════════════════════════
+        # STEP 1.8: Hotel & Skeleton Backbone Optimization
+        # ═══════════════════════════════════════════════════════════════
+        logger.info("Running HotelSkeletonOptimizer...")
+        
+        from ml_or.hotel_optimizer_cpsat import HotelSkeletonOptimizer
+        
+        # Initialize Hotel Optimizer
+        # Uses updated preferences to respect constraints
+        hotel_opt = HotelSkeletonOptimizer(
+            locations_file=str(self.locations_path),
+            base_itinerary_file=str(self.base_itinerary_path),
+            family_prefs_file=str(updated_prefs_path)
+        )
+        
+        # Optimize Hotel Backbone
+        backbone_file = run_dir / "optimized_backbone.json"
+        hotel_opt.optimize(output_file=str(backbone_file))
+        
+        logger.info(f"Hotel backbone saved to: {backbone_file}")
+
+        # ═══════════════════════════════════════════════════════════════
         # STEP 2: Initialize and Run Optimizer
         # ═══════════════════════════════════════════════════════════════
         
@@ -280,7 +301,8 @@ class OptimizerAgent:
             locations_file=str(self.locations_path),
             transport_file=transport_file_to_use,
             base_itinerary_file=str(self.base_itinerary_path),
-            family_prefs_file=str(updated_prefs_path)
+            family_prefs_file=str(updated_prefs_path),
+            optimized_backbone_file=str(backbone_file)  # Incorporate Backbone
         )
         
         # Decide: Single-day re-opt or full trip?

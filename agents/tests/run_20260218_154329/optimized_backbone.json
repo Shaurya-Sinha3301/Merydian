@@ -1,0 +1,81 @@
+{
+    "hotel_assignments": {
+        "FAM_A": [
+            {
+                "day": 1,
+                "hotel_id": "LOC_TBO_1016321",
+                "hotel_name": "City Park Hotel",
+                "cost": 5000
+            },
+            {
+                "day": 2,
+                "hotel_id": "LOC_TBO_1011664",
+                "hotel_name": "Oodles Hotel",
+                "cost": 3000
+            },
+            {
+                "day": 3,
+                "hotel_id": "LOC_TBO_1016321",
+                "hotel_name": "City Park Hotel",
+                "cost": 5000
+            }
+        ],
+        "FAM_B": [
+            {
+                "day": 1,
+                "hotel_id": "LOC_TBO_1016321",
+                "hotel_name": "City Park Hotel",
+                "cost": 5000
+            },
+            {
+                "day": 2,
+                "hotel_id": "LOC_TBO_1011664",
+                "hotel_name": "Oodles Hotel",
+                "cost": 3000
+            },
+            {
+                "day": 3,
+                "hotel_id": "LOC_TBO_1016321",
+                "hotel_name": "City Park Hotel",
+                "cost": 5000
+            }
+        ],
+        "FAM_C": [
+            {
+                "day": 1,
+                "hotel_id": "LOC_TBO_1016321",
+                "hotel_name": "City Park Hotel",
+                "cost": 5000
+            },
+            {
+                "day": 2,
+                "hotel_id": "LOC_TBO_1011664",
+                "hotel_name": "Oodles Hotel",
+                "cost": 3000
+            },
+            {
+                "day": 3,
+                "hotel_id": "LOC_TBO_1016321",
+                "hotel_name": "City Park Hotel",
+                "cost": 5000
+            }
+        ]
+    },
+    "skeleton_routes": {
+        "1": [
+            "LOC_007",
+            "LOC_001",
+            "LOC_015"
+        ],
+        "2": [
+            "LOC_019",
+            "LOC_004",
+            "LOC_011"
+        ],
+        "3": [
+            "LOC_003",
+            "LOC_014",
+            "LOC_013"
+        ]
+    }
+}
