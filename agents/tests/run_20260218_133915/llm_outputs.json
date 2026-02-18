@@ -1,0 +1,139 @@
+[
+  {
+    "scenario_number": 1,
+    "scenario_name": "Must-Visit (Simulated Day 2 Start)",
+    "timestamp": "2026-02-18T13:38:29.489098",
+    "user_input": "We really want to visit Chandni Chowk for some street food. It's the start of Day 2.",
+    "context": {
+      "family_id": "FAM_B",
+      "current_day": 1
+    },
+    "feedback_agent": {
+      "input": "We really want to visit Chandni Chowk for some street food. It's the start of Day 2.",
+      "output": {
+        "event_type": "MUST_VISIT_ADDED",
+        "confidence": "HIGH",
+        "poi_name": "Chandni Chowk",
+        "poi_id": null,
+        "rating": null,
+        "day": 2,
+        "family_id": "FAM_B"
+      }
+    },
+    "decision_agent": {
+      "input": {
+        "agent": "FeedbackAgent",
+        "family_id": "FAM_B",
+        "event_type": "MUST_VISIT_ADDED",
+        "poi_id": null,
+        "poi_name": "Chandni Chowk",
+        "rating": null,
+        "day": 2,
+        "confidence": "HIGH",
+        "raw_input": "We really want to visit Chandni Chowk for some street food. It's the start of Day 2.",
+        "transport_mode": null,
+        "disruption_from_poi": null,
+        "disruption_to_poi": null,
+        "metadata": {}
+      },
+      "output": {
+        "action": "RUN_OPTIMIZER",
+        "reason": "Hard constraint changed: MUST_VISIT_ADDED"
+      }
+    },
+    "optimizer_triggered": true,
+    "explainability_agent": {
+      "explanations": [
+        {
+          "audience": "FAMILY",
+          "explanation": "Family FAM_A, I'm so excited to share the changes we've made to your itinerary. We've been working hard to make sure you have an unforgettable trip, and I think you'll love the new additions.\n\nFirst, let's talk about Day 2. We know you're eager to try some delicious street food at Chandni Chowk, and we've added a fantastic place to your schedule - Barbeque Nation! We identified that you'll love this spot, and it's a great fit for your interests. For an extra cost of only 595.23 INR, you'll get to enjoy a fantastic dining experience. Plus, we've optimized the route to make sure you get there smoothly.\n\nOn Day 3, we've added another amazing spot - Chandni Chowk itself! We matched your interests perfectly, and you'll love exploring this vibrant area. It's a great fit for your group, and we think you'll have a fantastic time. There's an extra cost of 300.0 INR, but trust us, it's worth it.\n\nHowever, we've also removed a couple of places from your schedule. We prioritized options that give you the best value and experience, and unfortunately, Social and India Gate didn't make the cut. Don't worry, though - we've replaced them with even better options that you'll enjoy more.\n\nOverall, we're confident that these changes will make your trip even more special. You'll get to experience the best of India, and we can't wait to hear about your adventures!",
+          "family_id": "FAM_A"
+        },
+        {
+          "audience": "FAMILY",
+          "explanation": "Family FAM_B, I'm so excited to share the changes we've made to your itinerary. We've been working hard to make sure you have an unforgettable experience in India, and we think these changes will really make your trip shine.\n\nFirst, let's talk about Day 2. We know you're eager to try some delicious street food at Chandni Chowk, and we've added a new stop that we think you'll love. We've included Barbeque Nation, which matches your interests perfectly. It's a great fit for your family, and we think you'll have a fantastic time there. The only extra cost is for an additional 458 INR, but trust us, it's worth it.\n\nOn Day 3, we've added another exciting stop - Chandni Chowk itself! We identified that you really want to visit this place, and we've made sure to include it in your itinerary. You'll get to experience the vibrant streets, try some amazing food, and take in the sights. This will add an extra 300 INR to your expenses, but we think it's a small price to pay for the memories you'll make.\n\nWe've also removed two stops from your Day 3 itinerary. We prioritized options that give you the best value and experience, and unfortunately, Social and India Gate didn't quite fit the bill. However, we've saved you 651 INR and 48 INR respectively, which will definitely help with your expenses.\n\nLastly, we've optimized your route to ensure the smoothest travel experience possible. We've taken into account any disruptions or limitations, and we're confident that you'll have a stress-free journey.\n\nWe're so excited for you to experience these changes, and we can't wait to hear about your adventures in India!",
+          "family_id": "FAM_B"
+        },
+        {
+          "audience": "FAMILY",
+          "explanation": "Family FAM_C, I'm so excited to share the changes we've made to your itinerary. We've been working hard to make sure you have an unforgettable trip, and I think you'll love the new additions.\n\nFirst, let's talk about Day 2. We know you're eager to try some delicious street food, and that's exactly why we've added Chandni Chowk to your schedule. We identified that you'd love this place, and it matches your interests perfectly. You'll get to experience the vibrant flavors and atmosphere of this iconic market.\n\nOn Day 3, we've made a few more changes. We've added Barbeque Nation, which is a great fit for your family. It's a fantastic spot for a fun and memorable dining experience. And, we've removed Social from your itinerary because we prioritized options that give you the best value and experience. Don't worry, you'll still have plenty of time to explore and enjoy the city.\n\nWe've also removed India Gate from your schedule due to historical site restrictions. We know this might be disappointing, but we've found other amazing places for you to visit.\n\nLastly, we've optimized your route for the smoothest travel experience. You'll save some money on transportation, and we've made sure you'll have plenty of time to rest and recharge.\n\nHere's a quick summary of the changes:\n\n- Day 2: Added Chandni Chowk for an unforgettable street food experience.\n- Day 3: Added Barbeque Nation for a fun and memorable dining experience.\n- Day 3: Removed Social to prioritize options that give you the best value and experience.\n- Day 3: Removed India Gate due to historical site restrictions.\n- Optimized your route for a smooth travel experience, saving you some money on transportation.\n\nWe're confident that these changes will make your trip even more special. You'll have an amazing time exploring the city, trying new foods, and creating unforgettable memories with your family.",
+          "family_id": "FAM_C"
+        },
+        {
+          "audience": "TRAVEL_AGENT",
+          "explanation": "**Travel Optimization System Report**\n\n**Summary:**\n\nThis report summarizes the changes made to the travel itinerary based on user input and the optimizer's decisions. The report focuses on the aggregate impact across all affected families.\n\n**Financial Deltas (Net Cost):**\n\nThe total net cost delta is **INR 294.23**. This represents the cumulative change in cost due to the addition and removal of POIs.\n\n**Satisfaction Deltas:**\n\nThe total satisfaction delta is **3.52**. This represents the cumulative change in satisfaction due to the addition and removal of POIs.\n\n**Changes:**\n\nThe following changes were made to the itinerary:\n\n1. **POI Addition:**\n\t* **Barbeque Nation (LOC_050)** was added on Day 2 for all families (FAM_A, FAM_B, FAM_C) due to **INTEREST_VECTOR_DOMINANCE** and **OPTIMIZER_SELECTED**.\n\t* **Chandni Chowk (LOC_015)** was added on Day 3 for all families (FAM_A, FAM_B, FAM_C) due to **INTEREST_VECTOR_DOMINANCE**.\n2. **POI Removal:**\n\t* **Social (LOC_049)** was removed on Day 3 for all families (FAM_A, FAM_B, FAM_C) due to **OBJECTIVE_DOMINATED**.\n\t* **India Gate (LOC_003)** was removed on Day 3 for families FAM_B and FAM_C due to **HISTORY_BAN**.\n\n**Family-Specific Impact:**\n\nWhile the report focuses on the aggregate impact, the following family-specific changes are noted:\n\n* **FAM_A:** Added Barbeque Nation (LOC_050) on Day 2 due to **INTEREST_VECTOR_DOMINANCE** and **OPTIMIZER_SELECTED**. Removed Social (LOC_049) and India Gate (LOC_003) on Day 3 due to **OBJECTIVE_DOMINATED** and **HISTORY_BAN**.\n* **FAM_B:** Added Barbeque Nation (LOC_050) and Chandni Chowk (LOC_015) on Day 2 and Day 3, respectively, due to **INTEREST_VECTOR_DOMINANCE**. Removed Social (LOC_049) and India Gate (LOC_003) on Day 3 due to **OBJECTIVE_DOMINATED** and **HISTORY_BAN**.\n* **FAM_C:** Added Barbeque Nation (LOC_050) on Day 2 due to **OPTIMIZER_SELECTED** and **INTEREST_VECTOR_DOMINANCE**. Added Chandni Chowk (LOC_015) on Day 3 due to **INTEREST_VECTOR_DOMINANCE**. Removed Social (LOC_049) and India Gate (LOC_003) on Day 3 due to **OBJECTIVE_DOMINATED** and **HISTORY_BAN**.\n\n**Conclusion:**\n\nThe travel optimization system made several changes to the itinerary based on user input and the optimizer's decisions. The aggregate impact is a net cost delta of INR 294.23 and a satisfaction delta of 3.52. The changes were made to optimize the itinerary for all affected families, taking into account their interests, transport modes, and site restrictions."
+        }
+      ]
+    },
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260218_133828"
+  },
+  {
+    "scenario_number": 2,
+    "scenario_name": "Location Excluded (Day 3 Preference)",
+    "timestamp": "2026-02-18T13:39:16.673437",
+    "user_input": "Please skip the Red Fort on Day 3, we're not interested.",
+    "context": {
+      "family_id": "FAM_A",
+      "current_day": 2,
+      "previous_solution": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260218_133828\\optimized_solution.json"
+    },
+    "feedback_agent": {
+      "input": "Please skip the Red Fort on Day 3, we're not interested.",
+      "output": {
+        "event_type": "NEVER_VISIT_ADDED",
+        "confidence": "HIGH",
+        "poi_name": null,
+        "poi_id": null,
+        "rating": null,
+        "day": 3,
+        "family_id": "FAM_A"
+      }
+    },
+    "decision_agent": {
+      "input": {
+        "agent": "FeedbackAgent",
+        "family_id": "FAM_A",
+        "event_type": "NEVER_VISIT_ADDED",
+        "poi_id": null,
+        "poi_name": null,
+        "rating": null,
+        "day": 3,
+        "confidence": "HIGH",
+        "raw_input": "Please skip the Red Fort on Day 3, we're not interested.",
+        "transport_mode": null,
+        "disruption_from_poi": null,
+        "disruption_to_poi": null,
+        "metadata": {}
+      },
+      "output": {
+        "action": "RUN_OPTIMIZER",
+        "reason": "Hard constraint changed: NEVER_VISIT_ADDED"
+      }
+    },
+    "optimizer_triggered": true,
+    "explainability_agent": {
+      "explanations": [
+        {
+          "audience": "FAMILY",
+          "explanation": "Family FAM_A, I'm so excited to share the updated itinerary with you. We've made a few tweaks to ensure that your trip is tailored to your interests and preferences.\n\nOn Day 3, we've removed Chandni Chowk from your schedule. We identified that this place matches your interests perfectly, but we've found other options that will give you an even better experience. By skipping Chandni Chowk, you'll be saving 276 INR, which is a great bonus for your trip.\n\nWe've optimized your route to ensure the smoothest travel experience, and we're confident that you'll love the new places we've added. Our goal is to give you the best value and experience, and we're excited to share that with you.\n\nHere's a quick rundown of the changes:\n\nWe've removed Chandni Chowk from Day 3, saving you 276 INR. This will give you more time to explore other amazing places that we've carefully selected for you.\n\nWe're confident that these changes will make your trip even more enjoyable and memorable. If you have any questions or concerns, please don't hesitate to reach out. We're always here to help.\n\nLet's get ready for an incredible adventure together!",
+          "family_id": "FAM_A"
+        },
+        {
+          "audience": "FAMILY",
+          "explanation": "Family FAM_B, I'm so excited to share the updated itinerary with you. We've made a few tweaks to ensure that your trip is tailored to your interests and preferences.\n\nOn Day 3, we've removed Chandni Chowk from your schedule. We identified that this place matches your interests perfectly, but we've found other options that will give you an even better experience. By skipping Chandni Chowk, you'll be saving 276 INR, which is a great bonus for your trip.\n\nWe've optimized your route to ensure the smoothest travel experience, and we're confident that you'll love the new places we've added. Our goal is to give you the best value and experience, and we're excited to share that with you.\n\nHere's a quick rundown of the changes:\n\nWe've removed Chandni Chowk from Day 3, saving you 276 INR. This will give you more time to explore other amazing places that we've carefully selected for you.\n\nWe're confident that these changes will make your trip even more enjoyable and memorable. If you have any questions or concerns, please don't hesitate to reach out. We're always here to help.\n\nLet's get ready for an incredible adventure together!",
+          "family_id": "FAM_B"
+        },
+        {
+          "audience": "FAMILY",
+          "explanation": "Family FAM_C, I'm so excited to share the updated itinerary with you. We've made a few tweaks to ensure that your trip is tailored to your interests and preferences.\n\nOn Day 3, we've removed Chandni Chowk from your schedule. We identified that this place matches your interests perfectly, but we've found other options that will give you an even better experience. By skipping Chandni Chowk, you'll be saving 276 INR, which is a great bonus for your trip.\n\nWe've optimized your route to ensure the smoothest travel experience, and we're confident that you'll love the new places we've added. Our goal is to give you the best value and experience, and we're excited to share that with you.\n\nHere's a quick rundown of the changes:\n\nWe've removed Chandni Chowk from Day 3, saving you 276 INR. This will give you more time to explore other amazing places that we've carefully selected for you.\n\nWe're confident that these changes will make your trip even more enjoyable and memorable. If you have any questions or concerns, please don't hesitate to reach out. We're always here to help.\n\nLet's get ready for an incredible adventure together!",
+          "family_id": "FAM_C"
+        },
+        {
+          "audience": "TRAVEL_AGENT",
+          "explanation": "**Travel Optimization System Report**\n\n**Summary:**\n\nThis report summarizes the changes made to the travel itinerary in response to user input. The changes were made on Day 3, where the Red Fort was skipped, and Chandni Chowk was removed from the itinerary.\n\n**Financial Deltas:**\n\nThe total net cost savings from the changes is **-828.0 INR**. This is broken down into:\n\n- **Transport savings:** 76.0 INR per family (average)\n- **Total cost savings:** 276.0 INR per family (average)\n\n**Satisfaction Deltas:**\n\nThe total net satisfaction loss from the changes is **-4.17**. This is broken down into:\n\n- **Average satisfaction loss per family:** 1.35 (FAM_A), 1.47 (FAM_B), and 1.35 (FAM_C)\n\n**Changes:**\n\nThe following changes were made to the itinerary:\n\n- **POI Removed:** Chandni Chowk (LOC_015) on Day 3\n  - **Reason:** OBJECTIVE_DOMINATED (cost/time constraints outweighed its value)\n  - **Affected Families:** FAM_A, FAM_B, and FAM_C\n\n**Causal Analysis:**\n\nThe removal of Chandni Chowk was driven by the optimizer's decision to prioritize cost and time constraints over the POI's value. This decision was made due to the strong interest match of other POIs in the itinerary, which outweighed the value of Chandni Chowk.\n\n**Recommendations:**\n\nBased on the analysis, it is recommended to review the itinerary and consider adding alternative POIs that align with the family's interests and preferences. This will help to optimize the travel experience while minimizing the impact on the net cost and satisfaction.\n\n**System Definitions:**\n\nThe following system definitions were used to analyze the changes:\n\n- **INTEREST_VECTOR_DOMINANCE:** Strong interest match (>1.2)\n- **SHARED_ANCHOR_REQUIRED:** Critical for group coordination\n- **OPTIMIZER_SELECTED:** Selected by optimizer (score 0.8-1.2)\n- **OPTIMIZER_TRADEOFF:** Selected for logistical efficiency despite low interest\n- **TRANSPORT_ROUTING_OPTIMIZATION:** Route/POI selected due to transport changes\n- **BUS/METRO/AUTO/CAB_UNAVAILABLE:** Transport mode unavailability\n- **TRANSPORT_DISRUPTED:** Original mode disrupted\n- **ROUTE_REROUTED:** Found alternative mode\n- **ROUTE_OPTIMIZED:** Route efficiency improvement\n- **LOW_INTEREST_DROPPED:** Removed due to low relevance (<0.8)\n- **OBJECTIVE_DOMINATED:** Removed due to cost/time constraints > value\n- **HISTORY_BAN:** Removed due to site restrictions"
+        }
+      ]
+    },
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260218_133915"
+  }
+]

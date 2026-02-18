@@ -30,16 +30,16 @@ def main():
     
     # Define scenarios
     scenarios = [
-        # {
-        #     "name": "Must-Visit (Simulated Day 2 Start)",
-        #     "input": "We really want to visit Chandni Chowk for some street food. It's the start of Day 2.",
-        #     "context": {"family_id": "FAM_B", "current_day": 1}, # 0-indexed, so 1 is Day 2
-        # },
-        # {
-        #     "name": "Location Excluded (Day 3 Preference)",
-        #     "input": "Please skip the Red Fort on Day 3, we're not interested.",
-        #     "context": {"family_id": "FAM_A", "current_day": 2}, # Day 3
-        # },
+        {
+            "name": "Must-Visit (Simulated Day 2 Start)",
+            "input": "We really want to visit Chandni Chowk for some street food. It's the start of Day 2.",
+            "context": {"family_id": "FAM_B", "current_day": 1}, # 0-indexed, so 1 is Day 2
+        },
+        {
+            "name": "Location Excluded (Day 3 Preference)",
+            "input": "Please skip the Red Fort on Day 3, we're not interested.",
+            "context": {"family_id": "FAM_A", "current_day": 2}, # Day 3
+        },
         {
             "name": "METRO Disruption (Start of Day 3)",
             "input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
@@ -62,7 +62,7 @@ def main():
             time.sleep(10)
         
         # Build context with previous solution for comparison
-        context = scenario["context"] if scenario["context"] is not None else {}
+        context = scenario["context"].copy() if scenario["context"] is not None else {}
         if previous_solution_path:
             context["previous_solution"] = str(previous_solution_path)
         
@@ -98,55 +98,50 @@ def main():
                     "reason": result['decision'].reason,
                 }
             },
-            "optimizer_triggered": result['optimizer_output'] is not None,
+            "optimizer_triggered": result['decision'].action == "RUN_OPTIMIZER",
+            "optimizer_output_dir": None
         }
         
-        # If optimizer was triggered, load and use LLM payloads
         if result['optimizer_output']:
-            llm_payloads_path = result['optimizer_output'].get('llm_payloads')
-            optimizer_output_dir = Path(llm_payloads_path).parent if llm_payloads_path else None
+            optimizer_output_dir = Path(result['optimizer_output']['llm_payloads']).parent
+            scenario_output["optimizer_output_dir"] = str(optimizer_output_dir)
             
-            if llm_payloads_path and Path(llm_payloads_path).exists():
-                print(f"\n✓ Using optimizer output folder: {optimizer_output_dir}")
-                print(f"✓ Loading LLM payloads from: {llm_payloads_path}")
+            # Load payloads
+            payloads_file = optimizer_output_dir / "llm_payloads.json"
+            
+            if payloads_file.exists():
+                print(f"  📄 Loading payloads from: {payloads_file}")
+                with open(payloads_file, 'r', encoding='utf-8') as f:
+                    payload_data = json.load(f)
                 
-                # Load LLM payloads
-                with open(llm_payloads_path, 'r') as f:
-                    llm_payloads = json.load(f)
-                
-                print(f"✓ Loaded {len(llm_payloads)} LLM payload(s) with actual POI names")
-                
-                # Generate explanations using LLM payloads
-                explanations = []
-                # Handle new dict structure
+                # Handle list vs dict (families/agent)
                 payloads_to_process = []
-                if isinstance(llm_payloads, dict):
-                    if "families" in llm_payloads:
-                        payloads_to_process.extend(llm_payloads["families"])
-                    if "travel_agent" in llm_payloads:
-                        payloads_to_process.append(llm_payloads["travel_agent"])
-                elif isinstance(llm_payloads, list):
-                    payloads_to_process = llm_payloads
+                if isinstance(payload_data, dict):
+                    if "families" in payload_data:
+                        payloads_to_process.extend(payload_data["families"])
+                    if "travel_agent" in payload_data:
+                        payloads_to_process.append(payload_data["travel_agent"])
+                elif isinstance(payload_data, list):
+                    payloads_to_process = payload_data
                 
+                print(f"  ℹ️ Found {len(payloads_to_process)} payloads to process")
+                
+                explanations = []
                 for payload in payloads_to_process:
-                    # Show what we're sending to the explainability agent
-                    print(f"\n  📤 Sending to Explainability Agent:")
-                    print(f"     Audience: {payload.get('audience', 'FAMILY')}")
-                    if payload.get('audience') == "FAMILY":
-                        print(f"     Family: {payload.get('family_id')}")
+                    audience = payload.get("audience", "FAMILY")
+                    family_id = payload.get("family_id", "N/A")
+                    print(f"  📤 Sending to Explainability Agent:")
+                    print(f"     Audience: {audience}")
+                    if family_id != "N/A":
+                        print(f"     Family: {family_id}")
                     
-                    explanation = exp_agent.explain(payload)
-                    
-                    # Store only the key details, NO payloads
-                    output_entry = {
-                        "audience": payload.get("audience", "FAMILY"),
-                        "explanation": explanation.summary
-                    }
-                    if "family_id" in payload:
-                        output_entry["family_id"] = payload["family_id"]
-                        
-                    explanations.append(output_entry)
-                    print(f"  📥 Explainability Agent Output: {explanation.summary}")
+                    explanation = controller.explainability_agent.explain(payload)
+                    explanations.append({
+                        "audience": audience,
+                        "explanation": explanation.summary,
+                        "family_id": payload.get("family_id")
+                    })
+                    print(f"  📥 Explainability Agent Output: {explanation.summary[:50]}...")
                     
                     # Rate limiting to avoid 429 errors
                     if payload != payloads_to_process[-1]:
@@ -157,9 +152,6 @@ def main():
                 scenario_output["explainability_agent"] = {
                     "explanations": explanations
                 }
-                
-                # Store the optimizer folder for later use
-                scenario_output["optimizer_output_dir"] = str(optimizer_output_dir)
                 
                 # Update previous_solution_path for next scenario
                 optimized_solution_file = optimizer_output_dir / "optimized_solution.json"
@@ -186,10 +178,8 @@ def main():
 
         # INTERMEDIATE SAVE: Save results after every scenario
         current_output_dir = None
-        for res in reversed(all_results):
-            if res.get("optimizer_output_dir"):
-                current_output_dir = Path(res["optimizer_output_dir"])
-                break
+        if result['optimizer_output']:
+             current_output_dir = Path(result['optimizer_output']['llm_payloads']).parent
         
         if not current_output_dir:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
