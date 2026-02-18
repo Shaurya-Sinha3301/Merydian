@@ -88,7 +88,8 @@ class OptimizerAgent:
         current_prefs_path: Optional[Path] = None,
         session_manager: Optional[Any] = None,  # TripSessionManager
         trip_id: Optional[str] = None,
-        current_solution: Optional[Dict] = None  # Existing trip solution for re-opt
+        current_solution: Optional[Dict] = None,  # Existing trip solution for re-opt
+        user_input: str = ""  # User's natural language request
     ) -> Dict[str, Path]:
         """
         Run the optimizer with updated preferences/constraints.
@@ -98,6 +99,7 @@ class OptimizerAgent:
             constraints: Updated constraints (currently unused)
             base_solution_path: Path to baseline solution for comparison (optional)
             output_dir: Directory to save outputs (optional, defaults to agents/tests/run_*)
+            user_input: Original user text for explainability context
         
         Returns:
             Dictionary with paths to generated files
@@ -455,7 +457,7 @@ class OptimizerAgent:
         payloads = builder.build_payloads(
             enriched_diffs,
             optimizer.locations,
-            audience="TRAVEL_AGENT"
+            user_input=user_input
         )
         
         logger.info(f"Generated {len(payloads)} explanation payload(s)")

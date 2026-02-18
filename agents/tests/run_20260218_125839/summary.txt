@@ -1,0 +1,35 @@
+Demo Run Summary
+================================================================================
+Output Directory: C:\Amlan\Codes\Voyageur_Studio\agents\tests\run_20260218_125839
+Total scenarios: 1
+Optimizer triggered: 1 times
+
+
+Scenario 1: METRO Disruption (Start of Day 3)
+  User Input: There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable
+  Event Type: TRANSPORT_ISSUE
+  Decision: RUN_OPTIMIZER
+  Explanations (4):
+    - For Family FAM_A, the following changes were made to their itinerary:
+
+1. On Day 1, the POI "Lodhi Gardens" was removed because it was not needed for group coordination, and this change saved the family 105.26 INR in transportation costs.
+2. On Day 1, the POI "Agrasen ki Baoli" was removed due to optimization tradeoffs, resulting in a loss of 1.5 satisfaction points.
+3. On Day 1, the POI "Chandni Chowk" was added because it matches the family's interest tags very strongly, and this change added 1.35 satisfaction points, with an extra cost of 285 INR.
+4. On Day 2, the POI "Barbeque Nation" was added despite low interest because it optimizes other factors, and this change added 0.95 satisfaction points, with an extra cost of 595.23 INR.
+5. On Day 3, the POI "India Gate" was removed because of a history ban, resulting in a loss of 1.13 satisfaction points, and the family saved 24 INR in transportation costs.
+6. On Day 3, the POI "Social" was removed due to optimization tradeoffs, and the family saved 627 INR in transportation costs.
+    - For Family FAM_B, the following changes were made to their itinerary:
+
+1. On Day 1, the family visited Chandni Chowk instead of Agrasen ki Baoli and Lodhi Gardens. This change was made because Chandni Chowk matches the family's interest tags very strongly, while Agrasen ki Baoli and Lodhi Gardens were removed due to optimization tradeoffs that outweighed their value. The family saved 210.52 INR by removing these POIs, but gained 1.47 satisfaction points by visiting Chandni Chowk.
+
+2. On Day 2, the family added Barbeque Nation to their itinerary. This change was made because Barbeque Nation matches the family's interest tags very strongly. The family incurred an extra cost of 421 INR for this visit, but gained 1.29 satisfaction points.
+
+3. On Day 3, the family removed Social and India Gate from their itinerary. Social was removed due to optimization tradeoffs, while India Gate was removed because of a history ban. The family saved 699 INR by removing these POIs, but lost 1.55 satisfaction points due to the removal of India Gate.
+    - For the FAM_C family, the following changes were made to their itinerary:
+
+1. On Day 1, the POI "Lodhi Gardens" was removed because it was not needed for group coordination, and the family will save 105.26 INR. 
+2. On Day 1, the POI "Agrasen ki Baoli" was removed due to optimization tradeoffs, resulting in a saved cost of 105.26 INR.
+3. On Day 1, the POI "Chandni Chowk" was added because it matches the family's interest tags very strongly, and they will incur an extra cost of 300 INR.
+4. On Day 2, the POI "Barbeque Nation" was added despite low interest because it optimizes other factors, and the family will incur an extra cost of 458 INR.
+5. On Day 3, the POI "Social" was removed due to optimization tradeoffs, resulting in a saved cost of 651 INR.
+6. On Day 3, the POI "India Gate" was removed because METRO transport is unavailable, and the family will save 48 INR.

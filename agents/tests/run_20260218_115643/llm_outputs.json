@@ -1,0 +1,50 @@
+[
+  {
+    "scenario_number": 1,
+    "scenario_name": "METRO Disruption (Start of Day 3)",
+    "timestamp": "2026-02-18T11:56:49.618430",
+    "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+    "context": {
+      "current_day": 2
+    },
+    "feedback_agent": {
+      "input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+      "output": {
+        "event_type": "TRANSPORT_ISSUE",
+        "confidence": "HIGH",
+        "poi_name": null,
+        "poi_id": null,
+        "rating": null,
+        "day": 3,
+        "family_id": null
+      }
+    },
+    "decision_agent": {
+      "input": {
+        "agent": "FeedbackAgent",
+        "family_id": null,
+        "event_type": "TRANSPORT_ISSUE",
+        "poi_id": null,
+        "poi_name": null,
+        "rating": null,
+        "day": 3,
+        "confidence": "HIGH",
+        "raw_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+        "transport_mode": "METRO",
+        "disruption_from_poi": null,
+        "disruption_to_poi": null,
+        "metadata": {}
+      },
+      "output": {
+        "action": "RUN_OPTIMIZER",
+        "reason": "METRO disruption (global) requires itinerary re-optimization with updated transport graph"
+      }
+    },
+    "optimizer_triggered": true,
+    "explainability_agent": {
+      "input": [],
+      "output": []
+    },
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260218_115643"
+  }
+]

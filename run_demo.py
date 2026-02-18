@@ -92,7 +92,7 @@ def main():
                 }
             },
             "decision_agent": {
-                "input": result['event'].dict(),
+                "input": result['event'].model_dump(),
                 "output": {
                     "action": str(result['decision'].action),
                     "reason": result['decision'].reason,
@@ -118,13 +118,22 @@ def main():
                 
                 # Generate explanations using LLM payloads
                 explanations = []
-                for payload in llm_payloads:
+                # Handle new dict structure
+                payloads_to_process = []
+                if isinstance(llm_payloads, dict):
+                    if "families" in llm_payloads:
+                        payloads_to_process.extend(llm_payloads["families"])
+                    if "travel_agent" in llm_payloads:
+                        payloads_to_process.append(llm_payloads["travel_agent"])
+                elif isinstance(llm_payloads, list):
+                    payloads_to_process = llm_payloads
+                
+                for payload in payloads_to_process:
                     # Show what we're sending to the explainability agent
                     print(f"\n  📤 Sending to Explainability Agent:")
-                    print(f"     Family: {payload.get('family')}")
-                    print(f"     POI: {payload.get('poi', {}).get('name', 'Unknown')}")
-                    print(f"     Change: {payload.get('change_type')}")
-                    print(f"     Causal Tags: {', '.join(payload.get('causal_tags', []))}")
+                    print(f"     Audience: {payload.get('audience', 'FAMILY')}")
+                    if payload.get('audience') == "FAMILY":
+                        print(f"     Family: {payload.get('family_id')}")
                     
                     explanation = exp_agent.explain(payload)
                     explanations.append({
@@ -132,6 +141,10 @@ def main():
                         "output_summary": explanation.summary
                     })
                     print(f"  📥 Explainability Agent Output: {explanation.summary}")
+                    
+                    # Rate limiting to avoid 429 errors
+                    print("  ⏳ Sleeping 5s to respect API limits...")
+                    time.sleep(5)
                 
                 scenario_output["explainability_agent"] = {
                     "input": llm_payloads,
@@ -168,6 +181,26 @@ def main():
         print(f"Optimizer Run: {'Yes' if result['optimizer_output'] else 'No'}")
         if scenario_output.get("explainability_agent", {}).get("output"):
             print(f"Explanations Generated: {len(scenario_output['explainability_agent']['output'])}")
+
+        # INTERMEDIATE SAVE: Save results after every scenario
+        current_output_dir = None
+        for res in reversed(all_results):
+            if res.get("optimizer_output_dir"):
+                current_output_dir = Path(res["optimizer_output_dir"])
+                break
+        
+        if not current_output_dir:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            current_output_dir = project_root / "agents" / "tests" / f"demo_results_{timestamp}"
+            current_output_dir.mkdir(parents=True, exist_ok=True)
+            
+        output_file = current_output_dir / "llm_outputs.json"
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(all_results, f, indent=2, ensure_ascii=False, default=str)
+            print(f"  💾 Intermediate results saved to: {output_file}")
+        except Exception as e:
+            print(f"  ⚠️ Warning: Could not save intermediate results: {e}")
     
     # Use the optimizer's output folder (from the last optimizer run) for saving all outputs
     # This consolidates everything into one folder
@@ -190,7 +223,7 @@ def main():
     
     # Save summary
     summary_file = output_dir / "summary.txt"
-    with open(summary_file, 'w') as f:
+    with open(summary_file, 'w', encoding='utf-8') as f:
         f.write(f"Demo Run Summary\n")
         f.write(f"{'='*80}\n")
         f.write(f"Output Directory: {output_dir}\n")

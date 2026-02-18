@@ -1,0 +1,1694 @@
+[
+  {
+    "scenario_number": 1,
+    "scenario_name": "METRO Disruption (Start of Day 3)",
+    "timestamp": "2026-02-18T12:58:45.968908",
+    "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+    "context": {
+      "current_day": 2
+    },
+    "feedback_agent": {
+      "input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+      "output": {
+        "event_type": "TRANSPORT_ISSUE",
+        "confidence": "HIGH",
+        "poi_name": null,
+        "poi_id": null,
+        "rating": null,
+        "day": 3,
+        "family_id": null
+      }
+    },
+    "decision_agent": {
+      "input": {
+        "agent": "FeedbackAgent",
+        "family_id": null,
+        "event_type": "TRANSPORT_ISSUE",
+        "poi_id": null,
+        "poi_name": null,
+        "rating": null,
+        "day": 3,
+        "confidence": "HIGH",
+        "raw_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+        "transport_mode": "METRO",
+        "disruption_from_poi": null,
+        "disruption_to_poi": null,
+        "metadata": {}
+      },
+      "output": {
+        "action": "RUN_OPTIMIZER",
+        "reason": "METRO disruption (global) requires itinerary re-optimization with updated transport graph"
+      }
+    },
+    "optimizer_triggered": true,
+    "explainability_agent": {
+      "input": {
+        "families": [
+          {
+            "audience": "FAMILY",
+            "family_id": "FAM_A",
+            "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+            "changes": [
+              {
+                "day": 1,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_015",
+                  "name": "Chandni Chowk"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 285.0,
+                  "currency": "INR",
+                  "transport_cost": 85.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.35
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_018",
+                  "name": "Agrasen ki Baoli"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.5
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_013",
+                  "name": "Lodhi Gardens"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.44
+                }
+              },
+              {
+                "day": 2,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_050",
+                  "name": "Barbeque Nation"
+                },
+                "causal_tags": [
+                  "OPTIMIZER_SELECTED"
+                ],
+                "cost_delta": {
+                  "extra_cost": 595.23,
+                  "currency": "INR",
+                  "transport_cost": 195.23
+                },
+                "satisfaction_delta": {
+                  "gain": 0.95
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_049",
+                  "name": "Social"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 627.0,
+                  "currency": "INR",
+                  "transport_savings": 27.0
+                },
+                "satisfaction_delta": {
+                  "loss": 0.0
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_003",
+                  "name": "India Gate"
+                },
+                "causal_tags": [
+                  "HISTORY_BAN"
+                ],
+                "cost_delta": {
+                  "saved_cost": 24.0,
+                  "currency": "INR",
+                  "transport_savings": 4.0
+                },
+                "satisfaction_delta": {
+                  "loss": 1.13
+                }
+              }
+            ],
+            "system_definitions": {
+              "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+              "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+              "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+              "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+              "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+              "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+              "METRO_UNAVAILABLE": "METRO transport is unavailable",
+              "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+              "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+              "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+              "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+              "REROUTED_TO_METRO": "Rerouted to METRO",
+              "REROUTED_TO_BUS": "Rerouted to BUS",
+              "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+              "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+              "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+              "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+            }
+          },
+          {
+            "audience": "FAMILY",
+            "family_id": "FAM_B",
+            "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+            "changes": [
+              {
+                "day": 1,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_015",
+                  "name": "Chandni Chowk"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 300.0,
+                  "currency": "INR",
+                  "transport_cost": 100.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.47
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_018",
+                  "name": "Agrasen ki Baoli"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.13
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_013",
+                  "name": "Lodhi Gardens"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.06
+                }
+              },
+              {
+                "day": 2,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_050",
+                  "name": "Barbeque Nation"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 421.0,
+                  "currency": "INR",
+                  "transport_cost": 21.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.29
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_049",
+                  "name": "Social"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 651.0,
+                  "currency": "INR",
+                  "transport_savings": 51.0
+                },
+                "satisfaction_delta": {
+                  "loss": 0.0
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_003",
+                  "name": "India Gate"
+                },
+                "causal_tags": [
+                  "HISTORY_BAN"
+                ],
+                "cost_delta": {
+                  "saved_cost": 48.0,
+                  "currency": "INR",
+                  "transport_savings": 28.0
+                },
+                "satisfaction_delta": {
+                  "loss": 1.55
+                }
+              }
+            ],
+            "system_definitions": {
+              "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+              "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+              "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+              "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+              "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+              "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+              "METRO_UNAVAILABLE": "METRO transport is unavailable",
+              "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+              "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+              "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+              "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+              "REROUTED_TO_METRO": "Rerouted to METRO",
+              "REROUTED_TO_BUS": "Rerouted to BUS",
+              "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+              "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+              "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+              "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+            }
+          },
+          {
+            "audience": "FAMILY",
+            "family_id": "FAM_C",
+            "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+            "changes": [
+              {
+                "day": 1,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_015",
+                  "name": "Chandni Chowk"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 300.0,
+                  "currency": "INR",
+                  "transport_cost": 100.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.35
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_018",
+                  "name": "Agrasen ki Baoli"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.22
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_013",
+                  "name": "Lodhi Gardens"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.27
+                }
+              },
+              {
+                "day": 2,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_050",
+                  "name": "Barbeque Nation"
+                },
+                "causal_tags": [
+                  "OPTIMIZER_SELECTED"
+                ],
+                "cost_delta": {
+                  "extra_cost": 458.0,
+                  "currency": "INR",
+                  "transport_cost": 58.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.09
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_049",
+                  "name": "Social"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 651.0,
+                  "currency": "INR",
+                  "transport_savings": 51.0
+                },
+                "satisfaction_delta": {
+                  "loss": 0.0
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_003",
+                  "name": "India Gate"
+                },
+                "causal_tags": [
+                  "HISTORY_BAN"
+                ],
+                "cost_delta": {
+                  "saved_cost": 48.0,
+                  "currency": "INR",
+                  "transport_savings": 28.0
+                },
+                "satisfaction_delta": {
+                  "loss": 1.3
+                }
+              }
+            ],
+            "system_definitions": {
+              "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+              "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+              "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+              "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+              "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+              "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+              "METRO_UNAVAILABLE": "METRO transport is unavailable",
+              "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+              "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+              "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+              "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+              "REROUTED_TO_METRO": "Rerouted to METRO",
+              "REROUTED_TO_BUS": "Rerouted to BUS",
+              "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+              "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+              "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+              "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+            }
+          }
+        ],
+        "travel_agent": {
+          "audience": "TRAVEL_AGENT",
+          "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+          "all_changes": [
+            {
+              "day": 1,
+              "change_type": "POI_ADDED",
+              "poi": {
+                "id": "LOC_015",
+                "name": "Chandni Chowk"
+              },
+              "causal_tags": [
+                "INTEREST_VECTOR_DOMINANCE"
+              ],
+              "cost_delta": {
+                "extra_cost": 285.0,
+                "currency": "INR",
+                "transport_cost": 85.0
+              },
+              "satisfaction_delta": {
+                "gain": 1.35
+              },
+              "family_id": "FAM_A"
+            },
+            {
+              "day": 1,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_018",
+                "name": "Agrasen ki Baoli"
+              },
+              "causal_tags": [
+                "OBJECTIVE_DOMINATED"
+              ],
+              "cost_delta": {
+                "saved_cost": 105.26,
+                "currency": "INR",
+                "transport_savings": 105.26
+              },
+              "satisfaction_delta": {
+                "loss": 1.5
+              },
+              "family_id": "FAM_A"
+            },
+            {
+              "day": 1,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_013",
+                "name": "Lodhi Gardens"
+              },
+              "causal_tags": [
+                "OBJECTIVE_DOMINATED"
+              ],
+              "cost_delta": {
+                "saved_cost": 105.26,
+                "currency": "INR",
+                "transport_savings": 105.26
+              },
+              "satisfaction_delta": {
+                "loss": 1.44
+              },
+              "family_id": "FAM_A"
+            },
+            {
+              "day": 2,
+              "change_type": "POI_ADDED",
+              "poi": {
+                "id": "LOC_050",
+                "name": "Barbeque Nation"
+              },
+              "causal_tags": [
+                "OPTIMIZER_SELECTED"
+              ],
+              "cost_delta": {
+                "extra_cost": 595.23,
+                "currency": "INR",
+                "transport_cost": 195.23
+              },
+              "satisfaction_delta": {
+                "gain": 0.95
+              },
+              "family_id": "FAM_A"
+            },
+            {
+              "day": 3,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_049",
+                "name": "Social"
+              },
+              "causal_tags": [
+                "OBJECTIVE_DOMINATED"
+              ],
+              "cost_delta": {
+                "saved_cost": 627.0,
+                "currency": "INR",
+                "transport_savings": 27.0
+              },
+              "satisfaction_delta": {
+                "loss": 0.0
+              },
+              "family_id": "FAM_A"
+            },
+            {
+              "day": 3,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_003",
+                "name": "India Gate"
+              },
+              "causal_tags": [
+                "HISTORY_BAN"
+              ],
+              "cost_delta": {
+                "saved_cost": 24.0,
+                "currency": "INR",
+                "transport_savings": 4.0
+              },
+              "satisfaction_delta": {
+                "loss": 1.13
+              },
+              "family_id": "FAM_A"
+            },
+            {
+              "day": 1,
+              "change_type": "POI_ADDED",
+              "poi": {
+                "id": "LOC_015",
+                "name": "Chandni Chowk"
+              },
+              "causal_tags": [
+                "INTEREST_VECTOR_DOMINANCE"
+              ],
+              "cost_delta": {
+                "extra_cost": 300.0,
+                "currency": "INR",
+                "transport_cost": 100.0
+              },
+              "satisfaction_delta": {
+                "gain": 1.47
+              },
+              "family_id": "FAM_B"
+            },
+            {
+              "day": 1,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_018",
+                "name": "Agrasen ki Baoli"
+              },
+              "causal_tags": [
+                "OBJECTIVE_DOMINATED"
+              ],
+              "cost_delta": {
+                "saved_cost": 105.26,
+                "currency": "INR",
+                "transport_savings": 105.26
+              },
+              "satisfaction_delta": {
+                "loss": 1.13
+              },
+              "family_id": "FAM_B"
+            },
+            {
+              "day": 1,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_013",
+                "name": "Lodhi Gardens"
+              },
+              "causal_tags": [
+                "OBJECTIVE_DOMINATED"
+              ],
+              "cost_delta": {
+                "saved_cost": 105.26,
+                "currency": "INR",
+                "transport_savings": 105.26
+              },
+              "satisfaction_delta": {
+                "loss": 1.06
+              },
+              "family_id": "FAM_B"
+            },
+            {
+              "day": 2,
+              "change_type": "POI_ADDED",
+              "poi": {
+                "id": "LOC_050",
+                "name": "Barbeque Nation"
+              },
+              "causal_tags": [
+                "INTEREST_VECTOR_DOMINANCE"
+              ],
+              "cost_delta": {
+                "extra_cost": 421.0,
+                "currency": "INR",
+                "transport_cost": 21.0
+              },
+              "satisfaction_delta": {
+                "gain": 1.29
+              },
+              "family_id": "FAM_B"
+            },
+            {
+              "day": 3,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_049",
+                "name": "Social"
+              },
+              "causal_tags": [
+                "OBJECTIVE_DOMINATED"
+              ],
+              "cost_delta": {
+                "saved_cost": 651.0,
+                "currency": "INR",
+                "transport_savings": 51.0
+              },
+              "satisfaction_delta": {
+                "loss": 0.0
+              },
+              "family_id": "FAM_B"
+            },
+            {
+              "day": 3,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_003",
+                "name": "India Gate"
+              },
+              "causal_tags": [
+                "HISTORY_BAN"
+              ],
+              "cost_delta": {
+                "saved_cost": 48.0,
+                "currency": "INR",
+                "transport_savings": 28.0
+              },
+              "satisfaction_delta": {
+                "loss": 1.55
+              },
+              "family_id": "FAM_B"
+            },
+            {
+              "day": 1,
+              "change_type": "POI_ADDED",
+              "poi": {
+                "id": "LOC_015",
+                "name": "Chandni Chowk"
+              },
+              "causal_tags": [
+                "INTEREST_VECTOR_DOMINANCE"
+              ],
+              "cost_delta": {
+                "extra_cost": 300.0,
+                "currency": "INR",
+                "transport_cost": 100.0
+              },
+              "satisfaction_delta": {
+                "gain": 1.35
+              },
+              "family_id": "FAM_C"
+            },
+            {
+              "day": 1,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_018",
+                "name": "Agrasen ki Baoli"
+              },
+              "causal_tags": [
+                "OBJECTIVE_DOMINATED"
+              ],
+              "cost_delta": {
+                "saved_cost": 105.26,
+                "currency": "INR",
+                "transport_savings": 105.26
+              },
+              "satisfaction_delta": {
+                "loss": 1.22
+              },
+              "family_id": "FAM_C"
+            },
+            {
+              "day": 1,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_013",
+                "name": "Lodhi Gardens"
+              },
+              "causal_tags": [
+                "OBJECTIVE_DOMINATED"
+              ],
+              "cost_delta": {
+                "saved_cost": 105.26,
+                "currency": "INR",
+                "transport_savings": 105.26
+              },
+              "satisfaction_delta": {
+                "loss": 1.27
+              },
+              "family_id": "FAM_C"
+            },
+            {
+              "day": 2,
+              "change_type": "POI_ADDED",
+              "poi": {
+                "id": "LOC_050",
+                "name": "Barbeque Nation"
+              },
+              "causal_tags": [
+                "OPTIMIZER_SELECTED"
+              ],
+              "cost_delta": {
+                "extra_cost": 458.0,
+                "currency": "INR",
+                "transport_cost": 58.0
+              },
+              "satisfaction_delta": {
+                "gain": 1.09
+              },
+              "family_id": "FAM_C"
+            },
+            {
+              "day": 3,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_049",
+                "name": "Social"
+              },
+              "causal_tags": [
+                "OBJECTIVE_DOMINATED"
+              ],
+              "cost_delta": {
+                "saved_cost": 651.0,
+                "currency": "INR",
+                "transport_savings": 51.0
+              },
+              "satisfaction_delta": {
+                "loss": 0.0
+              },
+              "family_id": "FAM_C"
+            },
+            {
+              "day": 3,
+              "change_type": "POI_REMOVED",
+              "poi": {
+                "id": "LOC_003",
+                "name": "India Gate"
+              },
+              "causal_tags": [
+                "HISTORY_BAN"
+              ],
+              "cost_delta": {
+                "saved_cost": 48.0,
+                "currency": "INR",
+                "transport_savings": 28.0
+              },
+              "satisfaction_delta": {
+                "loss": 1.3
+              },
+              "family_id": "FAM_C"
+            }
+          ],
+          "financial_summary": {
+            "total_cost_delta": 0,
+            "total_satisfaction_delta": 0,
+            "affected_families": [
+              "FAM_A",
+              "FAM_B",
+              "FAM_C"
+            ]
+          },
+          "system_definitions": {
+            "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+            "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+            "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+            "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+            "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+            "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+            "METRO_UNAVAILABLE": "METRO transport is unavailable",
+            "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+            "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+            "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+            "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+            "REROUTED_TO_METRO": "Rerouted to METRO",
+            "REROUTED_TO_BUS": "Rerouted to BUS",
+            "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+            "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+            "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+            "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+          }
+        }
+      },
+      "output": [
+        {
+          "input_payload": {
+            "audience": "FAMILY",
+            "family_id": "FAM_A",
+            "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+            "changes": [
+              {
+                "day": 1,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_015",
+                  "name": "Chandni Chowk"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 285.0,
+                  "currency": "INR",
+                  "transport_cost": 85.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.35
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_018",
+                  "name": "Agrasen ki Baoli"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.5
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_013",
+                  "name": "Lodhi Gardens"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.44
+                }
+              },
+              {
+                "day": 2,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_050",
+                  "name": "Barbeque Nation"
+                },
+                "causal_tags": [
+                  "OPTIMIZER_SELECTED"
+                ],
+                "cost_delta": {
+                  "extra_cost": 595.23,
+                  "currency": "INR",
+                  "transport_cost": 195.23
+                },
+                "satisfaction_delta": {
+                  "gain": 0.95
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_049",
+                  "name": "Social"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 627.0,
+                  "currency": "INR",
+                  "transport_savings": 27.0
+                },
+                "satisfaction_delta": {
+                  "loss": 0.0
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_003",
+                  "name": "India Gate"
+                },
+                "causal_tags": [
+                  "HISTORY_BAN"
+                ],
+                "cost_delta": {
+                  "saved_cost": 24.0,
+                  "currency": "INR",
+                  "transport_savings": 4.0
+                },
+                "satisfaction_delta": {
+                  "loss": 1.13
+                }
+              }
+            ],
+            "system_definitions": {
+              "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+              "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+              "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+              "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+              "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+              "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+              "METRO_UNAVAILABLE": "METRO transport is unavailable",
+              "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+              "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+              "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+              "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+              "REROUTED_TO_METRO": "Rerouted to METRO",
+              "REROUTED_TO_BUS": "Rerouted to BUS",
+              "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+              "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+              "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+              "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+            }
+          },
+          "output_summary": "For Family FAM_A, the following changes were made to their itinerary:\n\n1. On Day 1, the POI \"Lodhi Gardens\" was removed because it was not needed for group coordination, and this change saved the family 105.26 INR in transportation costs.\n2. On Day 1, the POI \"Agrasen ki Baoli\" was removed due to optimization tradeoffs, resulting in a loss of 1.5 satisfaction points.\n3. On Day 1, the POI \"Chandni Chowk\" was added because it matches the family's interest tags very strongly, and this change added 1.35 satisfaction points, with an extra cost of 285 INR.\n4. On Day 2, the POI \"Barbeque Nation\" was added despite low interest because it optimizes other factors, and this change added 0.95 satisfaction points, with an extra cost of 595.23 INR.\n5. On Day 3, the POI \"India Gate\" was removed because of a history ban, resulting in a loss of 1.13 satisfaction points, and the family saved 24 INR in transportation costs.\n6. On Day 3, the POI \"Social\" was removed due to optimization tradeoffs, and the family saved 627 INR in transportation costs."
+        },
+        {
+          "input_payload": {
+            "audience": "FAMILY",
+            "family_id": "FAM_B",
+            "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+            "changes": [
+              {
+                "day": 1,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_015",
+                  "name": "Chandni Chowk"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 300.0,
+                  "currency": "INR",
+                  "transport_cost": 100.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.47
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_018",
+                  "name": "Agrasen ki Baoli"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.13
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_013",
+                  "name": "Lodhi Gardens"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.06
+                }
+              },
+              {
+                "day": 2,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_050",
+                  "name": "Barbeque Nation"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 421.0,
+                  "currency": "INR",
+                  "transport_cost": 21.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.29
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_049",
+                  "name": "Social"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 651.0,
+                  "currency": "INR",
+                  "transport_savings": 51.0
+                },
+                "satisfaction_delta": {
+                  "loss": 0.0
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_003",
+                  "name": "India Gate"
+                },
+                "causal_tags": [
+                  "HISTORY_BAN"
+                ],
+                "cost_delta": {
+                  "saved_cost": 48.0,
+                  "currency": "INR",
+                  "transport_savings": 28.0
+                },
+                "satisfaction_delta": {
+                  "loss": 1.55
+                }
+              }
+            ],
+            "system_definitions": {
+              "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+              "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+              "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+              "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+              "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+              "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+              "METRO_UNAVAILABLE": "METRO transport is unavailable",
+              "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+              "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+              "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+              "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+              "REROUTED_TO_METRO": "Rerouted to METRO",
+              "REROUTED_TO_BUS": "Rerouted to BUS",
+              "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+              "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+              "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+              "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+            }
+          },
+          "output_summary": "For Family FAM_B, the following changes were made to their itinerary:\n\n1. On Day 1, the family visited Chandni Chowk instead of Agrasen ki Baoli and Lodhi Gardens. This change was made because Chandni Chowk matches the family's interest tags very strongly, while Agrasen ki Baoli and Lodhi Gardens were removed due to optimization tradeoffs that outweighed their value. The family saved 210.52 INR by removing these POIs, but gained 1.47 satisfaction points by visiting Chandni Chowk.\n\n2. On Day 2, the family added Barbeque Nation to their itinerary. This change was made because Barbeque Nation matches the family's interest tags very strongly. The family incurred an extra cost of 421 INR for this visit, but gained 1.29 satisfaction points.\n\n3. On Day 3, the family removed Social and India Gate from their itinerary. Social was removed due to optimization tradeoffs, while India Gate was removed because of a history ban. The family saved 699 INR by removing these POIs, but lost 1.55 satisfaction points due to the removal of India Gate."
+        },
+        {
+          "input_payload": {
+            "audience": "FAMILY",
+            "family_id": "FAM_C",
+            "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+            "changes": [
+              {
+                "day": 1,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_015",
+                  "name": "Chandni Chowk"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 300.0,
+                  "currency": "INR",
+                  "transport_cost": 100.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.35
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_018",
+                  "name": "Agrasen ki Baoli"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.22
+                }
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_013",
+                  "name": "Lodhi Gardens"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.27
+                }
+              },
+              {
+                "day": 2,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_050",
+                  "name": "Barbeque Nation"
+                },
+                "causal_tags": [
+                  "OPTIMIZER_SELECTED"
+                ],
+                "cost_delta": {
+                  "extra_cost": 458.0,
+                  "currency": "INR",
+                  "transport_cost": 58.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.09
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_049",
+                  "name": "Social"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 651.0,
+                  "currency": "INR",
+                  "transport_savings": 51.0
+                },
+                "satisfaction_delta": {
+                  "loss": 0.0
+                }
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_003",
+                  "name": "India Gate"
+                },
+                "causal_tags": [
+                  "HISTORY_BAN"
+                ],
+                "cost_delta": {
+                  "saved_cost": 48.0,
+                  "currency": "INR",
+                  "transport_savings": 28.0
+                },
+                "satisfaction_delta": {
+                  "loss": 1.3
+                }
+              }
+            ],
+            "system_definitions": {
+              "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+              "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+              "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+              "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+              "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+              "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+              "METRO_UNAVAILABLE": "METRO transport is unavailable",
+              "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+              "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+              "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+              "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+              "REROUTED_TO_METRO": "Rerouted to METRO",
+              "REROUTED_TO_BUS": "Rerouted to BUS",
+              "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+              "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+              "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+              "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+            }
+          },
+          "output_summary": "For the FAM_C family, the following changes were made to their itinerary:\n\n1. On Day 1, the POI \"Lodhi Gardens\" was removed because it was not needed for group coordination, and the family will save 105.26 INR. \n2. On Day 1, the POI \"Agrasen ki Baoli\" was removed due to optimization tradeoffs, resulting in a saved cost of 105.26 INR.\n3. On Day 1, the POI \"Chandni Chowk\" was added because it matches the family's interest tags very strongly, and they will incur an extra cost of 300 INR.\n4. On Day 2, the POI \"Barbeque Nation\" was added despite low interest because it optimizes other factors, and the family will incur an extra cost of 458 INR.\n5. On Day 3, the POI \"Social\" was removed due to optimization tradeoffs, resulting in a saved cost of 651 INR.\n6. On Day 3, the POI \"India Gate\" was removed because METRO transport is unavailable, and the family will save 48 INR."
+        },
+        {
+          "input_payload": {
+            "audience": "TRAVEL_AGENT",
+            "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+            "all_changes": [
+              {
+                "day": 1,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_015",
+                  "name": "Chandni Chowk"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 285.0,
+                  "currency": "INR",
+                  "transport_cost": 85.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.35
+                },
+                "family_id": "FAM_A"
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_018",
+                  "name": "Agrasen ki Baoli"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.5
+                },
+                "family_id": "FAM_A"
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_013",
+                  "name": "Lodhi Gardens"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.44
+                },
+                "family_id": "FAM_A"
+              },
+              {
+                "day": 2,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_050",
+                  "name": "Barbeque Nation"
+                },
+                "causal_tags": [
+                  "OPTIMIZER_SELECTED"
+                ],
+                "cost_delta": {
+                  "extra_cost": 595.23,
+                  "currency": "INR",
+                  "transport_cost": 195.23
+                },
+                "satisfaction_delta": {
+                  "gain": 0.95
+                },
+                "family_id": "FAM_A"
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_049",
+                  "name": "Social"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 627.0,
+                  "currency": "INR",
+                  "transport_savings": 27.0
+                },
+                "satisfaction_delta": {
+                  "loss": 0.0
+                },
+                "family_id": "FAM_A"
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_003",
+                  "name": "India Gate"
+                },
+                "causal_tags": [
+                  "HISTORY_BAN"
+                ],
+                "cost_delta": {
+                  "saved_cost": 24.0,
+                  "currency": "INR",
+                  "transport_savings": 4.0
+                },
+                "satisfaction_delta": {
+                  "loss": 1.13
+                },
+                "family_id": "FAM_A"
+              },
+              {
+                "day": 1,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_015",
+                  "name": "Chandni Chowk"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 300.0,
+                  "currency": "INR",
+                  "transport_cost": 100.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.47
+                },
+                "family_id": "FAM_B"
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_018",
+                  "name": "Agrasen ki Baoli"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.13
+                },
+                "family_id": "FAM_B"
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_013",
+                  "name": "Lodhi Gardens"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.06
+                },
+                "family_id": "FAM_B"
+              },
+              {
+                "day": 2,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_050",
+                  "name": "Barbeque Nation"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 421.0,
+                  "currency": "INR",
+                  "transport_cost": 21.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.29
+                },
+                "family_id": "FAM_B"
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_049",
+                  "name": "Social"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 651.0,
+                  "currency": "INR",
+                  "transport_savings": 51.0
+                },
+                "satisfaction_delta": {
+                  "loss": 0.0
+                },
+                "family_id": "FAM_B"
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_003",
+                  "name": "India Gate"
+                },
+                "causal_tags": [
+                  "HISTORY_BAN"
+                ],
+                "cost_delta": {
+                  "saved_cost": 48.0,
+                  "currency": "INR",
+                  "transport_savings": 28.0
+                },
+                "satisfaction_delta": {
+                  "loss": 1.55
+                },
+                "family_id": "FAM_B"
+              },
+              {
+                "day": 1,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_015",
+                  "name": "Chandni Chowk"
+                },
+                "causal_tags": [
+                  "INTEREST_VECTOR_DOMINANCE"
+                ],
+                "cost_delta": {
+                  "extra_cost": 300.0,
+                  "currency": "INR",
+                  "transport_cost": 100.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.35
+                },
+                "family_id": "FAM_C"
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_018",
+                  "name": "Agrasen ki Baoli"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.22
+                },
+                "family_id": "FAM_C"
+              },
+              {
+                "day": 1,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_013",
+                  "name": "Lodhi Gardens"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 105.26,
+                  "currency": "INR",
+                  "transport_savings": 105.26
+                },
+                "satisfaction_delta": {
+                  "loss": 1.27
+                },
+                "family_id": "FAM_C"
+              },
+              {
+                "day": 2,
+                "change_type": "POI_ADDED",
+                "poi": {
+                  "id": "LOC_050",
+                  "name": "Barbeque Nation"
+                },
+                "causal_tags": [
+                  "OPTIMIZER_SELECTED"
+                ],
+                "cost_delta": {
+                  "extra_cost": 458.0,
+                  "currency": "INR",
+                  "transport_cost": 58.0
+                },
+                "satisfaction_delta": {
+                  "gain": 1.09
+                },
+                "family_id": "FAM_C"
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_049",
+                  "name": "Social"
+                },
+                "causal_tags": [
+                  "OBJECTIVE_DOMINATED"
+                ],
+                "cost_delta": {
+                  "saved_cost": 651.0,
+                  "currency": "INR",
+                  "transport_savings": 51.0
+                },
+                "satisfaction_delta": {
+                  "loss": 0.0
+                },
+                "family_id": "FAM_C"
+              },
+              {
+                "day": 3,
+                "change_type": "POI_REMOVED",
+                "poi": {
+                  "id": "LOC_003",
+                  "name": "India Gate"
+                },
+                "causal_tags": [
+                  "HISTORY_BAN"
+                ],
+                "cost_delta": {
+                  "saved_cost": 48.0,
+                  "currency": "INR",
+                  "transport_savings": 28.0
+                },
+                "satisfaction_delta": {
+                  "loss": 1.3
+                },
+                "family_id": "FAM_C"
+              }
+            ],
+            "financial_summary": {
+              "total_cost_delta": 0,
+              "total_satisfaction_delta": 0,
+              "affected_families": [
+                "FAM_A",
+                "FAM_B",
+                "FAM_C"
+              ]
+            },
+            "system_definitions": {
+              "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+              "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+              "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+              "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+              "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+              "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+              "METRO_UNAVAILABLE": "METRO transport is unavailable",
+              "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+              "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+              "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+              "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+              "REROUTED_TO_METRO": "Rerouted to METRO",
+              "REROUTED_TO_BUS": "Rerouted to BUS",
+              "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+              "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+              "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+              "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+            }
+          },
+          "output_summary": "**Changes to the Itinerary:**\n\n1. For Family A, on Day 1, we added Chandni Chowk, which is a strong match for their interests, and removed Agrasen ki Baoli and Lodhi Gardens due to optimization tradeoffs. This change will incur an extra cost of ₹285 and increase satisfaction by 1.35.\n2. For Family A, on Day 2, we added Barbeque Nation, which was selected by the optimizer with moderate interest, and on Day 3, we removed Social and India Gate due to optimization tradeoffs and transport disruptions. This change will incur an extra cost of ₹595.23 and increase satisfaction by 0.95.\n3. For Family B, on Day 1, we added Chandni Chowk, which is a strong match for their interests, and removed Agrasen ki Baoli and Lodhi Gardens due to optimization tradeoffs. This change will incur an extra cost of ₹300 and increase satisfaction by 1.35.\n4. For Family B, on Day 2, we added Barbeque Nation, which is a strong match for their interests, and on Day 3, we removed Social and India Gate due to optimization tradeoffs and transport disruptions. This change will incur an extra cost of ₹421 and increase satisfaction by 1.29.\n5. For Family C, on Day 1, we added Chandni Chowk, which is a strong match for their interests, and removed Agrasen ki Baoli and Lodhi Gardens due to optimization tradeoffs. This change will incur an extra cost of ₹300 and increase satisfaction by 1.35.\n6. For Family C, on Day 2, we added Barbeque Nation, which was selected by the optimizer with moderate interest, and on Day 3, we removed Social and India Gate due to optimization tradeoffs and transport disruptions. This change will incur an extra cost of ₹458 and increase satisfaction by 1.09."
+        }
+      ]
+    },
+    "optimizer_output_dir": "C:\\Amlan\\Codes\\Voyageur_Studio\\agents\\tests\\run_20260218_125839"
+  }
+]

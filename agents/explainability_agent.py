@@ -137,59 +137,35 @@ Return ONLY the explanation text, nothing else."""
         return prompt
     
     def _demo_explain(self, payload: Dict[str, Any]) -> AgentExplanation:
-        """Simple template-based explanation (fallback when no API key)."""
+        """Simple template-based explanation (fallback when no API key). Handle dual audiences."""
         
-        # Extract common fields - handle nested POI structure
-        change_type = payload.get("change_type", "unknown")
+        audience = payload.get("audience", "FAMILY")
+        user_input = payload.get("user_input", "")
         
-        # POI can be nested like {"id": "LOC_006", "name": "Akshardham"}
-        poi_data = payload.get("poi", {})
-        if isinstance(poi_data, dict):
-            poi_name = poi_data.get("name", "location")
-        else:
-            poi_name = str(poi_data)
+        if audience == "TRAVEL_AGENT":
+            summary = f"ADMIN REPORT: Processed user request '{user_input}'. "
+            fin = payload.get("financial_summary", {})
+            summary += f"Net Cost Delta: {fin.get('total_cost_delta', 0)}, Sat Delta: {fin.get('total_satisfaction_delta', 0)}."
+            return AgentExplanation(summary=summary, payload_source=payload)
         
-        family = payload.get("family", "a family")
-        day = payload.get("day", "?")
+        # Family Logic
+        changes = payload.get("changes", [])
+        if not changes:
+            return AgentExplanation(summary="No significant changes made to your itinerary.", payload_source=payload)
         
-        # Extract causal tags for more context
-        causal_tags = payload.get("causal_tags", [])
-        reason = ""
-        if causal_tags:
-            tag = causal_tags[0]
-            if tag == "SHARED_ANCHOR_REQUIRED":
-                reason = " (needed for group coordination)"
-            elif tag == "INTEREST_VECTOR_DOMINANCE":
-                reason = " (strongly matches interests)"
-            elif tag == "OPTIMIZER_SELECTED":
-                reason = " (good overall fit)"
-            elif tag == "TRANSPORT_ROUTING_OPTIMIZATION":
-                # Check for transport mode tag
-                mode_tag = next((t for t in causal_tags if "_UNAVAILABLE" in t), None)
-                if mode_tag:
-                    mode = mode_tag.replace("_UNAVAILABLE", "")
-                    reason = f" (route optimized because {mode} is unavailable)"
-                else:
-                    reason = " (route optimized due to transport changes)"
-            elif tag == "OPTIMIZER_TRADEOFF":
-                reason = " (optimizes schedule/routing)"
-            elif tag == "LOW_INTEREST_DROPPED":
-                reason = " (low relevance to interests)"
-            elif tag == "OBJECTIVE_DOMINATED":
-                reason = " (optimization tradeoff)"
-            elif tag == "ROUTE_REROUTED":
-                reason = " (rerouted to alternative transport)"
-            elif "_UNAVAILABLE" in tag:
-                mode = tag.replace("_UNAVAILABLE", "")
-                reason = f" ({mode} unavailable)"
+        # Just grab the first change for the demo summary
+        first_change = changes[0]
+        poi_name = first_change["poi"]["name"]
+        change_type = first_change["change_type"]
         
-        # Build summary based on change type
-        if change_type == "POI_ADDED":
-            summary = f"Added {poi_name} to {family}'s Day {day} itinerary{reason}."
-        elif change_type == "POI_REMOVED":
-            summary = f"Removed {poi_name} from {family}'s Day {day} itinerary{reason}."
-        else:
-            summary = f"Modified itinerary: {change_type} for {poi_name} on Day {day}{reason}."
+        reason_map = {
+            "POI_ADDED": f"we added {poi_name} to your plan",
+            "POI_REMOVED": f"we removed {poi_name} from your plan",
+            "TIME_ADJUSTED": f"we adjusted the time for {poi_name}"
+        }
+        
+        action = reason_map.get(change_type, f"we updated {poi_name}")
+        summary = f"Based on your request regarding '{user_input}', {action} to ensure a smooth trip."
         
         return AgentExplanation(
             summary=summary,
