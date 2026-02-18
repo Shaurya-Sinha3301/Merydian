@@ -91,7 +91,8 @@ class OptimizerAgent:
         session_manager: Optional[Any] = None,  # TripSessionManager
         trip_id: Optional[str] = None,
         current_solution: Optional[Dict] = None,  # Existing trip solution for re-opt
-        user_input: str = ""  # User's natural language request
+        user_input: str = "",  # User's natural language request
+        start_day: int = 0  # 0-indexed day to start optimization from (freeze prior days)
     ) -> Dict[str, Path]:
         """
         Run the optimizer with updated preferences/constraints.
@@ -111,7 +112,7 @@ class OptimizerAgent:
         logger.info("Running optimizer with real ItineraryOptimizer...")
         
         # Determine output directory
-        context_start_day = 0 # Default initialization
+        context_start_day = start_day  # Freeze days before this index
         if output_dir:
             run_dir = Path(output_dir)
             run_dir.mkdir(parents=True, exist_ok=True)

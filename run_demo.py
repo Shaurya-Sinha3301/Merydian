@@ -87,17 +87,17 @@ def main():
     # Define scenarios
     scenarios = [
         {
-            "name": "Must-Visit (Chandni Chowk for FAM_B)",
-            "input": "We really want to visit Chandni Chowk for some street food. It's the start of Day 2.",
+            "name": "Must-Visit (Qutub Minar for FAM_A)",
+            "input": "We absolutely must visit Qutub Minar tomorrow on Day 2, it's a must-see for us.",
+            "context": {"family_id": "FAM_A", "current_day": 0},
+        },
+        {
+            "name": "Never-Visit (Hauz Khas Village for FAM_B)",
+            "input": "Please remove Hauz Khas Village from our plan, we're not interested in going there.",
             "context": {"family_id": "FAM_B", "current_day": 1},
         },
         {
-            "name": "Location Excluded (Red Fort for FAM_A)",
-            "input": "Please skip the Red Fort on Day 3, we're not interested.",
-            "context": {"family_id": "FAM_A", "current_day": 2},
-        },
-        {
-            "name": "METRO Disruption (Global)",
+            "name": "METRO Disruption (Day 3 onwards)",
             "input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
             "context": {"current_day": 2},
         }
@@ -260,19 +260,10 @@ def main():
         except Exception as e:
             print(f"  ⚠️ Warning: Could not save scenario results: {e}")
     
-    # ═══════════════════════════════════════════════════════════════
-    # FINAL: Save consolidated results
-    # ═══════════════════════════════════════════════════════════════
-    
-    consolidated_file = demo_dir / "all_scenarios.json"
-    with open(consolidated_file, 'w', encoding='utf-8') as f:
-        json.dump(all_results, f, indent=2, ensure_ascii=False, default=str)
-    
     print(f"\n{'='*80}")
     print("DEMO COMPLETED")
     print(f"{'='*80}\n")
-    print(f"✅ All outputs consolidated in: {demo_dir}")
-    print(f"✅ Consolidated results: {consolidated_file}")
+    print(f"✅ All outputs in: {demo_dir}")
     print(f"\nResults:")
     print(f"  Scenarios run: {len(scenarios)}")
     print(f"  Optimizer triggered: {sum(1 for r in all_results if r['optimizer_triggered'])} times")
@@ -286,7 +277,6 @@ def main():
         if scenario_dir.exists():
             files = [f.name for f in scenario_dir.iterdir()]
             print(f"    scenario_{i}/ → {', '.join(files)}")
-    print(f"    all_scenarios.json")
 
 
 if __name__ == "__main__":

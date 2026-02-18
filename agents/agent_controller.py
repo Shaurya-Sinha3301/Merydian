@@ -107,13 +107,19 @@ class AgentController:
             if context and context.get("current_preferences_path"):
                 current_prefs_path = Path(context["current_preferences_path"])
             
+            # Get current_day for partial optimization (freeze past days)
+            start_day = 0
+            if context and context.get("current_day") is not None:
+                start_day = int(context["current_day"])
+            
             # Run optimizer with event data and previous solution for comparison
             optimizer_output = self.optimizer_agent.run(
                 preferences=preferences,
                 base_solution_path=previous_solution_path,  # For diff comparison
                 output_dir=output_dir_path,  # Where to save outputs
                 current_prefs_path=current_prefs_path,  # Current cumulative preferences
-                user_input=user_input  # Original user text for context
+                user_input=user_input,  # Original user text for context
+                start_day=start_day  # Freeze days before this index
             )
             result["optimizer_output"] = optimizer_output
             logger.info(f"✓ Optimizer completed")
