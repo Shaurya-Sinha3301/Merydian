@@ -12,8 +12,8 @@ try:
         locations_file="ml_or/data/locations.json",
         transport_file="ml_or/data/transport_graph.json",
         base_itinerary_file="ml_or/data/base_itinerary_clustered.json",
-        family_prefs_file="agents/tests/run_20260218_231041/family_preferences_updated.json",
-        optimized_backbone_file="agents/tests/run_20260218_231041/optimized_backbone.json"
+        family_prefs_file="agents/tests/run_20260218_232757/family_preferences_updated.json",
+        optimized_backbone_file="agents/tests/run_20260218_232757/optimized_backbone.json"
     )
     
     print("Running optimize_trip...")

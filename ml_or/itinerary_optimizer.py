@@ -203,7 +203,13 @@ class ItineraryOptimizer:
                 
                 # Check if we need to remove placeholders
                 original_count = len(day_data['pois'])
-                day_data['pois'] = [p for p in day_data['pois'] if p['location_id'] not in ["LOC_LUNCH", "LOC_DINNER"]]
+                # Remove ANY POI that looks like a placeholder
+                day_data['pois'] = [
+                    p for p in day_data['pois'] 
+                    if p['location_id'] not in ["LOC_LUNCH", "LOC_DINNER"]
+                    and "LUNCH" not in p['location_id'] # Safety for other variants
+                    and "DINNER" not in p['location_id']
+                ]
                 if len(day_data['pois']) < original_count:
                     print(f"    Day {day_num}: Removed {original_count - len(day_data['pois'])} placeholder(s)")
                 
@@ -363,6 +369,10 @@ class ItineraryOptimizer:
         
         # 2 & 3. Scan all locations
         for loc_id, loc in self.locations.items():
+            # Skip placeholders
+            if loc_id in ["LOC_LUNCH", "LOC_DINNER", "CENTER"]:
+                continue
+            
             # Skip if already in base plan
             if loc_id in base_pois_filter:
                 continue
