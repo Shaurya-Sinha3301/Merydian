@@ -1,0 +1,79 @@
+{
+    "meta": {
+        "currency": "INR",
+        "total_cabs": 5,
+        "generated_for": "web_dev_testing"
+    },
+    "cabs": [
+        {
+            "id": "CAB001",
+            "type": "Sedan",
+            "model": "Maruti Suzuki Dzire",
+            "driver": {
+                "name": "Ramesh Kumar",
+                "rating": 4.8,
+                "contact": "+91 9876543210"
+            },
+            "capacity": 4,
+            "base_fare": 100,
+            "price_per_km": 15,
+            "estimated_arrival": "5 mins"
+        },
+        {
+            "id": "CAB002",
+            "type": "SUV",
+            "model": "Toyota Innova Crysta",
+            "driver": {
+                "name": "Suresh Singh",
+                "rating": 4.9,
+                "contact": "+91 9123456789"
+            },
+            "capacity": 6,
+            "base_fare": 250,
+            "price_per_km": 25,
+            "estimated_arrival": "10 mins"
+        },
+        {
+            "id": "CAB003",
+            "type": "Hatchback",
+            "model": "Hyundai i20",
+            "driver": {
+                "name": "Ankit Sharma",
+                "rating": 4.5,
+                "contact": "+91 9988776655"
+            },
+            "capacity": 4,
+            "base_fare": 80,
+            "price_per_km": 12,
+            "estimated_arrival": "3 mins"
+        },
+        {
+            "id": "CAB004",
+            "type": "Luxury",
+            "model": "Mercedes-Benz E-Class",
+            "driver": {
+                "name": "Vikram Malhotra",
+                "rating": 5.0,
+                "contact": "+91 8899001122"
+            },
+            "capacity": 4,
+            "base_fare": 1500,
+            "price_per_km": 80,
+            "estimated_arrival": "15 mins"
+        },
+        {
+            "id": "CAB005",
+            "type": "Tempo Traveller",
+            "model": "Force Traveller",
+            "driver": {
+                "name": "Rajesh Yadav",
+                "rating": 4.7,
+                "contact": "+91 7766554433"
+            },
+            "capacity": 12,
+            "base_fare": 3000,
+            "price_per_km": 35,
+            "estimated_arrival": "20 mins"
+        }
+    ]
+}

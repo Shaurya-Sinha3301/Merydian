@@ -1,0 +1,664 @@
+{
+    "meta": {
+        "total_groups": 3,
+        "generated_for": "web_dev_testing"
+    },
+    "groups": [
+        {
+            "id": "GRP004",
+            "group_name": "Rajasthan Heritage Tour",
+            "package_type": "Royal Rajasthan",
+            "status": "Upcoming",
+            "current_location": "Not Started",
+            "start_date": "2026-03-01",
+            "end_date": "2026-03-08",
+            "total_members": 20,
+            "families": [
+                {
+                    "id": "FAM019",
+                    "family_name": "Mehta Family",
+                    "members": [
+                        {
+                            "id": "MEM065",
+                            "name": "Sanjay Mehta",
+                            "age": 55,
+                            "gender": "Male",
+                            "passport_number": "S9012345",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM066",
+                            "name": "Anita Mehta",
+                            "age": 52,
+                            "gender": "Female",
+                            "passport_number": "S9012346",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM067",
+                            "name": "Rohit Mehta",
+                            "age": 28,
+                            "gender": "Male",
+                            "passport_number": "S9012347",
+                            "role": "Member"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM020",
+                    "family_name": "Agarwal Family",
+                    "members": [
+                        {
+                            "id": "MEM068",
+                            "name": "Deepak Agarwal",
+                            "age": 47,
+                            "gender": "Male",
+                            "passport_number": "T0123456",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM069",
+                            "name": "Ritu Agarwal",
+                            "age": 45,
+                            "gender": "Female",
+                            "passport_number": "T0123457",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM070",
+                            "name": "Tanvi Agarwal",
+                            "age": 19,
+                            "gender": "Female",
+                            "passport_number": "T0123458",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM071",
+                            "name": "Yash Agarwal",
+                            "age": 16,
+                            "gender": "Male",
+                            "passport_number": "T0123459",
+                            "role": "Member"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM021",
+                    "family_name": "Bansal Family",
+                    "members": [
+                        {
+                            "id": "MEM072",
+                            "name": "Vishal Bansal",
+                            "age": 40,
+                            "gender": "Male",
+                            "passport_number": "U1234567",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM073",
+                            "name": "Nidhi Bansal",
+                            "age": 38,
+                            "gender": "Female",
+                            "passport_number": "U1234568",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM074",
+                            "name": "Aarav Bansal",
+                            "age": 12,
+                            "gender": "Male",
+                            "passport_number": "U1234569",
+                            "role": "Child"
+                        },
+                        {
+                            "id": "MEM075",
+                            "name": "Anaya Bansal",
+                            "age": 9,
+                            "gender": "Female",
+                            "passport_number": "U1234570",
+                            "role": "Child"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM022",
+                    "family_name": "Kapoor Family",
+                    "members": [
+                        {
+                            "id": "MEM076",
+                            "name": "Rajiv Kapoor",
+                            "age": 51,
+                            "gender": "Male",
+                            "passport_number": "V2345678",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM077",
+                            "name": "Seema Kapoor",
+                            "age": 49,
+                            "gender": "Female",
+                            "passport_number": "V2345679",
+                            "role": "Member"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM023",
+                    "family_name": "Saxena Family",
+                    "members": [
+                        {
+                            "id": "MEM078",
+                            "name": "Ashok Saxena",
+                            "age": 43,
+                            "gender": "Male",
+                            "passport_number": "W3456789",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM079",
+                            "name": "Preeti Saxena",
+                            "age": 41,
+                            "gender": "Female",
+                            "passport_number": "W3456790",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM080",
+                            "name": "Varun Saxena",
+                            "age": 15,
+                            "gender": "Male",
+                            "passport_number": "W3456791",
+                            "role": "Child"
+                        },
+                        {
+                            "id": "MEM081",
+                            "name": "Diya Saxena",
+                            "age": 12,
+                            "gender": "Female",
+                            "passport_number": "W3456792",
+                            "role": "Child"
+                        },
+                        {
+                            "id": "MEM082",
+                            "name": "Aryan Saxena",
+                            "age": 8,
+                            "gender": "Male",
+                            "passport_number": "W3456793",
+                            "role": "Child"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM024",
+                    "family_name": "Jain Family",
+                    "members": [
+                        {
+                            "id": "MEM083",
+                            "name": "Manish Jain",
+                            "age": 36,
+                            "gender": "Male",
+                            "passport_number": "X4567890",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM084",
+                            "name": "Swati Jain",
+                            "age": 34,
+                            "gender": "Female",
+                            "passport_number": "X4567891",
+                            "role": "Member"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "GRP005",
+            "group_name": "Shimla Winter Wonderland",
+            "package_type": "Snow Adventure Shimla",
+            "status": "Upcoming",
+            "current_location": "Not Started",
+            "start_date": "2026-03-10",
+            "end_date": "2026-03-17",
+            "total_members": 24,
+            "families": [
+                {
+                    "id": "FAM025",
+                    "family_name": "Bhatia Family",
+                    "members": [
+                        {
+                            "id": "MEM085",
+                            "name": "Rohit Bhatia",
+                            "age": 39,
+                            "gender": "Male",
+                            "passport_number": "Y5678901",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM086",
+                            "name": "Neha Bhatia",
+                            "age": 37,
+                            "gender": "Female",
+                            "passport_number": "Y5678902",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM087",
+                            "name": "Kabir Bhatia",
+                            "age": 11,
+                            "gender": "Male",
+                            "passport_number": "Y5678903",
+                            "role": "Child"
+                        },
+                        {
+                            "id": "MEM088",
+                            "name": "Sara Bhatia",
+                            "age": 8,
+                            "gender": "Female",
+                            "passport_number": "Y5678904",
+                            "role": "Child"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM026",
+                    "family_name": "Sinha Family",
+                    "members": [
+                        {
+                            "id": "MEM089",
+                            "name": "Alok Sinha",
+                            "age": 46,
+                            "gender": "Male",
+                            "passport_number": "Z6789012",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM090",
+                            "name": "Priyanka Sinha",
+                            "age": 44,
+                            "gender": "Female",
+                            "passport_number": "Z6789013",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM091",
+                            "name": "Aditya Sinha",
+                            "age": 20,
+                            "gender": "Male",
+                            "passport_number": "Z6789014",
+                            "role": "Member"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM027",
+                    "family_name": "Rao Family",
+                    "members": [
+                        {
+                            "id": "MEM092",
+                            "name": "Prakash Rao",
+                            "age": 53,
+                            "gender": "Male",
+                            "passport_number": "AA7890123",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM093",
+                            "name": "Usha Rao",
+                            "age": 51,
+                            "gender": "Female",
+                            "passport_number": "AA7890124",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM094",
+                            "name": "Siddharth Rao",
+                            "age": 25,
+                            "gender": "Male",
+                            "passport_number": "AA7890125",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM095",
+                            "name": "Pooja Rao",
+                            "age": 23,
+                            "gender": "Female",
+                            "passport_number": "AA7890126",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM096",
+                            "name": "Rahul Rao",
+                            "age": 18,
+                            "gender": "Male",
+                            "passport_number": "AA7890127",
+                            "role": "Member"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM028",
+                    "family_name": "Mishra Family",
+                    "members": [
+                        {
+                            "id": "MEM097",
+                            "name": "Sandeep Mishra",
+                            "age": 42,
+                            "gender": "Male",
+                            "passport_number": "AB8901234",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM098",
+                            "name": "Anjali Mishra",
+                            "age": 40,
+                            "gender": "Female",
+                            "passport_number": "AB8901235",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM099",
+                            "name": "Ishaan Mishra",
+                            "age": 14,
+                            "gender": "Male",
+                            "passport_number": "AB8901236",
+                            "role": "Child"
+                        },
+                        {
+                            "id": "MEM100",
+                            "name": "Riya Mishra",
+                            "age": 10,
+                            "gender": "Female",
+                            "passport_number": "AB8901237",
+                            "role": "Child"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM029",
+                    "family_name": "Pandey Family",
+                    "members": [
+                        {
+                            "id": "MEM101",
+                            "name": "Vivek Pandey",
+                            "age": 35,
+                            "gender": "Male",
+                            "passport_number": "AC9012345",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM102",
+                            "name": "Shruti Pandey",
+                            "age": 33,
+                            "gender": "Female",
+                            "passport_number": "AC9012346",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM103",
+                            "name": "Aarav Pandey",
+                            "age": 7,
+                            "gender": "Male",
+                            "passport_number": "AC9012347",
+                            "role": "Child"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM030",
+                    "family_name": "Tiwari Family",
+                    "members": [
+                        {
+                            "id": "MEM104",
+                            "name": "Rajesh Tiwari",
+                            "age": 48,
+                            "gender": "Male",
+                            "passport_number": "AD0123456",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM105",
+                            "name": "Geeta Tiwari",
+                            "age": 46,
+                            "gender": "Female",
+                            "passport_number": "AD0123457",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM106",
+                            "name": "Arjun Tiwari",
+                            "age": 21,
+                            "gender": "Male",
+                            "passport_number": "AD0123458",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM107",
+                            "name": "Priya Tiwari",
+                            "age": 17,
+                            "gender": "Female",
+                            "passport_number": "AD0123459",
+                            "role": "Member"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM031",
+                    "family_name": "Dubey Family",
+                    "members": [
+                        {
+                            "id": "MEM108",
+                            "name": "Amit Dubey",
+                            "age": 31,
+                            "gender": "Male",
+                            "passport_number": "AE1234567",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM109",
+                            "name": "Kavita Dubey",
+                            "age": 29,
+                            "gender": "Female",
+                            "passport_number": "AE1234568",
+                            "role": "Member"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "GRP006",
+            "group_name": "Andaman Island Paradise",
+            "package_type": "Beach & Water Sports",
+            "status": "Upcoming",
+            "current_location": "Not Started",
+            "start_date": "2026-03-20",
+            "end_date": "2026-03-28",
+            "total_members": 19,
+            "families": [
+                {
+                    "id": "FAM032",
+                    "family_name": "Bhatt Family",
+                    "members": [
+                        {
+                            "id": "MEM110",
+                            "name": "Karan Bhatt",
+                            "age": 44,
+                            "gender": "Male",
+                            "passport_number": "AF2345678",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM111",
+                            "name": "Simran Bhatt",
+                            "age": 42,
+                            "gender": "Female",
+                            "passport_number": "AF2345679",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM112",
+                            "name": "Veer Bhatt",
+                            "age": 16,
+                            "gender": "Male",
+                            "passport_number": "AF2345680",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM113",
+                            "name": "Ananya Bhatt",
+                            "age": 13,
+                            "gender": "Female",
+                            "passport_number": "AF2345681",
+                            "role": "Child"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM033",
+                    "family_name": "Chawla Family",
+                    "members": [
+                        {
+                            "id": "MEM114",
+                            "name": "Naveen Chawla",
+                            "age": 38,
+                            "gender": "Male",
+                            "passport_number": "AG3456789",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM115",
+                            "name": "Ritu Chawla",
+                            "age": 36,
+                            "gender": "Female",
+                            "passport_number": "AG3456790",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM116",
+                            "name": "Aryan Chawla",
+                            "age": 10,
+                            "gender": "Male",
+                            "passport_number": "AG3456791",
+                            "role": "Child"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM034",
+                    "family_name": "Dutta Family",
+                    "members": [
+                        {
+                            "id": "MEM117",
+                            "name": "Sourav Dutta",
+                            "age": 50,
+                            "gender": "Male",
+                            "passport_number": "AH4567890",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM118",
+                            "name": "Monika Dutta",
+                            "age": 48,
+                            "gender": "Female",
+                            "passport_number": "AH4567891",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM119",
+                            "name": "Rohan Dutta",
+                            "age": 24,
+                            "gender": "Male",
+                            "passport_number": "AH4567892",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM120",
+                            "name": "Shreya Dutta",
+                            "age": 22,
+                            "gender": "Female",
+                            "passport_number": "AH4567893",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM121",
+                            "name": "Aarav Dutta",
+                            "age": 19,
+                            "gender": "Male",
+                            "passport_number": "AH4567894",
+                            "role": "Member"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM035",
+                    "family_name": "Ghosh Family",
+                    "members": [
+                        {
+                            "id": "MEM122",
+                            "name": "Abhijit Ghosh",
+                            "age": 41,
+                            "gender": "Male",
+                            "passport_number": "AI5678901",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM123",
+                            "name": "Tanuja Ghosh",
+                            "age": 39,
+                            "gender": "Female",
+                            "passport_number": "AI5678902",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM124",
+                            "name": "Aditya Ghosh",
+                            "age": 12,
+                            "gender": "Male",
+                            "passport_number": "AI5678903",
+                            "role": "Child"
+                        }
+                    ]
+                },
+                {
+                    "id": "FAM036",
+                    "family_name": "Mukherjee Family",
+                    "members": [
+                        {
+                            "id": "MEM125",
+                            "name": "Debashish Mukherjee",
+                            "age": 45,
+                            "gender": "Male",
+                            "passport_number": "AJ6789012",
+                            "role": "Head"
+                        },
+                        {
+                            "id": "MEM126",
+                            "name": "Rina Mukherjee",
+                            "age": 43,
+                            "gender": "Female",
+                            "passport_number": "AJ6789013",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM127",
+                            "name": "Sayan Mukherjee",
+                            "age": 18,
+                            "gender": "Male",
+                            "passport_number": "AJ6789014",
+                            "role": "Member"
+                        },
+                        {
+                            "id": "MEM128",
+                            "name": "Diya Mukherjee",
+                            "age": 14,
+                            "gender": "Female",
+                            "passport_number": "AJ6789015",
+                            "role": "Child"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
