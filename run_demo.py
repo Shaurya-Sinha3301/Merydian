@@ -149,8 +149,9 @@ def main():
                     print(f"  📥 Explainability Agent Output: {explanation.summary}")
                     
                     # Rate limiting to avoid 429 errors
-                    print("  ⏳ Sleeping 5s to respect API limits...")
-                    time.sleep(5)
+                    if payload != payloads_to_process[-1]:
+                        print("  ⏳ Sleeping 10s to respect API limits...")
+                        time.sleep(10)
                 
                 # Clean output structure - just the explanations
                 scenario_output["explainability_agent"] = {
