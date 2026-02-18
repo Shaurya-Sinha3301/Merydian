@@ -103,12 +103,14 @@ class ItineraryOptimizer:
     def __init__(
         self,
         locations_file: str = "ml_or/data/locations.json",
+        hotels_file: str = "ml_or/data/hotels.json",
         transport_file: str = "ml_or/data/transport_graph.json",
         base_itinerary_file: str = "ml_or/data/base_itinerary.json",
-        family_prefs_file: str = "ml_or/data/family_preferences.json"
+        family_prefs_file: str = "ml_or/data/family_preferences.json",
+        optimized_backbone_file: str = "ml_or/data/optimized_backbone.json" # NEW Input
     ):
         """Initialize optimizer with data files"""
-        self.locations = self._load_locations(locations_file)
+        self.locations = self._load_locations(locations_file, hotels_file)
         self.transport_edges = self._load_transport(transport_file)
         self.base_itinerary = self._load_base_itinerary(base_itinerary_file)
         self.family_prefs = self._load_family_prefs(family_prefs_file)
@@ -126,22 +128,38 @@ class ItineraryOptimizer:
         # DECISION TRACE COLLECTOR (Non-LLM Authority Layer)
         self.decision_traces = {}  # Key: f"{day_index}" -> Trace Dict
 
-        # Load Hotel Assignments
-        self.hotel_assignments = self._load_hotel_assignments("ml_or/data/hotel_assignments.json")
+        # Load Hotel & Backbone & Restaurants
+        self.hotel_assignments, self.backbone_routes, self.daily_restaurants = self._load_backbone(optimized_backbone_file)
+        
+        # Inject Restaurants into Base Itinerary
+        self._inject_restaurants()
 
-    def _load_hotel_assignments(self, filepath: str) -> Dict:
-        """Load hotel assignments if available"""
+    def _load_backbone(self, filepath: str) -> Tuple[Dict, Dict, Dict]:
+        """Load optimized hotel assignments, skeleton routes, and restaurants"""
         try:
             with open(filepath, 'r') as f:
-                return json.load(f)
+                data = json.load(f)
+                return (
+                    data.get("hotel_assignments", {}), 
+                    data.get("skeleton_routes", {}),
+                    data.get("daily_restaurants", {})
+                )
         except FileNotFoundError:
-            print("Warning: Hotel assignments file not found. Using defaults.")
-            return {}
+            print("Warning: Optimized backbone file not found. Using defaults/empty.")
+            return {}, {}, {}
         
-    def _load_locations(self, filepath: str) -> Dict[str, Location]:
-        """Load locations from JSON"""
-        with open(filepath, 'r') as f:
+    def _load_locations(self, locations_file: str, hotels_file: str) -> Dict[str, Location]:
+        """Load locations and hotels from JSON"""
+        with open(locations_file, 'r') as f:
             data = json.load(f)
+            
+        try:
+            with open(hotels_file, 'r') as f:
+                hotels_data = json.load(f)
+                data.extend(hotels_data)
+        except Exception as e:
+            print(f"Warning: Could not load hotels from {hotels_file}: {e}")
+            
         return {
             loc['location_id']: Location(**loc)
             for loc in data
@@ -180,6 +198,58 @@ class ItineraryOptimizer:
         """Load base itinerary from JSON"""
         with open(filepath, 'r') as f:
             return json.load(f)
+
+    def _inject_restaurants(self):
+        """Inject optimized restaurants into the base itinerary."""
+        if not self.daily_restaurants:
+            return
+
+        print("  [INJECTION] Injecting optimized restaurants into base itinerary...")
+        for day_data in self.base_itinerary['days']:
+            day_num = str(day_data['day']) # JSON keys are strings
+            if day_num in self.daily_restaurants:
+                rest_data = self.daily_restaurants[day_num]
+                
+                # Check if we need to remove placeholders
+                original_count = len(day_data['pois'])
+                # Remove ANY POI that looks like a placeholder
+                day_data['pois'] = [
+                    p for p in day_data['pois'] 
+                    if p['location_id'] not in ["LOC_LUNCH", "LOC_DINNER"]
+                    and "LUNCH" not in p['location_id'] # Safety for other variants
+                    and "DINNER" not in p['location_id']
+                ]
+                if len(day_data['pois']) < original_count:
+                    print(f"    Day {day_num}: Removed {original_count - len(day_data['pois'])} placeholder(s)")
+                
+                # Lunch Skipped (User Request)
+                # if "lunch" in rest_data: ...
+                
+                # Add Dinner
+                if "dinner" in rest_data:
+                    original_id = rest_data["dinner"]
+                    virtual_id = f"{original_id}_DINNER"
+                    
+                    # Create Virtual Location in self.locations
+                    if original_id in self.locations:
+                         import copy
+                         orig_loc = self.locations[original_id]
+                         new_loc = copy.deepcopy(orig_loc)
+                         new_loc.location_id = virtual_id
+                         new_loc.name = f"{orig_loc.name} (Dinner)"
+                         self.locations[virtual_id] = new_loc
+
+                         day_data['pois'].append({
+                            "location_id": virtual_id,
+                            "role": "SKELETON",
+                            "planned_visit_time_min": 90,
+                            "time_window_start": "20:00",
+                            "time_window_end": "21:30",
+                            "comment": "Optimized Dinner"
+                        })
+                         print(f"    Day {day_num}: Added Dinner ({virtual_id})")
+                    else:
+                        print(f"    Day {day_num}: Warning - Dinner ID {original_id} not found in locations")
     
     def _load_family_prefs(self, filepath: str) -> Dict[str, FamilyPreference]:
         """Load family preferences from JSON"""
@@ -285,12 +355,20 @@ class ItineraryOptimizer:
         
         # 2 & 3. Scan all locations
         for loc_id, loc in self.locations.items():
+            # Skip placeholders
+            if loc_id in ["LOC_LUNCH", "LOC_DINNER", "CENTER"]:
+                continue
+            
             # Skip if already in base plan
             if loc_id in base_pois_filter:
                 continue
             
             # Skip disallowed types/categories if needed (optional)
             if loc.category == "HOTEL": 
+                continue
+            
+            # Restaurants are exclusively for Dinner
+            if loc.type == "RESTAURANT":
                 continue
                 
             # Geo Filter
@@ -1343,6 +1421,19 @@ class ItineraryOptimizer:
         
         if start_loc_id: print(f"  - START ANCHOR: {start_loc_id}")
         if end_loc_id:   print(f"  - END ANCHOR:   {end_loc_id}")
+
+        # STEP 10C: Override Anchors from Hotel Backbone (If available)
+        assigned_hotel_id = None
+        if family_ids and family_ids[0] in self.hotel_assignments:
+            for plan in self.hotel_assignments[family_ids[0]]:
+                if plan['day'] == day_index + 1:
+                    assigned_hotel_id = plan['hotel_id']
+                    break
+        
+        if assigned_hotel_id:
+            print(f"  [BACK_BONE] Overriding Start/End with Hotel: {assigned_hotel_id}")
+            start_loc_id = assigned_hotel_id
+            end_loc_id = assigned_hotel_id
         
         # TRACE: A. Candidate POIs
         if enable_trace:
@@ -1382,6 +1473,20 @@ class ItineraryOptimizer:
             for j in skeleton_nodes:
                 if i != j and j != START_NODE and i != END_NODE:
                     y[(i, j)] = model.NewBoolVar(f'order_{i}_before_{j}')
+
+        # STEP 10D: Inject Backbone Hints (Warm Start)
+        backbone_order = self.backbone_routes.get(str(day_index + 1), [])
+        if backbone_order:
+             # print(f"  [BACK_BONE] Injecting route hint: {backbone_order}")
+             for k in range(len(backbone_order) - 1):
+                 u, v = backbone_order[k], backbone_order[k+1]
+                 # Note: y keys are (u, v).
+                 # We need to map backbone POIs to START/END if they are first/last
+                 # But backbone is strictly POI->POI.
+                 # The ItineraryOptimizer solves START->POI...->END.
+                 # So we only hint POI->POI edges.
+                 if (u, v) in y:
+                     model.AddHint(y[(u, v)], 1)
         
         # FAMILY-SPECIFIC: Visit decisions x[f,i]
         
@@ -1658,7 +1763,12 @@ class ItineraryOptimizer:
                     
                     if i == START_NODE:
                          # FAMILY-SPECIFIC START (From Hotel)
-                         hotel_id = self.hotel_assignments.get(fid, {}).get("hotel_id", "LOC_HOTEL")
+                         hotel_id = "LOC_HOTEL"
+                         if fid in self.hotel_assignments:
+                             for plan in self.hotel_assignments[fid]:
+                                 if plan['day'] == day_index + 1:
+                                     hotel_id = plan['hotel_id']
+                                     break
                          edge_params = self.get_best_transport_edge(hotel_id, j)
                          if edge_params:
                              duration = edge_params['duration_min']
@@ -1667,8 +1777,10 @@ class ItineraryOptimizer:
                          model.Add(arr[(fid, j)] >= day_start_min + duration).OnlyEnforceIf(adj[(fid, i, j)])
                          
                          # Check-out Constraint (Last Day) - Assumes Day 3 is last
-                         if day_index == 2: # TODO: Make dynamic
-                             check_out_time = self._time_to_minutes(self.hotel_assignments.get(fid, {}).get("check_out_time", "11:00"))
+                         if day_index == 2:
+                             check_out_string = "11:00"
+                             # Optional: Look up if back_bone has check_out info
+                             check_out_time = self._time_to_minutes(check_out_string)
                              # Constraint: Must leave start node (hotel) by check-out time
                              # But dep[START] is start of day. 
                              # We actually just simply enforce day_start_min is effectively the departure?
@@ -1681,23 +1793,29 @@ class ItineraryOptimizer:
 
                     elif j == END_NODE:
                          # FAMILY-SPECIFIC END (To Hotel)
-                         hotel_id = self.hotel_assignments.get(fid, {}).get("hotel_id", "LOC_HOTEL")
+                         hotel_id = "LOC_HOTEL"
+                         if fid in self.hotel_assignments:
+                             for plan in self.hotel_assignments[fid]:
+                                 if plan['day'] == day_index + 1:
+                                     hotel_id = plan['hotel_id']
+                                     break
+
                          edge_params = self.get_best_transport_edge(i, hotel_id)
                          if edge_params:
                              duration = edge_params['duration_min']
                              cost = edge_params['cost']
 
-                         model.Add(day_end_min >= dep[(fid, i)] + duration).OnlyEnforceIf(adj[(fid, i, j)])
+                         model.Add(dep[(fid, i)] + duration <= day_end_min).OnlyEnforceIf(adj[(fid, i, j)])
                          
                          # Check-in Constraint (Day 1)
                          if day_index == 0:
-                             check_in_time = self._time_to_minutes(self.hotel_assignments.get(fid, {}).get("check_in_time", "14:00"))
+                             check_in_string = "14:00"
+                             # Optional: Look up if back_bone has check_in info
+                             check_in_time = self._time_to_minutes(check_in_string)
+                             
                              # Arrival at Hotel (End Node) must be >= check_in_time
                              # We model arr[END_NODE] implicitly via dep[i] + duration
                              # So dep[i] + duration >= check_in_time
-                             # However, if we arrive EARLIER, we just wait.
-                             # This constraint is usually: IF we want to check in, we must be there after 14:00.
-                             # But usually we drop bags. Let's strictly enforce arrival at end > 14:00
                              model.Add(dep[(fid, i)] + duration >= check_in_time).OnlyEnforceIf(adj[(fid, i, j)])
 
                     else:
@@ -1938,11 +2056,21 @@ class ItineraryOptimizer:
                     edge_params = None
                     
                     if current_node == START_NODE:
-                        hotel_id = self.hotel_assignments.get(fid, {}).get("hotel_id", "LOC_HOTEL")
+                        hotel_id = "LOC_HOTEL"
+                        if fid in self.hotel_assignments:
+                            for plan in self.hotel_assignments[fid]:
+                                if plan['day'] == day_index + 1:
+                                    hotel_id = plan['hotel_id']
+                                    break
                         # Recalculate best edge from Hotel -> Next Node
                         edge_params = self.get_best_transport_edge(hotel_id, next_node)
                     elif next_node == END_NODE:
-                        hotel_id = self.hotel_assignments.get(fid, {}).get("hotel_id", "LOC_HOTEL")
+                        hotel_id = "LOC_HOTEL"
+                        if fid in self.hotel_assignments:
+                            for plan in self.hotel_assignments[fid]:
+                                if plan['day'] == day_index + 1:
+                                    hotel_id = plan['hotel_id']
+                                    break
                         # Recalculate best edge from Current Node -> Hotel
                         edge_params = self.get_best_transport_edge(current_node, hotel_id)
                     else:
