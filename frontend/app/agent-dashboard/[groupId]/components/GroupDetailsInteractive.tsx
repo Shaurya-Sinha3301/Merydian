@@ -12,6 +12,7 @@ import { allGroups } from '@/lib/agent-dashboard/data';
 export default function GroupDetailsInteractive() {
     const params = useParams();
     const groupId = params.groupId as string;
+    const [expandedFamilyId, setExpandedFamilyId] = useState<string | null>(null);
     
     // Find the selected group from all groups
     const selectedGroup = allGroups.find(g => g.id === groupId) || allGroups[0];
@@ -26,20 +27,16 @@ export default function GroupDetailsInteractive() {
         totalTravelers: selectedGroup.groupSize.adults + selectedGroup.groupSize.children + selectedGroup.groupSize.seniors,
         satisfactionScore: 88,
         optimizationStatus: 'Optimized',
-        families: selectedGroup.members ? 
-            // Group members by family (simplified - just create one family per group)
-            [{
-                id: 'FAM-001',
-                name: `${selectedGroup.customerName} Members`,
-                members: selectedGroup.members.length,
-                satisfaction: 90,
-                status: selectedGroup.status === 'booked' ? 'Confirmed' : 'Pending'
-            }] : [],
+        families: selectedGroup.families || [],
         nextDestinations: [
             { name: 'First Destination', time: '10:00 AM', date: new Date(selectedGroup.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) },
             { name: 'Second Destination', time: '2:00 PM', date: new Date(selectedGroup.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) },
         ],
         coordinates: { lat: 15.2993, lng: 74.1240 } // Default to Goa
+    };
+
+    const toggleFamily = (familyId: string) => {
+        setExpandedFamilyId(expandedFamilyId === familyId ? null : familyId);
     };
 
     return (
@@ -165,21 +162,83 @@ export default function GroupDetailsInteractive() {
                         {groupDetails.families.length > 0 && (
                             <div className="bg-white rounded-2xl shadow-[4px_4px_10px_rgba(0,0,0,0.05)] border border-neutral-100 overflow-hidden">
                                 <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
-                                    <h3 className="font-bold text-lg">Members ({groupDetails.families.length})</h3>
+                                    <h3 className="font-bold text-lg">Families ({groupDetails.families.length})</h3>
+                                    <span className="text-xs text-muted-foreground">{groupDetails.totalTravelers} total members</span>
                                 </div>
-                                <div className="divide-y divide-neutral-50">
-                                    {groupDetails.families.map((family) => (
-                                        <div key={family.id} className="p-4 hover:bg-neutral-50 transition-colors cursor-pointer group">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{family.name}</span>
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${family.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
-                                                    {family.status}
-                                                </span>
+                                <div className="divide-y divide-neutral-50 max-h-[500px] overflow-y-auto">
+                                    {groupDetails.families.map((family: any) => (
+                                        <div key={family.id} className="transition-colors">
+                                            <div 
+                                                className="p-4 hover:bg-neutral-50 cursor-pointer group"
+                                                onClick={() => toggleFamily(family.id)}
+                                            >
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Icon 
+                                                            name={expandedFamilyId === family.id ? "ChevronDownIcon" : "ChevronRightIcon"} 
+                                                            size={16} 
+                                                            className="text-muted-foreground"
+                                                        />
+                                                        <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                                                            {family.family_name}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                                                        {family.members.length} members
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                                <span>{family.members} members</span>
-                                                <span>Sat: <span className="text-foreground font-medium">{family.satisfaction}%</span></span>
-                                            </div>
+                                            
+                                            {/* Expanded Member Details */}
+                                            {expandedFamilyId === family.id && (
+                                                <div className="bg-slate-50 px-4 pb-4">
+                                                    <div className="space-y-2">
+                                                        {family.members.map((member: any) => (
+                                                            <div 
+                                                                key={member.id} 
+                                                                className="bg-white rounded-lg p-3 border border-slate-200 hover:border-primary/30 transition-colors"
+                                                            >
+                                                                <div className="flex items-start justify-between">
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                            <h4 className="font-semibold text-sm text-foreground">{member.name}</h4>
+                                                                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                                                                                member.role === 'Head' 
+                                                                                    ? 'bg-indigo-100 text-indigo-700' 
+                                                                                    : member.role === 'Child'
+                                                                                    ? 'bg-amber-100 text-amber-700'
+                                                                                    : 'bg-slate-100 text-slate-600'
+                                                                            }`}>
+                                                                                {member.role}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                                                            <div className="flex items-center gap-1">
+                                                                                <Icon name="IdentificationIcon" size={12} />
+                                                                                <span>{member.id}</span>
+                                                                            </div>
+                                                                            <div className="flex items-center gap-1">
+                                                                                <Icon name="CakeIcon" size={12} />
+                                                                                <span>{member.age} years</span>
+                                                                            </div>
+                                                                            <div className="flex items-center gap-1">
+                                                                                <Icon name="UserIcon" size={12} />
+                                                                                <span>{member.gender}</span>
+                                                                            </div>
+                                                                            {member.passport_number && (
+                                                                                <div className="flex items-center gap-1">
+                                                                                    <Icon name="DocumentTextIcon" size={12} />
+                                                                                    <span className="font-mono">{member.passport_number}</span>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

@@ -11,9 +11,16 @@ export { activeGroupsData, upcomingGroupsData, hotelsData, flightsData, trainsDa
 
 // Convert JSON groups to TripRequest format
 const convertGroupToTripRequest = (group: any, isActive: boolean): TripRequest => {
-    const adults = group.members.filter((m: any) => m.role === 'Head' || m.role === 'Member').length;
-    const children = group.members.filter((m: any) => m.role === 'Child').length;
-    const seniors = 0; // Not specified in the JSON
+    // Flatten all members from all families
+    const allMembers = group.families ? 
+        group.families.flatMap((family: any) => 
+            family.members.map((m: any) => ({ ...m, familyId: family.id, familyName: family.family_name }))
+        ) : 
+        group.members || [];
+
+    const adults = allMembers.filter((m: any) => m.role === 'Head' || (m.role === 'Member' && m.age >= 18)).length;
+    const children = allMembers.filter((m: any) => m.role === 'Child' || m.age < 18).length;
+    const seniors = allMembers.filter((m: any) => m.age >= 60).length;
 
     // Add sample bookings for active groups
     const bookings = isActive ? [
@@ -56,12 +63,14 @@ const convertGroupToTripRequest = (group: any, isActive: boolean): TripRequest =
         startDate: group.start_date,
         endDate: group.end_date,
         groupSize: { adults, children, seniors },
-        members: group.members.map((m: any) => ({
+        members: allMembers.map((m: any) => ({
             id: m.id,
             name: m.name,
             age: m.age,
-            type: m.role === 'Child' ? 'Child' : m.age >= 60 ? 'Senior' : 'Adult'
+            type: m.role === 'Child' || m.age < 18 ? 'Child' : m.age >= 60 ? 'Senior' : 'Adult',
+            familyId: m.familyId
         })),
+        families: group.families,
         budgetRange: { min: 5000, max: 15000 }, // Default values
         status: group.status === 'Active' ? 'booked' : 'approved',
         priority: 'medium',

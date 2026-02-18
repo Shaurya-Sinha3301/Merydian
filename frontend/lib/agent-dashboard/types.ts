@@ -23,6 +23,21 @@ export interface Traveler {
     familyId?: string; // Optional, to group by family within a large group
 }
 
+export interface FamilyMember {
+    id: string;
+    name: string;
+    age: number;
+    gender: 'Male' | 'Female' | 'Other';
+    passport_number?: string;
+    role: 'Head' | 'Member' | 'Child';
+}
+
+export interface Family {
+    id: string;
+    family_name: string;
+    members: FamilyMember[];
+}
+
 export interface SearchResult {
     id: string;
     type: 'Flight' | 'Hotel' | 'Train' | 'Bus' | 'Metro' | 'Cab';
@@ -76,6 +91,7 @@ export interface TripRequest {
         seniors: number;
     };
     members?: Traveler[]; // List of specific travelers
+    families?: Family[]; // List of families in the group
     budgetRange: {
         min: number;
         max: number;
