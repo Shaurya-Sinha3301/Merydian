@@ -213,31 +213,8 @@ class ItineraryOptimizer:
                 if len(day_data['pois']) < original_count:
                     print(f"    Day {day_num}: Removed {original_count - len(day_data['pois'])} placeholder(s)")
                 
-                # Add Lunch
-                if "lunch" in rest_data:
-                    original_id = rest_data["lunch"]
-                    virtual_id = f"{original_id}_LUNCH"
-                    
-                    # Create Virtual Location in self.locations
-                    if original_id in self.locations:
-                         import copy
-                         orig_loc = self.locations[original_id]
-                         new_loc = copy.deepcopy(orig_loc)
-                         new_loc.location_id = virtual_id
-                         new_loc.name = f"{orig_loc.name} (Lunch)"
-                         self.locations[virtual_id] = new_loc
-                         
-                         day_data['pois'].append({
-                            "location_id": virtual_id,
-                            "role": "SKELETON",
-                            "planned_visit_time_min": 60,
-                            "time_window_start": "13:00",
-                            "time_window_end": "14:30",
-                            "comment": "Optimized Lunch"
-                        })
-                         print(f"    Day {day_num}: Added Lunch ({virtual_id})")
-                    else:
-                        print(f"    Day {day_num}: Warning - Lunch ID {original_id} not found in locations")
+                # Lunch Skipped (User Request)
+                # if "lunch" in rest_data: ...
                 
                 # Add Dinner
                 if "dinner" in rest_data:
@@ -379,6 +356,10 @@ class ItineraryOptimizer:
             
             # Skip disallowed types/categories if needed (optional)
             if loc.category == "HOTEL": 
+                continue
+            
+            # Restaurants are exclusively for Dinner
+            if loc.type == "RESTAURANT":
                 continue
                 
             # Geo Filter

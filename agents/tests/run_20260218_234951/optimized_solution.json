@@ -1,0 +1,1048 @@
+{
+  "trip_id": "CLUSTERED_DELHI_TEST",
+  "families": [
+    "FAM_A",
+    "FAM_B",
+    "FAM_C"
+  ],
+  "days": [
+    {
+      "day": 1,
+      "objective_value": -1932.092654869642,
+      "solve_time_seconds": 0.0879254,
+      "shared_poi_order": [
+        "LOC_001",
+        "LOC_007",
+        "LOC_015",
+        "LOC_003_DINNER"
+      ],
+      "total_transport_cost": 1176.0463274348213,
+      "total_transport_time_min": 506,
+      "transport": [],
+      "families": {
+        "FAM_A": {
+          "family_id": "FAM_A",
+          "total_satisfaction": 8.5,
+          "pois": [
+            {
+              "sequence": 1,
+              "location_id": "LOC_005",
+              "location_name": "Humayun Tomb",
+              "arrival_time": "09:10",
+              "departure_time": "10:10",
+              "visit_duration_min": 60,
+              "satisfaction_score": 1.2
+            },
+            {
+              "sequence": 2,
+              "location_id": "LOC_007",
+              "location_name": "Jama Masjid",
+              "arrival_time": "11:39",
+              "departure_time": "12:24",
+              "visit_duration_min": 45,
+              "satisfaction_score": 0.8
+            },
+            {
+              "sequence": 3,
+              "location_id": "LOC_006",
+              "location_name": "Akshardham",
+              "arrival_time": "12:53",
+              "departure_time": "14:53",
+              "visit_duration_min": 120,
+              "satisfaction_score": 0.77
+            },
+            {
+              "sequence": 4,
+              "location_id": "LOC_046",
+              "location_name": "Parikrama",
+              "arrival_time": "15:12",
+              "departure_time": "16:12",
+              "visit_duration_min": 60,
+              "satisfaction_score": 1.04
+            },
+            {
+              "sequence": 5,
+              "location_id": "LOC_003",
+              "location_name": "India Gate",
+              "arrival_time": "16:24",
+              "departure_time": "17:09",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.13
+            },
+            {
+              "sequence": 6,
+              "location_id": "LOC_049",
+              "location_name": "Social",
+              "arrival_time": "17:31",
+              "departure_time": "18:16",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.08
+            },
+            {
+              "sequence": 7,
+              "location_id": "LOC_015",
+              "location_name": "Chandni Chowk",
+              "arrival_time": "18:26",
+              "departure_time": "20:26",
+              "visit_duration_min": 120,
+              "satisfaction_score": 1.35
+            },
+            {
+              "sequence": 8,
+              "location_id": "LOC_003_DINNER",
+              "location_name": "India Gate (Dinner)",
+              "arrival_time": "20:36",
+              "departure_time": "21:21",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.13
+            }
+          ],
+          "transport": [
+            {
+              "from": "START_DAY_1",
+              "from_name": "START_DAY_1",
+              "to": "LOC_005",
+              "to_name": "Humayun Tomb",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50.02096286209348
+            },
+            {
+              "from": "LOC_005",
+              "from_name": "Humayun Tomb",
+              "to": "LOC_007",
+              "to_name": "Jama Masjid",
+              "mode": "BUS",
+              "duration_min": 25,
+              "cost": 23
+            },
+            {
+              "from": "LOC_007",
+              "from_name": "Jama Masjid",
+              "to": "LOC_006",
+              "to_name": "Akshardham",
+              "mode": "BUS",
+              "duration_min": 29,
+              "cost": 29
+            },
+            {
+              "from": "LOC_006",
+              "from_name": "Akshardham",
+              "to": "LOC_046",
+              "to_name": "Parikrama",
+              "mode": "METRO",
+              "duration_min": 19,
+              "cost": 29
+            },
+            {
+              "from": "LOC_046",
+              "from_name": "Parikrama",
+              "to": "LOC_003",
+              "to_name": "India Gate",
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 8
+            },
+            {
+              "from": "LOC_003",
+              "from_name": "India Gate",
+              "to": "LOC_049",
+              "to_name": "Social",
+              "mode": "BUS",
+              "duration_min": 22,
+              "cost": 20
+            },
+            {
+              "from": "LOC_049",
+              "from_name": "Social",
+              "to": "LOC_015",
+              "to_name": "Chandni Chowk",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50.12584224872257
+            },
+            {
+              "from": "LOC_015",
+              "from_name": "Chandni Chowk",
+              "to": "LOC_003_DINNER",
+              "to_name": "India Gate (Dinner)",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50
+            },
+            {
+              "from": "LOC_003_DINNER",
+              "from_name": "India Gate (Dinner)",
+              "to": "END_DAY_1",
+              "to_name": "END_DAY_1",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 19,
+              "cost": 121.53530403412431
+            }
+          ]
+        },
+        "FAM_B": {
+          "family_id": "FAM_B",
+          "total_satisfaction": 11.58,
+          "pois": [
+            {
+              "sequence": 1,
+              "location_id": "LOC_005",
+              "location_name": "Humayun Tomb",
+              "arrival_time": "09:10",
+              "departure_time": "10:10",
+              "visit_duration_min": 60,
+              "satisfaction_score": 0.99
+            },
+            {
+              "sequence": 2,
+              "location_id": "LOC_001",
+              "location_name": "Red Fort",
+              "arrival_time": "10:34",
+              "departure_time": "11:19",
+              "visit_duration_min": 45,
+              "satisfaction_score": 0.91
+            },
+            {
+              "sequence": 3,
+              "location_id": "LOC_007",
+              "location_name": "Jama Masjid",
+              "arrival_time": "11:39",
+              "departure_time": "12:24",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.14
+            },
+            {
+              "sequence": 4,
+              "location_id": "LOC_006",
+              "location_name": "Akshardham",
+              "arrival_time": "12:53",
+              "departure_time": "14:53",
+              "visit_duration_min": 120,
+              "satisfaction_score": 1.09
+            },
+            {
+              "sequence": 5,
+              "location_id": "LOC_046",
+              "location_name": "Parikrama",
+              "arrival_time": "15:12",
+              "departure_time": "16:12",
+              "visit_duration_min": 60,
+              "satisfaction_score": 1.41
+            },
+            {
+              "sequence": 6,
+              "location_id": "LOC_003",
+              "location_name": "India Gate",
+              "arrival_time": "16:24",
+              "departure_time": "17:09",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.55
+            },
+            {
+              "sequence": 7,
+              "location_id": "LOC_049",
+              "location_name": "Social",
+              "arrival_time": "17:31",
+              "departure_time": "18:16",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.46
+            },
+            {
+              "sequence": 8,
+              "location_id": "LOC_015",
+              "location_name": "Chandni Chowk",
+              "arrival_time": "18:26",
+              "departure_time": "20:26",
+              "visit_duration_min": 120,
+              "satisfaction_score": 1.47
+            },
+            {
+              "sequence": 9,
+              "location_id": "LOC_003_DINNER",
+              "location_name": "India Gate (Dinner)",
+              "arrival_time": "20:36",
+              "departure_time": "21:21",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.55
+            }
+          ],
+          "transport": [
+            {
+              "from": "START_DAY_1",
+              "from_name": "START_DAY_1",
+              "to": "LOC_005",
+              "to_name": "Humayun Tomb",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50.02096286209348
+            },
+            {
+              "from": "LOC_005",
+              "from_name": "Humayun Tomb",
+              "to": "LOC_001",
+              "to_name": "Red Fort",
+              "mode": "BUS",
+              "duration_min": 24,
+              "cost": 22
+            },
+            {
+              "from": "LOC_001",
+              "from_name": "Red Fort",
+              "to": "LOC_007",
+              "to_name": "Jama Masjid",
+              "mode": "BUS",
+              "duration_min": 20,
+              "cost": 18
+            },
+            {
+              "from": "LOC_007",
+              "from_name": "Jama Masjid",
+              "to": "LOC_006",
+              "to_name": "Akshardham",
+              "mode": "BUS",
+              "duration_min": 29,
+              "cost": 29
+            },
+            {
+              "from": "LOC_006",
+              "from_name": "Akshardham",
+              "to": "LOC_046",
+              "to_name": "Parikrama",
+              "mode": "METRO",
+              "duration_min": 19,
+              "cost": 29
+            },
+            {
+              "from": "LOC_046",
+              "from_name": "Parikrama",
+              "to": "LOC_003",
+              "to_name": "India Gate",
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 8
+            },
+            {
+              "from": "LOC_003",
+              "from_name": "India Gate",
+              "to": "LOC_049",
+              "to_name": "Social",
+              "mode": "BUS",
+              "duration_min": 22,
+              "cost": 20
+            },
+            {
+              "from": "LOC_049",
+              "from_name": "Social",
+              "to": "LOC_015",
+              "to_name": "Chandni Chowk",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50.12584224872257
+            },
+            {
+              "from": "LOC_015",
+              "from_name": "Chandni Chowk",
+              "to": "LOC_003_DINNER",
+              "to_name": "India Gate (Dinner)",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50
+            },
+            {
+              "from": "LOC_003_DINNER",
+              "from_name": "India Gate (Dinner)",
+              "to": "END_DAY_1",
+              "to_name": "END_DAY_1",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 19,
+              "cost": 121.53530403412431
+            }
+          ]
+        },
+        "FAM_C": {
+          "family_id": "FAM_C",
+          "total_satisfaction": 10.36,
+          "pois": [
+            {
+              "sequence": 1,
+              "location_id": "LOC_005",
+              "location_name": "Humayun Tomb",
+              "arrival_time": "09:10",
+              "departure_time": "10:10",
+              "visit_duration_min": 60,
+              "satisfaction_score": 1.09
+            },
+            {
+              "sequence": 2,
+              "location_id": "LOC_001",
+              "location_name": "Red Fort",
+              "arrival_time": "10:34",
+              "departure_time": "11:19",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.04
+            },
+            {
+              "sequence": 3,
+              "location_id": "LOC_007",
+              "location_name": "Jama Masjid",
+              "arrival_time": "11:39",
+              "departure_time": "12:24",
+              "visit_duration_min": 45,
+              "satisfaction_score": 0.95
+            },
+            {
+              "sequence": 4,
+              "location_id": "LOC_006",
+              "location_name": "Akshardham",
+              "arrival_time": "12:53",
+              "departure_time": "14:53",
+              "visit_duration_min": 120,
+              "satisfaction_score": 0.91
+            },
+            {
+              "sequence": 5,
+              "location_id": "LOC_046",
+              "location_name": "Parikrama",
+              "arrival_time": "15:12",
+              "departure_time": "16:12",
+              "visit_duration_min": 60,
+              "satisfaction_score": 1.18
+            },
+            {
+              "sequence": 6,
+              "location_id": "LOC_003",
+              "location_name": "India Gate",
+              "arrival_time": "16:24",
+              "departure_time": "17:09",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.3
+            },
+            {
+              "sequence": 7,
+              "location_id": "LOC_049",
+              "location_name": "Social",
+              "arrival_time": "17:31",
+              "departure_time": "18:16",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.23
+            },
+            {
+              "sequence": 8,
+              "location_id": "LOC_015",
+              "location_name": "Chandni Chowk",
+              "arrival_time": "18:26",
+              "departure_time": "20:26",
+              "visit_duration_min": 120,
+              "satisfaction_score": 1.35
+            },
+            {
+              "sequence": 9,
+              "location_id": "LOC_003_DINNER",
+              "location_name": "India Gate (Dinner)",
+              "arrival_time": "20:36",
+              "departure_time": "21:21",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.3
+            }
+          ],
+          "transport": [
+            {
+              "from": "START_DAY_1",
+              "from_name": "START_DAY_1",
+              "to": "LOC_005",
+              "to_name": "Humayun Tomb",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50.02096286209348
+            },
+            {
+              "from": "LOC_005",
+              "from_name": "Humayun Tomb",
+              "to": "LOC_001",
+              "to_name": "Red Fort",
+              "mode": "BUS",
+              "duration_min": 24,
+              "cost": 22
+            },
+            {
+              "from": "LOC_001",
+              "from_name": "Red Fort",
+              "to": "LOC_007",
+              "to_name": "Jama Masjid",
+              "mode": "BUS",
+              "duration_min": 20,
+              "cost": 18
+            },
+            {
+              "from": "LOC_007",
+              "from_name": "Jama Masjid",
+              "to": "LOC_006",
+              "to_name": "Akshardham",
+              "mode": "BUS",
+              "duration_min": 29,
+              "cost": 29
+            },
+            {
+              "from": "LOC_006",
+              "from_name": "Akshardham",
+              "to": "LOC_046",
+              "to_name": "Parikrama",
+              "mode": "METRO",
+              "duration_min": 19,
+              "cost": 29
+            },
+            {
+              "from": "LOC_046",
+              "from_name": "Parikrama",
+              "to": "LOC_003",
+              "to_name": "India Gate",
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 8
+            },
+            {
+              "from": "LOC_003",
+              "from_name": "India Gate",
+              "to": "LOC_049",
+              "to_name": "Social",
+              "mode": "BUS",
+              "duration_min": 22,
+              "cost": 20
+            },
+            {
+              "from": "LOC_049",
+              "from_name": "Social",
+              "to": "LOC_015",
+              "to_name": "Chandni Chowk",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50.12584224872257
+            },
+            {
+              "from": "LOC_015",
+              "from_name": "Chandni Chowk",
+              "to": "LOC_003_DINNER",
+              "to_name": "India Gate (Dinner)",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50
+            },
+            {
+              "from": "LOC_003_DINNER",
+              "from_name": "India Gate (Dinner)",
+              "to": "END_DAY_1",
+              "to_name": "END_DAY_1",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 19,
+              "cost": 121.53530403412431
+            }
+          ]
+        }
+      },
+      "num_families": 3
+    },
+    {
+      "day": 2,
+      "objective_value": -668.9665665690484,
+      "solve_time_seconds": 0.7527815,
+      "shared_poi_order": [
+        "LOC_019",
+        "LOC_004",
+        "LOC_011",
+        "LOC_043_DINNER"
+      ],
+      "total_transport_cost": 1163.983283284524,
+      "total_transport_time_min": 399,
+      "transport": [],
+      "families": {
+        "FAM_A": {
+          "family_id": "FAM_A",
+          "total_satisfaction": 8.09,
+          "pois": [
+            {
+              "sequence": 1,
+              "location_id": "LOC_019",
+              "location_name": "Garden of Five Senses",
+              "arrival_time": "09:10",
+              "departure_time": "10:40",
+              "visit_duration_min": 90,
+              "satisfaction_score": 0.88
+            },
+            {
+              "sequence": 2,
+              "location_id": "LOC_043",
+              "location_name": "Bukhara",
+              "arrival_time": "10:50",
+              "departure_time": "11:35",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.06
+            },
+            {
+              "sequence": 3,
+              "location_id": "LOC_042",
+              "location_name": "Saravana Bhavan",
+              "arrival_time": "11:58",
+              "departure_time": "12:43",
+              "visit_duration_min": 45,
+              "satisfaction_score": 0.94
+            },
+            {
+              "sequence": 4,
+              "location_id": "LOC_004",
+              "location_name": "Lotus Temple",
+              "arrival_time": "12:55",
+              "departure_time": "14:55",
+              "visit_duration_min": 120,
+              "satisfaction_score": 1.05
+            },
+            {
+              "sequence": 5,
+              "location_id": "LOC_041",
+              "location_name": "Karim's",
+              "arrival_time": "15:11",
+              "departure_time": "15:41",
+              "visit_duration_min": 30,
+              "satisfaction_score": 0.98
+            },
+            {
+              "sequence": 6,
+              "location_id": "LOC_047",
+              "location_name": "Gulati",
+              "arrival_time": "16:11",
+              "departure_time": "16:56",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.08
+            },
+            {
+              "sequence": 7,
+              "location_id": "LOC_011",
+              "location_name": "Hauz Khas Village",
+              "arrival_time": "17:37",
+              "departure_time": "19:37",
+              "visit_duration_min": 120,
+              "satisfaction_score": 1.04
+            },
+            {
+              "sequence": 8,
+              "location_id": "LOC_043_DINNER",
+              "location_name": "Bukhara (Dinner)",
+              "arrival_time": "20:17",
+              "departure_time": "21:02",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.06
+            }
+          ],
+          "transport": [
+            {
+              "from": "START_DAY_2",
+              "from_name": "START_DAY_2",
+              "to": "LOC_019",
+              "to_name": "Garden of Five Senses",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 52.94539515999145
+            },
+            {
+              "from": "LOC_019",
+              "from_name": "Garden of Five Senses",
+              "to": "LOC_043",
+              "to_name": "Bukhara",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50.459832869546894
+            },
+            {
+              "from": "LOC_043",
+              "from_name": "Bukhara",
+              "to": "LOC_042",
+              "to_name": "Saravana Bhavan",
+              "mode": "BUS",
+              "duration_min": 23,
+              "cost": 21
+            },
+            {
+              "from": "LOC_042",
+              "from_name": "Saravana Bhavan",
+              "to": "LOC_004",
+              "to_name": "Lotus Temple",
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 8
+            },
+            {
+              "from": "LOC_004",
+              "from_name": "Lotus Temple",
+              "to": "LOC_041",
+              "to_name": "Karim's",
+              "mode": "BUS",
+              "duration_min": 16,
+              "cost": 12
+            },
+            {
+              "from": "LOC_041",
+              "from_name": "Karim's",
+              "to": "LOC_047",
+              "to_name": "Gulati",
+              "mode": "BUS",
+              "duration_min": 26,
+              "cost": 26
+            },
+            {
+              "from": "LOC_047",
+              "from_name": "Gulati",
+              "to": "LOC_011",
+              "to_name": "Hauz Khas Village",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50
+            },
+            {
+              "from": "LOC_011",
+              "from_name": "Hauz Khas Village",
+              "to": "LOC_043_DINNER",
+              "to_name": "Bukhara (Dinner)",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 64.51832030377085
+            },
+            {
+              "from": "LOC_043_DINNER",
+              "from_name": "Bukhara (Dinner)",
+              "to": "END_DAY_2",
+              "to_name": "END_DAY_2",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 16,
+              "cost": 103.07087942819888
+            }
+          ]
+        },
+        "FAM_B": {
+          "family_id": "FAM_B",
+          "total_satisfaction": 9.77,
+          "pois": [
+            {
+              "sequence": 1,
+              "location_id": "LOC_019",
+              "location_name": "Garden of Five Senses",
+              "arrival_time": "09:10",
+              "departure_time": "10:40",
+              "visit_duration_min": 90,
+              "satisfaction_score": 0.77
+            },
+            {
+              "sequence": 2,
+              "location_id": "LOC_043",
+              "location_name": "Bukhara",
+              "arrival_time": "10:50",
+              "departure_time": "11:35",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.44
+            },
+            {
+              "sequence": 3,
+              "location_id": "LOC_042",
+              "location_name": "Saravana Bhavan",
+              "arrival_time": "11:58",
+              "departure_time": "12:43",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.27
+            },
+            {
+              "sequence": 4,
+              "location_id": "LOC_004",
+              "location_name": "Lotus Temple",
+              "arrival_time": "12:55",
+              "departure_time": "14:55",
+              "visit_duration_min": 120,
+              "satisfaction_score": 0.92
+            },
+            {
+              "sequence": 5,
+              "location_id": "LOC_041",
+              "location_name": "Karim's",
+              "arrival_time": "15:11",
+              "departure_time": "15:41",
+              "visit_duration_min": 30,
+              "satisfaction_score": 1.33
+            },
+            {
+              "sequence": 6,
+              "location_id": "LOC_047",
+              "location_name": "Gulati",
+              "arrival_time": "16:24",
+              "departure_time": "17:09",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.46
+            },
+            {
+              "sequence": 7,
+              "location_id": "LOC_011",
+              "location_name": "Hauz Khas Village",
+              "arrival_time": "17:37",
+              "departure_time": "19:37",
+              "visit_duration_min": 120,
+              "satisfaction_score": 1.12
+            },
+            {
+              "sequence": 8,
+              "location_id": "LOC_043_DINNER",
+              "location_name": "Bukhara (Dinner)",
+              "arrival_time": "20:17",
+              "departure_time": "21:02",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.44
+            }
+          ],
+          "transport": [
+            {
+              "from": "START_DAY_2",
+              "from_name": "START_DAY_2",
+              "to": "LOC_019",
+              "to_name": "Garden of Five Senses",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 52.94539515999145
+            },
+            {
+              "from": "LOC_019",
+              "from_name": "Garden of Five Senses",
+              "to": "LOC_043",
+              "to_name": "Bukhara",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50.459832869546894
+            },
+            {
+              "from": "LOC_043",
+              "from_name": "Bukhara",
+              "to": "LOC_042",
+              "to_name": "Saravana Bhavan",
+              "mode": "BUS",
+              "duration_min": 23,
+              "cost": 21
+            },
+            {
+              "from": "LOC_042",
+              "from_name": "Saravana Bhavan",
+              "to": "LOC_004",
+              "to_name": "Lotus Temple",
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 8
+            },
+            {
+              "from": "LOC_004",
+              "from_name": "Lotus Temple",
+              "to": "LOC_041",
+              "to_name": "Karim's",
+              "mode": "BUS",
+              "duration_min": 16,
+              "cost": 12
+            },
+            {
+              "from": "LOC_041",
+              "from_name": "Karim's",
+              "to": "LOC_047",
+              "to_name": "Gulati",
+              "mode": "BUS",
+              "duration_min": 26,
+              "cost": 26
+            },
+            {
+              "from": "LOC_047",
+              "from_name": "Gulati",
+              "to": "LOC_011",
+              "to_name": "Hauz Khas Village",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50
+            },
+            {
+              "from": "LOC_011",
+              "from_name": "Hauz Khas Village",
+              "to": "LOC_043_DINNER",
+              "to_name": "Bukhara (Dinner)",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 64.51832030377085
+            },
+            {
+              "from": "LOC_043_DINNER",
+              "from_name": "Bukhara (Dinner)",
+              "to": "END_DAY_2",
+              "to_name": "END_DAY_2",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 16,
+              "cost": 103.07087942819888
+            }
+          ]
+        },
+        "FAM_C": {
+          "family_id": "FAM_C",
+          "total_satisfaction": 8.82,
+          "pois": [
+            {
+              "sequence": 1,
+              "location_id": "LOC_019",
+              "location_name": "Garden of Five Senses",
+              "arrival_time": "09:10",
+              "departure_time": "10:40",
+              "visit_duration_min": 90,
+              "satisfaction_score": 0.88
+            },
+            {
+              "sequence": 2,
+              "location_id": "LOC_043",
+              "location_name": "Bukhara",
+              "arrival_time": "10:50",
+              "departure_time": "11:35",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.22
+            },
+            {
+              "sequence": 3,
+              "location_id": "LOC_042",
+              "location_name": "Saravana Bhavan",
+              "arrival_time": "11:58",
+              "departure_time": "12:43",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.07
+            },
+            {
+              "sequence": 4,
+              "location_id": "LOC_004",
+              "location_name": "Lotus Temple",
+              "arrival_time": "12:55",
+              "departure_time": "14:55",
+              "visit_duration_min": 120,
+              "satisfaction_score": 1.05
+            },
+            {
+              "sequence": 5,
+              "location_id": "LOC_041",
+              "location_name": "Karim's",
+              "arrival_time": "15:11",
+              "departure_time": "15:41",
+              "visit_duration_min": 30,
+              "satisfaction_score": 1.12
+            },
+            {
+              "sequence": 6,
+              "location_id": "LOC_047",
+              "location_name": "Gulati",
+              "arrival_time": "16:11",
+              "departure_time": "16:56",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.23
+            },
+            {
+              "sequence": 7,
+              "location_id": "LOC_011",
+              "location_name": "Hauz Khas Village",
+              "arrival_time": "17:37",
+              "departure_time": "19:37",
+              "visit_duration_min": 120,
+              "satisfaction_score": 1.04
+            },
+            {
+              "sequence": 8,
+              "location_id": "LOC_043_DINNER",
+              "location_name": "Bukhara (Dinner)",
+              "arrival_time": "20:17",
+              "departure_time": "21:02",
+              "visit_duration_min": 45,
+              "satisfaction_score": 1.22
+            }
+          ],
+          "transport": [
+            {
+              "from": "START_DAY_2",
+              "from_name": "START_DAY_2",
+              "to": "LOC_019",
+              "to_name": "Garden of Five Senses",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 52.94539515999145
+            },
+            {
+              "from": "LOC_019",
+              "from_name": "Garden of Five Senses",
+              "to": "LOC_043",
+              "to_name": "Bukhara",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50.459832869546894
+            },
+            {
+              "from": "LOC_043",
+              "from_name": "Bukhara",
+              "to": "LOC_042",
+              "to_name": "Saravana Bhavan",
+              "mode": "BUS",
+              "duration_min": 23,
+              "cost": 21
+            },
+            {
+              "from": "LOC_042",
+              "from_name": "Saravana Bhavan",
+              "to": "LOC_004",
+              "to_name": "Lotus Temple",
+              "mode": "BUS",
+              "duration_min": 12,
+              "cost": 8
+            },
+            {
+              "from": "LOC_004",
+              "from_name": "Lotus Temple",
+              "to": "LOC_041",
+              "to_name": "Karim's",
+              "mode": "BUS",
+              "duration_min": 16,
+              "cost": 12
+            },
+            {
+              "from": "LOC_041",
+              "from_name": "Karim's",
+              "to": "LOC_047",
+              "to_name": "Gulati",
+              "mode": "BUS",
+              "duration_min": 26,
+              "cost": 26
+            },
+            {
+              "from": "LOC_047",
+              "from_name": "Gulati",
+              "to": "LOC_011",
+              "to_name": "Hauz Khas Village",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 50
+            },
+            {
+              "from": "LOC_011",
+              "from_name": "Hauz Khas Village",
+              "to": "LOC_043_DINNER",
+              "to_name": "Bukhara (Dinner)",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 10,
+              "cost": 64.51832030377085
+            },
+            {
+              "from": "LOC_043_DINNER",
+              "from_name": "Bukhara (Dinner)",
+              "to": "END_DAY_2",
+              "to_name": "END_DAY_2",
+              "mode": "CAB_FALLBACK",
+              "duration_min": 16,
+              "cost": 103.07087942819888
+            }
+          ]
+        }
+      },
+      "num_families": 3
+    }
+  ],
+  "total_trip_cost": 2340.0296107193453,
+  "total_trip_time_min": 905
+}
