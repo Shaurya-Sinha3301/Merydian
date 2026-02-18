@@ -2,15 +2,18 @@
 
 import React, { useState } from 'react';
 import Icon from '@/components/ui/AppIcon';
+import Image from 'next/image';
 import { 
   getItineraryByGroupId, 
   formatDate, 
   hasDisruptions, 
   getDisruptions,
   getDisruptionColor,
-  getDisruptionIcon
+  getDisruptionIcon,
+  getDefaultImageForEvent
 } from '@/lib/agent-dashboard/itinerary-data';
 import TimelineEventCard from './TimelineEventCard';
+import ImageGalleryModal from './ImageGalleryModal';
 
 interface ItineraryViewProps {
   groupId: string;
@@ -20,6 +23,19 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
   const itinerary = getItineraryByGroupId(groupId);
   const [selectedDay, setSelectedDay] = useState(1);
   const [showOptimizeModal, setShowOptimizeModal] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [galleryTitle, setGalleryTitle] = useState('');
+
+  const openGallery = (images: string[], title: string) => {
+    // Filter out empty or invalid image URLs
+    const validImages = images.filter(img => img && img.trim() !== '');
+    if (validImages.length > 0) {
+      setGalleryImages(validImages);
+      setGalleryTitle(title);
+      setShowGallery(true);
+    }
+  };
 
   if (!itinerary) {
     return (
@@ -36,75 +52,65 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
   const allDisruptions = getDisruptions(itinerary);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gray-50 min-h-screen p-6">
       {/* Disruption Alert Banner */}
       {hasAnyDisruptions && (
-        <div className="neu-card p-6 border-l-4 border-red-500 bg-gradient-to-r from-red-50 to-transparent">
-          <div className="flex items-start gap-4">
-            <div className="neu-icon-circle w-12 h-12 shrink-0 bg-red-100 text-red-600">
-              <Icon name="ExclamationTriangleIcon" className="w-6 h-6" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-red-900 mb-2">
-                ⚠️ {allDisruptions.length} Active Disruption{allDisruptions.length > 1 ? 's' : ''} Detected
-              </h3>
-              <p className="text-sm text-red-700 mb-4">
-                Your itinerary has been affected by delays, cancellations, or other issues. Our AI agent can help optimize your schedule.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <button 
-                  onClick={() => setShowOptimizeModal(true)}
-                  className="neu-button px-6 py-3 font-bold text-white bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 shadow-lg flex items-center gap-2"
-                >
-                  <Icon name="SparklesIcon" className="w-5 h-5" />
-                  Optimize with AI Agent
-                </button>
-                <button className="neu-button px-6 py-3 font-semibold text-gray-900 flex items-center gap-2">
-                  <Icon name="InformationCircleIcon" className="w-5 h-5" />
-                  View All Issues
-                </button>
-              </div>
-            </div>
+        <div className="bg-black text-white p-6 rounded-2xl">
+          <h3 className="text-xl font-bold mb-2">
+            {allDisruptions.length} Active Disruption{allDisruptions.length > 1 ? 's' : ''}
+          </h3>
+          <p className="text-gray-300 mb-4">
+            Your itinerary has been affected. Our AI agent can help optimize your schedule.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button 
+              onClick={() => setShowOptimizeModal(true)}
+              className="px-6 py-2.5 bg-white text-black font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Optimize with AI
+            </button>
+            <button className="px-6 py-2.5 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors">
+              View Issues
+            </button>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <div className="neu-card p-6 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="flex items-start justify-between mb-4">
+      <div className="bg-black text-white p-8 rounded-2xl">
+        <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">{itinerary.itineraryName}</h2>
-            <p className="text-gray-600 flex items-center gap-2">
-              <Icon name="CalendarIcon" className="w-5 h-5" />
+            <h2 className="text-3xl font-bold mb-2">{itinerary.itineraryName}</h2>
+            <p className="text-gray-400 text-sm">
               {formatDate(itinerary.startDate)} - {formatDate(itinerary.endDate)}
             </p>
           </div>
-          <div className="neu-badge text-lg px-4 py-2 bg-blue-100 text-blue-800 border-blue-200">
+          <div className="px-4 py-2 bg-white text-black font-bold rounded-lg text-sm">
             {itinerary.totalDays} Days
           </div>
         </div>
 
         {/* Day Selector */}
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {itinerary.days.map((day) => {
             const dayHasDisruptions = day.timelineEvents.some(e => e.disruption);
             return (
               <button
                 key={day.dayNumber}
                 onClick={() => setSelectedDay(day.dayNumber)}
-                className={`neu-button px-6 py-3 whitespace-nowrap transition-all relative ${
+                className={`px-6 py-4 whitespace-nowrap transition-all relative rounded-xl min-w-[200px] ${
                   selectedDay === day.dayNumber
-                    ? 'neu-pressed bg-blue-50'
-                    : ''
+                    ? 'bg-white text-black'
+                    : 'bg-gray-900 text-white hover:bg-gray-800'
                 }`}
               >
                 {dayHasDisruptions && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
                 )}
                 <div className="text-left">
-                  <p className="text-xs text-gray-600 uppercase font-semibold">Day {day.dayNumber}</p>
-                  <p className="font-bold text-gray-900">{day.title}</p>
-                  <p className="text-xs text-gray-500">{formatDate(day.date)}</p>
+                  <p className="text-xs uppercase font-semibold opacity-60 mb-1">Day {day.dayNumber}</p>
+                  <p className="font-bold text-sm">{day.title}</p>
+                  <p className="text-xs opacity-60 mt-1">{formatDate(day.date)}</p>
                 </div>
               </button>
             );
@@ -114,13 +120,62 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
 
       {/* Timeline */}
       {currentDay && (
-        <div className="neu-card p-8">
-          <div className="flex items-center gap-3 mb-8">
-            <Icon name="ClockIcon" className="w-6 h-6 text-blue-600" />
-            <h3 className="text-2xl font-bold text-gray-900">
-              Day {currentDay.dayNumber}: {currentDay.title}
-            </h3>
-          </div>
+        <div className="space-y-6">
+          {/* Day Photo Gallery - Only Activities */}
+          {currentDay.timelineEvents.filter(e => e.type === 'activity').length > 0 && (
+            <div className="bg-white p-6 rounded-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-bold text-black">Highlights</h4>
+                {currentDay.timelineEvents.filter(e => e.type === 'activity').length > 4 && (
+                  <button
+                    onClick={() => {
+                      const activityEvents = currentDay.timelineEvents.filter(e => e.type === 'activity');
+                      const images = activityEvents.map(e => getDefaultImageForEvent(e));
+                      openGallery(images, `Day ${currentDay.dayNumber}: ${currentDay.title} - Highlights`);
+                    }}
+                    className="px-4 py-2 text-sm font-semibold text-black border-2 border-black rounded-lg hover:bg-black hover:text-white transition-colors"
+                  >
+                    View All
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {currentDay.timelineEvents
+                  .filter(e => e.type === 'activity')
+                  .slice(0, 4)
+                  .map((event, index) => {
+                    const imageUrl = getDefaultImageForEvent(event);
+                    if (!imageUrl || imageUrl.trim() === '') return null;
+                    
+                    return (
+                      <button
+                        key={event.id}
+                        onClick={() => {
+                          const activityEvents = currentDay.timelineEvents.filter(e => e.type === 'activity');
+                          const images = activityEvents.map(e => getDefaultImageForEvent(e));
+                          openGallery(images, `Day ${currentDay.dayNumber}: ${currentDay.title} - Highlights`);
+                        }}
+                        className="relative h-40 rounded-xl overflow-hidden group"
+                      >
+                        <Image
+                          src={imageUrl}
+                          alt={event.title}
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <p className="text-xs font-bold text-white line-clamp-2">
+                            {event.title}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
 
           {/* Events Timeline */}
           <div className="space-y-0">
@@ -134,35 +189,32 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
           </div>
 
           {/* Day Summary */}
-          <div className="mt-8 pt-8 border-t border-gray-300">
+          <div className="bg-white p-6 rounded-2xl">
+            <h4 className="text-lg font-bold text-black mb-4">Day Summary</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="neu-pressed p-4 rounded-lg text-center bg-blue-50">
-                <Icon name="TruckIcon" className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="p-4 bg-gray-50 rounded-xl text-center border border-gray-200">
+                <p className="text-3xl font-bold text-black">
                   {currentDay.timelineEvents.filter(e => e.type === 'transport').length}
                 </p>
-                <p className="text-xs text-gray-600 uppercase font-semibold">Transports</p>
+                <p className="text-xs text-gray-600 uppercase font-semibold mt-2">Transports</p>
               </div>
-              <div className="neu-pressed p-4 rounded-lg text-center bg-purple-50">
-                <Icon name="SparklesIcon" className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="p-4 bg-gray-50 rounded-xl text-center border border-gray-200">
+                <p className="text-3xl font-bold text-black">
                   {currentDay.timelineEvents.filter(e => e.type === 'activity').length}
                 </p>
-                <p className="text-xs text-gray-600 uppercase font-semibold">Activities</p>
+                <p className="text-xs text-gray-600 uppercase font-semibold mt-2">Activities</p>
               </div>
-              <div className="neu-pressed p-4 rounded-lg text-center bg-orange-50">
-                <Icon name="CakeIcon" className="w-6 h-6 text-orange-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="p-4 bg-gray-50 rounded-xl text-center border border-gray-200">
+                <p className="text-3xl font-bold text-black">
                   {currentDay.timelineEvents.filter(e => e.type === 'meal').length}
                 </p>
-                <p className="text-xs text-gray-600 uppercase font-semibold">Meals</p>
+                <p className="text-xs text-gray-600 uppercase font-semibold mt-2">Meals</p>
               </div>
-              <div className="neu-pressed p-4 rounded-lg text-center bg-green-50">
-                <Icon name="HomeIcon" className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="p-4 bg-gray-50 rounded-xl text-center border border-gray-200">
+                <p className="text-3xl font-bold text-black">
                   {currentDay.timelineEvents.filter(e => e.type === 'accommodation').length}
                 </p>
-                <p className="text-xs text-gray-600 uppercase font-semibold">Stays</p>
+                <p className="text-xs text-gray-600 uppercase font-semibold mt-2">Stays</p>
               </div>
             </div>
           </div>
@@ -171,20 +223,17 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
 
       {/* Action Buttons */}
       <div className="flex gap-4">
-        <button className="flex-1 neu-button py-4 px-6 font-bold text-gray-900 flex items-center justify-center gap-2 hover:bg-gray-50">
-          <Icon name="ArrowDownTrayIcon" className="w-5 h-5" />
+        <button className="flex-1 py-4 px-6 bg-black text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors">
           Download Itinerary
         </button>
-        <button className="flex-1 neu-button py-4 px-6 font-bold text-gray-900 flex items-center justify-center gap-2 hover:bg-gray-50">
-          <Icon name="ShareIcon" className="w-5 h-5" />
+        <button className="flex-1 py-4 px-6 bg-white text-black font-semibold rounded-xl border-2 border-black hover:bg-black hover:text-white transition-colors">
           Share with Group
         </button>
         {hasAnyDisruptions && (
           <button 
             onClick={() => setShowOptimizeModal(true)}
-            className="flex-1 neu-button py-4 px-6 font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg flex items-center justify-center gap-2"
+            className="flex-1 py-4 px-6 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors"
           >
-            <Icon name="SparklesIcon" className="w-5 h-5" />
             AI Optimize
           </button>
         )}
@@ -271,6 +320,14 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
           </div>
         </div>
       )}
+
+      {/* Image Gallery Modal */}
+      <ImageGalleryModal
+        isOpen={showGallery}
+        onClose={() => setShowGallery(false)}
+        images={galleryImages}
+        title={galleryTitle}
+      />
     </div>
   );
 }

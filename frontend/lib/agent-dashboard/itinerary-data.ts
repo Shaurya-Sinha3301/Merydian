@@ -107,6 +107,7 @@ export interface TimelineEvent {
   endTime: string;
   title: string;
   description: string;
+  imageUrl?: string; // Add image support
   transport?: TransportEvent;
   accommodation?: AccommodationEvent;
   activity?: ActivityEvent;
@@ -256,4 +257,53 @@ export function getDisruptions(itinerary: Itinerary): Array<{ event: TimelineEve
   });
   
   return disruptions;
+}
+
+/**
+ * Get default image URL for event type
+ */
+export function getDefaultImageForEvent(event: TimelineEvent): string {
+  // Return imageUrl if it exists
+  if (event.imageUrl) return event.imageUrl;
+  
+  // Default images based on event type
+  if (event.type === 'transport') {
+    if (event.transport?.mode === 'Flight') {
+      return 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80';
+    }
+    if (event.transport?.mode === 'Train') {
+      return 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=800&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80'; // Cab
+  }
+  
+  if (event.type === 'activity') {
+    if (event.activity?.activityType?.toLowerCase().includes('beach')) {
+      return 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80';
+    }
+    if (event.activity?.activityType?.toLowerCase().includes('cruise')) {
+      return 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80';
+    }
+    if (event.activity?.activityType?.toLowerCase().includes('fort') || 
+        event.activity?.activityType?.toLowerCase().includes('historical')) {
+      return 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=800&q=80'; // Generic activity
+  }
+  
+  if (event.type === 'accommodation') {
+    return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80'; // Hotel
+  }
+  
+  if (event.type === 'meal') {
+    if (event.meal?.cuisine?.toLowerCase().includes('seafood')) {
+      return 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80';
+    }
+    if (event.meal?.cuisine?.toLowerCase().includes('indian')) {
+      return 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80'; // Generic restaurant
+  }
+  
+  return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'; // Default travel image
 }
