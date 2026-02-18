@@ -384,6 +384,89 @@ class HotelSkeletonOptimizer:
         
         objective_expr += total_continuity * continuity_reward
         
+        # 4. Restaurant Selection
+        # Select 1 Lunch and 1 Dinner restaurant per day (Shared for the group)
+        # x_lunch[d, r], x_dinner[d, r]
+        
+        x_lunch = {}
+        x_dinner = {}
+        
+        # Pre-calculate restaurant pools
+        day_restaurants = {}
+        
+        for d in days:
+            skeleton = day_skeleton[d]
+            # Pool restaurants near Skeleton Centroid
+            # 1. Calculate Centroid
+            if skeleton:
+                lats = [self.locations[p].lat for p in skeleton]
+                lngs = [self.locations[p].lng for p in skeleton]
+                center_loc = Location(
+                    location_id="CENTER", name="Center", type="DUMMY", 
+                    lat=sum(lats)/len(lats), lng=sum(lngs)/len(lngs),
+                    avg_visit_time_min=0, cost=0, tags=[]
+                )
+                
+                # 2. Find restaurants within small radius (e.g. 3km)
+                # If none, expand.
+                candidates = []
+                all_restaurants = [lid for lid, loc in self.locations.items() if loc.type == 'RESTAURANT' and "LUNCH" not in lid and "DINNER" not in lid] # Exclude generics
+                
+                for r in all_restaurants:
+                    if self._haversine_distance(center_loc, self.locations[r]) <= 5.0: # 5km radius
+                        candidates.append(r)
+                
+                if not candidates:
+                    candidates = all_restaurants # Fallback
+                
+                day_restaurants[d] = candidates
+            else:
+                day_restaurants[d] = []
+
+        for d in days:
+            # Lunch
+            for r in day_restaurants[d]:
+                x_lunch[(d, r)] = model.NewBoolVar(f'lunch_{d}_{r}')
+            # Dinner
+            for r in day_restaurants[d]:
+                x_dinner[(d, r)] = model.NewBoolVar(f'dinner_{d}_{r}')
+                
+            # Constraint: Exactly one lunch and one dinner
+            if day_restaurants[d]:
+                model.Add(sum(x_lunch[(d, r)] for r in day_restaurants[d]) == 1)
+                model.Add(sum(x_dinner[(d, r)] for r in day_restaurants[d]) == 1)
+
+        # ... (Existing Constraints) ...
+
+        # --- Aggregate Objective ---
+        # ... (Existing Objective terms) ...
+        
+        # Add Restaurant Distance to Objective
+        # Minimize distance from Skeleton Centroid to Restaurant
+        obj_restaurant_dist = []
+        
+        for d in days:
+            skeleton = day_skeleton[d]
+            if not skeleton: continue
+            
+            # Re-calculate centroid for objective
+            lats = [self.locations[p].lat for p in skeleton]
+            lngs = [self.locations[p].lng for p in skeleton]
+            center_loc = Location(
+                location_id="CENTER", name="Center", type="DUMMY", 
+                lat=sum(lats)/len(lats), lng=sum(lngs)/len(lngs),
+                avg_visit_time_min=0, cost=0, tags=[]
+            )
+            
+            for r in day_restaurants[d]:
+                dist = self._haversine_distance(center_loc, self.locations[r])
+                # Lunch
+                obj_restaurant_dist.append(dist * x_lunch[(d, r)])
+                # Dinner
+                obj_restaurant_dist.append(dist * x_dinner[(d, r)])
+
+        objective_expr += sum(obj_restaurant_dist) * self.w_travel_dist # Use same negative weight for distance
+        
         model.Maximize(objective_expr)
         
         # --- Solve ---
@@ -394,7 +477,7 @@ class HotelSkeletonOptimizer:
         if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
             print(f"Solution Found! Status: {solver.StatusName(status)}")
             print(f"Objective Value: {solver.ObjectiveValue()}")
-            result = self._extract_solution(solver, x, skeleton_order, is_first, is_last, families, days, day_hotels, day_skeleton)
+            result = self._extract_solution(solver, x, skeleton_order, is_first, is_last, families, days, day_hotels, day_skeleton, x_lunch, x_dinner, day_restaurants)
             
             if output_file:
                 with open(output_file, 'w') as f:
@@ -406,10 +489,11 @@ class HotelSkeletonOptimizer:
             print("No solution found.")
             return None
 
-    def _extract_solution(self, solver, x, skeleton_order, is_first, is_last, families, days, day_hotels, day_skeleton):
+    def _extract_solution(self, solver, x, skeleton_order, is_first, is_last, families, days, day_hotels, day_skeleton, x_lunch=None, x_dinner=None, day_restaurants=None):
         result = {
             "hotel_assignments": {},
-            "skeleton_routes": {}
+            "skeleton_routes": {},
+            "daily_restaurants": {} # NEW
         }
         
         # 1. Hotels
@@ -452,6 +536,22 @@ class HotelSkeletonOptimizer:
             
             result["skeleton_routes"][d + 1] = ordered_route
             print(f"Day {d+1} Optimzed Route: {ordered_route}")
+            
+            # 3. Restaurants
+            if x_lunch and x_dinner and day_restaurants:
+                result["daily_restaurants"][d + 1] = {}
+                # Lunch
+                for r in day_restaurants[d]:
+                    if solver.Value(x_lunch[(d, r)]):
+                        result["daily_restaurants"][d + 1]["lunch"] = r
+                        print(f"Day {d+1} Lunch: {self.locations[r].name}")
+                        break
+                # Dinner
+                for r in day_restaurants[d]:
+                    if solver.Value(x_dinner[(d, r)]):
+                        result["daily_restaurants"][d + 1]["dinner"] = r
+                        print(f"Day {d+1} Dinner: {self.locations[r].name}")
+                        break
 
         return result
 

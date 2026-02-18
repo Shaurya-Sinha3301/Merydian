@@ -1,0 +1,11 @@
+{
+  "trip_id": "FINAL_DELHI_GRAND_TOUR",
+  "families": [
+    "FAM_A",
+    "FAM_B",
+    "FAM_C"
+  ],
+  "days": [],
+  "total_trip_cost": 0,
+  "total_trip_time_min": 0
+}

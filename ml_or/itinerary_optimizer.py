@@ -127,18 +127,25 @@ class ItineraryOptimizer:
         # DECISION TRACE COLLECTOR (Non-LLM Authority Layer)
         self.decision_traces = {}  # Key: f"{day_index}" -> Trace Dict
 
-        # Load Hotel & Backbone
-        self.hotel_assignments, self.backbone_routes = self._load_backbone(optimized_backbone_file)
+        # Load Hotel & Backbone & Restaurants
+        self.hotel_assignments, self.backbone_routes, self.daily_restaurants = self._load_backbone(optimized_backbone_file)
+        
+        # Inject Restaurants into Base Itinerary
+        self._inject_restaurants()
 
-    def _load_backbone(self, filepath: str) -> Tuple[Dict, Dict]:
-        """Load optimized hotel assignments and skeleton routes"""
+    def _load_backbone(self, filepath: str) -> Tuple[Dict, Dict, Dict]:
+        """Load optimized hotel assignments, skeleton routes, and restaurants"""
         try:
             with open(filepath, 'r') as f:
                 data = json.load(f)
-                return data.get("hotel_assignments", {}), data.get("skeleton_routes", {})
+                return (
+                    data.get("hotel_assignments", {}), 
+                    data.get("skeleton_routes", {}),
+                    data.get("daily_restaurants", {})
+                )
         except FileNotFoundError:
             print("Warning: Optimized backbone file not found. Using defaults/empty.")
-            return {}, {}
+            return {}, {}, {}
         
     def _load_locations(self, filepath: str) -> Dict[str, Location]:
         """Load locations from JSON"""
@@ -182,6 +189,75 @@ class ItineraryOptimizer:
         """Load base itinerary from JSON"""
         with open(filepath, 'r') as f:
             return json.load(f)
+
+    def _inject_restaurants(self):
+        """Inject optimized restaurants into the base itinerary."""
+        if not self.daily_restaurants:
+            return
+
+        print("  [INJECTION] Injecting optimized restaurants into base itinerary...")
+        for day_data in self.base_itinerary['days']:
+            day_num = str(day_data['day']) # JSON keys are strings
+            if day_num in self.daily_restaurants:
+                rest_data = self.daily_restaurants[day_num]
+                
+                # Check if we need to remove placeholders
+                original_count = len(day_data['pois'])
+                day_data['pois'] = [p for p in day_data['pois'] if p['location_id'] not in ["LOC_LUNCH", "LOC_DINNER"]]
+                if len(day_data['pois']) < original_count:
+                    print(f"    Day {day_num}: Removed {original_count - len(day_data['pois'])} placeholder(s)")
+                
+                # Add Lunch
+                if "lunch" in rest_data:
+                    original_id = rest_data["lunch"]
+                    virtual_id = f"{original_id}_LUNCH"
+                    
+                    # Create Virtual Location in self.locations
+                    if original_id in self.locations:
+                         import copy
+                         orig_loc = self.locations[original_id]
+                         new_loc = copy.deepcopy(orig_loc)
+                         new_loc.location_id = virtual_id
+                         new_loc.name = f"{orig_loc.name} (Lunch)"
+                         self.locations[virtual_id] = new_loc
+                         
+                         day_data['pois'].append({
+                            "location_id": virtual_id,
+                            "role": "SKELETON",
+                            "planned_visit_time_min": 60,
+                            "time_window_start": "13:00",
+                            "time_window_end": "14:30",
+                            "comment": "Optimized Lunch"
+                        })
+                         print(f"    Day {day_num}: Added Lunch ({virtual_id})")
+                    else:
+                        print(f"    Day {day_num}: Warning - Lunch ID {original_id} not found in locations")
+                
+                # Add Dinner
+                if "dinner" in rest_data:
+                    original_id = rest_data["dinner"]
+                    virtual_id = f"{original_id}_DINNER"
+                    
+                    # Create Virtual Location in self.locations
+                    if original_id in self.locations:
+                         import copy
+                         orig_loc = self.locations[original_id]
+                         new_loc = copy.deepcopy(orig_loc)
+                         new_loc.location_id = virtual_id
+                         new_loc.name = f"{orig_loc.name} (Dinner)"
+                         self.locations[virtual_id] = new_loc
+
+                         day_data['pois'].append({
+                            "location_id": virtual_id,
+                            "role": "SKELETON",
+                            "planned_visit_time_min": 90,
+                            "time_window_start": "20:00",
+                            "time_window_end": "21:30",
+                            "comment": "Optimized Dinner"
+                        })
+                         print(f"    Day {day_num}: Added Dinner ({virtual_id})")
+                    else:
+                        print(f"    Day {day_num}: Warning - Dinner ID {original_id} not found in locations")
     
     def _load_family_prefs(self, filepath: str) -> Dict[str, FamilyPreference]:
         """Load family preferences from JSON"""

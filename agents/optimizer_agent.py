@@ -33,7 +33,7 @@ class OptimizerAgent:
         self.data_dir = self.ml_or_dir / "data"
         self.locations_path = self.data_dir / "locations.json"
         self.transport_path = self.data_dir / "transport_graph.json"
-        self.base_itinerary_path = self.data_dir / "base_itinerary_final.json"
+        self.base_itinerary_path = self.data_dir / "base_itinerary_clustered.json"
         self.base_prefs_path = self.data_dir / "family_preferences_3fam_strict.json"
         
         # Load locations map once
