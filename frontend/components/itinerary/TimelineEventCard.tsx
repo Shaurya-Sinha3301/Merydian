@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Icon from '@/components/ui/AppIcon';
-import { TimelineEvent, formatTime } from '@/lib/agent-dashboard/itinerary-data';
+import { TimelineEvent, formatTime, getDisruptionColor, getDisruptionIcon } from '@/lib/agent-dashboard/itinerary-data';
 import TicketModal from './TicketModal';
 
 interface TimelineEventCardProps {
@@ -27,13 +27,35 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
   };
 
   const getEventColor = () => {
+    // If there's a disruption, use disruption colors
+    if (event.disruption) {
+      if (event.disruption.severity === 'critical') return 'text-red-600 bg-red-50';
+      if (event.disruption.severity === 'high') return 'text-orange-600 bg-orange-50';
+      if (event.disruption.severity === 'medium') return 'text-yellow-600 bg-yellow-50';
+      return 'text-blue-600 bg-blue-50';
+    }
+    
+    // Normal colors
     const colors = {
-      transport: 'text-blue-600',
-      activity: 'text-purple-600',
-      accommodation: 'text-green-600',
-      meal: 'text-orange-600',
+      transport: 'text-blue-600 bg-blue-50',
+      activity: 'text-purple-600 bg-purple-50',
+      accommodation: 'text-green-600 bg-green-50',
+      meal: 'text-orange-600 bg-orange-50',
     };
-    return colors[event.type] || 'text-gray-600';
+    return colors[event.type] || 'text-gray-600 bg-gray-50';
+  };
+
+  const getStatusBadge = () => {
+    if (event.status === 'delayed') {
+      return <span className="neu-badge bg-yellow-100 text-yellow-800 border-yellow-200">⏱️ Delayed</span>;
+    }
+    if (event.status === 'cancelled') {
+      return <span className="neu-badge bg-red-100 text-red-800 border-red-200">❌ Cancelled</span>;
+    }
+    if (event.status === 'modified') {
+      return <span className="neu-badge bg-orange-100 text-orange-800 border-orange-200">🔄 Modified</span>;
+    }
+    return <span className="neu-badge bg-green-100 text-green-800 border-green-200">✓ Confirmed</span>;
   };
 
   const hasTicket = () => {
@@ -56,11 +78,60 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
 
         {/* Event Card */}
         <div className="flex-1 pb-8">
-          <div className="neu-card neu-card-hover p-6 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
-            {/* Time Badge */}
+          {/* Disruption Alert */}
+          {event.disruption && (
+            <div className={`neu-card p-4 mb-4 border-l-4 ${
+              event.disruption.severity === 'critical' ? 'border-red-500 bg-red-50' :
+              event.disruption.severity === 'high' ? 'border-orange-500 bg-orange-50' :
+              event.disruption.severity === 'medium' ? 'border-yellow-500 bg-yellow-50' :
+              'border-blue-500 bg-blue-50'
+            }`}>
+              <div className="flex items-start gap-3">
+                <Icon 
+                  name={getDisruptionIcon(event.disruption.type)} 
+                  className={`w-5 h-5 mt-0.5 ${
+                    event.disruption.severity === 'critical' ? 'text-red-600' :
+                    event.disruption.severity === 'high' ? 'text-orange-600' :
+                    event.disruption.severity === 'medium' ? 'text-yellow-600' :
+                    'text-blue-600'
+                  }`}
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-bold text-gray-900">{event.disruption.title}</p>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      event.disruption.severity === 'critical' ? 'bg-red-200 text-red-800' :
+                      event.disruption.severity === 'high' ? 'bg-orange-200 text-orange-800' :
+                      event.disruption.severity === 'medium' ? 'bg-yellow-200 text-yellow-800' :
+                      'bg-blue-200 text-blue-800'
+                    }`}>
+                      {event.disruption.severity.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-2">{event.disruption.description}</p>
+                  <p className="text-xs text-gray-600 mb-2">
+                    <strong>Impact:</strong> {event.disruption.impact}
+                  </p>
+                  {event.disruption.suggestedAction && (
+                    <p className="text-xs text-gray-700 italic bg-white/50 p-2 rounded">
+                      💡 <strong>AI Suggestion:</strong> {event.disruption.suggestedAction}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className={`neu-card neu-card-hover p-6 cursor-pointer ${
+            event.disruption ? 'opacity-75' : ''
+          }`} onClick={() => setIsExpanded(!isExpanded)}>
+            {/* Time Badge & Status */}
             <div className="flex items-start justify-between mb-3">
-              <div className="neu-badge">
-                {formatTime(event.startTime)} - {formatTime(event.endTime)}
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="neu-badge">
+                  {formatTime(event.startTime)} - {formatTime(event.endTime)}
+                </div>
+                {getStatusBadge()}
               </div>
               <Icon 
                 name={isExpanded ? 'ChevronUpIcon' : 'ChevronDownIcon'} 
@@ -74,15 +145,15 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
 
             {/* Quick Info */}
             <div className="flex flex-wrap gap-2">
-              <span className="neu-badge capitalize">{event.type}</span>
+              <span className="neu-badge capitalize bg-gray-100">{event.type}</span>
               {event.transport && (
-                <span className="neu-badge">{event.transport.mode}</span>
+                <span className="neu-badge bg-blue-100 text-blue-800">{event.transport.mode}</span>
               )}
               {event.activity && (
-                <span className="neu-badge">{event.activity.activityType}</span>
+                <span className="neu-badge bg-purple-100 text-purple-800">{event.activity.activityType}</span>
               )}
               {event.meal && (
-                <span className="neu-badge">{event.meal.mealType}</span>
+                <span className="neu-badge bg-orange-100 text-orange-800">{event.meal.mealType}</span>
               )}
             </div>
 
@@ -93,12 +164,12 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
                 {event.type === 'transport' && event.transport && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="neu-pressed p-4 rounded-lg">
+                      <div className="neu-pressed p-4 rounded-lg bg-blue-50">
                         <p className="text-xs text-gray-500 uppercase font-semibold mb-1">From</p>
                         <p className="font-bold text-gray-900">{event.transport.pickupLocation.name}</p>
                         <p className="text-xs text-gray-600 mt-1">{event.transport.pickupLocation.address}</p>
                       </div>
-                      <div className="neu-pressed p-4 rounded-lg">
+                      <div className="neu-pressed p-4 rounded-lg bg-blue-50">
                         <p className="text-xs text-gray-500 uppercase font-semibold mb-1">To</p>
                         <p className="font-bold text-gray-900">{event.transport.dropLocation.name}</p>
                         <p className="text-xs text-gray-600 mt-1">{event.transport.dropLocation.address}</p>
@@ -106,7 +177,7 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
                     </div>
 
                     {event.transport.driverDetails && (
-                      <div className="neu-pressed p-4 rounded-lg">
+                      <div className="neu-pressed p-4 rounded-lg bg-gray-50">
                         <p className="text-xs text-gray-500 uppercase font-semibold mb-2">Driver Information</p>
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div>
@@ -134,13 +205,13 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
                 {/* Activity Details */}
                 {event.type === 'activity' && event.activity && (
                   <div className="space-y-4">
-                    <div className="neu-pressed p-4 rounded-lg">
+                    <div className="neu-pressed p-4 rounded-lg bg-purple-50">
                       <p className="text-xs text-gray-500 uppercase font-semibold mb-2">Location</p>
                       <p className="font-bold text-gray-900">{event.activity.locationName}</p>
                       <p className="text-sm text-gray-600 mt-1">{event.activity.address}</p>
                     </div>
 
-                    <div className="neu-pressed p-4 rounded-lg">
+                    <div className="neu-pressed p-4 rounded-lg bg-purple-50">
                       <p className="text-xs text-gray-500 uppercase font-semibold mb-2">Entry Fee</p>
                       <p className="text-xl font-bold text-gray-900">
                         {event.activity.entryFee.currency} {event.activity.entryFee.amount}
@@ -152,7 +223,7 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
                     </div>
 
                     {event.activity.guideDetails && (
-                      <div className="neu-pressed p-4 rounded-lg">
+                      <div className="neu-pressed p-4 rounded-lg bg-gray-50">
                         <p className="text-xs text-gray-500 uppercase font-semibold mb-2">Guide</p>
                         <p className="font-semibold text-gray-900">{event.activity.guideDetails.name}</p>
                         <p className="text-sm text-gray-600">{event.activity.guideDetails.contact}</p>
@@ -164,18 +235,18 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
                 {/* Accommodation Details */}
                 {event.type === 'accommodation' && event.accommodation && (
                   <div className="space-y-4">
-                    <div className="neu-pressed p-4 rounded-lg">
+                    <div className="neu-pressed p-4 rounded-lg bg-green-50">
                       <p className="text-xs text-gray-500 uppercase font-semibold mb-2">Hotel</p>
                       <p className="font-bold text-gray-900 text-lg">{event.accommodation.hotelName}</p>
                       <p className="text-sm text-gray-600 mt-1">{event.accommodation.address}</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="neu-pressed p-4 rounded-lg">
+                      <div className="neu-pressed p-4 rounded-lg bg-green-50">
                         <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Room Type</p>
                         <p className="font-semibold text-gray-900">{event.accommodation.roomType}</p>
                       </div>
-                      <div className="neu-pressed p-4 rounded-lg">
+                      <div className="neu-pressed p-4 rounded-lg bg-green-50">
                         <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Rooms</p>
                         <p className="font-semibold text-gray-900">{event.accommodation.roomNumbers.join(', ')}</p>
                       </div>
@@ -186,13 +257,13 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
                 {/* Meal Details */}
                 {event.type === 'meal' && event.meal && (
                   <div className="space-y-4">
-                    <div className="neu-pressed p-4 rounded-lg">
+                    <div className="neu-pressed p-4 rounded-lg bg-orange-50">
                       <p className="text-xs text-gray-500 uppercase font-semibold mb-2">Restaurant</p>
                       <p className="font-bold text-gray-900">{event.meal.restaurantName}</p>
                       <p className="text-sm text-gray-600 mt-1">{event.meal.location}</p>
                     </div>
 
-                    <div className="neu-pressed p-4 rounded-lg">
+                    <div className="neu-pressed p-4 rounded-lg bg-orange-50">
                       <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Cuisine</p>
                       <p className="font-semibold text-gray-900">{event.meal.cuisine}</p>
                       {event.meal.specialArrangements && (
@@ -209,7 +280,7 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
                       e.stopPropagation();
                       setShowTicketModal(true);
                     }}
-                    className="neu-button w-full py-3 px-6 font-semibold text-gray-900 flex items-center justify-center gap-2"
+                    className="neu-button w-full py-3 px-6 font-semibold text-gray-900 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100"
                   >
                     <Icon name="TicketIcon" className="w-5 h-5" />
                     View Ticket / Pass

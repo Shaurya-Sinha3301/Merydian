@@ -15,10 +15,21 @@
             {
               "id": "evt_grp001_001",
               "type": "transport",
+              "status": "delayed",
               "startTime": "2026-02-10T07:00:00Z",
               "endTime": "2026-02-10T09:30:00Z",
               "title": "Flight to Goa",
               "description": "Morning flight from Mumbai to Goa International Airport",
+              "disruption": {
+                "type": "delay",
+                "severity": "medium",
+                "title": "Flight Delayed by 2 Hours",
+                "description": "Flight 6E-5124 is delayed due to technical issues. New departure time: 09:00 AM",
+                "impact": "All subsequent activities will be delayed by 2 hours",
+                "estimatedDelay": "2 hours",
+                "suggestedAction": "AI Agent recommends rescheduling hotel check-in and lunch reservation",
+                "alternativeAvailable": true
+              },
               "transport": {
                 "mode": "Flight",
                 "providerName": "IndiGo",
@@ -78,16 +89,26 @@
             {
               "id": "evt_grp001_003",
               "type": "accommodation",
+              "status": "modified",
               "startTime": "2026-02-10T11:00:00Z",
               "endTime": "2026-02-12T12:00:00Z",
               "title": "Check-in at Taj Exotica",
               "description": "Luxury beachfront resort with private beach access",
+              "disruption": {
+                "type": "overbooking",
+                "severity": "high",
+                "title": "Room Overbooking Issue",
+                "description": "2 villas are overbooked. Hotel is arranging alternative premium rooms with complimentary upgrade",
+                "impact": "Villa-15 and Villa-16 not available. Upgraded to Presidential Suites at no extra cost",
+                "suggestedAction": "AI Agent has negotiated complimentary spa vouchers and late checkout as compensation",
+                "alternativeAvailable": true
+              },
               "accommodation": {
                 "hotelName": "Taj Exotica Resort & Spa",
                 "address": "Calwaddo, Benaulim, Goa 403716",
                 "coordinates": { "lat": 15.2593, "lng": 73.9270 },
                 "roomType": "Premium Sea View Villas",
-                "roomNumbers": ["Villa-12", "Villa-13", "Villa-14", "Villa-15", "Villa-16", "Villa-17"],
+                "roomNumbers": ["Villa-12", "Villa-13", "Villa-14", "Suite-01", "Suite-02", "Villa-17"],
                 "checkInTime": "2026-02-10T11:00:00Z",
                 "checkOutTime": "2026-02-12T12:00:00Z",
                 "bookingReference": "TAJ-GRP001-2026",
@@ -294,10 +315,20 @@
             {
               "id": "evt_grp001_013",
               "type": "activity",
+              "status": "cancelled",
               "startTime": "2026-02-12T10:00:00Z",
               "endTime": "2026-02-12T12:00:00Z",
               "title": "Old Goa Heritage Tour",
               "description": "Guided tour of UNESCO World Heritage churches",
+              "disruption": {
+                "type": "closure",
+                "severity": "critical",
+                "title": "Road Closure - Heritage Site Inaccessible",
+                "description": "Main road to Old Goa is closed due to emergency repairs. Basilica area is temporarily inaccessible",
+                "impact": "Activity cancelled. Full refund processed automatically",
+                "suggestedAction": "AI Agent suggests replacing with Spice Plantation Tour or extending beach time with water sports",
+                "alternativeAvailable": true
+              },
               "activity": {
                 "locationName": "Basilica of Bom Jesus",
                 "address": "Old Goa, Goa 403402",

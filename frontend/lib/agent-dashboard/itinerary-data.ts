@@ -89,6 +89,17 @@ export interface MealEvent {
   specialArrangements?: string;
 }
 
+export interface Disruption {
+  type: 'delay' | 'cancellation' | 'closure' | 'overbooking' | 'weather' | 'traffic';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  title: string;
+  description: string;
+  impact: string;
+  suggestedAction?: string;
+  estimatedDelay?: string;
+  alternativeAvailable?: boolean;
+}
+
 export interface TimelineEvent {
   id: string;
   type: 'transport' | 'activity' | 'accommodation' | 'meal';
@@ -100,6 +111,8 @@ export interface TimelineEvent {
   accommodation?: AccommodationEvent;
   activity?: ActivityEvent;
   meal?: MealEvent;
+  disruption?: Disruption;
+  status?: 'confirmed' | 'delayed' | 'cancelled' | 'modified';
 }
 
 export interface ItineraryDay {
@@ -188,4 +201,59 @@ export function getTransportModeIcon(mode: string): string {
     Train: 'TruckIcon',
   };
   return iconMap[mode] || 'TruckIcon';
+}
+
+
+/**
+ * Get disruption severity color
+ */
+export function getDisruptionColor(severity: string): string {
+  const colorMap: Record<string, string> = {
+    low: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+    medium: 'text-orange-600 bg-orange-50 border-orange-200',
+    high: 'text-red-600 bg-red-50 border-red-200',
+    critical: 'text-rose-700 bg-rose-100 border-rose-300',
+  };
+  return colorMap[severity] || 'text-gray-600 bg-gray-50 border-gray-200';
+}
+
+/**
+ * Get disruption icon
+ */
+export function getDisruptionIcon(type: string): string {
+  const iconMap: Record<string, string> = {
+    delay: 'ClockIcon',
+    cancellation: 'XCircleIcon',
+    closure: 'LockClosedIcon',
+    overbooking: 'ExclamationTriangleIcon',
+    weather: 'CloudIcon',
+    traffic: 'TruckIcon',
+  };
+  return iconMap[type] || 'ExclamationTriangleIcon';
+}
+
+/**
+ * Check if itinerary has any disruptions
+ */
+export function hasDisruptions(itinerary: Itinerary): boolean {
+  return itinerary.days.some(day =>
+    day.timelineEvents.some(event => event.disruption)
+  );
+}
+
+/**
+ * Get all disruptions from itinerary
+ */
+export function getDisruptions(itinerary: Itinerary): Array<{ event: TimelineEvent; dayNumber: number }> {
+  const disruptions: Array<{ event: TimelineEvent; dayNumber: number }> = [];
+  
+  itinerary.days.forEach(day => {
+    day.timelineEvents.forEach(event => {
+      if (event.disruption) {
+        disruptions.push({ event, dayNumber: day.dayNumber });
+      }
+    });
+  });
+  
+  return disruptions;
 }
