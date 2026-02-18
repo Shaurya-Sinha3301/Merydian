@@ -1,0 +1,467 @@
+{
+  "families": [
+    {
+      "audience": "FAMILY",
+      "family_id": "FAM_A",
+      "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+      "changes": [
+        {
+          "day": 1,
+          "change_type": "POI_ADDED",
+          "poi": {
+            "id": "LOC_015",
+            "name": "Chandni Chowk"
+          },
+          "causal_tags": [
+            "INTEREST_VECTOR_DOMINANCE"
+          ],
+          "cost_delta": {
+            "extra_cost": 285.0,
+            "currency": "INR",
+            "transport_cost": 85.0
+          },
+          "satisfaction_delta": {
+            "gain": 1.35
+          }
+        },
+        {
+          "day": 1,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_018",
+            "name": "Agrasen ki Baoli"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 113.26,
+            "currency": "INR",
+            "transport_savings": 113.26
+          },
+          "satisfaction_delta": {
+            "loss": 1.5
+          }
+        },
+        {
+          "day": 1,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_013",
+            "name": "Lodhi Gardens"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 119.12,
+            "currency": "INR",
+            "transport_savings": 119.12
+          },
+          "satisfaction_delta": {
+            "loss": 1.44
+          }
+        }
+      ],
+      "system_definitions": {
+        "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+        "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+        "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+        "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+        "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+        "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+        "METRO_UNAVAILABLE": "METRO transport is unavailable",
+        "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+        "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+        "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+        "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+        "REROUTED_TO_METRO": "Rerouted to METRO",
+        "REROUTED_TO_BUS": "Rerouted to BUS",
+        "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+        "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+        "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+        "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+      }
+    },
+    {
+      "audience": "FAMILY",
+      "family_id": "FAM_B",
+      "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+      "changes": [
+        {
+          "day": 1,
+          "change_type": "POI_ADDED",
+          "poi": {
+            "id": "LOC_015",
+            "name": "Chandni Chowk"
+          },
+          "causal_tags": [
+            "INTEREST_VECTOR_DOMINANCE"
+          ],
+          "cost_delta": {
+            "extra_cost": 300.0,
+            "currency": "INR",
+            "transport_cost": 100.0
+          },
+          "satisfaction_delta": {
+            "gain": 1.47
+          }
+        },
+        {
+          "day": 1,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_018",
+            "name": "Agrasen ki Baoli"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 220.63,
+            "currency": "INR",
+            "transport_savings": 220.63
+          },
+          "satisfaction_delta": {
+            "loss": 1.13
+          }
+        },
+        {
+          "day": 1,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_013",
+            "name": "Lodhi Gardens"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 105.26,
+            "currency": "INR",
+            "transport_savings": 105.26
+          },
+          "satisfaction_delta": {
+            "loss": 1.06
+          }
+        }
+      ],
+      "system_definitions": {
+        "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+        "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+        "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+        "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+        "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+        "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+        "METRO_UNAVAILABLE": "METRO transport is unavailable",
+        "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+        "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+        "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+        "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+        "REROUTED_TO_METRO": "Rerouted to METRO",
+        "REROUTED_TO_BUS": "Rerouted to BUS",
+        "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+        "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+        "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+        "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+      }
+    },
+    {
+      "audience": "FAMILY",
+      "family_id": "FAM_C",
+      "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+      "changes": [
+        {
+          "day": 1,
+          "change_type": "POI_ADDED",
+          "poi": {
+            "id": "LOC_015",
+            "name": "Chandni Chowk"
+          },
+          "causal_tags": [
+            "INTEREST_VECTOR_DOMINANCE"
+          ],
+          "cost_delta": {
+            "extra_cost": 300.0,
+            "currency": "INR",
+            "transport_cost": 100.0
+          },
+          "satisfaction_delta": {
+            "gain": 1.35
+          }
+        },
+        {
+          "day": 1,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_018",
+            "name": "Agrasen ki Baoli"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 220.63,
+            "currency": "INR",
+            "transport_savings": 220.63
+          },
+          "satisfaction_delta": {
+            "loss": 1.22
+          }
+        },
+        {
+          "day": 1,
+          "change_type": "POI_REMOVED",
+          "poi": {
+            "id": "LOC_013",
+            "name": "Lodhi Gardens"
+          },
+          "causal_tags": [
+            "OBJECTIVE_DOMINATED"
+          ],
+          "cost_delta": {
+            "saved_cost": 105.26,
+            "currency": "INR",
+            "transport_savings": 105.26
+          },
+          "satisfaction_delta": {
+            "loss": 1.27
+          }
+        }
+      ],
+      "system_definitions": {
+        "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+        "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+        "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+        "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+        "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+        "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+        "METRO_UNAVAILABLE": "METRO transport is unavailable",
+        "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+        "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+        "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+        "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+        "REROUTED_TO_METRO": "Rerouted to METRO",
+        "REROUTED_TO_BUS": "Rerouted to BUS",
+        "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+        "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+        "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+        "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+      }
+    }
+  ],
+  "travel_agent": {
+    "audience": "TRAVEL_AGENT",
+    "user_input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
+    "all_changes": [
+      {
+        "day": 1,
+        "change_type": "POI_ADDED",
+        "poi": {
+          "id": "LOC_015",
+          "name": "Chandni Chowk"
+        },
+        "causal_tags": [
+          "INTEREST_VECTOR_DOMINANCE"
+        ],
+        "cost_delta": {
+          "extra_cost": 285.0,
+          "currency": "INR",
+          "transport_cost": 85.0
+        },
+        "satisfaction_delta": {
+          "gain": 1.35
+        },
+        "family_id": "FAM_A"
+      },
+      {
+        "day": 1,
+        "change_type": "POI_REMOVED",
+        "poi": {
+          "id": "LOC_018",
+          "name": "Agrasen ki Baoli"
+        },
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "cost_delta": {
+          "saved_cost": 113.26,
+          "currency": "INR",
+          "transport_savings": 113.26
+        },
+        "satisfaction_delta": {
+          "loss": 1.5
+        },
+        "family_id": "FAM_A"
+      },
+      {
+        "day": 1,
+        "change_type": "POI_REMOVED",
+        "poi": {
+          "id": "LOC_013",
+          "name": "Lodhi Gardens"
+        },
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "cost_delta": {
+          "saved_cost": 119.12,
+          "currency": "INR",
+          "transport_savings": 119.12
+        },
+        "satisfaction_delta": {
+          "loss": 1.44
+        },
+        "family_id": "FAM_A"
+      },
+      {
+        "day": 1,
+        "change_type": "POI_ADDED",
+        "poi": {
+          "id": "LOC_015",
+          "name": "Chandni Chowk"
+        },
+        "causal_tags": [
+          "INTEREST_VECTOR_DOMINANCE"
+        ],
+        "cost_delta": {
+          "extra_cost": 300.0,
+          "currency": "INR",
+          "transport_cost": 100.0
+        },
+        "satisfaction_delta": {
+          "gain": 1.47
+        },
+        "family_id": "FAM_B"
+      },
+      {
+        "day": 1,
+        "change_type": "POI_REMOVED",
+        "poi": {
+          "id": "LOC_018",
+          "name": "Agrasen ki Baoli"
+        },
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "cost_delta": {
+          "saved_cost": 220.63,
+          "currency": "INR",
+          "transport_savings": 220.63
+        },
+        "satisfaction_delta": {
+          "loss": 1.13
+        },
+        "family_id": "FAM_B"
+      },
+      {
+        "day": 1,
+        "change_type": "POI_REMOVED",
+        "poi": {
+          "id": "LOC_013",
+          "name": "Lodhi Gardens"
+        },
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        },
+        "satisfaction_delta": {
+          "loss": 1.06
+        },
+        "family_id": "FAM_B"
+      },
+      {
+        "day": 1,
+        "change_type": "POI_ADDED",
+        "poi": {
+          "id": "LOC_015",
+          "name": "Chandni Chowk"
+        },
+        "causal_tags": [
+          "INTEREST_VECTOR_DOMINANCE"
+        ],
+        "cost_delta": {
+          "extra_cost": 300.0,
+          "currency": "INR",
+          "transport_cost": 100.0
+        },
+        "satisfaction_delta": {
+          "gain": 1.35
+        },
+        "family_id": "FAM_C"
+      },
+      {
+        "day": 1,
+        "change_type": "POI_REMOVED",
+        "poi": {
+          "id": "LOC_018",
+          "name": "Agrasen ki Baoli"
+        },
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "cost_delta": {
+          "saved_cost": 220.63,
+          "currency": "INR",
+          "transport_savings": 220.63
+        },
+        "satisfaction_delta": {
+          "loss": 1.22
+        },
+        "family_id": "FAM_C"
+      },
+      {
+        "day": 1,
+        "change_type": "POI_REMOVED",
+        "poi": {
+          "id": "LOC_013",
+          "name": "Lodhi Gardens"
+        },
+        "causal_tags": [
+          "OBJECTIVE_DOMINATED"
+        ],
+        "cost_delta": {
+          "saved_cost": 105.26,
+          "currency": "INR",
+          "transport_savings": 105.26
+        },
+        "satisfaction_delta": {
+          "loss": 1.27
+        },
+        "family_id": "FAM_C"
+      }
+    ],
+    "financial_summary": {
+      "total_cost_delta": 0.84,
+      "total_satisfaction_delta": -3.45,
+      "affected_families": [
+        "FAM_B",
+        "FAM_C",
+        "FAM_A"
+      ]
+    },
+    "system_definitions": {
+      "INTEREST_VECTOR_DOMINANCE": "This POI matches the family's interest tags very strongly (interest score > 1.2)",
+      "SHARED_ANCHOR_REQUIRED": "This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together",
+      "OPTIMIZER_SELECTED": "This POI was selected by the optimizer with moderate interest (score 0.8-1.2)",
+      "OPTIMIZER_TRADEOFF": "This POI was added despite low interest because it optimizes other factors (time, routing, etc.)",
+      "TRANSPORT_ROUTING_OPTIMIZATION": "The route/POI selection was optimized due to transport changes",
+      "BUS_UNAVAILABLE": "BUS transport is unavailable (strike, closure, etc.)",
+      "METRO_UNAVAILABLE": "METRO transport is unavailable",
+      "AUTO_UNAVAILABLE": "AUTO transport is unavailable",
+      "CAB_FALLBACK_UNAVAILABLE": "CAB transport is unavailable",
+      "TRANSPORT_DISRUPTED": "The original transport mode was disrupted",
+      "ROUTE_REROUTED": "Successfully found an alternative transport mode",
+      "REROUTED_TO_METRO": "Rerouted to METRO",
+      "REROUTED_TO_BUS": "Rerouted to BUS",
+      "REROUTED_TO_CAB_FALLBACK": "Rerouted to CAB",
+      "ROUTE_OPTIMIZED": "Route was optimized for better efficiency (no disruption)",
+      "LOW_INTEREST_DROPPED": "This POI was removed because it has low relevance to the family's interests (score < 0.8)",
+      "OBJECTIVE_DOMINATED": "This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)"
+    }
+  }
+}

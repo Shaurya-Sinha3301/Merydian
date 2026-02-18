@@ -30,16 +30,16 @@ def main():
     
     # Define scenarios
     scenarios = [
-        # {
-        #     "name": "Must-Visit (Simulated Day 2 Start)",
-        #     "input": "We really want to visit Chandni Chowk for some street food. It's the start of Day 2.",
-        #     "context": {"family_id": "FAM_B", "current_day": 1}, # 0-indexed, so 1 is Day 2
-        # },
-        # {
-        #     "name": "Location Excluded (Day 3 Preference)",
-        #     "input": "Please skip the Red Fort on Day 3, we're not interested.",
-        #     "context": {"family_id": "FAM_A", "current_day": 2}, # Day 3
-        # },
+        {
+            "name": "Must-Visit (Simulated Day 2 Start)",
+            "input": "We really want to visit Chandni Chowk for some street food. It's the start of Day 2.",
+            "context": {"family_id": "FAM_B", "current_day": 1}, # 0-indexed, so 1 is Day 2
+        },
+        {
+            "name": "Location Excluded (Day 3 Preference)",
+            "input": "Please skip the Red Fort on Day 3, we're not interested.",
+            "context": {"family_id": "FAM_A", "current_day": 2}, # Day 3
+        },
         {
             "name": "METRO Disruption (Start of Day 3)",
             "input": "There's a METRO strike starting tomorrow (Day 3), all metro services are unavailable",
@@ -62,7 +62,7 @@ def main():
             time.sleep(10)
         
         # Build context with previous solution for comparison
-        context = scenario["context"] if scenario["context"] is not None else {}
+        context = scenario["context"].copy() if scenario["context"] is not None else {}
         if previous_solution_path:
             context["previous_solution"] = str(previous_solution_path)
         
@@ -92,53 +92,66 @@ def main():
                 }
             },
             "decision_agent": {
-                "input": result['event'].dict(),
+                "input": result['event'].model_dump(),
                 "output": {
                     "action": str(result['decision'].action),
                     "reason": result['decision'].reason,
                 }
             },
-            "optimizer_triggered": result['optimizer_output'] is not None,
+            "optimizer_triggered": result['decision'].action == "RUN_OPTIMIZER",
+            "optimizer_output_dir": None
         }
         
-        # If optimizer was triggered, load and use LLM payloads
         if result['optimizer_output']:
-            llm_payloads_path = result['optimizer_output'].get('llm_payloads')
-            optimizer_output_dir = Path(llm_payloads_path).parent if llm_payloads_path else None
+            optimizer_output_dir = Path(result['optimizer_output']['llm_payloads']).parent
+            scenario_output["optimizer_output_dir"] = str(optimizer_output_dir)
             
-            if llm_payloads_path and Path(llm_payloads_path).exists():
-                print(f"\n✓ Using optimizer output folder: {optimizer_output_dir}")
-                print(f"✓ Loading LLM payloads from: {llm_payloads_path}")
+            # Load payloads
+            payloads_file = optimizer_output_dir / "llm_payloads.json"
+            
+            if payloads_file.exists():
+                print(f"  📄 Loading payloads from: {payloads_file}")
+                with open(payloads_file, 'r', encoding='utf-8') as f:
+                    payload_data = json.load(f)
                 
-                # Load LLM payloads
-                with open(llm_payloads_path, 'r') as f:
-                    llm_payloads = json.load(f)
+                # Handle list vs dict (families/agent)
+                payloads_to_process = []
+                if isinstance(payload_data, dict):
+                    if "families" in payload_data:
+                        payloads_to_process.extend(payload_data["families"])
+                    if "travel_agent" in payload_data:
+                        payloads_to_process.append(payload_data["travel_agent"])
+                elif isinstance(payload_data, list):
+                    payloads_to_process = payload_data
                 
-                print(f"✓ Loaded {len(llm_payloads)} LLM payload(s) with actual POI names")
+                print(f"  ℹ️ Found {len(payloads_to_process)} payloads to process")
                 
-                # Generate explanations using LLM payloads
                 explanations = []
-                for payload in llm_payloads:
-                    # Show what we're sending to the explainability agent
-                    print(f"\n  📤 Sending to Explainability Agent:")
-                    print(f"     Family: {payload.get('family')}")
-                    print(f"     POI: {payload.get('poi', {}).get('name', 'Unknown')}")
-                    print(f"     Change: {payload.get('change_type')}")
-                    print(f"     Causal Tags: {', '.join(payload.get('causal_tags', []))}")
+                for payload in payloads_to_process:
+                    audience = payload.get("audience", "FAMILY")
+                    family_id = payload.get("family_id", "N/A")
+                    print(f"  📤 Sending to Explainability Agent:")
+                    print(f"     Audience: {audience}")
+                    if family_id != "N/A":
+                        print(f"     Family: {family_id}")
                     
-                    explanation = exp_agent.explain(payload)
+                    explanation = controller.explainability_agent.explain(payload)
                     explanations.append({
-                        "input_payload": payload,
-                        "output_summary": explanation.summary
+                        "audience": audience,
+                        "explanation": explanation.summary,
+                        "family_id": payload.get("family_id")
                     })
                     print(f"  📥 Explainability Agent Output: {explanation.summary}")
+                    
+                    # Rate limiting to avoid 429 errors
+                    if payload != payloads_to_process[-1]:
+                        print("  ⏳ Sleeping 10s to respect API limits...")
+                        time.sleep(10)
                 
+                # Clean output structure - just the explanations
                 scenario_output["explainability_agent"] = {
-                    "input": llm_payloads,
-                    "output": explanations
+                    "explanations": explanations
                 }
-                # Store the optimizer folder for later use
-                scenario_output["optimizer_output_dir"] = str(optimizer_output_dir)
                 
                 # Update previous_solution_path for next scenario
                 optimized_solution_file = optimizer_output_dir / "optimized_solution.json"
@@ -147,16 +160,10 @@ def main():
                     print(f"  💾 Saved baseline for next scenario: {previous_solution_path}")
             else:
                 print("  ⚠️  No llm_payloads.json found in optimizer output")
-                scenario_output["explainability_agent"] = {
-                    "input": [],
-                    "output": []
-                }
+                scenario_output["explainability_agent"] = {"explanations": []}
         else:
             # No optimizer run, so no explainability needed
-            scenario_output["explainability_agent"] = {
-                "input": [],
-                "output": []
-            }
+            scenario_output["explainability_agent"] = {"explanations": []}
         
         all_results.append(scenario_output)
         
@@ -166,8 +173,26 @@ def main():
         print(f"Confidence: {result['event'].confidence}")
         print (f"Decision: {result['decision'].action}")
         print(f"Optimizer Run: {'Yes' if result['optimizer_output'] else 'No'}")
-        if scenario_output.get("explainability_agent", {}).get("output"):
-            print(f"Explanations Generated: {len(scenario_output['explainability_agent']['output'])}")
+        if scenario_output.get("explainability_agent", {}).get("explanations"):
+            print(f"Explanations Generated: {len(scenario_output['explainability_agent']['explanations'])}")
+
+        # INTERMEDIATE SAVE: Save results after every scenario
+        current_output_dir = None
+        if result['optimizer_output']:
+             current_output_dir = Path(result['optimizer_output']['llm_payloads']).parent
+        
+        if not current_output_dir:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            current_output_dir = project_root / "agents" / "tests" / f"demo_results_{timestamp}"
+            current_output_dir.mkdir(parents=True, exist_ok=True)
+            
+        output_file = current_output_dir / "llm_outputs.json"
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(all_results, f, indent=2, ensure_ascii=False, default=str)
+            print(f"  💾 Intermediate results saved to: {output_file}")
+        except Exception as e:
+            print(f"  ⚠️ Warning: Could not save intermediate results: {e}")
     
     # Use the optimizer's output folder (from the last optimizer run) for saving all outputs
     # This consolidates everything into one folder
@@ -188,37 +213,15 @@ def main():
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(all_results, f, indent=2, ensure_ascii=False, default=str)
     
-    # Save summary
-    summary_file = output_dir / "summary.txt"
-    with open(summary_file, 'w') as f:
-        f.write(f"Demo Run Summary\n")
-        f.write(f"{'='*80}\n")
-        f.write(f"Output Directory: {output_dir}\n")
-        f.write(f"Total scenarios: {len(scenarios)}\n")
-        f.write(f"Optimizer triggered: {sum(1 for r in all_results if r['optimizer_triggered'])} times\n\n")
-        
-        for result in all_results:
-            f.write(f"\nScenario {result['scenario_number']}: {result['scenario_name']}\n")
-            f.write(f"  User Input: {result['user_input']}\n")
-            f.write(f"  Event Type: {result['feedback_agent']['output']['event_type']}\n")
-            f.write(f"  Decision: {result['decision_agent']['output']['action']}\n")
-            
-            explanations = result.get("explainability_agent", {}).get("output", [])
-            if explanations:
-                f.write(f"  Explanations ({len(explanations)}):\n")
-                for exp in explanations:
-                    f.write(f"    - {exp['output_summary']}\n")
-    
     print(f"\n{'='*80}")
     print("DEMO COMPLETED")
     print(f"{'='*80}\n")
     print(f"✅ All outputs consolidated in: {output_dir}")
     print(f"✅ LLM inputs/outputs: {output_file}")
-    print(f"✅ Summary: {summary_file}")
     print(f"\nResults:")
     print(f"  Scenarios run: {len(scenarios)}")
     print(f"  Optimizer triggered: {sum(1 for r in all_results if r['optimizer_triggered'])} times")
-    total_explanations = sum(len(r.get('explainability_agent', {}).get('output', [])) for r in all_results)
+    total_explanations = sum(len(r.get('explainability_agent', {}).get('explanations', [])) for r in all_results)
     print(f"  Explanations generated: {total_explanations}")
 
 
