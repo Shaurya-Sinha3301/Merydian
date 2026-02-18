@@ -87,45 +87,114 @@ class ExplainabilityAgent:
         return [self.explain(payload) for payload in payloads]
     
     def _build_prompt(self, payload: Dict[str, Any]) -> str:
-        """Build the prompt for Gemini API."""
+        """Build the prompt for Groq API based on audience."""
+        audience = payload.get("audience", "FAMILY")
         
+        if audience == "TRAVEL_AGENT":
+            return self._build_agent_prompt(payload)
+        else:
+            return self._build_family_prompt(payload)
+
+    def _build_family_prompt(self, payload: Dict[str, Any]) -> str:
+        """Build a persuasive, warm prompt for families."""
         payload_str = json.dumps(payload, indent=2)
         
-        prompt = f"""You are an explainability agent for a travel itinerary optimization system. Your job is to convert technical decision payloads into clear, concise, human-readable explanations.
+        prompt = f"""You are a helpful and persuasive travel assistant. Your goal is to explain itinerary changes to a family in a way that feels personal and exciting.
+
+Context:
+{payload_str}
+
+**Key Guidelines:**
+1. **Tone:** Warm, enthusiastic, and personal. Use "we" to refer to the optimization system.
+2. **Interest Alignment:** Emphasize that changes were made because "we identified you like this place" or it matches their interests.
+3. **Cost Framing:** 
+   - If there is an extra cost, frame it softly e.g., "for an extra cost of only X".
+   - If there are savings, highlight them as "saving you X".
+   - Do NOT mention "transport costs" separately unless it's a major saving.
+4. **Hide Technical Metrics:** Do NOT mention "satisfaction gain", "score", or "lambda". Instead say "it's a great fit" or "you'll love it".
+5. **Format:** Keep it conversational. Avoid bullet points unless listing multiple distinct changes.
+
+**Causal Tag Translations (Use these to explain the 'WHY' persuasively):**
+- INTEREST_VECTOR_DOMINANCE -> "Matches your interests perfectly"
+- SHARED_ANCHOR_REQUIRED -> "Great for the whole group to spend time together"
+- OPTIMIZER_SELECTED -> "Highly recommended for your trip based on your preferences"
+- OPTIMIZER_TRADEOFF -> "A smart choice that fits perfectly into your schedule"
+- TRANSPORT_ROUTING_OPTIMIZATION -> "Optimized for the smoothest travel experience"
+- BUS_UNAVAILABLE -> "Since bus services are currently unavailable"
+- METRO_UNAVAILABLE -> "Due to the metro strike"
+- AUTO_UNAVAILABLE -> "Since auto options are limited right now"
+- CAB_FALLBACK_UNAVAILABLE -> "Due to cab unavailability"
+- TRANSPORT_DISRUPTED -> "To avoid travel disruptions"
+- ROUTE_REROUTED / ROUTE_OPTIMIZED -> "We found a better route for you"
+- LOW_INTEREST_DROPPED -> "We found other places you might enjoy more"
+- OBJECTIVE_DOMINATED -> "We prioritized options that give you the best value and experience"
+- HISTORY_BAN -> "Due to historical site restrictions"
+
+Generate a short, engaging explanation for the changes in the payload. Focus on the 'WHY' and the 'VALUE'."""
+        return prompt
+
+    def _build_agent_prompt(self, payload: Dict[str, Any]) -> str:
+        """Build an analytical, metric-heavy prompt for travel agents."""
+        payload_str = json.dumps(payload, indent=2)
+        
+        prompt = f"""You are an explainability agent for a travel optimization system. Provide a professional, analytical report for a Travel Agent.
 
 Decision Payload:
 {payload_str}
 
-Generate a brief, clear explanation (1-2 sentences) that describes:
-1. What changed in the itinerary
-2. Why it changed (based on the data in the payload)
+**Guidelines:**
+1. **Tone:** Professional, objective, concise.
+2. **Metrics:** Explicitly mention Financial Deltas (Net Cost) and Satisfaction Deltas.
+3. **Structure:** Group by Family if necessary, but focus on the aggregate impact.
+4. **Causal Tags:** Use the technical definitions provided below.
 
-Guidelines:
-- Write in active voice
-- Be concise and specific
-- Focus on user-facing impact
-- Don't mention technical details or field names
-- Don't infer causality beyond what's in the payload
+**Technical Tag Definitions:**
+- INTEREST_VECTOR_DOMINANCE: Strong interest match (>1.2)
+- SHARED_ANCHOR_REQUIRED: Critical for group coordination
+- OPTIMIZER_SELECTED: Selected by optimizer (score 0.8-1.2)
+- OPTIMIZER_TRADEOFF: Selected for logistical efficiency despite low interest
+- TRANSPORT_ROUTING_OPTIMIZATION: Route/POI selected due to transport changes
+- BUS/METRO/AUTO/CAB_UNAVAILABLE: Transport mode unavailability
+- TRANSPORT_DISRUPTED: Original mode disrupted
+- ROUTE_REROUTED: Found alternative mode
+- ROUTE_OPTIMIZED: Route efficiency improvement
+- LOW_INTEREST_DROPPED: Removed due to low relevance (<0.8)
+- OBJECTIVE_DOMINATED: Removed due to cost/time constraints > value
+- HISTORY_BAN: Removed due to site restrictions
 
-Return ONLY the explanation text, nothing else."""
-        
+Generate a structured report summarizing the changes, the reasons (using technical tags), and the net financial/satisfaction impact."""
         return prompt
     
     def _demo_explain(self, payload: Dict[str, Any]) -> AgentExplanation:
-        """Simple template-based explanation (fallback when no API key)."""
+        """Simple template-based explanation (fallback when no API key). Handle dual audiences."""
         
-        # Extract common fields
-        change_type = payload.get("change_type", "unknown")
-        poi_name = payload.get("poi_name", "location")
-        day = payload.get("day", "?")
+        audience = payload.get("audience", "FAMILY")
+        user_input = payload.get("user_input", "")
         
-        # Simple template
-        if change_type == "visit_added":
-            summary = f"Added {poi_name} to Day {day} visit list based on updated preferences."
-        elif change_type == "visit_removed":
-            summary = f"Removed {poi_name} from Day {day} visit list based on updated preferences."
-        else:
-            summary = f"Modified itinerary: {change_type} for {poi_name} on Day {day}."
+        if audience == "TRAVEL_AGENT":
+            summary = f"ADMIN REPORT: Processed user request '{user_input}'. "
+            fin = payload.get("financial_summary", {})
+            summary += f"Net Cost Delta: {fin.get('total_cost_delta', 0)}, Sat Delta: {fin.get('total_satisfaction_delta', 0)}."
+            return AgentExplanation(summary=summary, payload_source=payload)
+        
+        # Family Logic
+        changes = payload.get("changes", [])
+        if not changes:
+            return AgentExplanation(summary="No significant changes made to your itinerary.", payload_source=payload)
+        
+        # Just grab the first change for the demo summary
+        first_change = changes[0]
+        poi_name = first_change["poi"]["name"]
+        change_type = first_change["change_type"]
+        
+        reason_map = {
+            "POI_ADDED": f"we added {poi_name} to your plan",
+            "POI_REMOVED": f"we removed {poi_name} from your plan",
+            "TIME_ADJUSTED": f"we adjusted the time for {poi_name}"
+        }
+        
+        action = reason_map.get(change_type, f"we updated {poi_name}")
+        summary = f"Based on your request regarding '{user_input}', {action} to ensure a smooth trip."
         
         return AgentExplanation(
             summary=summary,

@@ -3,6 +3,7 @@ Agent Controller - Orchestrates all agents in a deterministic flow.
 This is the conductor that coordinates the entire agent system.
 """
 import logging
+import json
 import time
 from typing import Dict, Any, Optional
 from pathlib import Path
@@ -79,34 +80,94 @@ class AgentController:
         if decision.action == ActionType.RUN_OPTIMIZER:
             logger.info("\n[STAGE 3] Optimizer Agent - Running optimizer...")
             
-            # Run optimizer
-            optimizer_output = self.optimizer_agent.run()
+            # Prepare preferences from event
+            preferences = {
+                "event_type": event.event_type,
+                "family_id": event.family_id,
+                "poi_name": event.poi_name,
+                "poi_id": event.poi_id,
+                # Transport disruption fields (FIX: pass these to optimizer)
+                "transport_mode": getattr(event, 'transport_mode', None),
+                "disruption_from_poi": getattr(event, 'disruption_from_poi', None),
+                "disruption_to_poi": getattr(event, 'disruption_to_poi', None)
+            }
+            
+            # Get previous optimized solution for comparison (NOT base_itinerary)
+            # base_itinerary = skeleton (stays same), previous_solution = last optimized result
+            previous_solution_path = None
+            if context and context.get("previous_solution"):
+                previous_solution_path = Path(context["previous_solution"])
+            
+            # Get output directory from context
+            output_dir_path = None
+            if context and context.get("output_dir"):
+                output_dir_path = Path(context["output_dir"])
+            
+            current_prefs_path = None
+            if context and context.get("current_preferences_path"):
+                current_prefs_path = Path(context["current_preferences_path"])
+            
+            # Get current_day for partial optimization (freeze past days)
+            start_day = 0
+            if context and context.get("current_day") is not None:
+                start_day = int(context["current_day"])
+            
+            # Run optimizer with event data and previous solution for comparison
+            optimizer_output = self.optimizer_agent.run(
+                preferences=preferences,
+                base_solution_path=previous_solution_path,  # For diff comparison
+                output_dir=output_dir_path,  # Where to save outputs
+                current_prefs_path=current_prefs_path,  # Current cumulative preferences
+                user_input=user_input,  # Original user text for context
+                start_day=start_day  # Freeze days before this index
+            )
             result["optimizer_output"] = optimizer_output
             logger.info(f"✓ Optimizer completed")
             
             # Stage 4: Generate explanations
-            logger.info("\n[STAGE 4] Explainability Agent - Generating explanations...")
+            # NOTE: helping reduce API calls for demo mode, as run_demo.py handles this explicitly
+            # If enabled here AND in run_demo.py, we get double the API usage.
+            # logger.info("\n[STAGE 4] Explainability Agent - Generating explanations...")
             
-            # Load enriched diffs if available
-            if optimizer_output.get("enriched_diffs") and \
-               optimizer_output["enriched_diffs"].exists():
-                diffs = self.optimizer_agent.load_enriched_diffs(
-                    optimizer_output["enriched_diffs"]
-                )
+            # if optimizer_output.get("llm_payloads") and \
+            #    optimizer_output["llm_payloads"].exists():
                 
-                # Generate explanations for each change
-                # For demo, we'll create sample payloads
-                # In production, these would come from your explainability pipeline
-                sample_payloads = self._extract_payloads_from_diffs(diffs)
+            #     logger.info(f"Loading LLM payloads from: {optimizer_output['llm_payloads']}")
                 
-                explanations = self.explainability_agent.explain_batch(sample_payloads)
-                result["explanations"] = explanations
+            #     with open(optimizer_output["llm_payloads"], 'r') as f:
+            #         payload_data = json.load(f)
                 
-                logger.info(f"✓ Generated {len(explanations)} explanations")
+            #     # Handle new dict structure (families list + travel_agent dict)
+            #     # We want to explain all family payloads AND the travel agent payload
+            #     payloads_to_explain = []
                 
-                # Display explanations
-                for i, exp in enumerate(explanations, 1):
-                    logger.info(f"  {i}. {exp.summary}")
+            #     if isinstance(payload_data, dict):
+            #         # Add family payloads
+            #         if "families" in payload_data:
+            #             payloads_to_explain.extend(payload_data["families"])
+            #         # Add travel agent payload
+            #         if "travel_agent" in payload_data:
+            #             payloads_to_explain.append(payload_data["travel_agent"])
+            #     elif isinstance(payload_data, list):
+            #         # Fallback for old list format
+            #         payloads_to_explain = payload_data
+                
+            #     logger.info(f"Loaded {len(payloads_to_explain)} payload(s) from optimizer")
+                
+            #     if payloads_to_explain:
+            #         # Generate explanations using the actual payloads
+            #         explanations = self.explainability_agent.explain_batch(payloads_to_explain)
+            #         result["explanations"] = explanations
+                    
+            #         logger.info(f"✓ Generated {len(explanations)} explanations")
+                    
+            #         # Display explanations
+            #         for i, exp in enumerate(explanations, 1):
+            #             logger.info(f"  {i}. {exp.summary}")
+            #     else:
+            #         logger.info("No payloads to explain found.")
+            # else:
+            #     logger.warning("No llm_payloads.json file found from optimizer")
         
         elif decision.action == ActionType.UPDATE_PREFERENCES_ONLY:
             logger.info("\n[STAGE 3] Updating preferences (optimizer not run)")
@@ -164,14 +225,14 @@ class AgentController:
                 "description": "User excludes a location"
             },
             {
-                "input": "I'd rate today a 9 out of 10!",
-                "context": {"family_id": "FAM_C", "day": 1},
-                "description": "User provides day rating (soft preference)"
-            },
-            {
-                "input": "We're running 30 minutes late due to traffic",
-                "context": None,
-                "description": "Delay reported (mocked - not yet handled)"
+                "input": "The Metro is on strike tomorrow.",
+                "context": {
+                    "family_id": "FAM_C", 
+                    "transport_mode": "METRO",    # Mode being disrupted
+                    "disruption_from_poi": "LOC_001",
+                    "disruption_to_poi": "LOC_002"
+                },
+                "description": "Transport Disruption (Metro Strike)"
             }
         ]
         

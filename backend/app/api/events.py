@@ -1,33 +1,45 @@
 from typing import Any
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from app.schemas.events import EventCreate, EventResponse, EventStatus
+from app.services.event_service import EventService
+from app.core.dependencies import get_current_user
+from app.schemas.auth import TokenPayload
 
 router = APIRouter()
 
 @router.post("/", response_model=EventResponse)
-async def create_event(event: EventCreate) -> Any:
+async def create_event(
+    event: EventCreate,
+    current_user: TokenPayload = Depends(get_current_user)
+) -> Any:
     """
     Receive an event from UI or Agents.
-    Stores it in the DB (mocked), triggers an async job (mocked), and returns immediately.
+    Stores it in the DB and triggers async processing.
     """
-    # 1. Generate Event ID
-    event_id = f"evt_{uuid.uuid4().hex[:8]}"
-    
-    # 2. Log reception (Simulating initial processing)
-    print(f"[Event API] Received event: {event.event_type} | ID: {event_id} | Entity: {event.entity_id}")
+    try:
+        # Extract user and family context from token
+        user_id = uuid.UUID(current_user.sub) if current_user.sub else None
+        family_id = uuid.UUID(current_user.family_id) if current_user.family_id else None
+        
+        # Create event in database
+        db_event = EventService.create_event(
+            event_data=event,
+            user_id=user_id,
+            family_id=family_id
+        )
+        
+        print(f"[Event API] Created event: {db_event.event_type} | ID: {db_event.id} | Family: {family_id}")
+        
+        # TODO: Trigger Celery task for async processing
+        # from app.tasks.event_tasks import process_event_async
+        # process_event_async.delay(str(db_event.id))
+        print(f"[Event API] (TODO) Trigger async processing for event {db_event.id}")
+        
+        return EventResponse(event_id=db_event.id, status=db_event.status)
+        
+    except Exception as e:
+        print(f"[Event API] Error creating event: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create event: {str(e)}")
 
-    # 3. Store in DB (Mocked)
-    # TODO: Integrate with actual Database
-    # db_event = EventModel(**event.dict(), id=event_id, status=EventStatus.QUEUED)
-    # session.add(db_event)
-    # session.commit()
-    print(f"[Event API] (Mock) Stored event {event_id} in DB.")
-
-    # 4. Trigger Celery Task (Mocked)
-    # TODO: Integrate with Celery
-    # handle_event.delay(event_id)
-    print(f"[Event API] (Mock) Triggered Async Celery task for event {event_id}.")
-    
-    return EventResponse(event_id=event_id, status=EventStatus.QUEUED)

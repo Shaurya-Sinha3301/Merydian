@@ -15,3 +15,8 @@ env/
 venv/
 .env
 .venv/
+__pycache__/
+*.log
+output/
+sessions/
+optimizer_outputs/

@@ -1,0 +1,10 @@
+{
+  "summary": {
+    "country_list": "PASS — 250 countries",
+    "city_list": "PASS — 1009 cities",
+    "hotel_code_list": "PASS — 4284 hotels",
+    "hotel_search": "PASS — 13 hotels with availability",
+    "hotel_details": "PASS — 1022371"
+  },
+  "timestamp": "2026-02-16T21:06:03.324603"
+}
