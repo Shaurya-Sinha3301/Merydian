@@ -141,7 +141,7 @@ def main():
                         "explanation": explanation.summary,
                         "family_id": payload.get("family_id")
                     })
-                    print(f"  📥 Explainability Agent Output: {explanation.summary[:50]}...")
+                    print(f"  📥 Explainability Agent Output: {explanation.summary}")
                     
                     # Rate limiting to avoid 429 errors
                     if payload != payloads_to_process[-1]:
