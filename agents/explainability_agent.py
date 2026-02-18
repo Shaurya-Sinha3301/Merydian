@@ -87,53 +87,82 @@ class ExplainabilityAgent:
         return [self.explain(payload) for payload in payloads]
     
     def _build_prompt(self, payload: Dict[str, Any]) -> str:
-        """Build the prompt for Groq API with causal tag explanations."""
+        """Build the prompt for Groq API based on audience."""
+        audience = payload.get("audience", "FAMILY")
         
+        if audience == "TRAVEL_AGENT":
+            return self._build_agent_prompt(payload)
+        else:
+            return self._build_family_prompt(payload)
+
+    def _build_family_prompt(self, payload: Dict[str, Any]) -> str:
+        """Build a persuasive, warm prompt for families."""
         payload_str = json.dumps(payload, indent=2)
         
-        prompt = f"""You are an explainability agent for a travel itinerary optimization system. Your job is to convert technical decision payloads into clear, concise, human-readable explanations.
+        prompt = f"""You are a helpful and persuasive travel assistant. Your goal is to explain itinerary changes to a family in a way that feels personal and exciting.
+
+Context:
+{payload_str}
+
+**Key Guidelines:**
+1. **Tone:** Warm, enthusiastic, and personal. Use "we" to refer to the optimization system.
+2. **Interest Alignment:** Emphasize that changes were made because "we identified you like this place" or it matches their interests.
+3. **Cost Framing:** 
+   - If there is an extra cost, frame it softly e.g., "for an extra cost of only X".
+   - If there are savings, highlight them as "saving you X".
+   - Do NOT mention "transport costs" separately unless it's a major saving.
+4. **Hide Technical Metrics:** Do NOT mention "satisfaction gain", "score", or "lambda". Instead say "it's a great fit" or "you'll love it".
+5. **Format:** Keep it conversational. Avoid bullet points unless listing multiple distinct changes.
+
+**Causal Tag Translations (Use these to explain the 'WHY' persuasively):**
+- INTEREST_VECTOR_DOMINANCE -> "Matches your interests perfectly"
+- SHARED_ANCHOR_REQUIRED -> "Great for the whole group to spend time together"
+- OPTIMIZER_SELECTED -> "Highly recommended for your trip based on your preferences"
+- OPTIMIZER_TRADEOFF -> "A smart choice that fits perfectly into your schedule"
+- TRANSPORT_ROUTING_OPTIMIZATION -> "Optimized for the smoothest travel experience"
+- BUS_UNAVAILABLE -> "Since bus services are currently unavailable"
+- METRO_UNAVAILABLE -> "Due to the metro strike"
+- AUTO_UNAVAILABLE -> "Since auto options are limited right now"
+- CAB_FALLBACK_UNAVAILABLE -> "Due to cab unavailability"
+- TRANSPORT_DISRUPTED -> "To avoid travel disruptions"
+- ROUTE_REROUTED / ROUTE_OPTIMIZED -> "We found a better route for you"
+- LOW_INTEREST_DROPPED -> "We found other places you might enjoy more"
+- OBJECTIVE_DOMINATED -> "We prioritized options that give you the best value and experience"
+- HISTORY_BAN -> "Due to historical site restrictions"
+
+Generate a short, engaging explanation for the changes in the payload. Focus on the 'WHY' and the 'VALUE'."""
+        return prompt
+
+    def _build_agent_prompt(self, payload: Dict[str, Any]) -> str:
+        """Build an analytical, metric-heavy prompt for travel agents."""
+        payload_str = json.dumps(payload, indent=2)
+        
+        prompt = f"""You are an explainability agent for a travel optimization system. Provide a professional, analytical report for a Travel Agent.
 
 Decision Payload:
 {payload_str}
 
-CAUSAL TAG DEFINITIONS (use these to explain WHY changes happened):
+**Guidelines:**
+1. **Tone:** Professional, objective, concise.
+2. **Metrics:** Explicitly mention Financial Deltas (Net Cost) and Satisfaction Deltas.
+3. **Structure:** Group by Family if necessary, but focus on the aggregate impact.
+4. **Causal Tags:** Use the technical definitions provided below.
 
-**Interest-Based Tags:**
-- INTEREST_VECTOR_DOMINANCE: This POI matches the family's interest tags very strongly (interest score > 1.2)
-- SHARED_ANCHOR_REQUIRED: This POI serves as a skeletal/anchor point that enables coordination between multiple families traveling together
-- OPTIMIZER_SELECTED: This POI was selected by the optimizer with moderate interest (score 0.8-1.2)
-- OPTIMIZER_TRADEOFF: This POI was added despite low interest because it optimizes other factors (time, routing, etc.)
+**Technical Tag Definitions:**
+- INTEREST_VECTOR_DOMINANCE: Strong interest match (>1.2)
+- SHARED_ANCHOR_REQUIRED: Critical for group coordination
+- OPTIMIZER_SELECTED: Selected by optimizer (score 0.8-1.2)
+- OPTIMIZER_TRADEOFF: Selected for logistical efficiency despite low interest
+- TRANSPORT_ROUTING_OPTIMIZATION: Route/POI selected due to transport changes
+- BUS/METRO/AUTO/CAB_UNAVAILABLE: Transport mode unavailability
+- TRANSPORT_DISRUPTED: Original mode disrupted
+- ROUTE_REROUTED: Found alternative mode
+- ROUTE_OPTIMIZED: Route efficiency improvement
+- LOW_INTEREST_DROPPED: Removed due to low relevance (<0.8)
+- OBJECTIVE_DOMINATED: Removed due to cost/time constraints > value
+- HISTORY_BAN: Removed due to site restrictions
 
-**Transport Disruption Tags:**
-- TRANSPORT_ROUTING_OPTIMIZATION: The route/POI selection was optimized due to transport changes
-- BUS_UNAVAILABLE: BUS transport is unavailable (strike, closure, etc.)
-- METRO_UNAVAILABLE: METRO transport is unavailable
-- AUTO_UNAVAILABLE: AUTO transport is unavailable
-- CAB_FALLBACK_UNAVAILABLE: CAB transport is unavailable
-- TRANSPORT_DISRUPTED: The original transport mode was disrupted
-- ROUTE_REROUTED: Successfully found an alternative transport mode
-- REROUTED_TO_METRO / REROUTED_TO_BUS / REROUTED_TO_CAB_FALLBACK: Rerouted to specific transport mode
-- ROUTE_OPTIMIZED: Route was optimized for better efficiency (no disruption)
-
-**Removal Tags:**
-- LOW_INTEREST_DROPPED: This POI was removed because it has low relevance to the family's interests (score < 0.8)
-- OBJECTIVE_DOMINATED: This POI was removed due to optimization tradeoffs (cost, time, or other constraints outweighed its value)
-
-Generate a brief, clear explanation (1-2 sentences) that describes:
-1. What changed in the itinerary (which POI, which day, which family)
-2. Why it changed (use the causal_tags to explain the reason)
-3. If available, mention the cost impact or satisfaction gain
-
-Guidelines:
-- Write in active voice for travelers/travel agents
-- Be concise and specific
-- Translate causal tags into natural language (don't say "SHARED_ANCHOR_REQUIRED", say "needed for group coordination")
-- Include actual POI names from the payload
-- Mention costs/satisfaction when relevant
-- Don't mention technical field names
-
-Return ONLY the explanation text, nothing else."""
-        
+Generate a structured report summarizing the changes, the reasons (using technical tags), and the net financial/satisfaction impact."""
         return prompt
     
     def _demo_explain(self, payload: Dict[str, Any]) -> AgentExplanation:
