@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
     ArrowLeft, TrendingUp, Sparkles, ChevronUp, ChevronDown,
     Zap, MessageSquare, Send, GripVertical, Plus, Minimize2,
@@ -9,8 +9,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTripById } from '@/lib/trips';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 type LaneCard = {
     id: string;
@@ -273,11 +271,9 @@ interface ItineraryDetailViewProps {
 }
 
 export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps) {
-    const router = useRouter();
     const trip = getTripById(tripId);
 
     const [activePanel, setActivePanel] = useState<'profit' | 'ai' | null>('ai');
-    const [activeTab, setActiveTab] = useState<'optimization' | 'groups' | 'bookings'>('optimization');
     const [aiInput, setAiInput] = useState('');
     const [panelHovered, setPanelHovered] = useState(false);
 
@@ -287,12 +283,12 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
                 <p className="font-[Outfit] font-bold text-xl text-foreground">Trip not found</p>
                 <p className="text-sm text-muted-foreground">No trip with ID “{tripId}” exists.</p>
-                <button
-                    onClick={() => router.push('/agent-dashboard/itinerary-management')}
-                    className="neu-button px-5 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-muted-foreground"
+                <Link
+                    href="/agent-dashboard/itinerary-management"
+                    className="neu-button px-5 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-muted-foreground hover:text-foreground no-underline"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back to Itineraries
-                </button>
+                </Link>
             </div>
         );
     }
@@ -347,47 +343,6 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden relative bg-background h-full">
-
-            {/* ── Sticky top bar ───────────────────────────────────────────────────── */}
-            <div className="flex items-center px-6 py-3 border-b border-border bg-background/80 backdrop-blur-sm z-40 shrink-0">
-                {/* Left: back + trip title */}
-                <div className="flex items-center gap-4 w-1/4 min-w-0">
-                    <button
-                        onClick={() => router.back()}
-                        className="neu-button w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground transition-all shrink-0"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                    </button>
-                    <div className="min-w-0">
-                        <h2 className="font-[Outfit] font-bold text-lg text-foreground leading-tight truncate">{trip.title}</h2>
-                        <p className="text-xs text-muted-foreground truncate">Client: {trip.client} · {trip.dateRange}</p>
-                    </div>
-                </div>
-
-                {/* Centre: tab pill */}
-                <div className="flex-1 flex justify-center">
-                    <div className="flex items-center bg-background/60 p-1.5 rounded-2xl neu-flat border border-white/60">
-                        {(['optimization', 'groups', 'bookings'] as const).map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={cn(
-                                    'px-6 py-2 rounded-xl text-sm font-semibold capitalize transition-all',
-                                    activeTab === tab
-                                        ? 'neu-pressed text-foreground shadow-inner'
-                                        : 'text-muted-foreground hover:text-foreground hover:bg-white/50',
-                                )}
-                            >
-                                {tab === 'optimization' ? 'Optimization' : tab === 'groups' ? 'Groups' : 'Bookings'}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Right spacer — balances the left column so the pill stays centred */}
-                <div className="w-1/4" />
-            </div>
-
 
             {/* ── Timeline ─────────────────────────────────────────────────────────── */}
             <div className={cn('flex-1 pb-72 scrollbar-hide', panelHovered ? 'overflow-hidden' : 'overflow-auto')}>
