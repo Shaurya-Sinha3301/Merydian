@@ -29,15 +29,9 @@ const FamilyMemberCard = ({ member }: FamilyMemberCardProps) => {
     const seed = name.toLowerCase().replace(/\s+/g, '-');
     const numericSeed = Math.abs(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % 100;
     
-    // Determine avatar style based on age and gender
-    if (age < 18) {
-      // Children - use avataaars style for cute, friendly child avatars
-      return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9&eyes=happy,wink&mouth=smile,twinkle&accessories=blank,prescription01,prescription02&accessoriesColor=black&clothesColor=blue01,blue02,blue03,red,pink&facialHairProbability=0&topProbability=100`;
-    } else {
-      // Adults - use more realistic avatars
-      const style = gender.toLowerCase() === 'male' ? 'male' : 'female';
-      return `https://randomuser.me/api/portraits/${style === 'male' ? 'men' : 'women'}/${numericSeed}.jpg`;
-    }
+    // Use realistic photos for everyone (adults and children)
+    const style = gender.toLowerCase() === 'male' ? 'men' : 'women';
+    return `https://randomuser.me/api/portraits/${style}/${numericSeed}.jpg`;
   };
 
   return (
@@ -52,9 +46,9 @@ const FamilyMemberCard = ({ member }: FamilyMemberCardProps) => {
       </div>
 
       <div className="flex flex-col items-center text-center relative z-10">
-        {/* Avatar with blue ring */}
+        {/* Avatar with thin black ring */}
         <div className="relative mb-6">
-          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-500 bg-gray-100 shadow-lg">
+          <div className="w-32 h-32 rounded-full overflow-hidden border border-black bg-gray-100 shadow-lg">
             <img 
               src={getAvatarUrl(member.name, member.gender, member.age)} 
               alt={member.name}
