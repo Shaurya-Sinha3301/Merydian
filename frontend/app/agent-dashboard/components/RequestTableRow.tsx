@@ -122,26 +122,11 @@ const RequestTableRow = ({ request, onQuickAction }: RequestTableRowProps) => {
       {/* Actions */}
       <td className="px-4 py-4">
         <div className="flex items-center space-x-2">
-          <Link
-            href={`/agent-dashboard/${request.id}`}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-smooth text-sm font-medium"
-          >
-            <Icon name="EyeIcon" size={16} />
-            <span>View Group</span>
-          </Link>
           <button
             title="Quick assign"
           >
             <Icon name="UserPlusIcon" size={16} />
           </button>
-
-          <Link
-            href={`/agent-dashboard/bookings?groupId=${request.id}`}
-            className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-foreground hover:bg-muted/80 transition-smooth"
-            title="Manage Bookings"
-          >
-            <Icon name="TicketIcon" size={16} />
-          </Link>
         </div>
       </td>
     </tr>

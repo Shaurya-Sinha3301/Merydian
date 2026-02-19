@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardMetrics from './DashboardMetrics';
 import RequestFilters, { FilterState } from './RequestFilters';
 import RequestsTable from './RequestsTable';
 import MobileRequestsList from './MobileRequestsList';
 import { TripRequest } from '@/lib/agent-dashboard/types';
 import { activeGroups } from '@/lib/agent-dashboard/data';
-import BookingExplorer from './BookingExplorer';
-import { ArrowLeft } from 'lucide-react';
 
 const AgentDashboardInteractive = () => {
+  const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [filteredRequests, setFilteredRequests] = useState<TripRequest[]>(activeGroups);
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,9 +19,6 @@ const AgentDashboardInteractive = () => {
     priority: 'all',
     sortBy: 'newest',
   });
-
-  // New State for Booking View
-  const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -84,8 +81,8 @@ const AgentDashboardInteractive = () => {
 
   const handleQuickAction = (requestId: string, action: string) => {
     console.log(`Quick action: ${action} for request ${requestId}`);
-    if (action === 'approve' || action === 'review') { // Assuming 'approve' or entering review opens booking
-      setSelectedRequest(requestId);
+    if (action === 'approve' || action === 'review') {
+      router.push(`/agent-dashboard/itinerary-management/${requestId}`);
     }
   };
 
@@ -109,25 +106,6 @@ const AgentDashboardInteractive = () => {
           </div>
           <div className="h-64 bg-muted rounded-lg" />
         </div>
-      </div>
-    );
-  }
-
-  // Render Booking Explorer if a request is selected
-  if (selectedRequest) {
-    const request = activeGroups.find(r => r.id === selectedRequest);
-    return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <button
-          onClick={() => setSelectedRequest(null)}
-          className="mb-4 flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
-        </button>
-        <BookingExplorer
-          requestId={selectedRequest}
-          initialLocation={request?.destination || "Goa"}
-        />
       </div>
     );
   }
