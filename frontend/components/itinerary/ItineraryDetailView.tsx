@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     ArrowLeft, TrendingUp, Sparkles, ChevronUp, ChevronDown,
-    Zap, MessageSquare, Send, GripVertical, Plus, Minimize2, Maximize2
+    Zap, MessageSquare, Send, GripVertical, Plus, Minimize2,
+    Maximize2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTripById } from '@/lib/trips';
@@ -275,8 +276,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
     const router = useRouter();
     const trip = getTripById(tripId);
 
-    const [aiOpen, setAiOpen] = useState(true);
-    const [profitOpen, setProfitOpen] = useState(true);
+    const [activePanel, setActivePanel] = useState<'profit' | 'ai' | null>('ai');
     const [aiInput, setAiInput] = useState('');
     const [panelHovered, setPanelHovered] = useState(false);
 
@@ -321,7 +321,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isTyping, aiOpen]);
+    }, [messages, isTyping, activePanel]);
 
     const sendMessage = () => {
         const text = aiInput.trim();
@@ -439,101 +439,125 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                 })}
             </div>
 
-            {/* ── Floating Panels ───────────────────────────────────────────────────── */}
 
-            {/* Profit Impact (bottom-left) */}
-            <FloatingPanel
-                position="left"
-                title="Profit Impact"
-                icon={
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">
-                        +2.4%
-                    </span>
-                }
-                isOpen={profitOpen}
-                onToggle={() => setProfitOpen((p) => !p)}
-                onMouseEnter={() => setPanelHovered(true)}
-                onMouseLeave={() => setPanelHovered(false)}
-            >
-                {/* Big number */}
-                <div>
-                    <div className="flex items-end gap-2 mb-1">
-                        <span className="text-4xl font-bold text-foreground leading-none tracking-tight font-[Outfit]">21.1%</span>
-                        <TrendingUp className="w-6 h-6 text-green-500 mb-1" />
-                    </div>
-                    <p className="text-xs text-muted-foreground font-medium">
-                        Previous:{' '}
-                        <span className="line-through text-muted-foreground/60">18.7%</span>
-                        <span className="mx-1">→</span>
-                        <span className="text-green-600 font-bold">Now: 21.1%</span>
-                    </p>
-                </div>
-
-                {/* Revenue row — adds visual weight to match VoyageurAI panel height */}
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="neu-pressed rounded-xl p-3 flex flex-col">
-                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Total Revenue</span>
-                        <span className="text-base font-bold text-foreground font-[Outfit]">$12,450</span>
-                    </div>
-                    <div className="neu-pressed rounded-xl p-3 flex flex-col">
-                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Est. Cost</span>
-                        <span className="text-base font-bold text-muted-foreground font-[Outfit]">$9,820</span>
-                    </div>
-                </div>
-
-                {/* AI insights box */}
-                <div className="neu-pressed rounded-2xl p-4">
-                    <div className="flex items-center gap-2 mb-2.5">
-                        <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                        <span className="text-[10px] uppercase font-bold text-indigo-500 tracking-wider">AI Insights</span>
-                    </div>
-                    <ul className="space-y-2">
-                        {PROFIT_INSIGHTS.map((item, i) => (
-                            <li key={i} className="flex gap-2 items-start text-[11px] text-muted-foreground leading-tight">
-                                <span className={cn('w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0', item.dot)} />
-                                {item.text}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </FloatingPanel>
-
-            {/* VoyageurAI chatbot (bottom-right) */}
+            {/* ── Floating Panels (bottom-right, only one open at a time) ───────────── */}
+            {/*
+             *  activePanel === 'profit' → Profit Impact card, VoyageurAI icon pill beside it
+             *  activePanel === 'ai'     → VoyageurAI card, Profit Impact icon pill beside it
+             *  activePanel === null     → Both collapsed to icon pills side-by-side
+             */}
             <div
-                className={cn(
-                    'fixed bottom-6 z-[60] w-[calc(50vw-220px)] min-w-[320px] max-w-[440px] neu-card rounded-3xl border border-white/60 shadow-2xl transition-all duration-300 flex flex-col',
-                    'right-6',
-                    aiOpen ? 'max-h-[78vh]' : '',
-                )}
+                className="fixed bottom-6 right-6 z-[60] flex items-end gap-3"
                 onMouseEnter={() => setPanelHovered(true)}
                 onMouseLeave={() => setPanelHovered(false)}
             >
-                {/* Panel header */}
-                <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shrink-0">
-                            <MessageSquare className="w-4 h-4" />
-                        </div>
-                        <h3 className="font-[Outfit] font-bold text-foreground text-base">Voyageur AI</h3>
-                        {isTyping && (
-                            <span className="flex gap-1 items-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
-                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
-                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
-                            </span>
-                        )}
-                    </div>
+                {/* Profit Impact icon pill — shown when AI panel is active or both collapsed */}
+                {activePanel !== 'profit' && (
                     <button
-                        onClick={() => setAiOpen((p) => !p)}
-                        className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
+                        onClick={() => setActivePanel('profit')}
+                        className="relative neu-card w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition-all shadow-lg border border-white/50 shrink-0"
+                        title="Open Profit Impact"
                     >
-                        {aiOpen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                        <TrendingUp className="w-6 h-6 text-green-500" />
+                        <span className="absolute -top-1 -right-1 bg-green-100 border border-green-200 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                            +2.4%
+                        </span>
                     </button>
-                </div>
+                )}
 
-                {/* Scrollable message list */}
-                {aiOpen && (
-                    <>
+                {/* VoyageurAI icon pill — shown when Profit panel is active or both collapsed */}
+                {activePanel !== 'ai' && (
+                    <button
+                        onClick={() => setActivePanel('ai')}
+                        className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white hover:scale-105 transition-all shadow-lg shrink-0"
+                        title="Open Voyageur AI"
+                    >
+                        <MessageSquare className="w-6 h-6" />
+                    </button>
+                )}
+
+                {/* ── Profit Impact expanded card ── */}
+                {activePanel === 'profit' && (
+                    <div className="w-[360px] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
+                        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Profit Impact</h3>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">+2.4%</span>
+                            </div>
+                            <button
+                                onClick={() => setActivePanel(null)}
+                                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
+                                title="Minimize"
+                            >
+                                <Minimize2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="px-5 pb-5 space-y-3">
+                            <div>
+                                <div className="flex items-end gap-2 mb-1">
+                                    <span className="text-4xl font-bold text-foreground leading-none tracking-tight font-[Outfit]">21.1%</span>
+                                    <TrendingUp className="w-6 h-6 text-green-500 mb-1" />
+                                </div>
+                                <p className="text-xs text-muted-foreground font-medium">
+                                    Previous:{' '}
+                                    <span className="line-through text-muted-foreground/60">18.7%</span>
+                                    <span className="mx-1">→</span>
+                                    <span className="text-green-600 font-bold">Now: 21.1%</span>
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="neu-pressed rounded-xl p-3 flex flex-col">
+                                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Total Revenue</span>
+                                    <span className="text-base font-bold text-foreground font-[Outfit]">$12,450</span>
+                                </div>
+                                <div className="neu-pressed rounded-xl p-3 flex flex-col">
+                                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Est. Cost</span>
+                                    <span className="text-base font-bold text-muted-foreground font-[Outfit]">$9,820</span>
+                                </div>
+                            </div>
+                            <div className="neu-pressed rounded-2xl p-4">
+                                <div className="flex items-center gap-2 mb-2.5">
+                                    <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                                    <span className="text-[10px] uppercase font-bold text-indigo-500 tracking-wider">AI Insights</span>
+                                </div>
+                                <ul className="space-y-2">
+                                    {PROFIT_INSIGHTS.map((item, i) => (
+                                        <li key={i} className="flex gap-2 items-start text-[11px] text-muted-foreground leading-tight">
+                                            <span className={cn('w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0', item.dot)} />
+                                            {item.text}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── VoyageurAI chatbot expanded card ── */}
+                {activePanel === 'ai' && (
+                    <div className="w-[360px] max-h-[78vh] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
+                        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shrink-0">
+                                    <MessageSquare className="w-4 h-4" />
+                                </div>
+                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Voyageur AI</h3>
+                                {isTyping && (
+                                    <span className="flex gap-1 items-center">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
+                                    </span>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => setActivePanel(null)}
+                                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
+                                title="Minimize"
+                            >
+                                <Minimize2 className="w-4 h-4" />
+                            </button>
+                        </div>
                         <div className="flex-1 overflow-y-auto px-4 pb-2 scrollbar-hide space-y-3 min-h-0">
                             {messages.map((msg, i) => (
                                 <div key={i} className={cn('flex flex-col gap-1', msg.role === 'user' ? 'items-end' : 'items-start')}>
@@ -548,7 +572,6 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                     <span suppressHydrationWarning className="text-[9px] text-muted-foreground/60 px-1">{msg.time}</span>
                                 </div>
                             ))}
-                            {/* Typing indicator bubble */}
                             {isTyping && (
                                 <div className="flex items-start">
                                     <div className="neu-pressed px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1 items-center">
@@ -560,8 +583,6 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                             )}
                             <div ref={messagesEndRef} />
                         </div>
-
-                        {/* Pinned input bar */}
                         <div className="px-4 pb-4 pt-2 shrink-0">
                             <div className="relative">
                                 <input
@@ -581,7 +602,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                 </button>
                             </div>
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
         </div>
