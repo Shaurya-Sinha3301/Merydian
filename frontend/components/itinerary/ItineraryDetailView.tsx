@@ -216,6 +216,8 @@ function FloatingPanel({
     onToggle,
     children,
     position,
+    onMouseEnter,
+    onMouseLeave,
 }: {
     title: React.ReactNode;
     icon: React.ReactNode;
@@ -223,13 +225,19 @@ function FloatingPanel({
     onToggle: () => void;
     children: React.ReactNode;
     position: 'left' | 'right';
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
 }) {
     return (
-        <div className={cn(
-            // fixed keeps the panel anchored to the viewport bottom regardless of scroll
-            'fixed bottom-6 z-[60] w-[calc(50vw-220px)] min-w-[320px] max-w-[440px] neu-card rounded-3xl border border-white/60 shadow-2xl transition-all duration-300',
-            position === 'left' ? 'left-[calc(256px+24px)]' : 'right-6',
-        )}>
+        <div
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            className={cn(
+                // fixed keeps the panel anchored to the viewport bottom regardless of scroll
+                'fixed bottom-6 z-[60] w-[calc(50vw-220px)] min-w-[320px] max-w-[440px] neu-card rounded-3xl border border-white/60 shadow-2xl transition-all duration-300',
+                position === 'left' ? 'left-[calc(256px+24px)]' : 'right-6',
+            )}
+        >
             {/* Panel header */}
             <div className={cn('flex items-center justify-between p-5', isOpen ? 'pb-4' : '')}>
                 <div className="flex items-center gap-3">
@@ -271,6 +279,7 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
     const [aiOpen, setAiOpen] = useState(true);
     const [profitOpen, setProfitOpen] = useState(true);
     const [aiInput, setAiInput] = useState('');
+    const [panelHovered, setPanelHovered] = useState(false);
 
     // ── Chat state ─────────────────────────────────────────────────────────────
 
@@ -290,7 +299,7 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isTyping]);
+    }, [messages, isTyping, aiOpen]);
 
     const sendMessage = () => {
         const text = aiInput.trim();
@@ -360,7 +369,7 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
             </div>
 
             {/* ── Timeline ─────────────────────────────────────────────────────────── */}
-            <div className="flex-1 overflow-auto pb-72 scrollbar-hide">
+            <div className={cn('flex-1 pb-72 scrollbar-hide', panelHovered ? 'overflow-hidden' : 'overflow-auto')}>
 
                 {TIMELINE_ROWS.map((row) => {
                     const isMultiLane = row.cards.length > 1;
@@ -421,6 +430,8 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
                 }
                 isOpen={profitOpen}
                 onToggle={() => setProfitOpen((p) => !p)}
+                onMouseEnter={() => setPanelHovered(true)}
+                onMouseLeave={() => setPanelHovered(false)}
             >
                 {/* Big number */}
                 <div>
@@ -466,11 +477,15 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
             </FloatingPanel>
 
             {/* VoyageurAI chatbot (bottom-right) */}
-            <div className={cn(
-                'fixed bottom-6 z-[60] w-[calc(50vw-220px)] min-w-[320px] max-w-[440px] neu-card rounded-3xl border border-white/60 shadow-2xl transition-all duration-300 flex flex-col',
-                'right-6',
-                aiOpen ? 'max-h-[78vh]' : '',
-            )}>
+            <div
+                className={cn(
+                    'fixed bottom-6 z-[60] w-[calc(50vw-220px)] min-w-[320px] max-w-[440px] neu-card rounded-3xl border border-white/60 shadow-2xl transition-all duration-300 flex flex-col',
+                    'right-6',
+                    aiOpen ? 'max-h-[78vh]' : '',
+                )}
+                onMouseEnter={() => setPanelHovered(true)}
+                onMouseLeave={() => setPanelHovered(false)}
+            >
                 {/* Panel header */}
                 <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
                     <div className="flex items-center gap-3">
