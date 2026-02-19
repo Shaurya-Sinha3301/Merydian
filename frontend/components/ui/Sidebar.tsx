@@ -37,7 +37,7 @@ const sidebarStructure: { label: string; icon: React.ElementType; children?: Sid
     {
         label: "Optimizer Window",
         icon: AdjustmentsHorizontalIcon,
-        href: "/optimizer"
+        href: "/agent-dashboard/itinerary-management"
     },
     {
         label: "Group Details",
