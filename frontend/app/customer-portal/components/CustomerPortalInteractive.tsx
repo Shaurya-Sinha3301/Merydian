@@ -33,11 +33,19 @@ const CustomerPortalInteractive = () => {
   const router = useRouter();
   const [showPlanTripModal, setShowPlanTripModal] = useState(false);
   const [showAgentChatModal, setShowAgentChatModal] = useState(false);
-  const [selectedTripForItinerary, setSelectedTripForItinerary] = useState<string | null>(null);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [familyName, setFamilyName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleViewItinerary = (tripId: string) => {
+    router.push(`/customer-itinerary/${tripId}`);
+  };
+
+  const handleViewBooking = (bookingId: string) => {
+    // Navigate to bookings page with the specific booking highlighted
+    router.push(`/customer-bookings?highlight=${bookingId}`);
+  };
 
   useEffect(() => {
     // Get family ID from session storage
@@ -49,7 +57,7 @@ const CustomerPortalInteractive = () => {
     }
 
     // Find family in active and upcoming groups
-    let foundFamily = null;
+    let foundFamily: any = null;
     let foundGroups: Trip[] = [];
     const familyGroupMap: { [key: string]: string } = {}; // Map trip ID to group ID
 
@@ -152,6 +160,16 @@ const CustomerPortalInteractive = () => {
             </div>
             <div className="flex items-center gap-3">
               <button
+                onClick={() => router.push('/customer-bookings')}
+                className="px-4 py-2 bg-[#FDFDFF] text-[#212121] rounded-lg font-medium hover:bg-[#EDEDED] transition-all flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
+                  <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                </svg>
+                <span>My Bookings</span>
+              </button>
+              <button
                 onClick={() => setShowAgentChatModal(true)}
                 className="px-4 py-2 bg-[#FDFDFF] text-[#212121] rounded-lg font-medium hover:bg-[#EDEDED] transition-all flex items-center gap-2"
               >
@@ -219,7 +237,8 @@ const CustomerPortalInteractive = () => {
                         <TripCard
                           key={trip.id}
                           trip={trip}
-                          onViewItinerary={() => setSelectedTripForItinerary(trip.id)}
+                          onViewItinerary={() => handleViewItinerary(trip.id)}
+                          onViewBooking={handleViewBooking}
                         />
                       ))}
                   </div>
@@ -237,7 +256,8 @@ const CustomerPortalInteractive = () => {
                         <TripCard
                           key={trip.id}
                           trip={trip}
-                          onViewItinerary={() => setSelectedTripForItinerary(trip.id)}
+                          onViewItinerary={() => handleViewItinerary(trip.id)}
+                          onViewBooking={handleViewBooking}
                         />
                       ))}
                   </div>
@@ -255,13 +275,6 @@ const CustomerPortalInteractive = () => {
 
       {showAgentChatModal && (
         <AgentChatModal onClose={() => setShowAgentChatModal(false)} />
-      )}
-
-      {selectedTripForItinerary && (
-        <DetailedItineraryModal
-          tripId={selectedTripForItinerary}
-          onClose={() => setSelectedTripForItinerary(null)}
-        />
       )}
     </>
   );
