@@ -1,10 +1,30 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+
+// Redirect route mapping
+const REDIRECT_ROUTES = {
+  customer: '/customer-preferences',
+  agent: '/agent-dashboard/itinerary-management'
+} as const;
 
 export default function LoginPage() {
-  const [userType, setUserType] = useState<'customer' | 'agent'>('customer');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // Initialize user type from URL parameter or default to 'customer'
+  const [userType, setUserType] = useState<'customer' | 'agent'>(() => {
+    const typeParam = searchParams.get('type');
+    return typeParam === 'agent' ? 'agent' : 'customer';
+  });
+
+  const handleLogin = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Navigate to appropriate dashboard based on user type
+    router.push(REDIRECT_ROUTES[userType]);
+  };
 
   return (
     <div className="min-h-screen bg-[#FDFDFF] flex items-center justify-center p-6">
@@ -78,19 +98,19 @@ export default function LoginPage() {
           </div>
 
           {userType === 'customer' ? (
-            <Link
-              href="/customer-preferences"
-              className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center block"
+            <button
+              onClick={handleLogin}
+              className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center"
             >
               Login to Customer Portal
-            </Link>
+            </button>
           ) : (
-            <Link
-              href="/agent-dashboard"
-              className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center block"
+            <button
+              onClick={handleLogin}
+              className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center"
             >
               Login to Agent Portal
-            </Link>
+            </button>
           )}
         </form>
 
