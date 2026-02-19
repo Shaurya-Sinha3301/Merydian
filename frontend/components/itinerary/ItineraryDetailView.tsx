@@ -277,6 +277,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
     const trip = getTripById(tripId);
 
     const [activePanel, setActivePanel] = useState<'profit' | 'ai' | null>('ai');
+    const [activeTab, setActiveTab] = useState<'optimization' | 'groups' | 'bookings'>('optimization');
     const [aiInput, setAiInput] = useState('');
     const [panelHovered, setPanelHovered] = useState(false);
 
@@ -349,46 +350,63 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
 
             {/* ── Sticky top bar ───────────────────────────────────────────────────── */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-background/80 backdrop-blur-sm z-40 shrink-0">
-                <div className="flex items-center gap-4">
+                {/* Left: back + trip title */}
+                <div className="flex items-center gap-4 w-1/4 min-w-0">
                     <button
                         onClick={() => router.back()}
-                        className="neu-button w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground transition-all"
+                        className="neu-button w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground transition-all shrink-0"
                     >
                         <ArrowLeft className="w-4 h-4" />
                     </button>
-                    <div>
-                        <h2 className="font-[Outfit] font-bold text-lg text-foreground leading-tight">{trip.title}</h2>
-                        <p className="text-xs text-muted-foreground">Client: {trip.client} · {trip.dateRange}</p>
+                    <div className="min-w-0">
+                        <h2 className="font-[Outfit] font-bold text-lg text-foreground leading-tight truncate">{trip.title}</h2>
+                        <p className="text-xs text-muted-foreground truncate">Client: {trip.client} · {trip.dateRange}</p>
                     </div>
                 </div>
 
-                {/* Summary numbers */}
-                <div className="flex items-center gap-6 neu-flat rounded-2xl px-5 py-2.5 border border-white">
-                    <div className="flex flex-col border-r border-slate-200 pr-5">
-                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Total Rev.</span>
-                        <span className="text-sm font-bold text-foreground leading-tight">$12,450</span>
+                {/* Centre: tab pill */}
+                <div className="flex-1 flex justify-center">
+                    <div className="flex items-center bg-background/60 p-1.5 rounded-2xl neu-flat border border-white/60">
+                        {(['optimization', 'groups', 'bookings'] as const).map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={cn(
+                                    'px-6 py-2 rounded-xl text-sm font-semibold capitalize transition-all',
+                                    activeTab === tab
+                                        ? 'neu-pressed text-foreground shadow-inner'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-white/50',
+                                )}
+                            >
+                                {tab === 'optimization' ? 'Optimization' : tab === 'groups' ? 'Groups' : 'Bookings'}
+                            </button>
+                        ))}
                     </div>
-                    <div className="flex flex-col border-r border-slate-200 pr-5">
-                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Est. Cost</span>
-                        <span className="text-sm font-bold text-muted-foreground leading-tight">$9,820</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Profit Margin</span>
-                            <span className="text-[9px] font-bold px-1.5 rounded bg-green-100 text-green-700">+2.4%</span>
+                </div>
+
+                {/* Right: summary numbers (no profit margin, no Save) */}
+                <div className="flex items-center gap-5 w-1/4 justify-end">
+                    <div className="flex items-center gap-5 neu-flat rounded-2xl px-5 py-2.5 border border-white">
+                        <div className="flex flex-col border-r border-slate-200 pr-5">
+                            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Total Rev.</span>
+                            <span className="text-sm font-bold text-foreground leading-tight">$12,450</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-base font-bold text-green-600 leading-tight">21.1%</span>
-                            <div className="w-14 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-green-500 w-[21%]" />
-                            </div>
+                        <div className="flex flex-col">
+                            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Est. Cost</span>
+                            <span className="text-sm font-bold text-muted-foreground leading-tight">$9,820</span>
                         </div>
                     </div>
-                    <button className="ml-2 px-4 py-2 rounded-xl bg-foreground text-background text-xs font-semibold hover:opacity-80 transition-opacity flex items-center gap-1.5 shrink-0">
+                </div>
+            </div>
+
+            {/* ── Optimization sub-bar: Save button (only on Optimization tab) ──────── */}
+            {activeTab === 'optimization' && (
+                <div className="flex items-center justify-end px-6 py-2 border-b border-border/50 bg-background/60 shrink-0">
+                    <button className="px-4 py-1.5 rounded-xl bg-foreground text-background text-xs font-semibold hover:opacity-80 transition-opacity flex items-center gap-1.5">
                         <span className="text-[13px]">💾</span> Save
                     </button>
                 </div>
-            </div>
+            )}
 
             {/* ── Timeline ─────────────────────────────────────────────────────────── */}
             <div className={cn('flex-1 pb-72 scrollbar-hide', panelHovered ? 'overflow-hidden' : 'overflow-auto')}>
