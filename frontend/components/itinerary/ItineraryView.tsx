@@ -17,9 +17,10 @@ import ImageGalleryModal from './ImageGalleryModal';
 
 interface ItineraryViewProps {
   groupId: string;
+  isCustomerView?: boolean; // Hide agent-only features when true
 }
 
-export default function ItineraryView({ groupId }: ItineraryViewProps) {
+export default function ItineraryView({ groupId, isCustomerView = false }: ItineraryViewProps) {
   const itinerary = getItineraryByGroupId(groupId);
   const [selectedDay, setSelectedDay] = useState(1);
   const [showOptimizeModal, setShowOptimizeModal] = useState(false);
@@ -53,8 +54,8 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
 
   return (
     <div className="space-y-6 bg-gray-50 min-h-screen p-6">
-      {/* Disruption Alert Banner */}
-      {hasAnyDisruptions && (
+      {/* Disruption Alert Banner - Only for agents */}
+      {!isCustomerView && hasAnyDisruptions && (
         <div className="bg-black text-white p-6 rounded-2xl">
           <h3 className="text-xl font-bold mb-2">
             {allDisruptions.length} Active Disruption{allDisruptions.length > 1 ? 's' : ''}
@@ -229,7 +230,7 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
         <button className="flex-1 py-4 px-6 bg-white text-black font-semibold rounded-xl border-2 border-black hover:bg-black hover:text-white transition-colors">
           Share with Group
         </button>
-        {hasAnyDisruptions && (
+        {!isCustomerView && hasAnyDisruptions && (
           <button 
             onClick={() => setShowOptimizeModal(true)}
             className="flex-1 py-4 px-6 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors"
@@ -239,8 +240,8 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
         )}
       </div>
 
-      {/* Optimize Modal */}
-      {showOptimizeModal && (
+      {/* Optimize Modal - Only for agents */}
+      {!isCustomerView && showOptimizeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center neu-modal-overlay" onClick={() => setShowOptimizeModal(false)}>
           <div 
             className="neu-modal max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto p-8"

@@ -126,7 +126,7 @@ const DetailedItineraryModal = ({ tripId, onClose }: DetailedItineraryModalProps
 
         {/* Itinerary Content */}
         <div className="p-6 max-h-[70vh] overflow-y-auto">
-          {groupId && <ItineraryView groupId={groupId} />}
+          {groupId && <ItineraryView groupId={groupId} isCustomerView={true} />}
         </div>
 
         {/* Footer */}
