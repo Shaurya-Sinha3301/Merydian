@@ -304,7 +304,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
             {/* ── CENTER COLUMN ──────────────────────────────────────────────────── */}
             <main className="flex-1 flex flex-col overflow-hidden min-w-0">
 
-                {/* Top section: Activity Log */}
+                {/* Activity Log - 50% height */}
                 <div className="flex-1 overflow-hidden p-4 pb-2 flex flex-col">
                     <div className="neu-raised rounded-3xl flex flex-col overflow-hidden border border-white/60 h-full">
                         {/* Header */}
@@ -378,14 +378,14 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                     </div>
                 </div>
 
-                {/* Bottom row: Live Chat — uses remaining / footer space */}
-                <div className="h-[220px] px-4 pb-4 shrink-0 flex flex-col">
+                {/* Chat - 50% height */}
+                <div className="flex-1 px-4 pb-4 flex flex-col">
                     <div className="neu-raised rounded-3xl flex flex-col overflow-hidden border border-white/60 h-full">
                         {/* Chat header */}
                         <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200/40 shrink-0">
                             <div className="flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                <span className="font-bold text-slate-800 text-xs">Live Chat</span>
+                                <span className="font-bold text-slate-800 text-xs">Chat</span>
                                 {activeFamilyData && (
                                     <span className="text-[10px] text-slate-500">— {activeFamilyData.name}</span>
                                 )}
@@ -496,43 +496,33 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                     </button>
                 </div>
 
-                {/* AI Insight */}
-                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-4 shadow-xl text-white relative overflow-hidden shrink-0">
-                    <div className="absolute top-0 right-0 p-2 opacity-20">
-                        <Sparkles className="w-12 h-12" />
-                    </div>
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-1.5 mb-2">
-                            <span className="bg-white/20 p-1 rounded-lg backdrop-blur-sm">
-                                <Zap className="w-3 h-3 text-white" />
-                            </span>
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-white/90">AI Insight</span>
-                        </div>
-                        <p className="text-[11px] leading-relaxed font-medium text-white/90 mb-3">
-                            High satisfaction detected! Suggest the{' '}
-                            <span className="font-bold text-white underline decoration-wavy decoration-white/50">Sunset Cruise</span>{' '}
-                            upgrade now.
-                        </p>
-                        <button className="w-full py-1.5 bg-white text-indigo-600 text-[10px] font-bold rounded-xl shadow-sm hover:bg-indigo-50 transition-colors">
-                            Draft Suggestion
-                        </button>
-                    </div>
-                </div>
             </aside>
 
-            {/* ── Voyageur AI Floating Button + Panel (bottom-left, closed by default) ── */}
-            <div className="fixed bottom-6 left-6 z-[60] flex items-end gap-3">
+            {/* ── Voyageur AI Floating Button + Panel (bottom-right, closed by default) ── */}
+            <div className="fixed bottom-6 right-6 z-[60] flex items-end gap-3">
+                {/* AI toggle button */}
+                {!aiOpen && (
+                    <button
+                        onClick={() => setAiOpen(true)}
+                        className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white hover:scale-105 transition-all shadow-lg"
+                        title="Open Voyageur AI"
+                    >
+                        <MessageSquare className="w-6 h-6" />
+                    </button>
+                )}
+
+                {/* AI Panel */}
                 {aiOpen && (
-                    <div className="w-[340px] max-h-[70vh] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
+                    <div className="w-[360px] max-h-[78vh] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
                         {/* AI Panel Header */}
-                        <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
-                            <div className="flex items-center gap-2.5">
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md">
-                                    <MessageSquare className="w-3.5 h-3.5" />
+                        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shrink-0">
+                                    <MessageSquare className="w-4 h-4" />
                                 </div>
-                                <span className="font-bold text-foreground text-sm">Voyageur AI</span>
+                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Voyageur AI</h3>
                                 {aiTyping && (
-                                    <span className="flex gap-1 items-center ml-1">
+                                    <span className="flex gap-1 items-center">
                                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
                                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
                                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
@@ -542,49 +532,56 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                             <button
                                 onClick={() => setAiOpen(false)}
                                 className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
+                                title="Minimize"
                             >
                                 <Minimize2 className="w-4 h-4" />
                             </button>
                         </div>
 
-                        {/* Static insights */}
-                        <div className="px-5 pb-3 shrink-0">
-                            <div className="neu-pressed rounded-2xl p-3.5 border border-slate-200/60">
-                                <div className="flex items-center gap-1.5 mb-2.5">
-                                    <Zap className="w-3 h-3 text-purple-600 fill-purple-100" />
-                                    <span className="text-[9px] uppercase font-bold text-purple-600 tracking-wider">Group Insights</span>
+                        {/* Group Insights (Static Section) */}
+                        <div className="px-5 pb-2 shrink-0">
+                            <div className="neu-pressed rounded-2xl p-4 border border-slate-200/60 shadow-inner">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Zap className="w-3.5 h-3.5 text-purple-600 fill-purple-100" />
+                                    <span className="text-[10px] uppercase font-bold text-purple-600 tracking-wider">Group Insights</span>
                                 </div>
-                                <ul className="space-y-2">
-                                    {[
-                                        { dot: 'bg-green-500', text: 'Sharma & Singh families show high satisfaction scores.' },
-                                        { dot: 'bg-red-500', text: 'Mehta family AC complaint requires urgent follow-up.' },
-                                        { dot: 'bg-amber-500', text: '1 pending late checkout request awaiting approval.' },
-                                    ].map(({ dot, text }, i) => (
-                                        <li key={i} className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
-                                            <span className={cn('w-1.5 h-1.5 rounded-full mt-1 shrink-0', dot)} />
-                                            <span>{text}</span>
-                                        </li>
-                                    ))}
+                                <ul className="space-y-3">
+                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0 shadow-sm" />
+                                        <span>Sharma & Singh families show high satisfaction scores.</span>
+                                    </li>
+                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 shadow-sm" />
+                                        <span><span className="font-bold text-slate-800">Urgent:</span> Mehta family AC complaint requires follow-up.</span>
+                                    </li>
+                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0 shadow-sm" />
+                                        <span>1 pending late checkout request awaiting approval.</span>
+                                    </li>
+                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 shrink-0 shadow-sm" />
+                                        <span><span className="font-bold text-slate-800">Suggestion:</span> Offer Sunset Cruise upgrade to high-satisfaction families.</span>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
 
                         {/* AI Chat messages */}
-                        <div className="flex-1 overflow-y-auto px-4 pb-2 scrollbar-hide space-y-2.5 min-h-[80px]">
+                        <div className="flex-1 overflow-y-auto px-4 pb-2 scrollbar-hide space-y-3 min-h-[100px]">
                             {aiMessages.map((msg, i) => (
-                                <div key={i} className={cn('flex flex-col gap-0.5', msg.role === 'user' ? 'items-end' : 'items-start')}>
+                                <div key={i} className={cn('flex flex-col gap-1', msg.role === 'user' ? 'items-end' : 'items-start')}>
                                     <div className={cn(
-                                        'px-3 py-2 rounded-2xl text-[11px] leading-relaxed max-w-[90%] shadow-sm',
+                                        'px-3.5 py-2.5 rounded-2xl text-[12px] leading-relaxed max-w-[88%] shadow-sm',
                                         msg.role === 'ai'
                                             ? 'neu-pressed text-foreground rounded-tl-sm border border-slate-200/60'
-                                            : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-tr-sm shadow-md'
+                                            : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-tr-sm shadow-md border-t border-white/20'
                                     )}>{msg.text}</div>
                                     <span className="text-[9px] text-muted-foreground/60 px-1">{msg.time}</span>
                                 </div>
                             ))}
                             {aiTyping && (
                                 <div className="flex items-start">
-                                    <div className="neu-pressed px-3 py-2 rounded-2xl rounded-tl-sm flex gap-1 items-center border border-slate-200/60">
+                                    <div className="neu-pressed px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1 items-center border border-slate-200/60 shadow-inner">
                                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
                                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
                                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
@@ -603,7 +600,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                     onChange={e => setAiInput(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') sendAiMessage(); }}
                                     placeholder="Ask about groups or families..."
-                                    className="w-full neu-pressed rounded-xl py-2.5 pl-4 pr-10 text-xs text-foreground placeholder-muted-foreground focus:outline-none border-none bg-transparent"
+                                    className="w-full neu-pressed rounded-xl py-3 pl-4 pr-10 text-xs font-medium text-foreground placeholder-muted-foreground focus:outline-none border-none bg-transparent shadow-inner transition-shadow focus:shadow-[inset_2px_2px_5px_#b8b9be,inset_-3px_-3px_7px_#ffffff]"
                                 />
                                 <button
                                     onClick={sendAiMessage}
@@ -615,17 +612,6 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                             </div>
                         </div>
                     </div>
-                )}
-
-                {/* AI toggle button */}
-                {!aiOpen && (
-                    <button
-                        onClick={() => setAiOpen(true)}
-                        className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white hover:scale-105 transition-all shadow-lg"
-                        title="Open Voyageur AI"
-                    >
-                        <MessageSquare className="w-6 h-6" />
-                    </button>
                 )}
             </div>
         </div>
