@@ -17,7 +17,7 @@ export default async function TripDetailPage({ params }: PageProps) {
 
     return (
         <div className="flex bg-background h-[calc(100vh-4rem)] overflow-hidden">
-            <Sidebar />
+            <Sidebar collapsed />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <NavigationBreadcrumbs />
                 {/* ItineraryDetailView reads tripId and looks up trip from lib/trips.ts */}

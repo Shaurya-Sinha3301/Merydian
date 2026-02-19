@@ -349,7 +349,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
         <div className="flex-1 flex flex-col overflow-hidden relative bg-background h-full">
 
             {/* ── Sticky top bar ───────────────────────────────────────────────────── */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-background/80 backdrop-blur-sm z-40 shrink-0">
+            <div className="flex items-center px-6 py-3 border-b border-border bg-background/80 backdrop-blur-sm z-40 shrink-0">
                 {/* Left: back + trip title */}
                 <div className="flex items-center gap-4 w-1/4 min-w-0">
                     <button
@@ -384,29 +384,10 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                     </div>
                 </div>
 
-                {/* Right: summary numbers (no profit margin, no Save) */}
-                <div className="flex items-center gap-5 w-1/4 justify-end">
-                    <div className="flex items-center gap-5 neu-flat rounded-2xl px-5 py-2.5 border border-white">
-                        <div className="flex flex-col border-r border-slate-200 pr-5">
-                            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Total Rev.</span>
-                            <span className="text-sm font-bold text-foreground leading-tight">$12,450</span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Est. Cost</span>
-                            <span className="text-sm font-bold text-muted-foreground leading-tight">$9,820</span>
-                        </div>
-                    </div>
-                </div>
+                {/* Right spacer — balances the left column so the pill stays centred */}
+                <div className="w-1/4" />
             </div>
 
-            {/* ── Optimization sub-bar: Save button (only on Optimization tab) ──────── */}
-            {activeTab === 'optimization' && (
-                <div className="flex items-center justify-end px-6 py-2 border-b border-border/50 bg-background/60 shrink-0">
-                    <button className="px-4 py-1.5 rounded-xl bg-foreground text-background text-xs font-semibold hover:opacity-80 transition-opacity flex items-center gap-1.5">
-                        <span className="text-[13px]">💾</span> Save
-                    </button>
-                </div>
-            )}
 
             {/* ── Timeline ─────────────────────────────────────────────────────────── */}
             <div className={cn('flex-1 pb-72 scrollbar-hide', panelHovered ? 'overflow-hidden' : 'overflow-auto')}>
@@ -622,6 +603,16 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                         </div>
                     </div>
                 )}
+            </div>
+
+            {/* ── Approve / Reject floating bar — bottom-centre ───────────────────────── */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3">
+                <button className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 font-semibold text-sm neu-card hover:bg-red-100 hover:scale-[1.03] transition-all shadow-lg">
+                    <span className="text-base">✕</span> Reject
+                </button>
+                <button className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-green-50 border border-green-200 text-green-700 font-semibold text-sm neu-card hover:bg-green-100 hover:scale-[1.03] transition-all shadow-lg">
+                    <span className="text-base">✓</span> Approve
+                </button>
             </div>
         </div>
     );
