@@ -249,53 +249,68 @@ export default function CustomerBookingsPage() {
               </button>
               <button
                 onClick={() => setFilterType('flight')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
                   filterType === 'flight'
                     ? 'bg-blue-600 text-white'
                     : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-blue-600'
                 }`}
               >
-                ✈️ Flights ({counts.flight})
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                </svg>
+                Flights ({counts.flight})
               </button>
               <button
                 onClick={() => setFilterType('train')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
                   filterType === 'train'
                     ? 'bg-green-600 text-white'
                     : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-green-600'
                 }`}
               >
-                🚂 Trains ({counts.train})
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 2h12a2 2 0 012 2v13a2 2 0 01-2 2h-1l1.5 2h-2.5l-1.5-2h-4l-1.5 2H6.5L8 19H7a2 2 0 01-2-2V4a2 2 0 012-2zm0 2v11h12V4H6zm2 13a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
+                </svg>
+                Trains ({counts.train})
               </button>
               <button
                 onClick={() => setFilterType('cab')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
                   filterType === 'cab'
-                    ? 'bg-yellow-600 text-white'
-                    : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-yellow-600'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-blue-600'
                 }`}
               >
-                🚗 Cabs ({counts.cab})
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                </svg>
+                Cabs ({counts.cab})
               </button>
               <button
                 onClick={() => setFilterType('hotel')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
                   filterType === 'hotel'
                     ? 'bg-purple-600 text-white'
                     : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-purple-600'
                 }`}
               >
-                🏨 Hotels ({counts.hotel})
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-6.6c.61 0 1.1.49 1.1 1.1s-.49 1.1-1.1 1.1-1.1-.49-1.1-1.1.49-1.1 1.1-1.1z"/>
+                </svg>
+                Hotels ({counts.hotel})
               </button>
               <button
                 onClick={() => setFilterType('activity')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
                   filterType === 'activity'
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-orange-600'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-blue-600'
                 }`}
               >
-                🎯 Activities ({counts.activity})
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Activities ({counts.activity})
               </button>
             </div>
           </div>

@@ -33,6 +33,7 @@ const CustomerPortalInteractive = () => {
   const router = useRouter();
   const [showPlanTripModal, setShowPlanTripModal] = useState(false);
   const [showAgentChatModal, setShowAgentChatModal] = useState(false);
+  const [showFamilyMembers, setShowFamilyMembers] = useState(false);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [familyName, setFamilyName] = useState('');
@@ -196,13 +197,33 @@ const CustomerPortalInteractive = () => {
         {/* Family Members Section */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-[#212121]">Family Members</h2>
+            <button
+              onClick={() => setShowFamilyMembers(!showFamilyMembers)}
+              className="flex items-center gap-3 px-6 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-[#212121] transition-all group"
+            >
+              <svg 
+                className={`w-5 h-5 text-[#212121] transition-transform ${showFamilyMembers ? 'rotate-180' : ''}`} 
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
+              </svg>
+              <span className="text-xl font-bold text-[#212121]">
+                {showFamilyMembers ? 'Family Members' : 'View Members'}
+              </span>
+              <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-bold rounded-full">
+                {familyMembers.length}
+              </span>
+            </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {familyMembers.map((member) => (
-              <FamilyMemberCard key={member.id} member={member} />
-            ))}
-          </div>
+          
+          {showFamilyMembers && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+              {familyMembers.map((member) => (
+                <FamilyMemberCard key={member.id} member={member} />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Trips Section */}

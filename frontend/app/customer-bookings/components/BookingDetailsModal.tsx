@@ -22,13 +22,45 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
   const [showTicket, setShowTicket] = useState(false);
 
   const getTypeIcon = () => {
+    const iconClass = "w-8 h-8";
     switch (booking.type) {
-      case 'flight': return '✈️';
-      case 'train': return '🚂';
-      case 'cab': return '🚗';
-      case 'hotel': return '🏨';
-      case 'activity': return '🎯';
-      default: return '📋';
+      case 'flight':
+        return (
+          <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+          </svg>
+        );
+      case 'train':
+        return (
+          <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 2h12a2 2 0 012 2v13a2 2 0 01-2 2h-1l1.5 2h-2.5l-1.5-2h-4l-1.5 2H6.5L8 19H7a2 2 0 01-2-2V4a2 2 0 012-2zm0 2v11h12V4H6zm2 13a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
+          </svg>
+        );
+      case 'cab':
+        return (
+          <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24">
+            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+          </svg>
+        );
+      case 'hotel':
+        return (
+          <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-6.6c.61 0 1.1.49 1.1 1.1s-.49 1.1-1.1 1.1-1.1-.49-1.1-1.1.49-1.1 1.1-1.1z"/>
+          </svg>
+        );
+      case 'activity':
+        return (
+          <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        );
+      default:
+        return (
+          <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
+            <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+          </svg>
+        );
     }
   };
 
@@ -317,10 +349,17 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-[#212121]/10">
             <div className="flex items-center gap-3">
-              <span className="text-4xl">{getTypeIcon()}</span>
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white">
+                {getTypeIcon()}
+              </div>
               <div>
                 <h2 className="text-2xl font-bold text-[#212121]">{booking.title}</h2>
-                <p className="text-sm text-[#212121]/60 mt-1">📍 {booking.tripName}</p>
+                <p className="text-sm text-[#212121]/60 mt-1 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+                  </svg>
+                  {booking.tripName}
+                </p>
               </div>
             </div>
             <button
