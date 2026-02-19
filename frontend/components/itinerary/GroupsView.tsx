@@ -162,6 +162,9 @@ export default function GroupsView({ tripId }: { tripId: string }) {
     const [aiInput, setAiInput] = useState('');
     const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
     const [aiTyping, setAiTyping] = useState(false);
+    
+    // Chat section toggle
+    const [chatOpen, setChatOpen] = useState(true);
 
     const chatEndRef = useRef<HTMLDivElement>(null);
     const aiEndRef = useRef<HTMLDivElement>(null);
@@ -304,8 +307,8 @@ export default function GroupsView({ tripId }: { tripId: string }) {
             {/* ── CENTER COLUMN ──────────────────────────────────────────────────── */}
             <main className="flex-1 flex flex-col overflow-hidden min-w-0">
 
-                {/* Activity Log - 50% height */}
-                <div className="flex-1 overflow-hidden p-4 pb-2 flex flex-col">
+                {/* Activity Log - Dynamic height based on chat state */}
+                <div className={cn("overflow-hidden p-4 pb-2 flex flex-col transition-all", chatOpen ? "flex-1" : "flex-[2]")}>
                     <div className="neu-raised rounded-3xl flex flex-col overflow-hidden border border-white/60 h-full">
                         {/* Header */}
                         <div className="flex items-center justify-between px-5 py-3 shrink-0 border-b border-slate-200/40">
@@ -378,8 +381,8 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                     </div>
                 </div>
 
-                {/* Chat - 50% height */}
-                <div className="flex-1 px-4 pb-4 flex flex-col">
+                {/* Chat - Dynamic height based on chatOpen state */}
+                <div className={cn("px-4 pb-4 flex flex-col transition-all", chatOpen ? "flex-1" : "flex-[0_0_auto]")}>
                     <div className="neu-raised rounded-3xl flex flex-col overflow-hidden border border-white/60 h-full">
                         {/* Chat header */}
                         <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200/40 shrink-0">
@@ -391,57 +394,73 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                 )}
                             </div>
                             <div className="flex items-center gap-2">
-                                {/* Quick pills */}
-                                <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-                                    {['Send Itinerary', 'Suggest Activity', 'Room Service'].map(label => (
-                                        <button key={label} className="whitespace-nowrap text-[9px] neu-raised-sm px-2 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-800 transition-colors border border-white/60">
-                                            {label}
+                                {chatOpen && (
+                                    <>
+                                        {/* Quick pills */}
+                                        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+                                            {['Send Itinerary', 'Suggest Activity', 'Room Service'].map(label => (
+                                                <button key={label} className="whitespace-nowrap text-[9px] neu-raised-sm px-2 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-800 transition-colors border border-white/60">
+                                                    {label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <button className="text-slate-400 hover:text-slate-600 transition-colors">
+                                            <MoreHorizontal className="w-3.5 h-3.5" />
                                         </button>
-                                    ))}
-                                </div>
-                                <button className="text-slate-400 hover:text-slate-600 transition-colors">
-                                    <MoreHorizontal className="w-3.5 h-3.5" />
+                                    </>
+                                )}
+                                {/* Toggle chat button */}
+                                <button
+                                    onClick={() => setChatOpen(!chatOpen)}
+                                    className="text-slate-400 hover:text-slate-800 transition-colors p-1 rounded-lg hover:bg-slate-100"
+                                    title={chatOpen ? "Minimize Chat" : "Expand Chat"}
+                                >
+                                    {chatOpen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
                                 </button>
                             </div>
                         </div>
 
-                        {/* Messages area */}
-                        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-2 space-y-1.5 neu-pressed">
-                            {chatMessages.map((msg, i) => (
-                                <div key={i} className={cn('flex', msg.role === 'agent' ? 'justify-end' : 'justify-start')}>
-                                    <div className={cn(
-                                        'rounded-2xl px-3 py-1.5 text-xs max-w-[75%] shadow-sm',
-                                        msg.role === 'guest'
-                                            ? 'bg-white text-slate-700 rounded-tl-none border border-slate-100'
-                                            : 'bg-slate-800 text-white rounded-tr-none shadow-lg'
-                                    )}>
-                                        {msg.text}
+                        {chatOpen && (
+                            <>
+                                {/* Messages area */}
+                                <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-2 space-y-1.5 neu-pressed">
+                                    {chatMessages.map((msg, i) => (
+                                        <div key={i} className={cn('flex', msg.role === 'agent' ? 'justify-end' : 'justify-start')}>
+                                            <div className={cn(
+                                                'rounded-2xl px-3 py-1.5 text-xs max-w-[75%] shadow-sm',
+                                                msg.role === 'guest'
+                                                    ? 'bg-white text-slate-700 rounded-tl-none border border-slate-100'
+                                                    : 'bg-slate-800 text-white rounded-tr-none shadow-lg'
+                                            )}>
+                                                {msg.text}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div ref={chatEndRef} />
+                                </div>
+
+                                {/* Input */}
+                                <div className="px-3 py-2 border-t border-slate-200/40 shrink-0">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={chatInput}
+                                            onChange={e => setChatInput(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter') sendChat(); }}
+                                            placeholder="Type your message..."
+                                            className="w-full neu-pressed rounded-xl py-2 pl-3 pr-9 text-xs text-slate-700 placeholder-slate-400 focus:outline-none bg-transparent border-none"
+                                        />
+                                        <button
+                                            onClick={sendChat}
+                                            disabled={!chatInput.trim()}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 bg-indigo-500 text-white rounded-lg flex items-center justify-center shadow hover:bg-indigo-600 transition-colors disabled:opacity-40"
+                                        >
+                                            <Send className="w-3 h-3" />
+                                        </button>
                                     </div>
                                 </div>
-                            ))}
-                            <div ref={chatEndRef} />
-                        </div>
-
-                        {/* Input */}
-                        <div className="px-3 py-2 border-t border-slate-200/40 shrink-0">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={chatInput}
-                                    onChange={e => setChatInput(e.target.value)}
-                                    onKeyDown={e => { if (e.key === 'Enter') sendChat(); }}
-                                    placeholder="Type your message..."
-                                    className="w-full neu-pressed rounded-xl py-2 pl-3 pr-9 text-xs text-slate-700 placeholder-slate-400 focus:outline-none bg-transparent border-none"
-                                />
-                                <button
-                                    onClick={sendChat}
-                                    disabled={!chatInput.trim()}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 bg-indigo-500 text-white rounded-lg flex items-center justify-center shadow hover:bg-indigo-600 transition-colors disabled:opacity-40"
-                                >
-                                    <Send className="w-3 h-3" />
-                                </button>
-                            </div>
-                        </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </main>
