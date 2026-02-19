@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     Filter, Plane, Hotel, Utensils, Bus,
     CheckCircle2, Clock, AlertCircle, XCircle,
     Calendar, MapPin, Share2, Download,
     MessageSquare, Send, Sparkles, X, PlusCircle,
     MoreHorizontal, ChevronRight, Edit2, Trash2,
-    Briefcase, Zap
+    Briefcase, Zap, TrendingUp, Minimize2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTripById } from '@/lib/trips';
@@ -124,6 +124,20 @@ const FILTERS = [
     { id: 'transport', label: 'Transport', icon: Bus },
 ] as const;
 
+// ─── Constants for Panels ──────────────────────────────────────────────────────
+
+const AI_INSIGHTS = [
+    { text: 'Preference conflict detected between Family A & C', dot: 'bg-indigo-400' },
+    { text: 'Subgroup formed for 2.5h', dot: 'bg-indigo-400' },
+    { text: 'Travel overhead reduced by 18%', dot: 'bg-green-500' },
+    { text: <>Margin improved by <span className="font-bold text-green-700">+2.4%</span></>, dot: 'bg-green-500' },
+];
+
+const PROFIT_INSIGHTS = [
+    { text: <>Subgroup routing reduced travel cost by <span className="font-bold text-slate-800">$320</span></>, dot: 'bg-indigo-400' },
+    { text: <>Lunch relocation increased margin by <span className="font-bold text-slate-800">1.2%</span></>, dot: 'bg-indigo-400' },
+];
+
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 function getStatusStyles(status: BookingStatus) {
@@ -142,7 +156,7 @@ function getTypeIcon(type: BookingType) {
         case 'stay': return Hotel;
         case 'dining': return Utensils;
         case 'transport': return Bus;
-        case 'activity': return Sparkles; // Using Sparkles for 'sports'
+        case 'activity': return Sparkles;
         default: return Briefcase;
     }
 }
@@ -152,22 +166,64 @@ function getTypeIcon(type: BookingType) {
 export default function BookingsView({ tripId }: { tripId: string }) {
     const trip = getTripById(tripId);
     const [activeFilter, setActiveFilter] = useState<string>('all');
-    const [activePanel, setActivePanel] = useState<'finance' | 'ai' | null>('ai');
+    const [activePanel, setActivePanel] = useState<'profit' | 'ai' | null>('ai');
+    const [aiInput, setAiInput] = useState('');
+    const [panelHovered, setPanelHovered] = useState(false);
+
+    // ── Chat state ─────────────────────────────────────────────────────────────
+
+    type ChatMessage = { role: 'ai' | 'user'; text: string; time: string };
+
+    const now = () => new Date().toTimeString().slice(0, 5);
+
+    const [messages, setMessages] = useState<ChatMessage[]>([
+        {
+            role: 'ai',
+            time: '',
+            text: 'Here’s the latest optimization summary:\n\n• Preference conflict detected between Family A & C\n• Subgroup formed for 2.5h activity slots\n• Travel overhead reduced by 18%\n• Margin improved by +2.4%\n\nAsk me anything about this itinerary!',
+        },
+    ]);
+    const [isTyping, setIsTyping] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setMessages((prev) => prev.map((msg, i) => i === 0 ? { ...msg, time: now() } : msg));
+    }, []);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, isTyping, activePanel]);
+
+    const sendMessage = () => {
+        const text = aiInput.trim();
+        if (!text) return;
+        const userMsg: ChatMessage = { role: 'user', text, time: now() };
+        setMessages((prev) => [...prev, userMsg]);
+        setAiInput('');
+        setIsTyping(true);
+        setTimeout(() => {
+            setIsTyping(false);
+            setMessages((prev) => [
+                ...prev,
+                {
+                    role: 'ai',
+                    time: now(),
+                    text: `I’m analyzing your request about “${text}”. Based on the current optimization, I recommend reviewing the subgroup allocations for Day 2. Would you like me to run a new optimization pass?`,
+                },
+            ]);
+        }, 1200);
+    };
 
     if (!trip) return <div className="p-8 text-center text-muted-foreground">Trip not found</div>;
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden relative bg-slate-50 h-full">
+        <div className="flex-1 flex flex-col overflow-hidden relative bg-background h-full">
 
-            {/* ── Sub-header: Title & Cost ────────────────────────────────────────── */}
+            {/* ── Sub-header: Cost Only (Title removed to avoid duplicate) ─────── */}
             <div className="flex items-end justify-between px-8 pt-6 pb-2 shrink-0">
+                {/* Simplified Left side or just keep the meta info */}
                 <div>
-                    <div className="flex items-center gap-3 mb-1">
-                        <button className="neu-raised rounded-lg p-1.5 text-slate-400 hover:text-slate-700 transition-colors">
-                            <ArrowLeftIcon />
-                        </button>
-                        <h1 className="text-3xl font-bold text-slate-800">{trip.title}</h1>
-                    </div>
+                    {/* Removed H1 Title and Back button as per request */}
                     <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
                         <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> Destination</span>
                         <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {trip.dateRange}</span>
@@ -179,20 +235,6 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                     <span className="text-2xl font-bold text-slate-800">₹499,400.00</span>
                 </div>
             </div>
-
-            {/* ── Helpers: Local ArrowLeft since we removed import ── */}
-            {/* (Actually, let's just use ChevronLeft or similar if ArrowLeft isn't imported, but I'll add the SVG or reuse a similar icon) */}
-            {/* ...Wait, I can just not render the back button here since it's in the navbar. 
-                The prompt said: "Implement this new Bookings page... navbar we have is present in it so figure out effective code".
-                The design has a sticky top main navbar (implemented in Layout) AND a page title header.
-                In the design image, there is a back arrow next to the title "Goa Beach Retreat".
-                However, our shared navbar ALREADY has a back arrow and the trip title.
-                Displaying it twice is redundant.
-                I will HIDE the title/back button row from this view if it duplicates the shared navbar.
-                BUT, the shared navbar has "Paris Culinary Tour" (Trip Title).
-                The design shows "Goa Beach Retreat 2026" as the main page title.
-                I'll render the "Total Bookings Cost" and a Filter row.
-            */}
 
             {/* ── Filter Row ──────────────────────────────────────────────────────── */}
             <div className="px-8 pb-6 pt-4 shrink-0">
@@ -215,11 +257,11 @@ export default function BookingsView({ tripId }: { tripId: string }) {
             </div>
 
             {/* ── Scrollable Content ──────────────────────────────────────────────── */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide pb-32 px-8">
+            <div className={cn("flex-1 overflow-y-auto scrollbar-hide pb-32 px-8", panelHovered ? "overflow-hidden" : "")}>
                 {BOOKINGS_DATA.map((group) => (
                     <div key={group.day} className="mb-8 relative z-0">
                         {/* Sticky Day Header */}
-                        <div className="flex items-center gap-4 mb-4 sticky top-0 bg-slate-50/95 backdrop-blur-sm z-20 py-2">
+                        <div className="flex items-center gap-4 mb-4 sticky top-0 bg-background/95 backdrop-blur-sm z-20 py-2">
                             <h2 className="text-xl font-bold text-slate-700">Day {group.day}: {group.title}</h2>
                             <div className="h-px flex-1 bg-slate-200" />
                             <span className="text-xs font-bold text-slate-400">{group.date}</span>
@@ -228,7 +270,7 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                         {/* Booking Cards */}
                         <div className="flex flex-col gap-4">
                             {group.bookings
-                                .filter(b => activeFilter === 'all' || (activeFilter === 'transport' && b.type === 'activity' ? false : b.type === activeFilter)) // simplistic mapping, activity -> transport? no, activity needs its own or falls under all. Let's precise it later.
+                                .filter(b => activeFilter === 'all' || (activeFilter === 'transport' && b.type === 'activity' ? false : b.type === activeFilter))
                                 .map((booking) => {
                                     const Icon = getTypeIcon(booking.type);
                                     const statusStyle = getStatusStyles(booking.status);
@@ -320,138 +362,165 @@ export default function BookingsView({ tripId }: { tripId: string }) {
             </div>
 
             {/* ── Floating Panels Wrapper ─────────────────────────────────────────── */}
-            <div className="absolute bottom-6 right-6 z-[60] flex flex-col items-end gap-4 pointer-events-none">
-
-                {/* Panel Icons */}
-                <div className="flex items-end gap-3 pointer-events-auto">
-                    {/* Finance Icon */}
+            <div
+                className="fixed bottom-6 right-6 z-[60] flex items-end gap-3"
+                onMouseEnter={() => setPanelHovered(true)}
+                onMouseLeave={() => setPanelHovered(false)}
+            >
+                {/* Profit Impact icon pill */}
+                {activePanel !== 'profit' && (
                     <button
-                        onClick={() => setActivePanel(activePanel === 'finance' ? null : 'finance')}
-                        className={cn(
-                            "neu-raised rounded-full w-14 h-14 flex items-center justify-center text-slate-500 transition-all relative border border-white/50",
-                            activePanel === 'finance' ? "neu-pressed text-blue-600" : "hover:text-slate-800 hover:bg-white"
-                        )}
+                        onClick={() => setActivePanel('profit')}
+                        className="relative neu-card w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition-all shadow-lg border border-white/50 shrink-0"
+                        title="Open Profit Impact"
                     >
-                        <Briefcase className="w-6 h-6" />
-                        <div className="absolute -top-1 -right-1 bg-green-100 border border-green-200 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">+12%</div>
+                        <TrendingUp className="w-6 h-6 text-green-500" />
+                        <span className="absolute -top-1 -right-1 bg-green-100 border border-green-200 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                            +2.4%
+                        </span>
                     </button>
+                )}
 
-                    {/* AI Icon */}
+                {/* VoyageurAI icon pill */}
+                {activePanel !== 'ai' && (
                     <button
-                        onClick={() => setActivePanel(activePanel === 'ai' ? null : 'ai')}
-                        className={cn(
-                            "neu-raised rounded-full w-14 h-14 flex items-center justify-center text-slate-500 transition-all relative border border-white/50",
-                            activePanel === 'ai' ? "neu-pressed text-indigo-600" : "hover:text-slate-800 hover:bg-white"
-                        )}
+                        onClick={() => setActivePanel('ai')}
+                        className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white hover:scale-105 transition-all shadow-lg shrink-0"
+                        title="Open Voyageur AI"
                     >
                         <MessageSquare className="w-6 h-6" />
-                        <div className="absolute -top-1 -right-1 bg-red-100 border border-red-200 text-red-600 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">3</div>
                     </button>
-                </div>
+                )}
 
-                {/* ── Financials Panel ────────────────────────────────────────────── */}
-                {activePanel === 'finance' && (
-                    <div className="pointer-events-auto w-[360px] neu-raised rounded-3xl p-6 shadow-xl border border-white/50 bg-[#eef2f6] animate-in slide-in-from-bottom-5 fade-in duration-200">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm">
-                                    <Briefcase className="w-4 h-4" />
-                                </div>
-                                <h3 className="font-bold text-slate-700 text-lg">Financials</h3>
+                {/* ── Profit Impact expanded card ── */}
+                {activePanel === 'profit' && (
+                    <div className="w-[360px] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
+                        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Profit Impact</h3>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">+2.4%</span>
                             </div>
-                            <button onClick={() => setActivePanel(null)} className="text-slate-400 hover:text-slate-600">
-                                <X className="w-5 h-5" />
+                            <button
+                                onClick={() => setActivePanel(null)}
+                                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
+                                title="Minimize"
+                            >
+                                <Minimize2 className="w-4 h-4" />
                             </button>
                         </div>
-                        <div className="space-y-4">
-                            <div className="neu-pressed rounded-xl p-4">
-                                <div className="flex justify-between text-sm mb-1">
-                                    <span className="text-slate-500">Budget Utilized</span>
-                                    <span className="font-bold text-slate-700">78%</span>
+                        <div className="px-5 pb-5 space-y-3">
+                            <div>
+                                <div className="flex items-end gap-2 mb-1">
+                                    <span className="text-4xl font-bold text-foreground leading-none tracking-tight font-[Outfit]">21.1%</span>
+                                    <TrendingUp className="w-6 h-6 text-green-500 mb-1" />
                                 </div>
-                                <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                                    <div className="h-full bg-blue-500 w-[78%] rounded-full" />
-                                </div>
-                                <div className="mt-3 flex justify-between items-end">
-                                    <div>
-                                        <span className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">Remaining</span>
-                                        <div className="font-semibold text-slate-700">₹140,600</div>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">Profit Margin</span>
-                                        <div className="font-bold text-green-600">+ ₹52,400</div>
-                                    </div>
-                                </div>
+                                <p className="text-xs text-muted-foreground font-medium">
+                                    Previous:{' '}
+                                    <span className="line-through text-muted-foreground/60">18.7%</span>
+                                    <span className="mx-1">→</span>
+                                    <span className="text-green-600 font-bold">Now: 21.1%</span>
+                                </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
-                                <button className="p-3 rounded-xl neu-raised hover:bg-white/50 text-xs font-semibold text-slate-600 flex flex-col items-center gap-1">
-                                    <Download className="w-5 h-5 text-slate-400" /> Export PDF
-                                </button>
-                                <button className="p-3 rounded-xl neu-raised hover:bg-white/50 text-xs font-semibold text-slate-600 flex flex-col items-center gap-1">
-                                    <Share2 className="w-5 h-5 text-slate-400" /> Share Report
-                                </button>
+                                <div className="neu-pressed rounded-xl p-3 flex flex-col">
+                                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Total Revenue</span>
+                                    <span className="text-base font-bold text-foreground font-[Outfit]">$12,450</span>
+                                </div>
+                                <div className="neu-pressed rounded-xl p-3 flex flex-col">
+                                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Est. Cost</span>
+                                    <span className="text-base font-bold text-muted-foreground font-[Outfit]">$9,820</span>
+                                </div>
+                            </div>
+                            <div className="neu-pressed rounded-2xl p-4">
+                                <div className="flex items-center gap-2 mb-2.5">
+                                    <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                                    <span className="text-[10px] uppercase font-bold text-indigo-500 tracking-wider">AI Insights</span>
+                                </div>
+                                <ul className="space-y-2">
+                                    {PROFIT_INSIGHTS.map((item, i) => (
+                                        <li key={i} className="flex gap-2 items-start text-[11px] text-muted-foreground leading-tight">
+                                            <span className={cn('w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0', item.dot)} />
+                                            {item.text}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* ── Voyageur AI Panel ───────────────────────────────────────────── */}
+                {/* ── VoyageurAI chatbot expanded card ── */}
                 {activePanel === 'ai' && (
-                    <div className="pointer-events-auto w-[360px] neu-raised rounded-3xl p-6 shadow-xl border border-white/50 bg-[#eef2f6] animate-in slide-in-from-bottom-5 fade-in duration-200">
-                        <div className="flex justify-between items-start mb-4">
+                    <div className="w-[360px] max-h-[78vh] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
+                        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shrink-0">
                                     <MessageSquare className="w-4 h-4" />
                                 </div>
-                                <h3 className="font-bold text-slate-700 text-lg">Voyageur AI</h3>
+                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Voyageur AI</h3>
+                                {isTyping && (
+                                    <span className="flex gap-1 items-center">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
+                                    </span>
+                                )}
                             </div>
-                            <button onClick={() => setActivePanel(null)} className="text-slate-400 hover:text-slate-600">
-                                <X className="w-5 h-5" />
+                            <button
+                                onClick={() => setActivePanel(null)}
+                                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
+                                title="Minimize"
+                            >
+                                <Minimize2 className="w-4 h-4" />
                             </button>
                         </div>
-                        <div className="bg-slate-200/50 rounded-2xl p-4 border border-slate-200/60 mb-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Zap className="w-3 h-3 text-purple-500" />
-                                <span className="text-[10px] uppercase font-bold text-purple-500 tracking-wider">Booking Alerts</span>
-                            </div>
-                            <ul className="space-y-2.5">
-                                <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-tight">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
-                                    <span><span className="text-red-600 font-semibold">Action Required:</span> Dinner at Fisherman's Wharf cancelled. Re-booking suggested at "The Black Sheep Bistro".</span>
-                                </li>
-                                <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-tight">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 shrink-0" />
-                                    <span>Hotel "Ocean Breeze" has 2 room upgrades available for free.</span>
-                                </li>
-                                <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-tight">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0" />
-                                    <span>Transport delay expected for Day 1 arrival due to traffic.</span>
-                                </li>
-                            </ul>
+                        <div className="flex-1 overflow-y-auto px-4 pb-2 scrollbar-hide space-y-3 min-h-0">
+                            {messages.map((msg, i) => (
+                                <div key={i} className={cn('flex flex-col gap-1', msg.role === 'user' ? 'items-end' : 'items-start')}>
+                                    <div className={cn(
+                                        'px-3.5 py-2.5 rounded-2xl text-[12px] leading-relaxed max-w-[88%] whitespace-pre-line',
+                                        msg.role === 'ai'
+                                            ? 'neu-pressed text-foreground rounded-tl-sm'
+                                            : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-tr-sm shadow-md',
+                                    )}>
+                                        {msg.text}
+                                    </div>
+                                    <span suppressHydrationWarning className="text-[9px] text-muted-foreground/60 px-1">{msg.time}</span>
+                                </div>
+                            ))}
+                            {isTyping && (
+                                <div className="flex items-start">
+                                    <div className="neu-pressed px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1 items-center">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
                         </div>
-                        <div className="relative">
-                            <input
-                                className="w-full neu-pressed rounded-xl py-3 px-4 text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-0 border-none bg-transparent shadow-inner"
-                                placeholder="Ask about bookings..."
-                                type="text"
-                            />
-                            <button className="absolute right-2 top-1.5 p-1.5 rounded-lg text-indigo-500 hover:bg-slate-200 transition-colors">
-                                <Send className="w-3.5 h-3.5" />
-                            </button>
+                        <div className="px-4 pb-4 pt-2 shrink-0">
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={aiInput}
+                                    onChange={(e) => setAiInput(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
+                                    placeholder="Ask Voyageur AI..."
+                                    className="w-full neu-pressed rounded-xl py-3 pl-4 pr-10 text-xs font-medium text-foreground placeholder-muted-foreground focus:outline-none border-none bg-transparent"
+                                />
+                                <button
+                                    onClick={sendMessage}
+                                    disabled={!aiInput.trim()}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-indigo-500 hover:bg-black/5 transition-colors disabled:opacity-30"
+                                >
+                                    <Send className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
-
             </div>
         </div>
-    );
-}
-
-// Simple ArrowLeft icon component helper since we're not importing it to avoid conflicts if we change imports
-function ArrowLeftIcon() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-            <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
-        </svg>
     );
 }
