@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     ArrowLeft, TrendingUp, Sparkles, ChevronUp, ChevronDown,
     Zap, MessageSquare, Send, GripVertical, Plus, Minimize2, Maximize2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getTripById } from '@/lib/trips';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -265,37 +267,57 @@ function FloatingPanel({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 interface ItineraryDetailViewProps {
-    trip: {
-        id: string;
-        title: string;
-        client: string;
-        dateRange: string;
-        budget: string;
-    };
-    onBack: () => void;
+    /** The trip's ID from the URL param (e.g. "TR-8821") */
+    tripId: string;
 }
 
-export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailViewProps) {
+export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps) {
+    const router = useRouter();
+    const trip = getTripById(tripId);
+
     const [aiOpen, setAiOpen] = useState(true);
     const [profitOpen, setProfitOpen] = useState(true);
     const [aiInput, setAiInput] = useState('');
     const [panelHovered, setPanelHovered] = useState(false);
 
+    // ── Guard: trip not found ───────────────────────────────────────────
+    if (!trip) {
+        return (
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
+                <p className="font-[Outfit] font-bold text-xl text-foreground">Trip not found</p>
+                <p className="text-sm text-muted-foreground">No trip with ID “{tripId}” exists.</p>
+                <button
+                    onClick={() => router.push('/agent-dashboard/itinerary-management')}
+                    className="neu-button px-5 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-muted-foreground"
+                >
+                    <ArrowLeft className="w-4 h-4" /> Back to Itineraries
+                </button>
+            </div>
+        );
+    }
+
     // ── Chat state ─────────────────────────────────────────────────────────────
 
     type ChatMessage = { role: 'ai' | 'user'; text: string; time: string };
 
-    const now = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Locale-neutral format — always HH:MM, no locale mismatch between SSR and client
+    const now = () => new Date().toTimeString().slice(0, 5);
 
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             role: 'ai',
-            time: now(),
+            time: '', // populated client-side via useEffect to avoid SSR/hydration mismatch
             text: 'Here’s the latest optimization summary:\n\n• Preference conflict detected between Family A & C\n• Subgroup formed for 2.5h activity slots\n• Travel overhead reduced by 18%\n• Margin improved by +2.4%\n\nAsk me anything about this itinerary!',
         },
     ]);
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Stamp the seed message time after mount (client-only) to prevent hydration mismatch
+    useEffect(() => {
+        setMessages((prev) => prev.map((msg, i) => i === 0 ? { ...msg, time: now() } : msg));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -329,7 +351,7 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
             <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-background/80 backdrop-blur-sm z-40 shrink-0">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={onBack}
+                        onClick={() => router.back()}
                         className="neu-button w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground transition-all"
                     >
                         <ArrowLeft className="w-4 h-4" />
@@ -523,7 +545,7 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
                                     )}>
                                         {msg.text}
                                     </div>
-                                    <span className="text-[9px] text-muted-foreground/60 px-1">{msg.time}</span>
+                                    <span suppressHydrationWarning className="text-[9px] text-muted-foreground/60 px-1">{msg.time}</span>
                                 </div>
                             ))}
                             {/* Typing indicator bubble */}
