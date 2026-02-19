@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-    Squares2X2Icon, // Dashboard
     ChartBarIcon, // Analytics
     AdjustmentsHorizontalIcon, // Optimizer
     ChevronDownIcon,
@@ -27,11 +26,6 @@ interface SidebarSection {
 
 // Data Structure matching the reference image hierarchy
 const sidebarStructure: { label: string; icon: React.ElementType; children?: SidebarItem[]; href?: string; isOpen?: boolean }[] = [
-    {
-        label: "Old Dashboard",
-        icon: Squares2X2Icon,
-        href: "/agent-dashboard"
-    },
     {
         label: "Dashboard",
         icon: AdjustmentsHorizontalIcon,
