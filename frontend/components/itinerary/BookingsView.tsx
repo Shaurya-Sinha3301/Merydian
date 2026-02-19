@@ -124,20 +124,6 @@ const FILTERS = [
     { id: 'transport', label: 'Transport', icon: Bus },
 ] as const;
 
-// ─── Constants for Panels ──────────────────────────────────────────────────────
-
-const AI_INSIGHTS = [
-    { text: 'Preference conflict detected between Family A & C', dot: 'bg-indigo-400' },
-    { text: 'Subgroup formed for 2.5h', dot: 'bg-indigo-400' },
-    { text: 'Travel overhead reduced by 18%', dot: 'bg-green-500' },
-    { text: <>Margin improved by <span className="font-bold text-green-700">+2.4%</span></>, dot: 'bg-green-500' },
-];
-
-const PROFIT_INSIGHTS = [
-    { text: <>Subgroup routing reduced travel cost by <span className="font-bold text-slate-800">$320</span></>, dot: 'bg-indigo-400' },
-    { text: <>Lunch relocation increased margin by <span className="font-bold text-slate-800">1.2%</span></>, dot: 'bg-indigo-400' },
-];
-
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 function getStatusStyles(status: BookingStatus) {
@@ -358,16 +344,16 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                 onMouseEnter={() => setPanelHovered(true)}
                 onMouseLeave={() => setPanelHovered(false)}
             >
-                {/* Profit Impact icon pill */}
+                {/* Financials icon pill */}
                 {activePanel !== 'profit' && (
                     <button
                         onClick={() => setActivePanel('profit')}
                         className="relative neu-card w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition-all shadow-lg border border-white/50 shrink-0"
-                        title="Open Profit Impact"
+                        title="Open Financials"
                     >
-                        <TrendingUp className="w-6 h-6 text-green-500" />
+                        <Briefcase className="w-6 h-6 text-green-500" />
                         <span className="absolute -top-1 -right-1 bg-green-100 border border-green-200 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
-                            +2.4%
+                            +12%
                         </span>
                     </button>
                 )}
@@ -383,13 +369,16 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                     </button>
                 )}
 
-                {/* ── Profit Impact expanded card ── */}
+                {/* ── Financials expanded card ── */}
                 {activePanel === 'profit' && (
                     <div className="w-[360px] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
                         <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
                             <div className="flex items-center gap-2">
-                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Profit Impact</h3>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">+2.4%</span>
+                                <div className="p-1.5 rounded-lg bg-green-100 text-green-600">
+                                    <Briefcase className="w-4 h-4" />
+                                </div>
+                                <h3 className="font-[Outfit] font-bold text-foreground text-lg">Financials</h3>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200 uppercase tracking-wide">+12% Margin</span>
                             </div>
                             <button
                                 onClick={() => setActivePanel(null)}
@@ -399,43 +388,46 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                                 <Minimize2 className="w-4 h-4" />
                             </button>
                         </div>
-                        <div className="px-5 pb-5 space-y-3">
-                            <div>
-                                <div className="flex items-end gap-2 mb-1">
-                                    <span className="text-4xl font-bold text-foreground leading-none tracking-tight font-[Outfit]">21.1%</span>
-                                    <TrendingUp className="w-6 h-6 text-green-500 mb-1" />
+                        <div className="px-5 pb-5 space-y-4">
+                            {/* Inner Content Wrapper */}
+                            <div className="neu-pressed rounded-2xl p-5 space-y-4">
+                                {/* Total Cost */}
+                                <div>
+                                    <div className="flex justify-between items-end mb-1">
+                                        <span className="text-[10px] bg-slate-200/50 px-1.5 py-0.5 rounded text-slate-500 font-bold uppercase tracking-wider">Total</span>
+                                        <span className="text-sm font-bold text-slate-800">₹499,400</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
+                                        <div className="h-full bg-slate-800 w-[75%] rounded-full dark:bg-slate-600 shadow-sm" />
+                                    </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground font-medium">
-                                    Previous:{' '}
-                                    <span className="line-through text-muted-foreground/60">18.7%</span>
-                                    <span className="mx-1">→</span>
-                                    <span className="text-green-600 font-bold">Now: 21.1%</span>
-                                </p>
+
+                                {/* Paid */}
+                                <div>
+                                    <div className="flex justify-between items-end mb-1">
+                                        <span className="text-[10px] bg-slate-200/50 px-1.5 py-0.5 rounded text-slate-500 font-bold uppercase tracking-wider">Paid</span>
+                                        <span className="text-sm font-bold text-green-600">₹350,000</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
+                                        <div className="h-full bg-green-500 w-[70%] rounded-full shadow-sm" />
+                                    </div>
+                                </div>
+
+                                {/* Pending */}
+                                <div>
+                                    <div className="flex justify-between items-end mb-1">
+                                        <span className="text-[10px] bg-slate-200/50 px-1.5 py-0.5 rounded text-slate-500 font-bold uppercase tracking-wider">Pending</span>
+                                        <span className="text-sm font-bold text-orange-600">₹149,400</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
+                                        <div className="h-full bg-orange-500 w-[30%] rounded-full shadow-sm" />
+                                    </div>
+                                </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="neu-pressed rounded-xl p-3 flex flex-col">
-                                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Total Revenue</span>
-                                    <span className="text-base font-bold text-foreground font-[Outfit]">$12,450</span>
-                                </div>
-                                <div className="neu-pressed rounded-xl p-3 flex flex-col">
-                                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Est. Cost</span>
-                                    <span className="text-base font-bold text-muted-foreground font-[Outfit]">$9,820</span>
-                                </div>
-                            </div>
-                            <div className="neu-pressed rounded-2xl p-4">
-                                <div className="flex items-center gap-2 mb-2.5">
-                                    <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                                    <span className="text-[10px] uppercase font-bold text-indigo-500 tracking-wider">AI Insights</span>
-                                </div>
-                                <ul className="space-y-2">
-                                    {PROFIT_INSIGHTS.map((item, i) => (
-                                        <li key={i} className="flex gap-2 items-start text-[11px] text-muted-foreground leading-tight">
-                                            <span className={cn('w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0', item.dot)} />
-                                            {item.text}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+
+                            <button className="w-full py-3 rounded-xl neu-raised hover:bg-white/60 text-slate-600 text-xs font-bold transition-all border border-transparent hover:border-slate-200">
+                                View Detailed Report
+                            </button>
                         </div>
                     </div>
                 )}
@@ -465,23 +457,50 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                                 <Minimize2 className="w-4 h-4" />
                             </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto px-4 pb-2 scrollbar-hide space-y-3 min-h-0">
-                            {messages.map((msg, i) => (
+
+                        {/* Booking Insights (Static Section) */}
+                        <div className="px-5 pb-2 shrink-0">
+                            <div className="neu-pressed rounded-2xl p-4 border border-slate-200/60 shadow-inner">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Zap className="w-3.5 h-3.5 text-purple-600 fill-purple-100" />
+                                    <span className="text-[10px] uppercase font-bold text-purple-600 tracking-wider">Booking Insights</span>
+                                </div>
+                                <ul className="space-y-3">
+                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 shrink-0 shadow-sm" />
+                                        <span>Flight prices to Goa increased by 5% since last check.</span>
+                                    </li>
+                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-1.5 shrink-0 shadow-sm" />
+                                        <span><span className="font-bold text-slate-800">Action Required:</span> Confirm Fisherman's Wharf deposit by Feb 1st.</span>
+                                    </li>
+                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0 shadow-sm" />
+                                        <span>Refund for "Private Coach" processed.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Chat Area (Empty initially or minimal) */}
+                        <div className="flex-1 overflow-y-auto px-4 pb-2 scrollbar-hide space-y-3 min-h-[100px]">
+                            {messages.slice(1).map((msg, i) => ( // Hide the initial message if using static insights, or keep it. Let's hide the old initial message related to Optimization.
                                 <div key={i} className={cn('flex flex-col gap-1', msg.role === 'user' ? 'items-end' : 'items-start')}>
                                     <div className={cn(
-                                        'px-3.5 py-2.5 rounded-2xl text-[12px] leading-relaxed max-w-[88%] whitespace-pre-line',
+                                        'px-3.5 py-2.5 rounded-2xl text-[12px] leading-relaxed max-w-[88%] whitespace-pre-line shadow-sm',
                                         msg.role === 'ai'
-                                            ? 'neu-pressed text-foreground rounded-tl-sm'
-                                            : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-tr-sm shadow-md',
+                                            ? 'neu-pressed text-foreground rounded-tl-sm border border-slate-200/60'
+                                            : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-tr-sm shadow-md border-t border-white/20',
                                     )}>
                                         {msg.text}
                                     </div>
                                     <span suppressHydrationWarning className="text-[9px] text-muted-foreground/60 px-1">{msg.time}</span>
                                 </div>
                             ))}
+                            {/* If no user interaction yet, keep empty or show a placeholder? The static insights take up space. */}
                             {isTyping && (
                                 <div className="flex items-start">
-                                    <div className="neu-pressed px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1 items-center">
+                                    <div className="neu-pressed px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1 items-center border border-slate-200/60 shadow-inner">
                                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
                                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
                                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
@@ -497,8 +516,8 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                                     value={aiInput}
                                     onChange={(e) => setAiInput(e.target.value)}
                                     onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
-                                    placeholder="Ask Voyageur AI..."
-                                    className="w-full neu-pressed rounded-xl py-3 pl-4 pr-10 text-xs font-medium text-foreground placeholder-muted-foreground focus:outline-none border-none bg-transparent"
+                                    placeholder="Ask about bookings..."
+                                    className="w-full neu-pressed rounded-xl py-3 pl-4 pr-10 text-xs font-medium text-foreground placeholder-muted-foreground focus:outline-none border-none bg-transparent shadow-inner transition-shadow focus:shadow-[inset_2px_2px_5px_#b8b9be,inset_-3px_-3px_7px_#ffffff]"
                                 />
                                 <button
                                     onClick={sendMessage}
