@@ -220,24 +220,9 @@ export default function BookingsView({ tripId }: { tripId: string }) {
         <div className="flex-1 flex flex-col overflow-hidden relative bg-background h-full">
 
             {/* ── Sub-header: Cost Only (Title removed to avoid duplicate) ─────── */}
-            <div className="flex items-end justify-between px-8 pt-6 pb-2 shrink-0">
-                {/* Simplified Left side or just keep the meta info */}
-                <div>
-                    {/* Removed H1 Title and Back button as per request */}
-                    <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
-                        <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> Destination</span>
-                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {trip.dateRange}</span>
-                        <span className="flex items-center gap-1"><Briefcase className="w-4 h-4" /> {trip.members.length} Travelers</span>
-                    </div>
-                </div>
-                <div className="neu-raised-sm px-6 py-3 rounded-2xl flex flex-col items-end">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Bookings Cost</span>
-                    <span className="text-2xl font-bold text-slate-800">₹499,400.00</span>
-                </div>
-            </div>
-
-            {/* ── Filter Row ──────────────────────────────────────────────────────── */}
-            <div className="px-8 pb-6 pt-4 shrink-0">
+            {/* ── Sub-header: Filters & Cost ────────────────────────────────────────── */}
+            <div className="flex items-center justify-between px-8 py-6 shrink-0">
+                {/* Left: Filters */}
                 <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide py-2">
                     {FILTERS.map((f) => (
                         <button
@@ -253,6 +238,12 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                             <f.icon className="w-[18px] h-[18px]" /> {f.label}
                         </button>
                     ))}
+                </div>
+
+                {/* Right: Cost */}
+                <div className="neu-raised-sm px-6 py-3 rounded-2xl flex flex-col items-end shrink-0">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Bookings Cost</span>
+                    <span className="text-2xl font-bold text-slate-800">₹499,400.00</span>
                 </div>
             </div>
 
