@@ -30,25 +30,26 @@ class CausalTagger:
     def _infer_tags(self, change: Dict, fid: str, day_idx: int, trace: Dict) -> List[str]:
         tags = []
         c_type = change["type"]
-        poi_id = change["poi"]
+        poi_id = change.get("poi")  # POI might be None for ROUTE_CHANGED
         
         # 1. CHECK CONSTRAINTS (Hard reasons)
         # Look for explicit constraint logs
         for constraint in trace.get("constraints", []):
             # Check if constraint applies to this POI and Family
             applies = constraint.get("applies_to", {})
-            if applies.get("poi") == poi_id:
+            if poi_id and applies.get("poi") == poi_id:
                 if applies.get("family") == fid or applies.get("family") == "ALL":
                     tags.append(constraint["type"])
         
         # 2. CHECK CANDIDATE DATA (Soft reasons)
         candidate_info = None
-        for fam_cand in trace.get("candidates", []):
-            if fam_cand["family"] == fid:
-                for c in fam_cand["candidates"]:
-                    if c["poi_id"] == poi_id:
-                        candidate_info = c
-                        break
+        if poi_id:
+            for fam_cand in trace.get("candidates", []):
+                if fam_cand["family"] == fid:
+                    for c in fam_cand["candidates"]:
+                        if c["poi_id"] == poi_id:
+                            candidate_info = c
+                            break
         
         if c_type == "POI_ADDED":
             # Why did we add this?
@@ -60,6 +61,26 @@ class CausalTagger:
                 # Check if it was a skeletal role
                 if candidate_info.get("role") == "SKELETON":
                     tags.append("SHARED_ANCHOR_REQUIRED")
+                
+                # If moderate interest (0.8 - 1.2), tag as optimizer selection
+                if not tags and 0.8 <= candidate_info.get("interest_score", 0) <= 1.2:
+                    tags.append("OPTIMIZER_SELECTED")
+                
+                # If low interest but still added, check if it's due to transport disruption
+                if not tags and candidate_info.get("interest_score", 0) < 0.8:
+                    # Check if there's an active disruption - might be route optimization
+                    if trace.get("active_disruptions"):
+                        tags.append("TRANSPORT_ROUTING_OPTIMIZATION")
+                        # Add tags for each affected transport mode
+                        for disruption in trace["active_disruptions"]:
+                            for mode in disruption.get("affected_modes", []):
+                                tags.append(f"{mode}_UNAVAILABLE")
+                    else:
+                        # Otherwise it's a general optimizer tradeoff (e.g., fills time well)
+                        tags.append("OPTIMIZER_TRADEOFF")
+            else:
+                # No candidate info - this shouldn't happen but tag as unknown
+                tags.append("OPTIMIZER_SELECTED")
 
         elif c_type == "POI_REMOVED":
             # Why did we remove this?
@@ -71,6 +92,33 @@ class CausalTagger:
                      tags.append("LOW_INTEREST_DROPPED")
                  else:
                      # General fallback for optimizer tradeoffs
+                     # OBJECTIVE_DOMINATED means other objectives (cost, time, coherence) outweighed this POI
                      tags.append("OBJECTIVE_DOMINATED")
-                     
-        return list(set(tags)) # Unique tags
+        
+        # 3. TRANSPORT DISRUPTION DETECTION (NEW)
+        elif c_type == "ROUTE_CHANGED":
+            # Check if this route change is due to transport disruption
+            from_mode = change.get("from_mode")
+            to_mode = change.get("to_mode")
+            
+            # Check if there are active disruptions in the trace
+            if trace.get("active_disruptions"):
+                for disruption in trace["active_disruptions"]:
+                    # Check if the disruption affects the original transport mode
+                    if disruption.get("affected_modes") and from_mode in disruption["affected_modes"]:
+                        tags.append("TRANSPORT_DISRUPTED")
+                        # Add tag for the unavailable mode
+                        tags.append(f"{from_mode}_UNAVAILABLE")
+                        
+                        # If we successfully rerouted to a different mode
+                        if to_mode and to_mode != from_mode:
+                            tags.append("ROUTE_REROUTED")
+                            tags.append(f"REROUTED_TO_{to_mode}")
+                        
+                        break  # One disruption match is enough
+            
+            # If no disruption found but route changed, might be optimization
+            if not tags:
+                tags.append("ROUTE_OPTIMIZED")
+                
+        return list(set(tags))  # Unique tags

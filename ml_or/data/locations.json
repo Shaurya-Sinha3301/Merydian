@@ -315,154 +315,21 @@
         "base_importance": 0.68
     },
     {
-        "location_id": "LOC_071",
-        "name": "The Oberoi",
-        "type": "HOTEL",
-        "category": "UTILITY_POI",
-        "lat": 28.627922,
-        "lng": 77.131878,
-        "avg_visit_time_min": 0,
-        "cost": 4000,
+        "location_id": "LOC_LUNCH",
+        "name": "Connaught Place Restaurants (Lunch)",
+        "type": "RESTAURANT",
+        "category": "HARD_POI",
+        "lat": 28.6315,
+        "lng": 77.2167,
+        "avg_visit_time_min": 60,
+        "cost": 50,
         "repeatable": true,
         "tags": [
-            "hotel"
+            "food",
+            "central"
         ],
-        "base_importance": 0.61
-    },
-    {
-        "location_id": "LOC_072",
-        "name": "Taj Palace",
-        "type": "HOTEL",
-        "category": "UTILITY_POI",
-        "lat": 28.616933,
-        "lng": 77.233281,
-        "avg_visit_time_min": 0,
-        "cost": 8000,
-        "repeatable": true,
-        "tags": [
-            "hotel"
-        ],
-        "base_importance": 0.58
-    },
-    {
-        "location_id": "LOC_073",
-        "name": "Leela Palace",
-        "type": "HOTEL",
-        "category": "UTILITY_POI",
-        "lat": 28.620019,
-        "lng": 77.126633,
-        "avg_visit_time_min": 0,
-        "cost": 2000,
-        "repeatable": true,
-        "tags": [
-            "hotel"
-        ],
-        "base_importance": 0.53
-    },
-    {
-        "location_id": "LOC_074",
-        "name": "ITC Maurya",
-        "type": "HOTEL",
-        "category": "UTILITY_POI",
-        "lat": 28.599101,
-        "lng": 77.178888,
-        "avg_visit_time_min": 0,
-        "cost": 8000,
-        "repeatable": true,
-        "tags": [
-            "hotel"
-        ],
-        "base_importance": 0.62
-    },
-    {
-        "location_id": "LOC_075",
-        "name": "Radisson Blu",
-        "type": "HOTEL",
-        "category": "UTILITY_POI",
-        "lat": 28.620967,
-        "lng": 77.182334,
-        "avg_visit_time_min": 0,
-        "cost": 12000,
-        "repeatable": true,
-        "tags": [
-            "hotel"
-        ],
-        "base_importance": 0.54
-    },
-    {
-        "location_id": "LOC_076",
-        "name": "Budget Inn",
-        "type": "HOTEL",
-        "category": "UTILITY_POI",
-        "lat": 28.580154,
-        "lng": 77.264253,
-        "avg_visit_time_min": 0,
-        "cost": 12000,
-        "repeatable": true,
-        "tags": [
-            "hotel"
-        ],
-        "base_importance": 0.57
-    },
-    {
-        "location_id": "LOC_077",
-        "name": "City Stay",
-        "type": "HOTEL",
-        "category": "UTILITY_POI",
-        "lat": 28.652962,
-        "lng": 77.274981,
-        "avg_visit_time_min": 0,
-        "cost": 12000,
-        "repeatable": true,
-        "tags": [
-            "hotel"
-        ],
-        "base_importance": 0.65
-    },
-    {
-        "location_id": "LOC_078",
-        "name": "Hotel Pearl",
-        "type": "HOTEL",
-        "category": "UTILITY_POI",
-        "lat": 28.566833,
-        "lng": 77.262306,
-        "avg_visit_time_min": 0,
-        "cost": 8000,
-        "repeatable": true,
-        "tags": [
-            "hotel"
-        ],
-        "base_importance": 0.76
-    },
-    {
-        "location_id": "LOC_079",
-        "name": "Metro View",
-        "type": "HOTEL",
-        "category": "UTILITY_POI",
-        "lat": 28.521142,
-        "lng": 77.208165,
-        "avg_visit_time_min": 0,
-        "cost": 12000,
-        "repeatable": true,
-        "tags": [
-            "hotel"
-        ],
-        "base_importance": 0.59
-    },
-    {
-        "location_id": "LOC_080",
-        "name": "Urban Nest",
-        "type": "HOTEL",
-        "category": "UTILITY_POI",
-        "lat": 28.535197,
-        "lng": 77.262195,
-        "avg_visit_time_min": 0,
-        "cost": 4000,
-        "repeatable": true,
-        "tags": [
-            "hotel"
-        ],
-        "base_importance": 0.71
+        "base_importance": 1.0,
+        "role": "SKELETON"
     },
     {
         "location_id": "LOC_DINNER",
@@ -478,40 +345,6 @@
             "food",
             "luxury",
             "nightlife"
-        ],
-        "base_importance": 1.0,
-        "role": "SKELETON"
-    },
-    {
-        "location_id": "LOC_HOTEL",
-        "name": "The Imperial Hotel (Connaught Place)",
-        "type": "HOTEL",
-        "category": "HARD_POI",
-        "lat": 28.6266,
-        "lng": 77.2184,
-        "avg_visit_time_min": 0,
-        "cost": 0,
-        "repeatable": true,
-        "tags": [
-            "luxury",
-            "central"
-        ],
-        "base_importance": 1.0,
-        "role": "SKELETON"
-    },
-    {
-        "location_id": "LOC_LUNCH",
-        "name": "Connaught Place Restaurants (Lunch)",
-        "type": "RESTAURANT",
-        "category": "HARD_POI",
-        "lat": 28.6315,
-        "lng": 77.2167,
-        "avg_visit_time_min": 60,
-        "cost": 50,
-        "repeatable": true,
-        "tags": [
-            "food",
-            "central"
         ],
         "base_importance": 1.0,
         "role": "SKELETON"

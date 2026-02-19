@@ -1,12 +1,18 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 from enum import Enum
+import uuid as uuid_lib
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from app.core.dependencies import get_current_user
 from app.schemas.auth import TokenPayload
 from app.schemas.events import EventCreate, EventType, EventResponse
+from app.services.itinerary_service import ItineraryService
+from app.services.event_service import EventService
+from app.services.preference_service import PreferenceService
+from app.models.preference import PreferenceType
+from app.models.event import EventType as ModelEventType
 
 router = APIRouter()
 
@@ -43,50 +49,38 @@ async def get_current_itinerary(
     current_user: TokenPayload = Depends(get_current_user)
 ) -> Any:
     """
-    Get the current active itinerary for the authenticated user.
+    Get the current active itinerary for the authenticated user's family.
     """
-    
-    # ---------------------------------------------------------
-    # TODO: Database Implementation
-    # ---------------------------------------------------------
-    # In the future, this should:
-    # 1. Query the 'itineraries' table filtering by:
-    #    - status='live'
-    #    - User relevance (e.g., if user is a traveller, check if they belong to a family in the itinerary)
-    #    - If user is an agent, check if they are assigned to this itinerary
-    #
-    # Example DB Call:
-    # stmt = select(Itinerary).where(Itinerary.status == 'live', ...)
-    # itinerary = session.exec(stmt).first()
-    # ---------------------------------------------------------
+    try:
+        # Get family ID from token
+        if not current_user.family_id:
+            raise HTTPException(
+                status_code=400,
+                detail="User is not associated with a family"
+            )
+        
+        family_id = uuid_lib.UUID(current_user.family_id)
+        
+        # Get current itinerary from database
+        itinerary_data = ItineraryService.get_current_itinerary(family_id)
+        
+        if not itinerary_data:
+            raise HTTPException(
+                status_code=404,
+                detail="No active itinerary found for this family"
+            )
+        
+        return itinerary_data
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid family ID: {str(e)}")
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve itinerary: {str(e)}"
+        )
 
-    # Flow: Read DB -> No agent triggered
-    
-    # Mock Response
-    return {
-        "itinerary_id": "it_001",
-        "status": "live",
-        "subgroups": [
-            {
-                "subgroup_id": "sg_1",
-                "families": ["A", "B"],
-                "timeline": [
-                    {
-                        "id": "event_1",
-                        "type": "FLIGHT",
-                        "time": "2024-05-20T10:00:00Z",
-                        "description": "Flight to Paris"
-                    },
-                    {
-                        "id": "event_2",
-                        "type": "HOTEL_CHECKIN",
-                        "time": "2024-05-20T14:00:00Z",
-                        "description": "Check-in at Hotel Ritz"
-                    }
-                ]
-            }
-        ]
-    }
+
 
 
 @router.post("/feedback", response_model=FeedbackResponse)
@@ -96,45 +90,38 @@ async def submit_feedback(
 ) -> Any:
     """
     Submit traveller feedback for a specific itinerary node.
-    Converts feedback into an internal EVENT for processing.
+    Creates an event for agentic processing.
     """
-    
-    # ---------------------------------------------------------
-    # TODO: Database Implementation
-    # ---------------------------------------------------------
-    # In the future, this should:
-    # 1. Validate that the node_id exists in the current itinerary
-    # 2. Store the feedback in a 'feedback' table
-    # 3. Create an event record in the 'events' table
-    # 4. Trigger any necessary agent workflows based on feedback severity
-    # ---------------------------------------------------------
-    
     try:
-        # Convert feedback to event
+        # Get user and family context
+        user_id = uuid_lib.UUID(current_user.sub) if current_user.sub else None
+        family_id = uuid_lib.UUID(current_user.family_id) if current_user.family_id else None
+        
+        # Create feedback event with payload
         event_create = EventCreate(
-            event_type=EventType.FEEDBACK,
+            event_type=ModelEventType.FEEDBACK,
+            entity_type="poi",
             entity_id=feedback.node_id,
-            reported_by=f"traveller_{current_user.sub}"
+            source="ui",
+            payload={
+                "rating": feedback.rating,
+                "comment": feedback.comment,
+                "node_id": feedback.node_id
+            }
         )
         
-        # ---------------------------------------------------------
-        # TODO: Event Service Integration
-        # ---------------------------------------------------------
-        # This should call an event service to:
-        # 1. Create the event record
-        # 2. Queue it for processing
-        # 3. Return the event ID and status
-        # 
-        # Example:
-        # event_service = EventService()
-        # event_response = await event_service.create_event(event_create)
-        # ---------------------------------------------------------
-        
-        # Mock event creation response
-        event_response = EventResponse(
-            event_id=f"evt_{feedback.node_id}_{int(datetime.utcnow().timestamp())}",
-            status="queued"
+        # Store event in database
+        db_event = EventService.create_event(
+            event_data=event_create,
+            user_id=user_id,
+            family_id=family_id
         )
+        
+        print(f"[Itinerary API] Created feedback event: {db_event.id} for POI {feedback.node_id}")
+        
+        # TODO: Trigger agentic processing
+        # from app.services.agent_service import AgentService
+        # AgentService.process_feedback(db_event.id)
         
         # Determine feedback sentiment for response message
         if feedback.rating <= 2:
@@ -146,7 +133,7 @@ async def submit_feedback(
         
         return FeedbackResponse(
             message=message,
-            event_created=event_response
+            event_created=EventResponse(event_id=db_event.id, status=db_event.status)
         )
         
     except Exception as e:
@@ -156,71 +143,181 @@ async def submit_feedback(
         )
 
 
+class AgentFeedbackRequest(BaseModel):
+    """Request model for agent-based feedback processing"""
+    message: str = Field(..., description="Natural language feedback message")
+
+
+class AgentFeedbackResponse(BaseModel):
+    """Response model for agent-based feedback processing"""
+    success: bool
+    event_type: str
+    action_taken: str
+    explanations: List[str]
+    itinerary_updated: bool
+    iteration: int
+    cost_analysis: Optional[Dict[str, Any]] = None
+
+
+@router.post("/feedback/agent", response_model=AgentFeedbackResponse)
+async def process_agent_feedback(
+    feedback: AgentFeedbackRequest,
+    current_user: Optional[TokenPayload] = Depends(lambda: None)  # Make auth optional for testing
+) -> Any:
+    """
+    Process feedback through the agent pipeline.
+    
+    This endpoint uses the full agentic workflow:
+    - FeedbackAgent parses natural language
+    - DecisionPolicyAgent determines action
+    - OptimizerAgent runs ML optimizer if needed
+    - ExplainabilityAgent generates explanations
+    
+    Returns optimized itinerary + explanations + cost analysis.
+    
+    Note: Authentication is optional for testing. In production, this should require auth.
+    """
+    try:
+        from app.services.optimizer_service import OptimizerService
+        from app.services.trip_service import TripService
+        
+        # Use default test family if not authenticated
+        if not current_user or not current_user.family_id:
+            # Default test family for demo/testing
+            family_id = "FAM_A"
+            print(f"[Agent Feedback API] Using default test family: {family_id}")
+        else:
+            family_id = current_user.family_id
+        
+        # Get active trip for this family (instead of requiring trip_id in request)
+        trip_session = TripService.get_active_trip_for_family(family_id)
+        
+        if not trip_session:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No active trip found for family {family_id}. Please initialize a trip first."
+            )
+        
+        trip_id = trip_session.trip_id
+        
+        print(f"[Agent Feedback API] Processing: '{feedback.message}' for family {family_id}, trip {trip_id}")
+        
+        # Process through agent pipeline
+        # NOTE: This handles the full workflow: agents → optimizer → session update
+        result = OptimizerService.process_feedback_with_agents(
+            trip_id=trip_id,
+            family_id=family_id,
+            message=feedback.message
+        )
+        
+        # Session update is already handled inside process_feedback_with_agents
+        # No need to modify trip_session here (would cause detached instance error)
+        
+        print(f"[Agent Feedback API] Result: {result['action_taken']}, Updated: {result['itinerary_updated']}")
+        
+        return AgentFeedbackResponse(
+            success=result["success"],
+            event_type=result["event_type"],
+            action_taken=result["action_taken"],
+            explanations=result["explanations"],
+            itinerary_updated=result["itinerary_updated"],
+            iteration=result["iteration"],
+            cost_analysis=result.get("cost_analysis")
+        )
+        
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Agent system not available: {str(e)}"
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Trip session error: {str(e)}"
+        )
+    except Exception as e:
+        print(f"[Agent Feedback API] Error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to process agent feedback: {str(e)}"
+        )
+
+
+
 @router.post("/poi-request", response_model=POIRequestResponse)
 async def submit_poi_request(
     poi_request: POIRequest,
     current_user: TokenPayload = Depends(get_current_user)
 ) -> Any:
     """
-    Submit a POI (Point of Interest) request during mid-trip.
-    Stores the request, broadcasts to other families, and triggers Decision Agent.
+    Submit a POI (Point of Interest) request.
+    Creates event and adds preference for agentic processing.
     """
-    
-    # ---------------------------------------------------------
-    # TODO: Database Implementation
-    # ---------------------------------------------------------
-    # In the future, this should:
-    # 1. Store the POI request in a 'poi_requests' table
-    # 2. Broadcast the request to other families in the same itinerary
-    # 3. Create an event record to trigger the Decision Agent
-    # 4. Return the request ID for tracking
-    # ---------------------------------------------------------
-    
     try:
-        # Generate unique request ID
-        request_id = f"poi_req_{current_user.family_id}_{int(datetime.utcnow().timestamp())}"
+        # Get user and family context
+        user_id = uuid_lib.UUID(current_user.sub) if current_user.sub else None
+        family_id = uuid_lib.UUID(current_user.family_id) if current_user.family_id else None
         
-        # Create event for Decision Agent processing
+        if not family_id:
+            raise HTTPException(status_code=400, detail="User not associated with a family")
+        
+        # Generate request ID
+        request_id = f"poi_req_{family_id}_{int(datetime.utcnow().timestamp())}"
+        
+        # Create POI request event
         event_create = EventCreate(
-            event_type=EventType.POI_REQUEST,
+            event_type=ModelEventType.POI_REQUEST,
+            entity_type="poi",
             entity_id=request_id,
-            reported_by=f"family_{current_user.family_id}"
+            source="ui",
+            payload={
+                "poi_name": poi_request.poi_name,
+                "urgency": poi_request.urgency.value,
+                "request_id": request_id
+            }
         )
         
-        # ---------------------------------------------------------
-        # TODO: Service Integration
-        # ---------------------------------------------------------
-        # This should:
-        # 1. Store POI request in database
-        # 2. Broadcast to other families via WebSocket/notification service
-        # 3. Queue event for Decision Agent processing
-        # 4. Return proper response with tracking info
-        # 
-        # Example:
-        # poi_service = POIRequestService()
-        # await poi_service.store_request(request_id, poi_request, current_user.family_id)
-        # await poi_service.broadcast_to_families(request_id, poi_request)
-        # event_response = await event_service.create_event(event_create)
-        # ---------------------------------------------------------
-        
-        # Mock event creation response
-        event_response = EventResponse(
-            event_id=f"evt_{request_id}",
-            status="queued"
+        # Store event
+        db_event = EventService.create_event(
+            event_data=event_create,
+            user_id=user_id,
+            family_id=family_id
         )
         
-        # Determine response message based on urgency
+        # Add preference based on urgency
+        # High urgency = MUST_VISIT, else PREFER_VISIT
+        pref_type = PreferenceType.MUST_VISIT if poi_request.urgency == UrgencyLevel.HIGH else PreferenceType.PREFER_VISIT
+        strength = 1.0 if poi_request.urgency == UrgencyLevel.HIGH else 0.8
+        
+        PreferenceService.add_preference(
+            family_id=family_id,
+            poi_id=f"POI_{poi_request.poi_name.upper().replace(' ', '_')}",
+            poi_name=poi_request.poi_name,
+            preference_type=pref_type,
+            strength=strength,
+            reason=f"User requested via POI request (urgency: {poi_request.urgency.value})",
+            created_by=str(user_id) if user_id else "system",
+            event_id=db_event.id
+        )
+        
+        print(f"[Itinerary API] Created POI request: {request_id} for {poi_request.poi_name}")
+        
+        # TODO: Trigger agentic processing
+        # from app.services.agent_service import AgentService
+        # AgentService.process_poi_request(db_event.id)
+        
+        # Response message based on urgency
         if poi_request.urgency == UrgencyLevel.HIGH:
-            message = f"High priority POI request for '{poi_request.poi_name}' submitted. Other families will be notified immediately."
+            message = f"High priority request for '{poi_request.poi_name}' submitted and added to must-visit list."
         elif poi_request.urgency == UrgencyLevel.MEDIUM:
-            message = f"POI request for '{poi_request.poi_name}' submitted. Checking with other families."
-        else:  # SOFT
-            message = f"POI suggestion for '{poi_request.poi_name}' submitted. Will coordinate with other families when convenient."
+            message = f"POI request for '{poi_request.poi_name}' submitted. Checking feasibility."
+        else:
+            message = f"POI suggestion for '{poi_request.poi_name}' noted for future planning."
         
         return POIRequestResponse(
             message=message,
             request_id=request_id,
-            event_created=event_response
+            event_created=EventResponse(event_id=db_event.id, status=db_event.status)
         )
         
     except Exception as e:

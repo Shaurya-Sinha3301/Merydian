@@ -27,7 +27,7 @@ class Config:
     PROJECT_ROOT = ROOT_DIR
     AGENTS_DIR = ROOT_DIR / "agents"
     ML_OR_DIR = ROOT_DIR / "ml_or"
-    TEST_DATA_DIR = ML_OR_DIR / "tests" / "solved" / "3fam3daypref"
+    TEST_DATA_DIR = ML_OR_DIR / "tests" / "solved" / "3fam3day_reopt"
     
     @classmethod
     def validate(cls):

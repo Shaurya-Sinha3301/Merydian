@@ -1,0 +1,92 @@
+{
+    "itinerary_id": "CLUSTERED_DELHI_TEST",
+    "city": "Delhi",
+    "assumptions": {
+        "day_start_time": "09:00",
+        "day_end_time": "22:00",
+        "poi_transport_separation": true
+    },
+    "days": [
+        {
+            "day": 1,
+            "region": "North Delhi (Old Delhi)",
+            "pois": [
+                {
+                    "sequence": 1,
+                    "location_id": "LOC_001",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 90,
+                    "comment": "Red Fort"
+                },
+                {
+                    "sequence": 2,
+                    "location_id": "LOC_007",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 45,
+                    "comment": "Jama Masjid"
+                },
+                {
+                    "sequence": 3,
+                    "location_id": "LOC_015",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 120,
+                    "comment": "Chandni Chowk"
+                }
+            ]
+        },
+        {
+            "day": 2,
+            "region": "South Delhi",
+            "pois": [
+                {
+                    "sequence": 1,
+                    "location_id": "LOC_004",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 90,
+                    "comment": "Lotus Temple"
+                },
+                {
+                    "sequence": 2,
+                    "location_id": "LOC_011",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 120,
+                    "comment": "Hauz Khas Village"
+                },
+                {
+                    "sequence": 3,
+                    "location_id": "LOC_019",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 90,
+                    "comment": "Garden of Five Senses"
+                }
+            ]
+        },
+        {
+            "day": 3,
+            "region": "Central Delhi",
+            "pois": [
+                {
+                    "sequence": 1,
+                    "location_id": "LOC_003",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 45,
+                    "comment": "India Gate"
+                },
+                {
+                    "sequence": 2,
+                    "location_id": "LOC_013",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 60,
+                    "comment": "Lodhi Gardens"
+                },
+                {
+                    "sequence": 3,
+                    "location_id": "LOC_014",
+                    "role": "SKELETON",
+                    "planned_visit_time_min": 120,
+                    "comment": "National Museum"
+                }
+            ]
+        }
+    ]
+}

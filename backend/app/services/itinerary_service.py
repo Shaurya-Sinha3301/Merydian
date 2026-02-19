@@ -1,111 +1,208 @@
-import json
+"""
+Itinerary Service
+
+Handles itinerary versioning and retrieval with real database operations.
+"""
+
+import logging
+from datetime import datetime
+from typing import Optional, List
 from uuid import UUID
-from typing import Optional
-from sqlalchemy import text
-from sqlmodel import Session
+
+from sqlmodel import Session, select
 from app.core.db import engine
-from app.core.redis import RedisManager
-from app.schemas.itinerary import Itinerary
+from app.models.itinerary import Itinerary
+from app.models.family import Family
+from app.schemas.itinerary import Itinerary as ItinerarySchema
+
+logger = logging.getLogger(__name__)
+
 
 class ItineraryService:
+    """Service for managing itineraries with versioning."""
+    
     @staticmethod
-    async def get_current_itinerary(family_id: UUID) -> Optional[Itinerary]:
+    def get_current_itinerary(family_id: UUID) -> Optional[dict]:
         """
-        1. Check Redis for 'family:{id}:itinerary:current'
-        2. If miss, fetch latest version from Postgres
-        3. Populate Redis
+        Get the current itinerary for a family.
+        
+        Returns the itinerary data as a dictionary.
         """
-        redis = RedisManager.get_client()
-        cache_key = f"family:{family_id}:itinerary:current"
-        
-        # 1. Try Cache
-        cached_data = await redis.get(cache_key)
-        if cached_data:
-            return Itinerary.parse_raw(cached_data)
-            
-        # 2. DB Fallback (Zero-Join Read)
-        # We query the itinerary directly where it is the current version for the family
-        query = text("""
-            SELECT i.data 
-            FROM itineraries i
-            JOIN families f ON f.id = i.family_id
-            WHERE f.id = :family_id 
-              AND i.id = f.current_itinerary_version
-        """)
-        
         with Session(engine) as session:
-            result = session.exec(query, params={"family_id": family_id}).first()
-            
-            if not result:
+            # Get the family
+            family = session.get(Family, family_id)
+            if not family or not family.current_itinerary_version:
                 return None
-                
-            # result is a tuple, data is the first element
-            itinerary_data = result[0]
             
-            # 3. Populate Cache (TTL 24h)
-            # data is already a dict from jsonb, we need to dump it string for redis
-            # Or if sqlalchemy returns dict, pydantic can parse it.
-            itinerary = Itinerary.parse_obj(itinerary_data)
-            await redis.set(cache_key, itinerary.json(), ex=86400)
+            # Get the current itinerary version
+            itinerary = session.get(Itinerary, family.current_itinerary_version)
+            if not itinerary:
+                return None
+            
+            return itinerary.data
+    
+    @staticmethod
+    def get_itinerary(itinerary_id: UUID) -> Optional[Itinerary]:
+        """Get a specific itinerary by ID."""
+        with Session(engine) as session:
+            return session.get(Itinerary, itinerary_id)
+    
+    @staticmethod
+    def create_itinerary(
+        family_id: UUID,
+        itinerary_data: dict,
+        created_reason: str = "Initial creation",
+        created_by: Optional[str] = None,
+        set_as_current: bool = True
+    ) -> Itinerary:
+        """
+        Create a new itinerary version.
+        
+        Args:
+            family_id: Family this itinerary belongs to
+            itinerary_data: Complete itinerary data as dict
+            created_reason: Reason for creation
+            created_by: User ID or "system"
+            set_as_current: Whether to set this as the current version
+            
+        Returns:
+            Created Itinerary object
+        """
+        with Session(engine) as session:
+            # Get the current max version for this family
+            statement = (
+                select(Itinerary)
+                .where(Itinerary.family_id == family_id)
+                .order_by(Itinerary.version.desc())
+                .limit(1)
+            )
+            latest = session.exec(statement).first()
+            new_version = (latest.version + 1) if latest else 1
+            
+            # Calculate statistics from data
+            total_cost = itinerary_data.get('total_cost', 0.0)
+            total_satisfaction = itinerary_data.get('total_satisfaction', 0.0)
+            duration_days = len(itinerary_data.get('days', []))
+            
+            # Create new itinerary
+            itinerary = Itinerary(
+                family_id=family_id,
+                version=new_version,
+                data=itinerary_data,
+                created_reason=created_reason,
+                created_by=created_by,
+                total_cost=total_cost,
+                total_satisfaction=total_satisfaction,
+                duration_days=duration_days
+            )
+            
+            session.add(itinerary)
+            session.commit()
+            session.refresh(itinerary)
+            
+            # Update family's current itinerary if requested
+            if set_as_current:
+                family = session.get(Family, family_id)
+                if family:
+                    family.current_itinerary_version = itinerary.id
+                    family.updated_at = datetime.utcnow()
+                    session.add(family)
+                    session.commit()
             
             return itinerary
+    
+    @staticmethod
+    def get_itinerary_history(family_id: UUID, limit: int = 10) -> List[Itinerary]:
+        """Get itinerary version history for a family."""
+        with Session(engine) as session:
+            statement = (
+                select(Itinerary)
+                .where(Itinerary.family_id == family_id)
+                .order_by(Itinerary.version.desc())
+                .limit(limit)
+            )
+            results = session.exec(statement)
+            return list(results.all())
+    
+    @staticmethod
+    def get_latest_version(family_id: UUID) -> Optional[Itinerary]:
+        """Get the latest itinerary version for a family."""
+        with Session(engine) as session:
+            statement = (
+                select(Itinerary)
+                .where(Itinerary.family_id == family_id)
+                .order_by(Itinerary.version.desc())
+                .limit(1)
+            )
+            return session.exec(statement).first()
 
     @staticmethod
-    async def create_new_version(family_id: UUID, itinerary: Itinerary, reason: str = "Manual Update") -> UUID:
+    def publish_base_itinerary(
+        trip_id: str,
+        family_ids: List[str],
+        itinerary_data: dict,
+        created_reason: str = "Base itinerary approved by agent",
+    ) -> List[UUID]:
         """
-        1. Insert new row in 'itineraries'
-        2. Update 'families.current_itinerary_version'
-        3. Update Redis
+        Publish an approved base itinerary to all families in a trip.
+
+        Creates an Itinerary record (version 1) for each family and updates
+        Family.current_itinerary_version so the customer-facing page sees it.
+
+        Args:
+            trip_id: Trip identifier
+            family_ids: List of family_code strings
+            itinerary_data: The approved itinerary JSON data
+            created_reason: Reason string for the itinerary record
+
+        Returns:
+            List of created Itinerary UUIDs
         """
-        redis = RedisManager.get_client()
-        cache_key = f"family:{family_id}:itinerary:current"
-        
-        # Calculate new version number
-        # Simplification: In real app, might want to lock or use atomic increment
+        created_ids: List[UUID] = []
+
         with Session(engine) as session:
-            # Get max version
-            max_ver_query = text("SELECT MAX(version) FROM itineraries WHERE family_id = :fid")
-            current_max = session.exec(max_ver_query, params={"fid": family_id}).first() or 0
-            new_version = current_max + 1
-            
-            # Insert new itinerary
-            insert_query = text("""
-                INSERT INTO itineraries (family_id, version, data, created_reason)
-                VALUES (:fid, :ver, :data, :reason)
-                RETURNING id
-            """)
-            
-            # data needs to be json serialized string for jsonb if using raw param, 
-            # or if using sqlalchemy json type it handles dict. 
-            # With raw text and psycopg2, usually passing logic json string or adapter.
-            # safe bet: pass json string and cast to ::jsonb in SQL if needed, 
-            # but sqlmodel/sqlalchemy usually handles dict -> jsonb automatically if bindparam is set correctly.
-            # Let's try passing the dict directly.
-            
-            result = session.exec(
-                insert_query, 
-                params={
-                    "fid": family_id, 
-                    "ver": new_version, 
-                    "data": itinerary.json(), # passing string to be safe with raw query
-                    "reason": reason
-                }
-            ).first()
-            
-            new_id = result[0]
-            
-            # Update Family Pointer
-            update_family = text("""
-                UPDATE families 
-                SET current_itinerary_version = :iid,
-                    updated_at = NOW()
-                WHERE id = :fid
-            """)
-            session.exec(update_family, params={"iid": new_id, "fid": family_id})
-            
+            for fam_code in family_ids:
+                # Look up family by family_code
+                statement = select(Family).where(Family.family_code == fam_code)
+                family = session.exec(statement).first()
+
+                if not family:
+                    logger.warning(
+                        f"Family {fam_code} not found in DB, skipping publish"
+                    )
+                    continue
+
+                # Calculate stats
+                total_cost = itinerary_data.get("total_cost", 0.0)
+                total_satisfaction = itinerary_data.get("total_satisfaction", 0.0)
+                duration_days = len(itinerary_data.get("days", []))
+
+                # Create Itinerary record
+                itinerary = Itinerary(
+                    family_id=family.id,
+                    version=1,
+                    data=itinerary_data,
+                    created_reason=created_reason,
+                    created_by="agent",
+                    total_cost=total_cost,
+                    total_satisfaction=total_satisfaction,
+                    duration_days=duration_days,
+                )
+                session.add(itinerary)
+                session.flush()
+
+                # Point family to this version
+                family.current_itinerary_version = itinerary.id
+                family.trip_name = trip_id
+                family.updated_at = datetime.utcnow()
+                session.add(family)
+
+                created_ids.append(itinerary.id)
+
             session.commit()
-            
-            # 3. Update Redis
-            await redis.set(cache_key, itinerary.json(), ex=86400)
-            
-            return new_id
+
+        logger.info(
+            f"Published base itinerary for trip {trip_id} to "
+            f"{len(created_ids)} families"
+        )
+        return created_ids
