@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import ItineraryDetailView from '@/components/itinerary/ItineraryDetailView';
 import { Calendar, CreditCard, MoreHorizontal, Search, SlidersHorizontal, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -108,12 +109,13 @@ const STATUS_STYLES: Record<TripStatus, { pill: string }> = {
 
 // ─── TripCard ────────────────────────────────────────────────────────────────
 
-function TripCard({ trip }: { trip: Trip }) {
+function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
     const { pill } = STATUS_STYLES[trip.status];
     const isCancelled = trip.status === 'CANCELLED';
 
     return (
         <article
+            onClick={!isCancelled ? onClick : undefined}
             className={cn(
                 'neu-card rounded-[16px] p-6 flex flex-col h-full transition-transform duration-300',
                 isCancelled ? 'opacity-70 grayscale-[0.5]' : 'hover:scale-[1.015] cursor-pointer neu-card-hover',
@@ -176,6 +178,7 @@ const FILTER_TABS: { label: string; value: TripStatus | 'ALL' }[] = [
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ItineraryOptimizerWindow() {
+    const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
     const [search, setSearch] = useState('');
     const [activeFilter, setActiveFilter] = useState<TripStatus | 'ALL'>('ALL');
 
@@ -189,6 +192,16 @@ export default function ItineraryOptimizerWindow() {
             return matchesSearch && matchesFilter;
         });
     }, [search, activeFilter]);
+
+    // ── Detail view ──────────────────────────────────────────────────────────
+    if (selectedTrip) {
+        return (
+            <ItineraryDetailView
+                trip={selectedTrip}
+                onBack={() => setSelectedTrip(null)}
+            />
+        );
+    }
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -250,7 +263,7 @@ export default function ItineraryOptimizerWindow() {
             {filtered.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-10">
                     {filtered.map((trip) => (
-                        <TripCard key={trip.id} trip={trip} />
+                        <TripCard key={trip.id} trip={trip} onClick={() => setSelectedTrip(trip)} />
                     ))}
                 </div>
             ) : (

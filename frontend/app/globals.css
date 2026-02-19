@@ -545,3 +545,79 @@
   background: #292929;
   box-shadow: 5px 5px 10px #151515, -5px -5px 10px #3D3D3D;
 }
+
+/* ─── Itinerary component utilities ─────────────────────────────────────── */
+/* neu-card: same shadow as neu-raised but with hover state support */
+.neu-card {
+  background: #E0E5EC;
+  box-shadow: 6px 6px 12px #BEBEBE, -6px -6px 12px #FFFFFF;
+}
+.neu-card-hover:hover {
+  box-shadow: 8px 8px 16px #BEBEBE, -8px -8px 16px #FFFFFF;
+}
+
+/* neu-flat: subtle, small neumorphic raised */
+.neu-flat {
+  background: #E0E5EC;
+  box-shadow: 4px 4px 8px #c8cdd4, -4px -4px 8px #f8feff;
+}
+
+/* neu-pressed: inset / pressed look */
+.neu-pressed {
+  background: #E0E5EC;
+  box-shadow: inset 4px 4px 8px #c8cdd4, inset -4px -4px 8px #f8feff;
+}
+
+/* neu-button: small raised button */
+.neu-button {
+  background: #E0E5EC;
+  box-shadow: 4px 4px 8px #BEBEBE, -4px -4px 8px #FFFFFF;
+  transition: all 0.2s ease;
+}
+.neu-button:hover {
+  box-shadow: 6px 6px 10px #BEBEBE, -6px -6px 10px #FFFFFF;
+}
+.neu-button:active {
+  box-shadow: inset 3px 3px 6px #BEBEBE, inset -3px -3px 6px #FFFFFF;
+}
+
+/* neu-icon-circle: centered icon in neumorphic circle */
+.neu-icon-circle {
+  background: #E0E5EC;
+  box-shadow: 4px 4px 8px #BEBEBE, -4px -4px 8px #FFFFFF;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hide scrollbar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Dark mode overrides */
+.dark .neu-card {
+  background: #292929;
+  box-shadow: 6px 6px 12px #151515, -6px -6px 12px #3D3D3D;
+}
+.dark .neu-flat {
+  background: #292929;
+  box-shadow: 4px 4px 8px #151515, -4px -4px 8px #3D3D3D;
+}
+.dark .neu-pressed {
+  background: #292929;
+  box-shadow: inset 4px 4px 8px #151515, inset -4px -4px 8px #3D3D3D;
+}
+.dark .neu-button {
+  background: #292929;
+  box-shadow: 4px 4px 8px #151515, -4px -4px 8px #3D3D3D;
+}
+.dark .neu-icon-circle {
+  background: #292929;
+  box-shadow: 4px 4px 8px #151515, -4px -4px 8px #3D3D3D;
+}
