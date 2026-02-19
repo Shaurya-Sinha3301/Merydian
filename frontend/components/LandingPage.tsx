@@ -68,7 +68,7 @@ export default function LandingPage() {
                 manage group bookings, and deliver exceptional travel experiences.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-fade-in-up animate-delay-400">
-                <Link href="/customer-trip-request" className="bg-[#212121] text-[#FDFDFF] px-8 py-4 rounded-full flex items-center gap-3 group hover:bg-[#212121]/90 transition-all text-sm font-black uppercase tracking-widest hover:scale-105 transform">
+                <Link href="/customer-login" className="bg-[#212121] text-[#FDFDFF] px-8 py-4 rounded-full flex items-center gap-3 group hover:bg-[#212121]/90 transition-all text-sm font-black uppercase tracking-widest hover:scale-105 transform">
                   <span>Start Planning Your Trip</span>
                   <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
@@ -301,7 +301,7 @@ export default function LandingPage() {
                 Join thousands of travelers and agents creating exceptional travel experiences with AI-powered collaboration.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                <Link href="/customer-trip-request" className="bg-[#FDFDFF] text-[#212121] px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest hover:bg-[#EDEDED] transition-all">
+                <Link href="/customer-login" className="bg-[#FDFDFF] text-[#212121] px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest hover:bg-[#EDEDED] transition-all">
                   Start as Customer
                 </Link>
                 <Link href="/agent-dashboard" className="bg-[#EDEDED] text-[#212121] px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest hover:bg-[#FDFDFF] transition-all">

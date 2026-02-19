@@ -81,7 +81,7 @@ export default function LoginPage() {
 
           {userType === 'customer' ? (
             <Link
-              href="/customer-trip-request"
+              href="/customer-login"
               className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center block"
             >
               Login to Customer Portal
