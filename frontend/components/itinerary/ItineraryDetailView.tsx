@@ -159,12 +159,12 @@ function SplitIcon({ type }: { type: 'split' | 'merge' }) {
     );
 }
 
-function ActivityCard({ card, isLane }: { card: LaneCard; isLane: boolean }) {
+function ActivityCard({ card, isLane, laneCount }: { card: LaneCard; isLane: boolean; laneCount?: number }) {
     return (
         <div className={cn(
             'neu-flat rounded-2xl p-5 flex flex-col relative group/card transition-all duration-300 hover:scale-[1.01]',
             isLane
-                ? `w-[380px] flex-shrink-0 ${card.laneBorderColor ?? 'border-white'} ${card.laneBgColor ?? ''} border`
+                ? `flex-1 min-w-0 ${card.laneBorderColor ?? 'border-white'} ${card.laneBgColor ?? ''} border`
                 : 'flex-1 border border-white bg-slate-100/20 min-w-[500px]',
         )}>
             {/* Drag handle */}
@@ -375,10 +375,10 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                             {/* Cards area */}
                             <div className={cn(
                                 'flex-1 p-4 pl-10 flex gap-5',
-                                isMultiLane ? 'overflow-x-auto' : '',
+                                isMultiLane ? '' : '',
                             )}>
                                 {row.cards.map((card) => (
-                                    <ActivityCard key={card.id} card={card} isLane={isMultiLane} />
+                                    <ActivityCard key={card.id} card={card} isLane={isMultiLane} laneCount={row.cards.length} />
                                 ))}
 
                                 {/* Add lane button for multi-lane rows */}
