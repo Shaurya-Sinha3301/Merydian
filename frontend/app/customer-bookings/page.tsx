@@ -196,33 +196,33 @@ export default function CustomerBookingsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FDFDFF] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50/30 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#212121] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[#212121]">Loading your bookings...</p>
+          <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-900 font-medium">Loading your bookings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFF]">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50/30">
       {/* Header */}
-      <div className="bg-white border-b border-[#212121]/10 sticky top-0 z-40">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.push('/customer-portal')}
-                className="w-10 h-10 rounded-full bg-[#EDEDED] hover:bg-[#E0E0E0] transition-all flex items-center justify-center"
+                className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-all flex items-center justify-center"
               >
-                <svg className="w-5 h-5 text-[#212121]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-[#212121]">My Bookings</h1>
-                <p className="text-sm text-[#212121]/60">{bookings.length} total bookings</p>
+                <h1 className="text-2xl font-bold text-gray-900">My Bookings</h1>
+                <p className="text-sm text-gray-600">{bookings.length} total bookings</p>
               </div>
             </div>
           </div>
@@ -235,14 +235,14 @@ export default function CustomerBookingsPage() {
         <div className="mb-8 space-y-4">
           {/* Type Filter */}
           <div>
-            <p className="text-sm font-semibold text-[#212121] mb-3">Filter by Type</p>
+            <p className="text-sm font-semibold text-gray-900 mb-3">Filter by Type</p>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setFilterType('all')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all shadow-sm ${
                   filterType === 'all'
-                    ? 'bg-[#212121] text-white'
-                    : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-[#212121]'
+                    ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-teal-500/50'
+                    : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-teal-500'
                 }`}
               >
                 All ({counts.all})
@@ -317,34 +317,34 @@ export default function CustomerBookingsPage() {
 
           {/* Status Filter */}
           <div>
-            <p className="text-sm font-semibold text-[#212121] mb-3">Filter by Date</p>
+            <p className="text-sm font-semibold text-gray-900 mb-3">Filter by Date</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setFilterStatus('all')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all shadow-sm ${
                   filterStatus === 'all'
-                    ? 'bg-[#212121] text-white'
-                    : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-[#212121]'
+                    ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-teal-500/50'
+                    : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-teal-500'
                 }`}
               >
                 All Bookings
               </button>
               <button
                 onClick={() => setFilterStatus('upcoming')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all shadow-sm ${
                   filterStatus === 'upcoming'
-                    ? 'bg-[#212121] text-white'
-                    : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-[#212121]'
+                    ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-teal-500/50'
+                    : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-teal-500'
                 }`}
               >
                 Upcoming
               </button>
               <button
                 onClick={() => setFilterStatus('past')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all shadow-sm ${
                   filterStatus === 'past'
-                    ? 'bg-[#212121] text-white'
-                    : 'bg-white text-[#212121] border-2 border-[#E0E0E0] hover:border-[#212121]'
+                    ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-teal-500/50'
+                    : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-teal-500'
                 }`}
               >
                 Past

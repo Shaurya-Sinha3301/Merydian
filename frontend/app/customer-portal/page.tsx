@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import CustomerPortalInteractive from './components/CustomerPortalInteractive';
+import EnhancedCustomerPortalInteractive from './components/EnhancedCustomerPortalInteractive';
 
 export const metadata: Metadata = {
   title: 'Customer Portal - Voyageur',
@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function CustomerPortalPage() {
   return (
-    <div className="min-h-screen bg-[#FDFDFF]">
-      <CustomerPortalInteractive />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50/30">
+      <EnhancedCustomerPortalInteractive />
     </div>
   );
 }
