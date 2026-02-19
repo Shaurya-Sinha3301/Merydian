@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     ArrowLeft, TrendingUp, Sparkles, ChevronUp, ChevronDown,
     Zap, MessageSquare, Send, GripVertical, Plus, Minimize2, Maximize2
@@ -226,8 +226,9 @@ function FloatingPanel({
 }) {
     return (
         <div className={cn(
-            'absolute bottom-6 z-[60] w-[380px] neu-card rounded-3xl border border-white/60 shadow-2xl transition-all duration-300',
-            position === 'left' ? 'left-6' : 'right-6',
+            // fixed keeps the panel anchored to the viewport bottom regardless of scroll
+            'fixed bottom-6 z-[60] w-[calc(50vw-220px)] min-w-[320px] max-w-[440px] neu-card rounded-3xl border border-white/60 shadow-2xl transition-all duration-300',
+            position === 'left' ? 'left-[calc(256px+24px)]' : 'right-6',
         )}>
             {/* Panel header */}
             <div className={cn('flex items-center justify-between p-5', isOpen ? 'pb-4' : '')}>
@@ -270,6 +271,47 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
     const [aiOpen, setAiOpen] = useState(true);
     const [profitOpen, setProfitOpen] = useState(true);
     const [aiInput, setAiInput] = useState('');
+
+    // ── Chat state ─────────────────────────────────────────────────────────────
+
+    type ChatMessage = { role: 'ai' | 'user'; text: string; time: string };
+
+    const now = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const [messages, setMessages] = useState<ChatMessage[]>([
+        {
+            role: 'ai',
+            time: now(),
+            text: 'Here’s the latest optimization summary:\n\n• Preference conflict detected between Family A & C\n• Subgroup formed for 2.5h activity slots\n• Travel overhead reduced by 18%\n• Margin improved by +2.4%\n\nAsk me anything about this itinerary!',
+        },
+    ]);
+    const [isTyping, setIsTyping] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, isTyping]);
+
+    const sendMessage = () => {
+        const text = aiInput.trim();
+        if (!text) return;
+        const userMsg: ChatMessage = { role: 'user', text, time: now() };
+        setMessages((prev) => [...prev, userMsg]);
+        setAiInput('');
+        setIsTyping(true);
+        // Simulate AI reply after 1.2s
+        setTimeout(() => {
+            setIsTyping(false);
+            setMessages((prev) => [
+                ...prev,
+                {
+                    role: 'ai',
+                    time: now(),
+                    text: `I’m analyzing your request about “${text}”. Based on the current optimization, I recommend reviewing the subgroup allocations for Day 2. Would you like me to run a new optimization pass?`,
+                },
+            ]);
+        }, 1200);
+    };
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden relative bg-background h-full">
@@ -318,7 +360,7 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
             </div>
 
             {/* ── Timeline ─────────────────────────────────────────────────────────── */}
-            <div className="flex-1 overflow-auto pb-52 scrollbar-hide">
+            <div className="flex-1 overflow-auto pb-72 scrollbar-hide">
 
                 {TIMELINE_ROWS.map((row) => {
                     const isMultiLane = row.cards.length > 1;
@@ -394,6 +436,18 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
                     </p>
                 </div>
 
+                {/* Revenue row — adds visual weight to match VoyageurAI panel height */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="neu-pressed rounded-xl p-3 flex flex-col">
+                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Total Revenue</span>
+                        <span className="text-base font-bold text-foreground font-[Outfit]">$12,450</span>
+                    </div>
+                    <div className="neu-pressed rounded-xl p-3 flex flex-col">
+                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Est. Cost</span>
+                        <span className="text-base font-bold text-muted-foreground font-[Outfit]">$9,820</span>
+                    </div>
+                </div>
+
                 {/* AI insights box */}
                 <div className="neu-pressed rounded-2xl p-4">
                     <div className="flex items-center gap-2 mb-2.5">
@@ -411,52 +465,88 @@ export default function ItineraryDetailView({ trip, onBack }: ItineraryDetailVie
                 </div>
             </FloatingPanel>
 
-            {/* VoyageurAI (bottom-right) */}
-            <FloatingPanel
-                position="right"
-                title="Voyageur AI"
-                icon={
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shrink-0">
-                        <MessageSquare className="w-4 h-4" />
+            {/* VoyageurAI chatbot (bottom-right) */}
+            <div className={cn(
+                'fixed bottom-6 z-[60] w-[calc(50vw-220px)] min-w-[320px] max-w-[440px] neu-card rounded-3xl border border-white/60 shadow-2xl transition-all duration-300 flex flex-col',
+                'right-6',
+                aiOpen ? 'max-h-[78vh]' : '',
+            )}>
+                {/* Panel header */}
+                <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shrink-0">
+                            <MessageSquare className="w-4 h-4" />
+                        </div>
+                        <h3 className="font-[Outfit] font-bold text-foreground text-base">Voyageur AI</h3>
+                        {isTyping && (
+                            <span className="flex gap-1 items-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
+                            </span>
+                        )}
                     </div>
-                }
-                isOpen={aiOpen}
-                onToggle={() => setAiOpen((p) => !p)}
-            >
-                {/* Latest optimization */}
-                <div className="neu-pressed rounded-2xl p-4">
-                    <div className="flex items-center gap-2 mb-2.5">
-                        <Zap className="w-3.5 h-3.5 text-purple-500" />
-                        <span className="text-[10px] uppercase font-bold text-purple-500 tracking-wider">Latest Optimization</span>
-                    </div>
-                    <ul className="space-y-2">
-                        {AI_INSIGHTS.map((item, i) => (
-                            <li key={i} className="flex gap-2 items-start text-[11px] text-muted-foreground leading-tight">
-                                <span className={cn('w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0', item.dot)} />
-                                {item.text}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                {/* Chat input */}
-                <div className="relative">
-                    <input
-                        type="text"
-                        value={aiInput}
-                        onChange={(e) => setAiInput(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') setAiInput(''); }}
-                        placeholder="Ask follow-up question..."
-                        className="w-full neu-pressed rounded-xl py-3 px-4 text-xs font-medium text-foreground placeholder-muted-foreground focus:outline-none border-none bg-transparent"
-                    />
                     <button
-                        onClick={() => setAiInput('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-indigo-500 hover:bg-black/5 transition-colors"
+                        onClick={() => setAiOpen((p) => !p)}
+                        className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
                     >
-                        <Send className="w-3.5 h-3.5" />
+                        {aiOpen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                     </button>
                 </div>
-            </FloatingPanel>
+
+                {/* Scrollable message list */}
+                {aiOpen && (
+                    <>
+                        <div className="flex-1 overflow-y-auto px-4 pb-2 scrollbar-hide space-y-3 min-h-0">
+                            {messages.map((msg, i) => (
+                                <div key={i} className={cn('flex flex-col gap-1', msg.role === 'user' ? 'items-end' : 'items-start')}>
+                                    <div className={cn(
+                                        'px-3.5 py-2.5 rounded-2xl text-[12px] leading-relaxed max-w-[88%] whitespace-pre-line',
+                                        msg.role === 'ai'
+                                            ? 'neu-pressed text-foreground rounded-tl-sm'
+                                            : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-tr-sm shadow-md',
+                                    )}>
+                                        {msg.text}
+                                    </div>
+                                    <span className="text-[9px] text-muted-foreground/60 px-1">{msg.time}</span>
+                                </div>
+                            ))}
+                            {/* Typing indicator bubble */}
+                            {isTyping && (
+                                <div className="flex items-start">
+                                    <div className="neu-pressed px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1 items-center">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
+
+                        {/* Pinned input bar */}
+                        <div className="px-4 pb-4 pt-2 shrink-0">
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={aiInput}
+                                    onChange={(e) => setAiInput(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
+                                    placeholder="Ask Voyageur AI..."
+                                    className="w-full neu-pressed rounded-xl py-3 pl-4 pr-10 text-xs font-medium text-foreground placeholder-muted-foreground focus:outline-none border-none bg-transparent"
+                                />
+                                <button
+                                    onClick={sendMessage}
+                                    disabled={!aiInput.trim()}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-indigo-500 hover:bg-black/5 transition-colors disabled:opacity-30"
+                                >
+                                    <Send className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
     );
 }
