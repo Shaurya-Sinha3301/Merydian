@@ -28,12 +28,12 @@ interface SidebarSection {
 // Data Structure matching the reference image hierarchy
 const sidebarStructure: { label: string; icon: React.ElementType; children?: SidebarItem[]; href?: string; isOpen?: boolean }[] = [
     {
-        label: "Dashboard Group Info",
+        label: "Old Dashboard",
         icon: Squares2X2Icon,
         href: "/agent-dashboard"
     },
     {
-        label: "Optimizer Window",
+        label: "Dashboard",
         icon: AdjustmentsHorizontalIcon,
         href: "/agent-dashboard/itinerary-management"
     },
@@ -54,6 +54,24 @@ export function Sidebar({ className, collapsed = false }: { className?: string; 
         );
     };
 
+    // Determine the active item based on the longest matching href
+    const activeHref = React.useMemo(() => {
+        // Collect all navigable hrefs
+        const hrefs: string[] = [];
+        const traverse = (items: typeof sidebarStructure) => {
+            items.forEach(item => {
+                if (item.href) hrefs.push(item.href);
+                if (item.children) traverse(item.children as any);
+            });
+        };
+        traverse(sidebarStructure);
+
+        // Find the longest href that matches start of pathname
+        const matches = hrefs.filter(href => pathname.startsWith(href));
+        matches.sort((a, b) => b.length - a.length);
+        return matches[0] || '';
+    }, [pathname]);
+
     return (
         <aside
             className={cn(
@@ -70,7 +88,8 @@ export function Sidebar({ className, collapsed = false }: { className?: string; 
                 {sidebarStructure.map((item) => {
                     const hasChildren = item.children && item.children.length > 0;
                     const isOpen = openSections.includes(item.label);
-                    const isSingleActive = !hasChildren && item.href && pathname.startsWith(item.href);
+                    // Single item is active if its href matches our computed longest match
+                    const isSingleActive = !hasChildren && item.href && item.href === activeHref;
 
                     return (
                         <div key={item.label}>
