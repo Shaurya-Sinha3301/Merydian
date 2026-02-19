@@ -255,7 +255,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pb-4 space-y-2.5">
+                <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pb-24 space-y-2.5">
                     {filteredFamilies.map(family => (
                         <button
                             key={family.id}

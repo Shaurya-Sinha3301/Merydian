@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function ItineraryManagementPage() {
     return (
-        <div className="flex bg-background h-[calc(100vh-4rem)] overflow-hidden">
+        <div className="flex bg-background h-screen overflow-hidden">
             <Sidebar />
             <main className="flex-1 p-8 overflow-y-auto">
                 <NavigationBreadcrumbs />
