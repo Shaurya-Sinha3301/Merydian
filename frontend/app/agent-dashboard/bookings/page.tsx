@@ -67,7 +67,7 @@ function BookingsContent() {
     };
 
     return (
-        <div className="flex bg-background h-[calc(100vh-4rem)] overflow-hidden">
+        <div className="flex bg-background h-screen overflow-hidden">
             <Sidebar />
             <main className="flex-1 p-8 overflow-y-auto bg-slate-50/50">
                 <NavigationBreadcrumbs />
@@ -129,11 +129,10 @@ function BookingsContent() {
                                             }`}>
                                             {group.id}
                                         </span>
-                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                                            group.status === 'booked' 
-                                                ? (selectedGroupId === group.id ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700')
-                                                : (selectedGroupId === group.id ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-700')
-                                        }`}>
+                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${group.status === 'booked'
+                                            ? (selectedGroupId === group.id ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700')
+                                            : (selectedGroupId === group.id ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-700')
+                                            }`}>
                                             {group.status === 'booked' ? 'Active' : 'Upcoming'}
                                         </span>
                                     </div>
@@ -269,7 +268,7 @@ function BookingsContent() {
 export default function BookingsPage() {
     return (
         <Suspense fallback={
-            <div className="flex bg-background h-[calc(100vh-4rem)] overflow-hidden">
+            <div className="flex bg-background h-screen overflow-hidden">
                 <Sidebar />
                 <main className="flex-1 p-8 overflow-y-auto bg-slate-50/50 flex items-center justify-center">
                     <div className="text-slate-400">Loading...</div>
