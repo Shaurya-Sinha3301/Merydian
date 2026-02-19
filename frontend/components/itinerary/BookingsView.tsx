@@ -14,7 +14,7 @@ import { getTripById } from '@/lib/trips';
 
 // ─── Types & Mock Data ─────────────────────────────────────────────────────────
 
-type BookingType = 'flight' | 'stay' | 'dining' | 'transport' | 'activity';
+type BookingType = 'flight' | 'stay' | 'dining' | 'transport';
 type BookingStatus = 'confirmed' | 'pending' | 'cancelled' | 'delayed';
 
 interface Booking {
@@ -26,16 +26,22 @@ interface Booking {
     date: string;
     time?: string;
     location?: string;
-    price?: string;             // Display string with currency
-    metaPrimary?: string;       // e.g. Flight number, Ref number
-    metaSecondary?: string;     // e.g. Date/Time info
+    price?: string;
+    metaPrimary?: string;
+    metaSecondary?: string;
+    participants?: { label: string; color: string }[]; // New: Supports split groups
+}
+
+interface BookingRow {
+    id: string;
+    bookings: Booking[]; // 1 = full width, >1 = split width
 }
 
 interface DayGroup {
     day: number;
     title: string;
     date: string;
-    bookings: Booking[];
+    rows: BookingRow[];
 }
 
 const BOOKINGS_DATA: DayGroup[] = [
@@ -43,81 +49,220 @@ const BOOKINGS_DATA: DayGroup[] = [
         day: 1,
         title: 'Arrival & Check-in',
         date: 'Feb 10, 2026',
-        bookings: [
+        rows: [
             {
-                id: '6E4407',
-                type: 'flight',
-                status: 'confirmed',
-                title: 'IndiGo',
-                description: 'Flight to Goa, India (GOI)',
-                date: '2026-02-10',
-                time: '08:30 AM',
-                location: 'Indira Gandhi Int. Airport',
-                price: '₹99,000.00',
-                metaPrimary: '# 6E4407',
-                metaSecondary: '2026-02-10 • 08:30 AM'
+                id: 'row-1-flight',
+                bookings: [
+                    {
+                        id: '6E4407',
+                        type: 'flight',
+                        status: 'confirmed',
+                        title: 'IndiGo Flight 6E4407',
+                        description: 'Group Flight to Goa (GOI) • All Travelers',
+                        date: '2026-02-10',
+                        time: '08:30 AM',
+                        location: 'Indira Gandhi Int. Airport',
+                        price: '₹99,000.00',
+                        metaPrimary: 'PNR: AB12CD',
+                        metaSecondary: 'Gate 4 • 2h 45m',
+                        participants: [{ label: 'All Groups', color: 'bg-slate-100 text-slate-600 border border-slate-200' }]
+                    }
+                ]
             },
             {
-                id: 'HT9601',
-                type: 'stay',
-                status: 'confirmed',
-                title: 'Ocean Breeze Resort',
-                description: '11x Deluxe Rooms • Ocean View Wing',
-                date: '2026-02-10 to 17',
-                location: 'Goa, India',
-                price: '₹400,400.00',
-                metaPrimary: '# HT9601',
-                metaSecondary: '2026-02-10 to 17'
+                id: 'row-1-transport',
+                bookings: [
+                    {
+                        id: 'TR-01',
+                        type: 'transport',
+                        status: 'confirmed',
+                        title: 'Premium Coach Transfer',
+                        description: 'Airport to North Goa Hotels',
+                        date: '2026-02-10',
+                        time: '11:30 AM',
+                        price: 'Included',
+                        metaPrimary: 'Voyageur Transport',
+                        metaSecondary: '18 Seater',
+                        participants: [{ label: 'All Groups', color: 'bg-slate-100 text-slate-600 border border-slate-200' }]
+                    }
+                ]
             },
             {
-                id: 'DIN-001',
-                type: 'dining',
-                status: 'cancelled',
-                title: 'Welcome Dinner',
-                description: "Group reservation at Fisherman's Wharf",
-                date: '2026-02-10',
-                time: '08:00 PM',
-                price: '₹22,000.00',
-                metaPrimary: '# DIN-001',
-                metaSecondary: '2026-02-10 • 08:00 PM'
+                id: 'row-1-stay',
+                bookings: [
+                    {
+                        id: 'HT9601',
+                        type: 'stay',
+                        status: 'confirmed',
+                        title: 'Ocean Breeze Resort',
+                        description: 'Deluxe Ocean View Rooms',
+                        date: '2026-02-10',
+                        location: 'Calangute, Goa',
+                        price: '₹280,000.00',
+                        metaPrimary: 'Ref: OB-7782',
+                        metaSecondary: 'Check-in: 02:00 PM',
+                        participants: [
+                            { label: 'Family A', color: 'bg-blue-100 text-blue-700 border border-blue-200' },
+                            { label: 'Family C', color: 'bg-indigo-100 text-indigo-700 border border-indigo-200' }
+                        ]
+                    },
+                    {
+                        id: 'HT9602',
+                        type: 'stay',
+                        status: 'pending',
+                        title: 'The Leela Goa',
+                        description: 'Lagoon Terrace Room',
+                        date: '2026-02-10',
+                        location: 'Cavelossim, Goa',
+                        price: '₹120,400.00',
+                        metaPrimary: 'Ref: LG-9921',
+                        metaSecondary: 'Check-in: 02:00 PM',
+                        participants: [
+                            { label: 'Family B', color: 'bg-purple-100 text-purple-700 border border-purple-200' }
+                        ]
+                    }
+                ]
             },
             {
-                id: 'TR-GOA-01',
-                type: 'transport',
-                status: 'delayed',
-                title: 'Airport Shuttle',
-                description: 'Private Coach Transfer to Resort',
-                date: '2026-02-10',
-                time: 'Est. 10:45 AM',
-                price: 'Included',
-                metaPrimary: '# TR-GOA-01',
-                metaSecondary: 'Est. 10:45 AM'
+                id: 'row-1-dinner',
+                bookings: [
+                    {
+                        id: 'DIN-001',
+                        type: 'dining',
+                        status: 'confirmed',
+                        title: 'Welcome Dinner',
+                        description: "Group reservation at Fisherman's Wharf",
+                        date: '2026-02-10',
+                        time: '08:00 PM',
+                        location: 'Mobor Beach',
+                        price: '₹22,000.00',
+                        metaSecondary: 'Table for 12',
+                        participants: [{ label: 'All Groups', color: 'bg-slate-100 text-slate-600 border border-slate-200' }]
+                    }
+                ]
             }
         ]
     },
     {
         day: 2,
-        title: 'Beach Activities',
+        title: 'Beach & Exploration',
         date: 'Feb 11, 2026',
-        bookings: [
+        rows: [
             {
-                id: 'ADV-09',
-                type: 'activity',
-                status: 'pending',
-                title: 'Scuba Diving Group',
-                description: 'Grand Island Trip • Waiting for vendor confirmation',
-                date: '2026-02-11',
-                time: '07:00 AM',
-                price: '₹65,000.00',
-                metaPrimary: '# ADV-09',
-                metaSecondary: '2026-02-11 • 07:00 AM'
+                id: 'row-2-breakfast',
+                bookings: [
+                    {
+                        id: 'BK-01',
+                        type: 'dining',
+                        status: 'confirmed',
+                        title: 'Buffet Breakfast',
+                        description: 'Included at respective hotels',
+                        date: '2026-02-11',
+                        time: '08:00 AM',
+                        price: 'Included',
+                        participants: [{ label: 'All Groups', color: 'bg-slate-100 text-slate-600 border border-slate-200' }]
+                    }
+                ]
+            },
+            {
+                id: 'row-2-transport-split',
+                bookings: [
+                    {
+                        id: 'TR-02-A',
+                        type: 'transport',
+                        status: 'confirmed',
+                        title: 'Private Cab',
+                        description: 'To Fort Aguada',
+                        date: '2026-02-11',
+                        time: '10:00 AM',
+                        price: '₹2,500.00',
+                        metaPrimary: 'Toyota Innova',
+                        participants: [
+                            { label: 'Family A', color: 'bg-blue-100 text-blue-700 border border-blue-200' }
+                        ]
+                    },
+                    {
+                        id: 'TR-02-BC',
+                        type: 'transport',
+                        status: 'confirmed',
+                        title: 'Mini Bus Rental',
+                        description: 'To Old Goa Churches',
+                        date: '2026-02-11',
+                        time: '10:00 AM',
+                        price: '₹5,000.00',
+                        metaPrimary: 'Traveller 12',
+                        participants: [
+                            { label: 'Family B', color: 'bg-purple-100 text-purple-700 border border-purple-200' },
+                            { label: 'Family C', color: 'bg-indigo-100 text-indigo-700 border border-indigo-200' }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'row-2-lunch',
+                bookings: [
+                    {
+                        id: 'LUNCH-02',
+                        type: 'dining',
+                        status: 'pending',
+                        title: 'Beach Shack Lunch',
+                        description: 'Casual lunch at Brittos',
+                        date: '2026-02-11',
+                        time: '01:30 PM',
+                        price: '₹8,500.00',
+                        metaSecondary: 'Table for 12',
+                        participants: [{ label: 'All Groups', color: 'bg-slate-100 text-slate-600 border border-slate-200' }]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        day: 3,
+        title: 'Relaxation & Departure',
+        date: 'Feb 12, 2026',
+        rows: [
+            {
+                id: 'row-3-checkout',
+                bookings: [
+                    {
+                        id: 'CHECKOUT-01',
+                        type: 'stay',
+                        status: 'confirmed',
+                        title: 'Hotel Checkout',
+                        description: 'Check-out from respective hotels',
+                        date: '2026-02-12',
+                        time: '11:00 AM',
+                        price: 'Settled',
+                        participants: [{ label: 'All Groups', color: 'bg-slate-100 text-slate-600 border border-slate-200' }]
+                    }
+                ]
+            },
+            {
+                id: 'row-3-flight-return',
+                bookings: [
+                    {
+                        id: '6E4408',
+                        type: 'flight',
+                        status: 'confirmed',
+                        title: 'IndiGo Flight 6E4408',
+                        description: 'Return Flight to Delhi (DEL)',
+                        date: '2026-02-12',
+                        time: '02:45 PM',
+                        location: 'Goa Int. Airport',
+                        price: 'Included',
+                        metaPrimary: 'PNR: AB12CD',
+                        metaSecondary: 'Gate 2 • 2h 45m',
+                        participants: [{ label: 'All Groups', color: 'bg-slate-100 text-slate-600 border border-slate-200' }]
+                    }
+                ]
             }
         ]
     }
 ];
 
 const FILTERS = [
-    { id: 'all', label: 'All', icon: MoreHorizontal }, // Using MoreHorizontal as generic 'Apps' icon proxy
+    { id: 'all', label: 'All', icon: MoreHorizontal },
     { id: 'flight', label: 'Flights', icon: Plane },
     { id: 'stay', label: 'Stay', icon: Hotel },
     { id: 'dining', label: 'Dining', icon: Utensils },
@@ -142,7 +287,6 @@ function getTypeIcon(type: BookingType) {
         case 'stay': return Hotel;
         case 'dining': return Utensils;
         case 'transport': return Bus;
-        case 'activity': return Sparkles;
         default: return Briefcase;
     }
 }
@@ -205,7 +349,6 @@ export default function BookingsView({ tripId }: { tripId: string }) {
     return (
         <div className="flex-1 flex flex-col overflow-hidden relative bg-background h-full">
 
-            {/* ── Sub-header: Cost Only (Title removed to avoid duplicate) ─────── */}
             {/* ── Sub-header: Filters & Cost ────────────────────────────────────────── */}
             <div className="flex items-center justify-between px-8 py-6 shrink-0">
                 {/* Left: Filters */}
@@ -244,94 +387,112 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                             <span className="text-xs font-bold text-slate-400">{group.date}</span>
                         </div>
 
-                        {/* Booking Cards */}
+                        {/* Booking Rows */}
                         <div className="flex flex-col gap-4">
-                            {group.bookings
-                                .filter(b => activeFilter === 'all' || (activeFilter === 'transport' && b.type === 'activity' ? false : b.type === activeFilter))
-                                .map((booking) => {
-                                    const Icon = getTypeIcon(booking.type);
-                                    const statusStyle = getStatusStyles(booking.status);
-                                    const isCancelled = booking.status === 'cancelled';
+                            {group.rows.map((row) => (
+                                <div key={row.id} className="flex gap-4 w-full">
+                                    {row.bookings
+                                        .filter(b => activeFilter === 'all' || b.type === activeFilter)
+                                        .map((booking) => {
+                                            const Icon = getTypeIcon(booking.type);
+                                            const statusStyle = getStatusStyles(booking.status);
+                                            const isCancelled = booking.status === 'cancelled';
 
-                                    return (
-                                        <div
-                                            key={booking.id}
-                                            className={cn(
-                                                "neu-raised rounded-2xl p-5 border relative group hover:z-10 transition-all neu-raised-hover",
-                                                isCancelled ? "opacity-60 grayscale bg-slate-100/50 border-slate-100" : "border-white"
-                                            )}
-                                        >
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex gap-5 items-start w-full">
-                                                    {/* Icon Box */}
-                                                    <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 neu-pressed shrink-0">
-                                                        <Icon className="w-6 h-6" />
-                                                    </div>
+                                            return (
+                                                <div
+                                                    key={booking.id}
+                                                    className={cn(
+                                                        "neu-raised rounded-2xl p-5 border relative group hover:z-10 transition-all neu-raised-hover flex-1 min-w-0 flex flex-col justify-between", // Added flex-1 and min-w-0
+                                                        isCancelled ? "opacity-60 grayscale bg-slate-100/50 border-slate-100" : "border-white"
+                                                    )}
+                                                >
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <div className="flex gap-4 items-start w-full">
+                                                            {/* Icon Box */}
+                                                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 neu-pressed shrink-0">
+                                                                <Icon className="w-5 h-5" />
+                                                            </div>
 
-                                                    {/* Content */}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-3 mb-1">
-                                                            <h3 className={cn("font-bold text-lg text-slate-800", isCancelled && "line-through text-slate-600")}>
-                                                                {booking.title}
-                                                            </h3>
-                                                            <span className={cn("px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wide border", statusStyle)}>
-                                                                {booking.status}
+                                                            {/* Content */}
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                                                    <h3 className={cn("font-bold text-base text-slate-800", isCancelled && "line-through text-slate-600")}>
+                                                                        {booking.title}
+                                                                    </h3>
+                                                                    <span className={cn("px-1.5 py-0.5 text-[9px] font-bold rounded-md uppercase tracking-wide border shrink-0", statusStyle)}>
+                                                                        {booking.status}
+                                                                    </span>
+                                                                </div>
+                                                                <p className={cn("text-slate-500 text-xs mb-2 line-clamp-2", isCancelled && "text-slate-400")}>{booking.description}</p>
+
+                                                                {/* Participants Chips */}
+                                                                {booking.participants && (
+                                                                    <div className="flex flex-wrap gap-1.5 mb-2">
+                                                                        {booking.participants.map((p, idx) => (
+                                                                            <span key={idx} className={cn("px-1.5 py-0.5 rounded text-[9px] font-bold", p.color)}>
+                                                                                {p.label}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {booking.metaPrimary && (
+                                                                        <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium border border-slate-200">
+                                                                            {booking.metaPrimary}
+                                                                        </span>
+                                                                    )}
+                                                                    {booking.metaSecondary && (
+                                                                        <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium border border-slate-200 flex items-center gap-1">
+                                                                            <Calendar className="w-3 h-3" />
+                                                                            {booking.metaSecondary}
+                                                                        </span>
+                                                                    )}
+                                                                    {booking.location && (
+                                                                        <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium border border-slate-200 flex items-center gap-1">
+                                                                            <MapPin className="w-3 h-3" />
+                                                                            {booking.location}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Price & Actions (Top Right) */}
+                                                        <div className="text-right shrink-0 ml-2">
+                                                            <span className={cn("text-sm font-bold text-slate-800 block", isCancelled && "line-through text-slate-400")}>
+                                                                {booking.price}
                                                             </span>
                                                         </div>
-                                                        <p className={cn("text-slate-500 text-sm mb-3", isCancelled && "text-slate-400")}>{booking.description}</p>
-                                                        <div className="flex flex-wrap gap-4">
-                                                            {booking.metaPrimary && (
-                                                                <span className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200">
-                                                                    {booking.metaPrimary}
-                                                                </span>
-                                                            )}
-                                                            {booking.metaSecondary && (
-                                                                <span className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200 flex items-center gap-1.5">
-                                                                    <Calendar className="w-3.5 h-3.5" />
-                                                                    {booking.metaSecondary}
-                                                                </span>
-                                                            )}
-                                                            {booking.location && (
-                                                                <span className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200 flex items-center gap-1.5">
-                                                                    <MapPin className="w-3.5 h-3.5" />
-                                                                    {booking.location}
-                                                                </span>
-                                                            )}
-                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                {/* Price & Actions */}
-                                                <div className="text-right shrink-0 ml-4">
-                                                    <span className={cn("text-lg font-bold text-slate-800 block", isCancelled && "line-through text-slate-400")}>
-                                                        {booking.price}
-                                                    </span>
-                                                    <div className="mt-2 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    {/* Footer Actions (Bottom) */}
+                                                    <div className="mt-auto pt-3 border-t border-slate-100 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         {isCancelled ? (
                                                             <button className="px-3 py-1 rounded-lg text-xs font-medium bg-slate-200 text-slate-600 hover:bg-slate-300 transition-colors">
                                                                 Restore
                                                             </button>
                                                         ) : (
                                                             <>
-                                                                <button className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
-                                                                    <Edit2 className="w-4 h-4" />
+                                                                <button className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors" title="Edit">
+                                                                    <Edit2 className="w-3.5 h-3.5" />
                                                                 </button>
-                                                                <button className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                                                                    <Trash2 className="w-4 h-4" />
+                                                                <button className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Remove">
+                                                                    <Trash2 className="w-3.5 h-3.5" />
                                                                 </button>
                                                             </>
                                                         )}
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                            );
+                                        })}
+                                </div>
+                            ))}
 
                             {/* "Add Booking" Placeholder */}
-                            <div className="neu-raised rounded-2xl p-8 border border-white border-dashed flex flex-col items-center justify-center text-slate-400 gap-2 hover:bg-white/40 transition-colors cursor-pointer group">
-                                <PlusCircle className="w-8 h-8 group-hover:text-slate-600 transition-colors" />
-                                <span className="text-sm font-medium group-hover:text-slate-600 transition-colors">Add booking for Day {group.day}</span>
+                            <div className="neu-raised rounded-2xl p-6 border border-white border-dashed flex flex-col items-center justify-center text-slate-400 gap-2 hover:bg-white/40 transition-colors cursor-pointer group py-8">
+                                <PlusCircle className="w-6 h-6 group-hover:text-slate-600 transition-colors" />
+                                <span className="text-xs font-medium group-hover:text-slate-600 transition-colors">Add booking for Day {group.day}</span>
                             </div>
                         </div>
                     </div>
