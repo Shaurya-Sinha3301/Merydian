@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import DashboardMetrics from './DashboardMetrics';
+import DashboardHeader from './DashboardHeader';
+import DestinationCards from './DestinationCards';
+import StatisticsPanel from './StatisticsPanel';
+import IssuesAlertsSnapshot from './IssuesAlertsSnapshot';
+import UpcomingGroupsTimeline from './UpcomingGroupsTimeline';
 import RequestFilters, { FilterState } from './RequestFilters';
 import RequestsTable from './RequestsTable';
 import MobileRequestsList from './MobileRequestsList';
@@ -19,9 +23,8 @@ const AgentDashboardInteractive = () => {
     priority: 'all',
     sortBy: 'newest',
   });
-
-  // New State for Booking View
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
+  const [showDetailedView, setShowDetailedView] = useState(false);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -32,7 +35,6 @@ const AgentDashboardInteractive = () => {
 
     let filtered = [...activeGroups];
 
-    // Apply search filter
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -43,17 +45,14 @@ const AgentDashboardInteractive = () => {
       );
     }
 
-    // Apply status filter
     if (filters.status !== 'all') {
       filtered = filtered.filter((req) => req.status === filters.status);
     }
 
-    // Apply priority filter
     if (filters.priority !== 'all') {
       filtered = filtered.filter((req) => req.priority === filters.priority);
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'newest':
@@ -84,17 +83,9 @@ const AgentDashboardInteractive = () => {
 
   const handleQuickAction = (requestId: string, action: string) => {
     console.log(`Quick action: ${action} for request ${requestId}`);
-    if (action === 'approve' || action === 'review') { // Assuming 'approve' or entering review opens booking
+    if (action === 'approve' || action === 'review') {
       setSelectedRequest(requestId);
     }
-  };
-
-  const metrics = {
-    pendingRequests: activeGroups.filter((r) => r.status === 'new').length,
-    inReview: activeGroups.filter((r) => r.status === 'in-review').length,
-    completionRate: 87,
-    revenueProjection: '$124,500',
-    marginAverage: '18.5%',
   };
 
   if (!isHydrated) {
@@ -113,7 +104,6 @@ const AgentDashboardInteractive = () => {
     );
   }
 
-  // Render Booking Explorer if a request is selected
   if (selectedRequest) {
     const request = activeGroups.find(r => r.id === selectedRequest);
     return (
@@ -133,38 +123,46 @@ const AgentDashboardInteractive = () => {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Current Running Groups</h1>
-        <p className="text-muted-foreground">
-          Manage incoming trip requests and monitor operational metrics
-        </p>
-      </div>
+    <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 py-6">
+      <DashboardHeader 
+        showDetailedView={showDetailedView}
+        onToggleView={() => setShowDetailedView(!showDetailedView)}
+      />
 
-      {/* Metrics */}
-      <DashboardMetrics metrics={metrics} />
+      {!showDetailedView ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            <DestinationCards groups={activeGroups} />
+            <IssuesAlertsSnapshot groups={activeGroups} />
+          </div>
 
-      {/* Filters */}
-      <RequestFilters onFilterChange={handleFilterChange} onSearchChange={handleSearchChange} />
+          {/* Right Column - Stats & Timeline */}
+          <div className="space-y-6">
+            <StatisticsPanel groups={activeGroups} />
+            <UpcomingGroupsTimeline groups={activeGroups} />
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <RequestFilters onFilterChange={handleFilterChange} onSearchChange={handleSearchChange} />
+          
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground">
+              Showing <span className="font-medium text-foreground">{filteredRequests.length}</span> of{' '}
+              <span className="font-medium text-foreground">{activeGroups.length}</span> active groups
+            </p>
+          </div>
 
-      {/* Results Count */}
-      <div className="mb-4">
-        <p className="text-sm text-muted-foreground">
-          Showing <span className="font-medium text-foreground">{filteredRequests.length}</span> of{' '}
-          <span className="font-medium text-foreground">{activeGroups.length}</span> active groups
-        </p>
-      </div>
+          <div className="hidden lg:block">
+            <RequestsTable requests={filteredRequests} onQuickAction={handleQuickAction} />
+          </div>
 
-      {/* Desktop Table View */}
-      <div className="hidden lg:block">
-        <RequestsTable requests={filteredRequests} onQuickAction={handleQuickAction} />
-      </div>
-
-      {/* Mobile Card View */}
-      <div className="lg:hidden">
-        <MobileRequestsList requests={filteredRequests} onQuickAction={handleQuickAction} />
-      </div>
+          <div className="lg:hidden">
+            <MobileRequestsList requests={filteredRequests} onQuickAction={handleQuickAction} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
