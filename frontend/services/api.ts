@@ -37,21 +37,33 @@ export interface Itinerary {
     }>;
 }
 
+export interface LoginResponse {
+    access_token: string;
+    token_type: string;
+    expires_in?: number;
+}
+
 export class APIClient {
     private token: string | null = null;
 
     constructor() {
         if (typeof window !== 'undefined') {
-            this.token = localStorage.getItem('token');
+            this.token = localStorage.getItem('access_token');
         }
     }
 
     setToken(token: string) {
         this.token = token;
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('access_token', token);
+        }
     }
 
     clearToken() {
         this.token = null;
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('access_token');
+        }
     }
 
     private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -67,6 +79,7 @@ export class APIClient {
             const response = await fetch(url, {
                 ...options,
                 headers,
+                credentials: 'include', // Include cookies for refresh token
             });
 
             if (!response.ok) {
@@ -81,6 +94,98 @@ export class APIClient {
             console.error(`API request failed: ${endpoint}`, error);
             throw error;
         }
+    }
+
+    /**
+     * Login with email and password
+     */
+    async login(email: string, password: string): Promise<LoginResponse> {
+        // OAuth2 password flow requires form data
+        const formData = new URLSearchParams();
+        formData.append('username', email);
+        formData.append('password', password);
+
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData,
+            credentials: 'include', // Include cookies for refresh token
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({
+                detail: 'Login failed'
+            }));
+            throw new Error(error.detail || 'Login failed');
+        }
+
+        return response.json();
+    }
+
+    /**
+     * Signup a new user
+     */
+    async signup(data: {
+        email: string;
+        password: string;
+        full_name: string;
+        role: string;
+    }): Promise<LoginResponse> {
+        const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+            credentials: 'include', // Include cookies for refresh token
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({
+                detail: 'Signup failed'
+            }));
+            throw new Error(error.detail || 'Signup failed');
+        }
+
+        return response.json();
+    }
+
+    /**
+     * Refresh access token using refresh token cookie
+     */
+    async refreshToken(): Promise<LoginResponse> {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include', // Send refresh token cookie
+        });
+
+        if (!response.ok) {
+            throw new Error('Token refresh failed');
+        }
+
+        return response.json();
+    }
+
+    /**
+     * Logout current session
+     */
+    async logout(): Promise<void> {
+        await this.request('/auth/logout', {
+            method: 'POST',
+        });
+        this.clearToken();
+    }
+
+    /**
+     * Logout from all sessions
+     */
+    async logoutAll(): Promise<void> {
+        await this.request('/auth/logout-all', {
+            method: 'POST',
+        });
+        this.clearToken();
     }
 
     /**
@@ -124,16 +229,6 @@ export class APIClient {
         urgency: 'soft' | 'medium' | 'high';
     }) {
         return this.request('/itinerary/poi-request', {
-            method: 'POST',
-            body: JSON.stringify(data),
-        });
-    }
-
-    /**
-     * Signup a new user
-     */
-    async signup(data: any): Promise<{ access_token: string; token_type: string }> {
-        return this.request<{ access_token: string; token_type: string }>('/auth/signup', {
             method: 'POST',
             body: JSON.stringify(data),
         });

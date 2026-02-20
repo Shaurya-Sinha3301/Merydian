@@ -241,23 +241,79 @@ class AgentService:
         option_id: str,
         event_id: str,
         trip_id: str,
-        details: Dict[str, Any] | None = None,
+        details: dict = None,
     ) -> bool:
         """
-        Trigger the Tools Agent to execute bookings/changes for an approved option.
-
-        Returns True if successfully triggered, False otherwise.
-        Designed as fire-and-forget — failures are logged but do not raise.
+        Trigger the Tools Agent to execute actions for an approved option.
+        
+        This currently launches hotel booking jobs via Celery.
         """
+        from app.services.booking_service import BookingService
+        from app.worker import process_hotel_booking
+        
         logger.info(f"Triggering Tools Agent for option={option_id}, event={event_id}")
 
         try:
-            # TODO: Replace with real Tools Agent invocation when available
-            # e.g. tools_agent.execute_bookings(option_id, details)
-            logger.info(
-                f"Tools Agent triggered successfully for option {option_id} "
-                f"(trip={trip_id}, event={event_id})"
-            )
+            # Determine if this is a hotel booking trigger
+            is_hotel_booking = not details or details.get("type") in ("hotel", "base_itinerary", None)
+
+            if is_hotel_booking:
+                # Extract real search params from approved option's itinerary details
+                itinerary = details.get("itinerary", {}) if details else {}
+                start_date = details.get("start_date") if details else None
+                end_date = details.get("end_date") if details else None
+                num_travellers = details.get("num_travellers", 2) if details else 2
+                destination = details.get("destination", "delhi") if details else "delhi"
+
+                # Map destination to TBO city code (extend as needed)
+                city_code_map = {
+                    "delhi": "418069",
+                    "mumbai": "128014",
+                    "goa": "119068",
+                }
+                dest_key = destination.lower().split(",")[0].strip()
+                city_code = city_code_map.get(dest_key, "418069")  # Default: Delhi NCR
+
+                # Use real trip dates if available, fall back to near-future
+                from datetime import datetime, timedelta
+                if not start_date:
+                    start_date = (datetime.utcnow() + timedelta(days=30)).strftime("%Y-%m-%d")
+                if not end_date:
+                    end_date = (datetime.utcnow() + timedelta(days=34)).strftime("%Y-%m-%d")
+
+                # Create a booking job in DB
+                job = BookingService.create_job(
+                    itinerary_id=option_id,  # Link to approved option
+                    agent_id="tools_agent",  # System agent
+                    items=["hotel"]
+                )
+
+                search_params = details.get("search_params", {
+                    "city_code": city_code,
+                    "checkin": start_date,
+                    "checkout": end_date,
+                    "rooms": max(1, (num_travellers + 1) // 2),
+                    "adults": num_travellers,
+                    "guest_details": []
+                }) if details else {
+                    "city_code": city_code,
+                    "checkin": start_date,
+                    "checkout": end_date,
+                    "rooms": 1,
+                    "adults": 2,
+                    "guest_details": []
+                }
+
+                process_hotel_booking.delay(
+                    job_id=str(job.id),
+                    itinerary_id=option_id,
+                    agent_id="tools_agent",
+                    items=["hotel"],
+                    search_params=search_params
+                )
+
+                logger.info(f"Tools Agent dispatched booking job {job.id} for {destination} ({start_date} - {end_date})")
+
             return True
 
         except Exception as e:
@@ -273,19 +329,45 @@ class AgentService:
     ) -> bool:
         """
         Trigger the Communication Agent to notify travellers about an approved option.
-
-        Returns True if successfully triggered, False otherwise.
-        Designed as fire-and-forget — failures are logged but do not raise.
         """
+        from app.services.trip_service import TripService
+        from app.services.family_service import FamilyService
+        from app.worker import process_notification_task
+        
         logger.info(f"Triggering Communication Agent for option={option_id}, event={event_id}")
 
         try:
-            # TODO: Replace with real Communication Agent invocation when available
-            # e.g. communication_agent.notify_travellers(option_id, trip_id)
-            logger.info(
-                f"Communication Agent triggered successfully for option {option_id} "
-                f"(trip={trip_id}, agent={agent_id})"
+            # 1. Get family ID from trip
+            trip = TripService.get_trip(UUID(trip_id))
+            if not trip:
+                logger.error(f"Trip {trip_id} not found for communication trigger")
+                return False
+                
+            family_id = trip.family_id
+            
+            # 2. Get all family members to notify
+            members = FamilyService.get_family_members(family_id)
+            user_ids = [str(m.id) for m in members]
+            
+            if not user_ids:
+                logger.warning(f"No family members found for family {family_id}")
+                return True # Not a failure, just no one to notify
+                
+            # 3. Dispatch notification task
+            payload = {
+                "title": "Itinerary Update Approved!",
+                "message": "Your travel agent has approved a new itinerary option.",
+                "action_link": f"/trips/{trip_id}/itinerary",
+                "option_id": option_id
+            }
+            
+            process_notification_task.delay(
+                notification_type="itinerary_approved",
+                payload=payload,
+                target_users=user_ids
             )
+            
+            logger.info(f"Communication Agent notified {len(user_ids)} members of family {family_id}")
             return True
 
         except Exception as e:
