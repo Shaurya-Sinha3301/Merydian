@@ -115,12 +115,11 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
     const action = getNextAction(trip.status);
     const img = TRIP_IMAGES[trip.id] ?? { src: '', label: trip.title };
 
-
     return (
         <article
             onClick={!isCancelled ? onClick : undefined}
             className={cn(
-                'bp-card flex flex-col',
+                'bp-card flex flex-col h-full',
                 isCancelled ? 'opacity-60' : 'cursor-pointer',
             )}
         >
@@ -242,102 +241,102 @@ export default function ItineraryOptimizerWindow() {
     }, [search, activeFilter]);
 
     return (
-        <div className="flex-1 overflow-y-auto bp-grid-bg bg-white">
-            <div className="p-6 md:p-8 max-w-7xl mx-auto">
+        <div className="flex flex-col h-full bp-grid-bg bg-white overflow-hidden">
+            {/* ── Fixed Header ────────────────────────────────────────────── */}
+            <div className="shrink-0 w-full z-10 bg-white/95 backdrop-blur-sm border-b border-[var(--bp-border)]">
+                <div className="px-6 md:px-8 pt-4 md:pt-6 pb-4 max-w-7xl mx-auto">
+                    <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
 
-                {/* ── Page Header ────────────────────────────────────────────── */}
-                <header className="flex flex-col md:flex-row md:items-end justify-between mb-2 gap-4">
-                    <div>
-                        {/* System status indicator */}
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="w-1.5 h-1.5 bg-[var(--bp-sage)] rounded-full animate-pulse" />
-                            <span className="text-[9px] text-[var(--bp-muted)] font-semibold tracking-[0.2em] uppercase">System Operational</span>
-                        </div>
-                        <h1 className="text-2xl md:text-3xl font-[300] tracking-[-0.02em] text-black leading-tight">
-                            Active Itineraries
-                        </h1>
-                        <p className="text-[var(--bp-muted)] mt-1 font-light text-xs tracking-wide">
-                            Global movement tracking &amp; sequencing
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0 relative">
-                        {/* Search — underline only */}
-                        <div className="border-b border-gray-300 flex items-center py-1.5 w-full md:w-52 focus-within:border-black transition-colors">
-                            <Search className="text-gray-400 w-3.5 h-3.5 mr-2 shrink-0" />
-                            <input
-                                type="text"
-                                placeholder="SEARCH PNR / CLIENT..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="bg-transparent border-none outline-none text-[10px] font-semibold w-full placeholder-gray-300 focus:ring-0 p-0 uppercase tracking-widest text-black"
-                            />
+                            <h1 className="text-2xl md:text-3xl font-[300] tracking-[-0.02em] text-black leading-tight">
+                                Active Itineraries
+                            </h1>
+                            <p className="text-[var(--bp-muted)] mt-1 font-light text-xs tracking-wide">
+                                Global movement tracking &amp; sequencing
+                            </p>
                         </div>
 
-                        {/* Filter Button */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                                className={cn(
-                                    "w-8 h-8 flex items-center justify-center border transition-colors shrink-0",
-                                    isFilterOpen ? "bg-black text-white border-black" : "bg-white text-black border-[var(--bp-border)] hover:border-black"
+                        <div className="flex items-center gap-3 shrink-0 relative">
+                            {/* Search — underline only */}
+                            <div className="border-b border-gray-300 flex items-center py-1.5 w-full md:w-52 focus-within:border-black transition-colors">
+                                <Search className="text-gray-400 w-3.5 h-3.5 mr-2 shrink-0" />
+                                <input
+                                    type="text"
+                                    placeholder="SEARCH PNR / CLIENT..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="bg-transparent border-none outline-none text-[10px] font-semibold w-full placeholder-gray-300 focus:ring-0 p-0 uppercase tracking-widest text-black"
+                                />
+                            </div>
+
+                            {/* Filter Button */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                                    className={cn(
+                                        "w-8 h-8 flex items-center justify-center border transition-colors shrink-0",
+                                        isFilterOpen ? "bg-black text-white border-black" : "bg-white text-black border-[var(--bp-border)] hover:border-black"
+                                    )}
+                                >
+                                    <Filter className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                {isFilterOpen && (
+                                    <div className="absolute top-full right-0 mt-2 w-40 bg-white border border-[var(--bp-border)] shadow-xl z-50 py-1">
+                                        {FILTER_OPTIONS.map((opt) => (
+                                            <button
+                                                key={opt.value}
+                                                onClick={() => {
+                                                    setActiveFilter(opt.value);
+                                                    setIsFilterOpen(false);
+                                                }}
+                                                className={cn(
+                                                    "w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-wider hover:bg-gray-50 flex items-center justify-between",
+                                                    activeFilter === opt.value ? "text-black bg-gray-50" : "text-[var(--bp-muted)]"
+                                                )}
+                                            >
+                                                {opt.label}
+                                                {activeFilter === opt.value && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
+                                            </button>
+                                        ))}
+                                    </div>
                                 )}
-                            >
-                                <Filter className="w-3.5 h-3.5" />
+                            </div>
+
+                            {/* Add button — square black */}
+                            <button className="w-8 h-8 bg-black text-white flex items-center justify-center hover:bg-[var(--bp-sage)] transition-colors shrink-0">
+                                <Plus className="w-4 h-4" />
                             </button>
+                        </div>
+                    </header>
+                </div>
+            </div>
 
-                            {/* Dropdown Menu */}
-                            {isFilterOpen && (
-                                <div className="absolute top-full right-0 mt-2 w-40 bg-white border border-[var(--bp-border)] shadow-xl z-50 py-1">
-                                    {FILTER_OPTIONS.map((opt) => (
-                                        <button
-                                            key={opt.value}
-                                            onClick={() => {
-                                                setActiveFilter(opt.value);
-                                                setIsFilterOpen(false);
-                                            }}
-                                            className={cn(
-                                                "w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-wider hover:bg-gray-50 flex items-center justify-between",
-                                                activeFilter === opt.value ? "text-black bg-gray-50" : "text-[var(--bp-muted)]"
-                                            )}
-                                        >
-                                            {opt.label}
-                                            {activeFilter === opt.value && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
-                                        </button>
-                                    ))}
+            {/* ── Scrollable Cards Grid with Snap ─────────────────────────── */}
+            <div className="flex-1 overflow-y-auto snap-y snap-mandatory scroll-smooth">
+                <div className="px-6 md:px-8 py-20 max-w-7xl mx-auto min-h-full flex flex-col justify-center">
+                    {filtered.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-12">
+                            {filtered.map((trip) => (
+                                <div key={trip.id} className="snap-center h-full">
+                                    <TripCard
+                                        trip={trip}
+                                        onClick={() => router.push(`/agent-dashboard/itinerary-management/${trip.id}`)}
+                                    />
                                 </div>
-                            )}
+                            ))}
                         </div>
-
-                        {/* Add button — square black */}
-                        <button className="w-8 h-8 bg-black text-white flex items-center justify-center hover:bg-[var(--bp-sage)] transition-colors shrink-0">
-                            <Plus className="w-4 h-4" />
-                        </button>
-                    </div>
-                </header>
-
-                {/* ── Trip Cards Grid ─────────────────────────────────────────── */}
-
-
-                {filtered.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-12">
-                        {filtered.map((trip) => (
-                            <TripCard
-                                key={trip.id}
-                                trip={trip}
-                                onClick={() => router.push(`/agent-dashboard/itinerary-management/${trip.id}`)}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center justify-center py-24 text-center">
-                        <div className="w-16 h-16 border border-[var(--bp-border)] flex items-center justify-center mb-5">
-                            <Search className="w-6 h-6 text-[var(--bp-muted)]" />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-24 text-center snap-center">
+                            <div className="w-16 h-16 border border-[var(--bp-border)] flex items-center justify-center mb-5">
+                                <Search className="w-6 h-6 text-[var(--bp-muted)]" />
+                            </div>
+                            <p className="text-sm font-semibold text-black uppercase tracking-widest mb-1">No trips found</p>
+                            <p className="text-[var(--bp-muted)] text-xs tracking-wide">Try adjusting your search or filter.</p>
                         </div>
-                        <p className="text-sm font-semibold text-black uppercase tracking-widest mb-1">No trips found</p>
-                        <p className="text-[var(--bp-muted)] text-xs tracking-wide">Try adjusting your search or filter.</p>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );
