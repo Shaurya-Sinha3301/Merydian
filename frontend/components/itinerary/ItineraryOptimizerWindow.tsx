@@ -2,7 +2,20 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Plus } from 'lucide-react';
+import {
+    Search,
+    Plus,
+    Filter,
+    Plane,
+    Hotel,
+    Bus,
+    Utensils,
+    Ticket,
+    CreditCard,
+    CheckCircle,
+    AlertCircle,
+    XCircle
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TRIPS, Trip, TripStatus } from '@/lib/trips';
 
@@ -10,14 +23,15 @@ import { TRIPS, Trip, TripStatus } from '@/lib/trips';
 
 type StatusKey = TripStatus;
 
+// User Requested: "Urgent", "Attention", "Clear" only.
 const STATUS_CONFIG: Record<StatusKey, {
     dot: string;
     text: string;
     label: string;
 }> = {
     'APPROVED': { dot: 'bg-[var(--bp-sage)]', text: 'text-[var(--bp-sage)]', label: 'Clear' },
-    'IN REVIEW': { dot: 'bg-gray-500', text: 'text-gray-500', label: 'Attention' },
-    'DRAFT': { dot: 'bg-gray-400', text: 'text-gray-400', label: 'Draft' },
+    'IN REVIEW': { dot: 'bg-amber-500', text: 'text-amber-500', label: 'Attention' }, // Maps In Review -> Attention
+    'DRAFT': { dot: 'bg-amber-500', text: 'text-amber-500', label: 'Attention' }, // Maps Draft -> Attention
     'CANCELLED': { dot: 'bg-[var(--bp-red)]', text: 'text-[var(--bp-red)]', label: 'Urgent' },
 };
 
@@ -26,7 +40,7 @@ const STATUS_CONFIG: Record<StatusKey, {
 type TagStatus = 'confirmed' | 'pending' | 'cancelled';
 
 interface BookingTag {
-    icon: string;
+    icon: React.ReactNode;
     label: string;
     status: TagStatus;
 }
@@ -36,13 +50,16 @@ function getBookingTags(tripStatus: TripStatus): BookingTag[] {
     const pending: TagStatus = 'pending';
     const cancelled: TagStatus = 'cancelled';
 
+    // White icons for all tags to match user request "only use white icons"
+    const iconClass = "w-3 h-3 text-white";
+
     const all: BookingTag[] = [
-        { icon: '✈', label: 'Flight', status: confirmed },
-        { icon: '🏨', label: 'Hotel', status: confirmed },
-        { icon: '🚌', label: 'Transfers', status: confirmed },
-        { icon: '🍽', label: 'Food', status: confirmed },
-        { icon: '🥾', label: 'Activities', status: confirmed },
-        { icon: '💳', label: 'Payments', status: confirmed },
+        { icon: <Plane className={iconClass} />, label: 'Flight', status: confirmed },
+        { icon: <Hotel className={iconClass} />, label: 'Hotel', status: confirmed },
+        { icon: <Bus className={iconClass} />, label: 'Transfers', status: confirmed },
+        { icon: <Utensils className={iconClass} />, label: 'Food', status: confirmed },
+        { icon: <Ticket className={iconClass} />, label: 'Activities', status: confirmed },
+        { icon: <CreditCard className={iconClass} />, label: 'Payments', status: confirmed },
     ];
 
     if (tripStatus === 'IN REVIEW') {
@@ -109,7 +126,7 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
             )}
         >
             {/* ── Top metadata row ─── */}
-            <div className="p-5 pb-0 flex justify-between items-start mb-4">
+            <div className="p-4 pb-0 flex justify-between items-start mb-3">
                 <div>
                     <span className="bp-label">Reference</span>
                     <span className="text-sm font-semibold tracking-wide text-[var(--bp-text)]">{trip.id}</span>
@@ -142,7 +159,7 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
             </div>
 
             {/* ── Body ─── */}
-            <div className="p-5 flex flex-col gap-5 flex-1">
+            <div className="p-4 flex flex-col gap-4 flex-1">
                 {/* Trip details */}
                 <div>
                     <h3 className="text-lg font-light text-[var(--bp-text)] mb-1 leading-snug">{trip.title}</h3>
@@ -162,7 +179,7 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
                                 key={tag.label}
                                 className={cn('bp-tag', `bp-tag-${tag.status}`)}
                             >
-                                <span className="text-[10px]">{tag.icon}</span>
+                                <span className="mr-1">{tag.icon}</span>
                                 {tag.label}
                             </span>
                         ))}
@@ -172,21 +189,21 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
                 {/* Progress */}
                 <div>
                     <span className="bp-label mb-1">Trip Completion</span>
-                    <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="relative w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
                             className="absolute top-0 left-0 h-full bg-[var(--bp-sage)] rounded-full transition-all duration-700"
                             style={{ width: `${pct}%` }}
                         />
                     </div>
-                    <div className="flex justify-end mt-1.5">
-                        <span className="text-xs font-black text-[var(--bp-sage)] uppercase tracking-tight">
+                    <div className="flex justify-end mt-1">
+                        <span className="text-[10px] font-black text-[var(--bp-sage)] uppercase tracking-tight">
                             {pct}% Complete
                         </span>
                     </div>
                 </div>
 
                 {/* Next action footer */}
-                <div className="border-t border-[var(--bp-border)] pt-4 mt-auto">
+                <div className="border-t border-[var(--bp-border)] pt-3 mt-auto">
                     <div className="flex justify-between items-center">
                         <span className="bp-label mb-0">Next Action</span>
                         <span className="text-[9px] font-mono text-[var(--bp-muted)]">{action.time}</span>
@@ -200,7 +217,7 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
 
 // ─── Filter tabs ──────────────────────────────────────────────────────────────
 
-const FILTER_TABS: { label: string; value: TripStatus | 'ALL' }[] = [
+const FILTER_OPTIONS: { label: string; value: TripStatus | 'ALL' }[] = [
     { label: 'All', value: 'ALL' },
     { label: 'Approved', value: 'APPROVED' },
     { label: 'In Review', value: 'IN REVIEW' },
@@ -214,6 +231,7 @@ export default function ItineraryOptimizerWindow() {
     const router = useRouter();
     const [search, setSearch] = useState('');
     const [activeFilter, setActiveFilter] = useState<TripStatus | 'ALL'>('ALL');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     const filtered = useMemo(() => {
         return TRIPS.filter((t) => {
@@ -228,28 +246,28 @@ export default function ItineraryOptimizerWindow() {
 
     return (
         <div className="flex-1 overflow-y-auto bp-grid-bg bg-white">
-            <div className="p-8 md:p-14 max-w-7xl mx-auto">
+            <div className="p-6 md:p-8 max-w-7xl mx-auto">
 
                 {/* ── Page Header ────────────────────────────────────────────── */}
-                <header className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-8">
+                <header className="flex flex-col md:flex-row md:items-end justify-between mb-2 gap-4">
                     <div>
                         {/* System status indicator */}
-                        <div className="flex items-center gap-2 mb-3">
-                            <span className="w-2 h-2 bg-[var(--bp-sage)] rounded-full animate-pulse" />
-                            <span className="text-[10px] text-[var(--bp-muted)] font-semibold tracking-[0.2em] uppercase">System Operational</span>
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="w-1.5 h-1.5 bg-[var(--bp-sage)] rounded-full animate-pulse" />
+                            <span className="text-[9px] text-[var(--bp-muted)] font-semibold tracking-[0.2em] uppercase">System Operational</span>
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-[300] tracking-[-0.02em] text-black leading-tight">
+                        <h1 className="text-2xl md:text-3xl font-[300] tracking-[-0.02em] text-black leading-tight">
                             Active Itineraries
                         </h1>
-                        <p className="text-[var(--bp-muted)] mt-2 font-light text-sm tracking-wide">
+                        <p className="text-[var(--bp-muted)] mt-1 font-light text-xs tracking-wide">
                             Global movement tracking &amp; sequencing
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex items-center gap-3 shrink-0 relative">
                         {/* Search — underline only */}
-                        <div className="border-b border-gray-300 flex items-center py-2 w-full md:w-60 focus-within:border-black transition-colors">
-                            <Search className="text-gray-400 w-3.5 h-3.5 mr-3 shrink-0" />
+                        <div className="border-b border-gray-300 flex items-center py-1.5 w-full md:w-52 focus-within:border-black transition-colors">
+                            <Search className="text-gray-400 w-3.5 h-3.5 mr-2 shrink-0" />
                             <input
                                 type="text"
                                 placeholder="SEARCH PNR / CLIENT..."
@@ -259,37 +277,53 @@ export default function ItineraryOptimizerWindow() {
                             />
                         </div>
 
+                        {/* Filter Button */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                                className={cn(
+                                    "w-8 h-8 flex items-center justify-center border transition-colors shrink-0",
+                                    isFilterOpen ? "bg-black text-white border-black" : "bg-white text-black border-[var(--bp-border)] hover:border-black"
+                                )}
+                            >
+                                <Filter className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {isFilterOpen && (
+                                <div className="absolute top-full right-0 mt-2 w-40 bg-white border border-[var(--bp-border)] shadow-xl z-50 py-1">
+                                    {FILTER_OPTIONS.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => {
+                                                setActiveFilter(opt.value);
+                                                setIsFilterOpen(false);
+                                            }}
+                                            className={cn(
+                                                "w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-wider hover:bg-gray-50 flex items-center justify-between",
+                                                activeFilter === opt.value ? "text-black bg-gray-50" : "text-[var(--bp-muted)]"
+                                            )}
+                                        >
+                                            {opt.label}
+                                            {activeFilter === opt.value && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Add button — square black */}
-                        <button className="w-10 h-10 bg-black text-white flex items-center justify-center hover:bg-[var(--bp-sage)] transition-colors shrink-0">
+                        <button className="w-8 h-8 bg-black text-white flex items-center justify-center hover:bg-[var(--bp-sage)] transition-colors shrink-0">
                             <Plus className="w-4 h-4" />
                         </button>
                     </div>
                 </header>
 
-                {/* ── Filter tabs ────────────────────────────────────────────── */}
-                <div className="flex items-center gap-0 mb-10 border-b border-[var(--bp-border)]">
-                    {FILTER_TABS.map((tab) => (
-                        <button
-                            key={tab.value}
-                            onClick={() => setActiveFilter(tab.value)}
-                            className={cn(
-                                'px-4 pb-2.5 pt-1 text-[10px] font-semibold uppercase tracking-widest transition-all border-b-2 -mb-px',
-                                activeFilter === tab.value
-                                    ? 'border-black text-black'
-                                    : 'border-transparent text-[var(--bp-muted)] hover:text-black',
-                            )}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                    <span className="ml-auto text-[9px] text-[var(--bp-muted)] font-semibold tracking-widest uppercase pb-2.5">
-                        {filtered.length} / {TRIPS.length} trips
-                    </span>
-                </div>
-
                 {/* ── Trip Cards Grid ─────────────────────────────────────────── */}
+
+
                 {filtered.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-12">
                         {filtered.map((trip) => (
                             <TripCard
                                 key={trip.id}
