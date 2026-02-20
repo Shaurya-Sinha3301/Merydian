@@ -114,8 +114,7 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
     const pct = getProgress(trip.status);
     const action = getNextAction(trip.status);
     const img = TRIP_IMAGES[trip.id] ?? { src: '', label: trip.title };
-    // Parse dateRange like "OCT 12 – OCT 18, 2024"
-    const [start, end] = trip.dateRange.split('–').map(s => s.trim());
+
 
     return (
         <article
@@ -161,13 +160,11 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
             {/* ── Body ─── */}
             <div className="p-4 flex flex-col gap-4 flex-1">
                 {/* Trip details */}
-                <div>
-                    <h3 className="text-lg font-light text-[var(--bp-text)] mb-1 leading-snug">{trip.title}</h3>
-                    <div className="flex flex-col gap-0.5 mb-1.5">
-                        <span className="text-[10px] text-[var(--bp-text)] font-bold uppercase tracking-tight">Start: {start}</span>
-                        <span className="text-[10px] text-[var(--bp-text)] font-bold uppercase tracking-tight">End: {end}</span>
-                    </div>
-                    <p className="text-[10px] text-[var(--bp-muted)] uppercase tracking-wider">Client: {trip.client}</p>
+                <div className="flex justify-between items-start gap-4 mb-1">
+                    <h3 className="text-lg font-light text-[var(--bp-text)] leading-tight">{trip.title}</h3>
+                    <span className="text-xs font-bold text-[var(--bp-text)] uppercase tracking-tight text-right shrink-0 pt-1">
+                        {trip.dateRange}
+                    </span>
                 </div>
 
                 {/* Booking tags */}
