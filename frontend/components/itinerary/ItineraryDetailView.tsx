@@ -174,24 +174,21 @@ function SplitMergeIcon({ type }: { type: 'split' | 'merge' }) {
 function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) {
     return (
         <div className={cn(
-            'tech-card flex flex-row group/card relative transition-all duration-200 hover:translate-x-0.5 hover:shadow-md items-stretch',
-            compact ? 'min-w-[440px] w-[480px]' : 'min-w-[640px] flex-1',
+            'tech-card flex flex-row group/card relative transition-all duration-200 hover:translate-x-0.5 hover:shadow-md h-[110px]',
+            compact ? 'w-[480px] shrink-0' : 'flex-1 min-w-0',
         )}>
             {/* Drag handle */}
-            <div className="absolute top-0 right-0 p-1.5 text-slate-300 hover:text-slate-500 cursor-grab z-10 bg-white/80 backdrop-blur-sm">
+            <div className="absolute top-1.5 right-1.5 text-slate-300 hover:text-slate-500 cursor-grab z-10">
                 <GripVertical className="w-3.5 h-3.5" />
             </div>
 
-            {/* Image thumbnail */}
-            <div className={cn(
-                'relative border-r border-slate-200 bg-slate-100 flex-shrink-0 overflow-hidden',
-                compact ? 'w-20' : 'w-[72px] h-full min-h-[80px]',
-            )}>
+            {/* Image — fixed width, full card height */}
+            <div className="w-[88px] h-full flex-shrink-0 relative border-r border-slate-200 bg-slate-100 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src={card.imageUrl}
                     alt={card.title}
-                    className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-500 opacity-90 group-hover/card:opacity-100"
+                    className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-500"
                 />
                 <div className="absolute inset-0 ring-1 ring-inset ring-black/5" />
                 <div className="absolute bottom-1 left-1 bg-black/80 text-white text-[7px] px-1 py-px font-mono leading-none">
@@ -199,39 +196,36 @@ function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) 
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 p-3 flex flex-col justify-center gap-1.5 min-w-0 pr-8">
-                {/* Top row: title + duration + participants */}
+            {/* Content — vertically centred */}
+            <div className="flex-1 px-4 flex flex-col justify-center gap-1.5 min-w-0 pr-8">
+                {/* Top: title row */}
                 <div className="flex justify-between items-start gap-2">
                     <div className="flex flex-col min-w-0">
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                            <h4 className="text-xs font-bold text-slate-900 uppercase tracking-tight leading-tight">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-sm font-bold text-slate-900 uppercase tracking-tight leading-tight">
                                 {card.title}
                             </h4>
-                            <span className="text-[9px] text-slate-400 font-mono shrink-0">{card.evtId}</span>
+                            <span className="text-[10px] text-slate-400 font-mono shrink-0">{card.evtId}</span>
                             <span className={cn(
-                                'px-1 py-px border text-[8px] font-bold uppercase tracking-wider rounded-sm shrink-0',
+                                'px-1.5 py-px border text-[10px] font-bold uppercase tracking-wider rounded-sm shrink-0',
                                 card.categoryBorder, card.categoryBg, card.categoryText,
                             )}>
                                 {card.category}
                             </span>
                         </div>
                         {card.subtitle && (
-                            <span className="text-[10px] text-slate-500 font-mono font-bold mt-0.5">{card.subtitle}</span>
+                            <span className="text-xs text-slate-500 font-mono font-medium mt-0.5">{card.subtitle}</span>
                         )}
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={cn('text-[10px] font-mono font-medium', card.durationColor)}>
+                        <span className={cn('text-xs font-mono font-semibold', card.durationColor)}>
                             {card.durationLabel}
                         </span>
                         <div className="flex items-center gap-0.5 flex-wrap justify-end">
                             {card.participants.map((p) => (
                                 <span
                                     key={p.code}
-                                    className={cn(
-                                        'px-1.5 py-0.5 border rounded text-[8px] font-bold font-mono',
-                                        p.color,
-                                    )}
+                                    className={cn('px-1.5 py-0.5 border rounded text-[10px] font-bold font-mono', p.color)}
                                 >
                                     {p.code}
                                 </span>
@@ -240,9 +234,9 @@ function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) 
                     </div>
                 </div>
 
-                {/* Bottom row: description + status */}
-                <div className="flex justify-between items-center gap-2">
-                    <p className="text-[10px] text-slate-500 font-mono leading-tight truncate flex-1">
+                {/* Bottom: description + status */}
+                <div className="flex justify-between items-center gap-4">
+                    <p className="text-xs text-slate-500 font-mono leading-tight truncate flex-1">
                         {card.description}
                     </p>
                     <div className={cn(
@@ -251,7 +245,7 @@ function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) 
                             card.statusIcon === 'limited' ? 'text-orange-500' : 'text-slate-500',
                     )}>
                         {card.statusIcon === 'confirmed' && <Check className="w-3 h-3" />}
-                        <span className="text-[9px] font-bold uppercase tracking-wider font-mono">
+                        <span className="text-[11px] font-bold uppercase tracking-wider font-mono">
                             {card.statusLabel}
                         </span>
                     </div>
@@ -360,28 +354,29 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                         <div
                             key={row.time}
                             className={cn(
-                                'flex border-b border-slate-200 min-h-[100px] group/row relative',
+                                'flex border-b border-slate-200 group/row relative',
                                 isMulti ? 'bg-slate-50/50' : 'bg-white',
                             )}
+                            style={{ minHeight: '130px' }}
                         >
-                            {/* Time column */}
-                            <div className="w-20 shrink-0 sticky left-0 flex flex-col items-center py-4 border-r border-slate-200 bg-white z-30">
+                            {/* Time column — vertically centred */}
+                            <div className="w-20 shrink-0 sticky left-0 flex flex-col items-center justify-center border-r border-slate-200 bg-white z-30">
                                 <span className={cn(
                                     'text-sm font-bold font-mono',
                                     row.splitIcon === 'split' ? 'text-indigo-600' : 'text-slate-900',
                                 )}>
                                     {row.time}
                                 </span>
-                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 font-mono">
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 font-mono">
                                     {row.period}
                                 </span>
                                 {row.splitIcon && <SplitMergeIcon type={row.splitIcon} />}
                             </div>
 
-                            {/* Cards area */}
+                            {/* Cards area — centred vertically, cards stay uniform h-[110px] */}
                             <div className={cn(
-                                'flex-1 p-3 pl-8',
-                                isMulti ? 'flex gap-4 overflow-x-auto scrollbar-hide items-start' : '',
+                                'flex-1 px-6 flex items-center',
+                                isMulti ? 'gap-4 overflow-x-auto scrollbar-hide' : '',
                             )}>
                                 {row.cards.map((card) => (
                                     <ActivityCard key={card.id} card={card} compact={isMulti} />
