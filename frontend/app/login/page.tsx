@@ -1,10 +1,30 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+
+// Redirect route mapping
+const REDIRECT_ROUTES = {
+  customer: '/customer-preferences',
+  agent: '/agent-dashboard/itinerary-management'
+} as const;
 
 export default function LoginPage() {
-  const [userType, setUserType] = useState<'customer' | 'agent'>('customer');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Initialize user type from URL parameter or default to 'customer'
+  const [userType, setUserType] = useState<'customer' | 'agent'>(() => {
+    const typeParam = searchParams.get('type');
+    return typeParam === 'agent' ? 'agent' : 'customer';
+  });
+
+  const handleLogin = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Navigate to appropriate dashboard based on user type
+    router.push(REDIRECT_ROUTES[userType]);
+  };
 
   return (
     <div className="min-h-screen bg-[#FDFDFF] flex items-center justify-center p-6">
@@ -18,25 +38,34 @@ export default function LoginPage() {
             <span className="text-2xl font-black tracking-tight text-[#212121]">Meili AI</span>
           </div>
           <h1 className="text-3xl font-bold text-[#212121] mb-2">Welcome Back</h1>
-          <p className="text-[#212121]/70">Choose your login type to continue</p>
+          <p className="text-[#212121]/70">Sign in to continue your journey</p>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
 
         {/* User Type Selection */}
         <div className="flex bg-[#EDEDED] rounded-2xl p-1 mb-8">
           <button
+            type="button"
             onClick={() => setUserType('customer')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${userType === 'customer'
-              ? 'bg-[#FDFDFF] text-[#212121] shadow-sm'
-              : 'text-[#212121]/70 hover:text-[#212121]'
+                ? 'bg-[#FDFDFF] text-[#212121] shadow-sm'
+                : 'text-[#212121]/70 hover:text-[#212121]'
               }`}
           >
             Customer
           </button>
           <button
+            type="button"
             onClick={() => setUserType('agent')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${userType === 'agent'
-              ? 'bg-[#FDFDFF] text-[#212121] shadow-sm'
-              : 'text-[#212121]/70 hover:text-[#212121]'
+                ? 'bg-[#FDFDFF] text-[#212121] shadow-sm'
+                : 'text-[#212121]/70 hover:text-[#212121]'
               }`}
           >
             Travel Agent
@@ -44,15 +73,19 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <form className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-[#212121] mb-2">
               Email Address
             </label>
             <input
               type="email"
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-4 py-3 bg-[#EDEDED] border border-[#EDEDED] rounded-xl text-[#212121] placeholder-[#212121]/50 focus:outline-none focus:ring-2 focus:ring-[#212121] focus:border-transparent"
               placeholder="Enter your email"
+              disabled={isLoading}
             />
           </div>
 
@@ -62,14 +95,24 @@ export default function LoginPage() {
             </label>
             <input
               type="password"
+              required
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="w-full px-4 py-3 bg-[#EDEDED] border border-[#EDEDED] rounded-xl text-[#212121] placeholder-[#212121]/50 focus:outline-none focus:ring-2 focus:ring-[#212121] focus:border-transparent"
               placeholder="Enter your password"
+              disabled={isLoading}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <label className="flex items-center">
-              <input type="checkbox" className="rounded border-[#EDEDED] text-[#212121] focus:ring-[#212121]" />
+              <input
+                type="checkbox"
+                checked={formData.rememberMe}
+                onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
+                className="rounded border-[#EDEDED] text-[#212121] focus:ring-[#212121]"
+                disabled={isLoading}
+              />
               <span className="ml-2 text-sm text-[#212121]/70">Remember me</span>
             </label>
             <a href="#" className="text-sm text-[#212121] hover:text-[#212121]/70">
@@ -78,19 +121,20 @@ export default function LoginPage() {
           </div>
 
           {userType === 'customer' ? (
-            <Link
-              href="/customer-login"
-              className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center block"
+            <button
+              onClick={handleLogin}
+              className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center"
+
             >
               Login to Customer Portal
-            </Link>
+            </button>
           ) : (
-            <Link
-              href="/agent-dashboard"
-              className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center block"
+            <button
+              onClick={handleLogin}
+              className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center"
             >
               Login to Agent Portal
-            </Link>
+            </button>
           )}
         </form>
 

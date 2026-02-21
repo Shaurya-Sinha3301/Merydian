@@ -5,14 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-    Squares2X2Icon, // Dashboard
-    ChartBarIcon, // Analytics
-    AdjustmentsHorizontalIcon, // Optimizer
-    UserGroupIcon, // Group Details
+    ChartBarIcon,
+    AdjustmentsHorizontalIcon,
     ChevronDownIcon,
-    ChevronRightIcon,
-    Cog6ToothIcon,
-    TicketIcon
 } from "@heroicons/react/24/outline";
 
 interface SidebarItem {
@@ -22,149 +17,202 @@ interface SidebarItem {
     children?: SidebarItem[];
 }
 
-interface SidebarSection {
-    title?: string; // Optional main headers
-    items: SidebarItem[]; // Using flat list at top level, with children for nesting
-}
+const sidebarStructure: {
+    label: string;
+    icon: React.ElementType;
+    children?: SidebarItem[];
+    href?: string;
+}[] = [
+        {
+            label: "Dashboard",
+            icon: AdjustmentsHorizontalIcon,
+            href: "/agent-dashboard/itinerary-management",
+        },
+        {
+            label: "Data Analytics",
+            icon: ChartBarIcon,
+            href: "/analytics",
+        },
+    ];
 
-// Data Structure matching the reference image hierarchy
-const sidebarStructure: { label: string; icon: React.ElementType; children?: SidebarItem[]; href?: string; isOpen?: boolean }[] = [
-    {
-        label: "Dashboard Group Info",
-        icon: Squares2X2Icon,
-        href: "/agent-dashboard"
-    },
-    {
-        label: "Optimizer Window",
-        icon: AdjustmentsHorizontalIcon,
-        href: "/optimizer"
-    },
-    {
-        label: "Group Details",
-        icon: UserGroupIcon,
-        href: "/agent-dashboard/GRP-2026-001"
-    },
-    {
-        label: "Bookings",
-        icon: TicketIcon,
-        href: "/agent-dashboard/bookings"
-    },
-    {
-        label: "Data Analytics",
-        icon: ChartBarIcon,
-        href: "/analytics"
-    },
-];
-
-export function Sidebar({ className }: { className?: string }) {
+export function Sidebar({
+    className,
+    collapsed = false,
+}: {
+    className?: string;
+    collapsed?: boolean;
+}) {
     const pathname = usePathname();
-    const [openSections, setOpenSections] = useState<string[]>(["Product"]); // Default open section
+    const [openSections, setOpenSections] = useState<string[]>([]);
 
     const toggleSection = (label: string) => {
-        setOpenSections(prev =>
-            prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]
+        setOpenSections((prev) =>
+            prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
         );
     };
+
+    // Longest-match active href
+    const activeHref = React.useMemo(() => {
+        const hrefs: string[] = [];
+        const traverse = (items: typeof sidebarStructure) => {
+            items.forEach((item) => {
+                if (item.href) hrefs.push(item.href);
+                if (item.children) traverse(item.children as any);
+            });
+        };
+        traverse(sidebarStructure);
+        const matches = hrefs.filter((href) => pathname.startsWith(href));
+        matches.sort((a, b) => b.length - a.length);
+        return matches[0] || "";
+    }, [pathname]);
 
     return (
         <aside
             className={cn(
-                "h-full w-64 bg-background border-r border-neutral-200 flex flex-col shrink-0", // Added border-r for distinction
+                "h-full bg-white border-r border-gray-200 flex flex-col shrink-0 transition-all duration-300",
+                collapsed ? "w-16" : "w-64",
                 className
             )}
         >
-            {/* Spacer for Top Navbar (64px) */}
-            <div className="h-4" />
+            {/* ── Logo / Brand ─────────────────────────────────────────────── */}
+            <div className={cn("pt-10 pb-8", collapsed ? "px-4" : "px-8")}>
+                <div className="w-8 h-8 bg-black text-white flex items-center justify-center font-bold text-xs shrink-0">
+                    V
+                </div>
+                {!collapsed && (
+                    <p className="text-[10px] mt-3 font-medium tracking-widest text-gray-400 uppercase">
+                        Voyageur Portal
+                    </p>
+                )}
+            </div>
 
-            {/* Navigation Tree */}
-            <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+            {/* ── Navigation ───────────────────────────────────────────────── */}
+            <nav className={cn("flex-1 flex flex-col", collapsed ? "px-2" : "")}>
                 {sidebarStructure.map((item) => {
                     const hasChildren = item.children && item.children.length > 0;
                     const isOpen = openSections.includes(item.label);
-                    const isActiveParent = hasChildren && item.children?.some(child => pathname.startsWith(child.href || ''));
-                    const isSingleActive = !hasChildren && item.href && pathname.startsWith(item.href);
+                    const isActive = !hasChildren && item.href && item.href === activeHref;
 
                     return (
                         <div key={item.label}>
-                            {/* Parent Item */}
+                            {/* Top-level item */}
                             <div
                                 onClick={() => hasChildren && toggleSection(item.label)}
                                 className={cn(
-                                    "group flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all select-none mb-1",
-                                    isSingleActive
-                                        ? "bg-white shadow-sm text-foreground font-bold"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-black/5",
+                                    "group flex items-center gap-3 py-2 cursor-pointer select-none transition-colors duration-150",
+                                    collapsed ? "justify-center px-2 mb-3" : "px-8 mb-1",
+                                    isActive
+                                        ? // Active: bold black text, right-side border indicator
+                                        "text-black font-medium"
+                                        : "text-gray-400 font-light hover:text-black"
                                 )}
+                                title={collapsed ? item.label : undefined}
+                                style={
+                                    isActive && !collapsed
+                                        ? {
+                                            borderRight: "2px solid black",
+                                            marginRight: "-1px",
+                                        }
+                                        : {}
+                                }
                             >
-                                {/* Link wrapper if it's a direct link */}
                                 {item.href && !hasChildren ? (
-                                    <Link href={item.href} className="flex items-center gap-3 flex-1">
-                                        <item.icon className="w-5 h-5" />
-                                        <span className="text-sm">{item.label}</span>
+                                    <Link
+                                        href={item.href}
+                                        className={cn(
+                                            "flex items-center gap-3 flex-1",
+                                            collapsed && "justify-center"
+                                        )}
+                                    >
+                                        <item.icon className="w-[18px] h-[18px] shrink-0" />
+                                        {!collapsed && (
+                                            <span className="text-xs uppercase tracking-wider">
+                                                {item.label}
+                                            </span>
+                                        )}
                                     </Link>
                                 ) : (
-                                    <div className="flex items-center gap-3 flex-1">
-                                        <item.icon className="w-5 h-5" />
-                                        <span className="text-sm font-medium">{item.label}</span>
+                                    <div
+                                        className={cn(
+                                            "flex items-center gap-3 flex-1",
+                                            collapsed && "justify-center"
+                                        )}
+                                    >
+                                        <item.icon className="w-[18px] h-[18px] shrink-0" />
+                                        {!collapsed && (
+                                            <span className="text-xs uppercase tracking-wider">
+                                                {item.label}
+                                            </span>
+                                        )}
                                     </div>
                                 )}
 
-                                {hasChildren && (
-                                    <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isOpen ? "rotate-180" : "")} />
+                                {!collapsed && hasChildren && (
+                                    <ChevronDownIcon
+                                        className={cn(
+                                            "w-3.5 h-3.5 transition-transform duration-200",
+                                            isOpen ? "rotate-180" : ""
+                                        )}
+                                    />
                                 )}
                             </div>
 
-                            {/* Children Items */}
-                            {hasChildren && isOpen && (
-                                <div className="pl-4 ml-2.5 border-l-2 border-neutral-200 mt-1 space-y-1">
+                            {/* Children */}
+                            {!collapsed && hasChildren && isOpen && (
+                                <div className="pl-12 pr-8 mt-1 mb-2 space-y-1">
                                     {item.children!.map((child) => {
-                                        const isChildActive = pathname.startsWith(child.href || '###');
+                                        const isChildActive = pathname.startsWith(child.href || "###");
                                         return (
                                             <Link
                                                 key={child.label}
-                                                href={child.href || '#'}
+                                                href={child.href || "#"}
                                                 className={cn(
-                                                    "flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all",
+                                                    "flex items-center justify-between py-2 text-xs uppercase tracking-wider transition-colors duration-150",
                                                     isChildActive
-                                                        ? "bg-white shadow-sm text-foreground font-bold" // Active: White Card with small shadow
-                                                        : "text-muted-foreground hover:text-foreground hover:bg-black/5"
+                                                        ? "text-black font-medium"
+                                                        : "text-gray-400 font-light hover:text-black"
                                                 )}
                                             >
                                                 <span>{child.label}</span>
                                                 {child.count && (
-                                                    <span className={cn(
-                                                        "text-[11px] font-bold px-2 py-0.5 rounded-md",
-                                                        child.count === 3 ? "bg-orange-100 text-orange-600" :
-                                                            child.count === 8 ? "bg-emerald-100 text-emerald-600" :
-                                                                "bg-neutral-200 text-neutral-600"
-                                                    )}>
+                                                    <span
+                                                        className={cn(
+                                                            "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                                                            child.count === 3
+                                                                ? "bg-orange-100 text-orange-600"
+                                                                : child.count === 8
+                                                                    ? "bg-emerald-100 text-emerald-600"
+                                                                    : "bg-neutral-200 text-neutral-600"
+                                                        )}
+                                                    >
                                                         {child.count}
                                                     </span>
                                                 )}
                                             </Link>
-                                        )
+                                        );
                                     })}
                                 </div>
                             )}
                         </div>
                     );
                 })}
-            </div>
+            </nav>
 
-            {/* Footer User */}
-            <div className="p-4 border-t border-neutral-200">
-                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-100 cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-neutral-300 overflow-hidden">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pro" alt="User" />
+            {/* ── Footer — operator caption ─────────────────────────────────── */}
+            <div className={cn("pb-10", collapsed ? "px-4" : "px-8")}>
+                {!collapsed ? (
+                    <p className="text-[10px] font-medium text-gray-300 uppercase tracking-widest">
+                        Operator: AGENT_04
+                    </p>
+                ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden mx-auto">
+                        <img
+                            src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pro"
+                            alt="Agent"
+                        />
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-foreground">Admin User</p>
-                        <p className="text-xs text-muted-foreground">Pro Plan</p>
-                    </div>
-                    <ChevronDownIcon className="w-4 h-4 text-muted-foreground" />
-                </div>
+                )}
             </div>
-
         </aside>
     );
 }

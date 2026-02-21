@@ -41,7 +41,7 @@ export default function LandingPage() {
             <Link href="/login" className="bg-[#EDEDED] text-[#212121] px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:bg-[#212121] hover:text-[#FDFDFF] transition-all">
               Login as Customer
             </Link>
-            <Link href="/agent-dashboard" className="bg-[#212121] text-[#FDFDFF] px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:bg-[#EDEDED] hover:text-[#212121] transition-all">
+            <Link href="/login?type=agent" className="bg-[#212121] text-[#FDFDFF] px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:bg-[#EDEDED] hover:text-[#212121] transition-all">
               Login as Agent
             </Link>
           </div>
@@ -74,7 +74,7 @@ export default function LandingPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                   </svg>
                 </Link>
-                <Link href="/agent-dashboard" className="bg-[#EDEDED] text-[#212121] px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest hover:bg-[#212121] hover:text-[#FDFDFF] transition-all hover:scale-105 transform">
+                <Link href="/login?type=agent" className="bg-[#EDEDED] text-[#212121] px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest hover:bg-[#212121] hover:text-[#FDFDFF] transition-all hover:scale-105 transform">
                   Agent Portal
                 </Link>
               </div>
@@ -304,7 +304,7 @@ export default function LandingPage() {
                 <Link href="/customer-login" className="bg-[#FDFDFF] text-[#212121] px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest hover:bg-[#EDEDED] transition-all">
                   Start as Customer
                 </Link>
-                <Link href="/agent-dashboard" className="bg-[#EDEDED] text-[#212121] px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest hover:bg-[#FDFDFF] transition-all">
+                <Link href="/login?type=agent" className="bg-[#EDEDED] text-[#212121] px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest hover:bg-[#FDFDFF] transition-all">
                   Join as Agent
                 </Link>
               </div>
