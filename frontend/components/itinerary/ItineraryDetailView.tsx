@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
-    ArrowLeft, TrendingUp, ChevronDown, ChevronUp,
-    Send, GripVertical, Minimize2, Check, X, Terminal,
-    Wifi
+    ArrowLeft, TrendingUp, GripVertical, Check, X, Minimize2, Download, Share2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTripById } from '@/lib/trips';
+import VoyageurAIPanel from './VoyageurAIPanel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,11 +18,11 @@ type LaneCard = {
     categoryBorder: string;
     categoryBg: string;
     categoryText: string;
-    locationCode: string;           // e.g. PARIS_06
-    durationLabel: string;          // e.g. 1H 00M
+    locationCode: string;
+    durationLabel: string;
     durationColor: string;
     title: string;
-    subtitle?: string;              // e.g. "Richelieu Wing"
+    subtitle?: string;
     description: string;
     participants: { code: string; color: string }[];
     statusLabel: string;
@@ -146,13 +145,6 @@ const TIMELINE_ROWS: TimeRow[] = [
     },
 ];
 
-const AI_LOG = [
-    { color: 'text-indigo-600', text: 'Conflict resolved: FAM_A vs FAM_C overlap.' },
-    { color: 'text-indigo-600', text: 'Split-path generated: 2.5H duration.' },
-    { color: 'text-emerald-600', text: <>Overhead reduction: <span className="text-emerald-700 font-bold">18%</span> verified.</> },
-    { color: 'text-emerald-600', text: <>Margin impact: <span className="text-emerald-700 font-bold">+2.4%</span> applied.</> },
-];
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SplitMergeIcon({ type }: { type: 'split' | 'merge' }) {
@@ -182,7 +174,7 @@ function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) 
                 <GripVertical className="w-3.5 h-3.5" />
             </div>
 
-            {/* Image — fixed width, full card height */}
+            {/* Image */}
             <div className="w-[88px] h-full flex-shrink-0 relative border-r border-slate-200 bg-slate-100 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -196,9 +188,8 @@ function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) 
                 </div>
             </div>
 
-            {/* Content — vertically centred */}
+            {/* Content */}
             <div className="flex-1 px-4 flex flex-col justify-center gap-1.5 min-w-0 pr-8">
-                {/* Top: title row */}
                 <div className="flex justify-between items-start gap-2">
                     <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -234,7 +225,6 @@ function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) 
                     </div>
                 </div>
 
-                {/* Bottom: description + status */}
                 <div className="flex justify-between items-center gap-4">
                     <p className="text-xs text-slate-500 font-mono leading-tight truncate flex-1">
                         {card.description}
@@ -263,18 +253,15 @@ interface ItineraryDetailViewProps {
 
 export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps) {
     const trip = getTripById(tripId);
-
-    const [aiOpen, setAiOpen] = useState(true);
+    const [aiOpen, setAiOpen] = useState(false);
     const [profitOpen, setProfitOpen] = useState(false);
-    const [aiInput, setAiInput] = useState('');
     const [panelHovered, setPanelHovered] = useState(false);
 
-    // ── Guard ───────────────────────────────────────────────────────────────
     if (!trip) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
                 <p className="font-bold text-xl text-[var(--bp-text)]">Trip not found</p>
-                <p className="text-sm text-[var(--bp-muted)]">No trip with ID "{tripId}" exists.</p>
+                <p className="text-sm text-[var(--bp-muted)]">No trip with ID &quot;{tripId}&quot; exists.</p>
                 <Link
                     href="/agent-dashboard/itinerary-management"
                     className="bp-card px-5 py-2 text-sm font-semibold flex items-center gap-2 no-underline text-[var(--bp-text)] hover:border-black transition-colors"
@@ -284,46 +271,6 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
             </div>
         );
     }
-
-    // ── Chat state ──────────────────────────────────────────────────────────
-    type ChatMsg = { role: 'ai' | 'user'; text: string; time: string };
-    const now = () => new Date().toTimeString().slice(0, 5);
-    const [messages, setMessages] = useState<ChatMsg[]>([]);
-    const [isTyping, setIsTyping] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-
-    // Seed message client-side to avoid SSR mismatch
-    useEffect(() => {
-        setMessages([{
-            role: 'ai',
-            time: now(),
-            text: 'Optimization complete. Conflict resolved for FAM_A & FAM_C. Margin improved +2.4%. Ask me anything.',
-        }]);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isTyping]);
-
-    const sendMessage = () => {
-        const text = aiInput.trim();
-        if (!text) return;
-        setMessages((prev) => [...prev, { role: 'user', text, time: now() }]);
-        setAiInput('');
-        setIsTyping(true);
-        setTimeout(() => {
-            setIsTyping(false);
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: 'ai',
-                    time: now(),
-                    text: `Analyzing: "${text}". Recommend reviewing Day 2 subgroup allocations. Run new optimization pass?`,
-                },
-            ]);
-        }, 1200);
-    };
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden relative h-full bp-grid-bg bg-white">
@@ -347,7 +294,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                     </span>
                 </div>
 
-                {/* Rows */}
+                {/* Timeline rows */}
                 {TIMELINE_ROWS.map((row) => {
                     const isMulti = row.cards.length > 1;
                     return (
@@ -359,7 +306,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                             )}
                             style={{ minHeight: '130px' }}
                         >
-                            {/* Time column — vertically centred */}
+                            {/* Time column */}
                             <div className="w-20 shrink-0 sticky left-0 flex flex-col items-center justify-center border-r border-slate-200 bg-white z-30">
                                 <span className={cn(
                                     'text-sm font-bold font-mono',
@@ -373,7 +320,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                 {row.splitIcon && <SplitMergeIcon type={row.splitIcon} />}
                             </div>
 
-                            {/* Cards area — centred vertically, cards stay uniform h-[110px] */}
+                            {/* Cards */}
                             <div className={cn(
                                 'flex-1 px-6 flex items-center',
                                 isMulti ? 'gap-4 overflow-x-auto scrollbar-hide' : '',
@@ -387,187 +334,111 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                 })}
             </div>
 
-            {/* ── Floating panels ────────────────────────────────────────────────── */}
+            {/* ── Floating panels ─────────────────────────────────────────────── */}
             <div
                 className="fixed bottom-6 right-6 z-[60] flex items-end gap-3"
                 onMouseEnter={() => setPanelHovered(true)}
                 onMouseLeave={() => setPanelHovered(false)}
             >
-                {/* Profit impact pill */}
+                {/* Profit pill (collapsed) */}
                 {!profitOpen && (
                     <button
-                        onClick={() => { setProfitOpen(true); setAiOpen(false); }}
-                        className="relative w-10 h-10 rounded-full bg-white border border-slate-300 shadow-md flex items-center justify-center hover:border-emerald-400 transition-colors group"
+                        onClick={() => setProfitOpen(true)}
+                        className="relative w-10 h-10 rounded-full bg-[#faf9f6] border border-stone-300 shadow-md flex items-center justify-center hover:border-emerald-400 transition-colors group"
                         title="Open Profit Impact"
                     >
-                        <TrendingUp className="w-4 h-4 text-slate-600 group-hover:text-emerald-600 transition-colors" />
+                        <TrendingUp className="w-4 h-4 text-stone-600 group-hover:text-emerald-600 transition-colors" />
                         <div className="absolute -top-1.5 -left-1.5 bg-emerald-100 border border-emerald-300 text-emerald-800 text-[8px] font-bold px-1 py-px rounded shadow-sm font-mono">
                             +2.4%
                         </div>
                     </button>
                 )}
 
-                {/* Profit Impact expanded */}
+                {/* Profit panel (expanded) */}
                 {profitOpen && (
-                    <div className="w-[320px] bg-white border border-slate-300 shadow-2xl shadow-slate-200/50 flex flex-col">
-                        <div className="bg-slate-50 px-3 py-2 border-b border-slate-200 flex justify-between items-center">
+                    <div className="w-[300px] bg-[#faf9f6] border border-stone-300 shadow-2xl rounded-xl flex flex-col overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200 bg-white shrink-0">
                             <div className="flex items-center gap-2">
-                                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-                                <span className="text-[10px] font-bold text-slate-800 uppercase tracking-widest font-mono">Profit Impact</span>
-                                <span className="text-[9px] font-bold px-1 py-px bg-emerald-100 text-emerald-700 border border-emerald-200 font-mono">+2.4%</span>
+                                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                                <span className="text-xs font-bold uppercase tracking-widest text-stone-800">Profit Impact</span>
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full font-mono">+2.4%</span>
                             </div>
-                            <button onClick={() => setProfitOpen(false)} className="text-slate-400 hover:text-slate-800 transition-colors">
+                            <button onClick={() => setProfitOpen(false)} className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-md transition-colors">
                                 <Minimize2 className="w-3.5 h-3.5" />
                             </button>
                         </div>
                         <div className="p-4 space-y-3">
-                            <div className="grid grid-cols-3 border border-slate-200 divide-x divide-slate-200">
-                                <div className="px-3 py-2 flex flex-col">
-                                    <span className="text-[8px] uppercase font-bold text-slate-400 font-mono tracking-wider">Revenue</span>
-                                    <span className="text-xs font-bold text-slate-800 font-mono">$12,450</span>
-                                </div>
-                                <div className="px-3 py-2 flex flex-col">
-                                    <span className="text-[8px] uppercase font-bold text-slate-400 font-mono tracking-wider">Cost</span>
-                                    <span className="text-xs font-bold text-slate-600 font-mono">$9,820</span>
-                                </div>
-                                <div className="px-3 py-2 flex flex-col">
-                                    <span className="text-[8px] uppercase font-bold text-slate-400 font-mono tracking-wider">Margin</span>
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-xs font-bold text-emerald-600 font-mono">21.1%</span>
-                                        <div className="w-8 h-1 bg-slate-200">
-                                            <div className="h-full bg-emerald-500 w-[21%]" />
-                                        </div>
+                            <div className="bg-white border border-stone-200 rounded-lg p-3 shadow-sm">
+                                <div className="grid grid-cols-3 divide-x divide-stone-100 mb-3">
+                                    <div className="pr-3 flex flex-col">
+                                        <span className="text-[8px] uppercase font-bold text-stone-400 font-mono tracking-wider">Revenue</span>
+                                        <span className="text-sm font-bold text-stone-800 font-mono">$12,450</span>
+                                    </div>
+                                    <div className="px-3 flex flex-col">
+                                        <span className="text-[8px] uppercase font-bold text-stone-400 font-mono tracking-wider">Cost</span>
+                                        <span className="text-sm font-bold text-stone-600 font-mono">$9,820</span>
+                                    </div>
+                                    <div className="pl-3 flex flex-col">
+                                        <span className="text-[8px] uppercase font-bold text-stone-400 font-mono tracking-wider">Margin</span>
+                                        <span className="text-sm font-bold text-emerald-600 font-mono">21.1%</span>
                                     </div>
                                 </div>
+                                <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '21%' }} />
+                                </div>
                             </div>
-                            <div className="bg-slate-50 border border-slate-200 p-2 space-y-1">
-                                <div className="text-[8px] font-bold text-slate-400 uppercase tracking-wider font-mono pb-1 border-b border-slate-200">AI Insights</div>
-                                <ul className="space-y-1">
-                                    {[
-                                        <><span className="font-bold text-slate-700">$320</span> saved via subgroup routing</>,
-                                        <>Lunch relocation improved margin by <span className="font-bold text-slate-700">1.2%</span></>,
-                                    ].map((t, i) => (
-                                        <li key={i} className="flex gap-1.5 items-start text-[9px] text-slate-600 font-mono">
-                                            <span className="text-indigo-500 mt-0.5">{'>'}</span>
-                                            <span>{t}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* ── Voyageur AI terminal panel ── */}
-                {aiOpen ? (
-                    <div className="w-[340px] bg-white border border-slate-300 shadow-2xl shadow-slate-200/50 flex flex-col max-h-[70vh]">
-                        {/* Header */}
-                        <div className="bg-slate-50 px-3 py-2 border-b border-slate-200 flex justify-between items-center shrink-0">
-                            <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse shadow-sm shadow-indigo-300" />
-                                <span className="text-[10px] font-bold text-slate-800 uppercase tracking-widest font-mono">
-                                    VOYAGEUR_AI // v2.0
-                                </span>
-                            </div>
-                            <button
-                                onClick={() => setAiOpen(false)}
-                                className="text-slate-400 hover:text-slate-800 transition-colors"
-                            >
-                                <ChevronDown className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
-
-                        {/* Optimization log */}
-                        <div className="shrink-0 m-3 mb-0 bg-slate-50 border border-slate-200 p-2">
-                            <div className="flex items-center gap-1.5 mb-1.5 border-b border-slate-200 pb-1">
-                                <Terminal className="w-3 h-3 text-indigo-600" />
-                                <span className="text-[9px] uppercase font-bold text-indigo-700 font-mono">Optimization Log</span>
-                            </div>
-                            <ul className="space-y-0.5">
-                                {AI_LOG.map((item, i) => (
-                                    <li key={i} className="flex gap-1.5 items-start text-[9px] text-slate-600 font-mono">
-                                        <span className={cn('mt-0.5 shrink-0', item.color)}>{'>'}</span>
-                                        <span>{item.text}</span>
-                                    </li>
+                            <div className="bg-white border border-stone-200 rounded-lg p-3 shadow-sm space-y-1.5">
+                                <div className="text-[8px] font-bold text-stone-400 uppercase tracking-wider pb-1 border-b border-stone-100">AI Insights</div>
+                                {[
+                                    <><span className="font-bold text-stone-700">$320</span> saved via subgroup routing</>,
+                                    <>Lunch relocation improved margin by <span className="font-bold text-stone-700">1.2%</span></>,
+                                ].map((t, i) => (
+                                    <div key={i} className="flex gap-1.5 items-start text-[10px] text-stone-600">
+                                        <span className="text-emerald-500 mt-0.5 shrink-0">›</span>
+                                        <span>{t}</span>
+                                    </div>
                                 ))}
-                            </ul>
-                        </div>
-
-                        {/* Chat messages */}
-                        <div className="flex-1 overflow-y-auto scrollbar-hide px-3 pt-2 pb-1 space-y-2 min-h-0">
-                            {messages.map((msg, i) => (
-                                <div key={i} className={cn('flex flex-col gap-0.5', msg.role === 'user' ? 'items-end' : 'items-start')}>
-                                    <div className={cn(
-                                        'px-3 py-2 text-[10px] leading-relaxed max-w-[88%] font-mono',
-                                        msg.role === 'ai'
-                                            ? 'bg-slate-50 border border-slate-200 text-slate-700'
-                                            : 'bg-slate-900 text-white',
-                                    )}>
-                                        {msg.text}
-                                    </div>
-                                    <span suppressHydrationWarning className="text-[8px] text-slate-400 font-mono px-1">{msg.time}</span>
-                                </div>
-                            ))}
-                            {isTyping && (
-                                <div className="flex items-start">
-                                    <div className="bg-slate-50 border border-slate-200 px-3 py-2 flex gap-1 items-center">
-                                        {[0, 150, 300].map((d) => (
-                                            <span
-                                                key={d}
-                                                className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce"
-                                                style={{ animationDelay: `${d}ms` }}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            <div ref={messagesEndRef} />
-                        </div>
-
-                        {/* Input */}
-                        <div className="px-3 pb-3 pt-2 shrink-0">
-                            <div className="relative group">
-                                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-600 group-focus-within:bg-indigo-400 transition-colors" />
-                                <input
-                                    type="text"
-                                    value={aiInput}
-                                    onChange={(e) => setAiInput(e.target.value)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
-                                    placeholder="Input command or query..."
-                                    className="w-full bg-slate-50 border border-slate-200 border-l-0 py-2 pl-2 pr-8 text-[10px] text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white font-mono"
-                                />
-                                <button
-                                    onClick={sendMessage}
-                                    disabled={!aiInput.trim()}
-                                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors disabled:opacity-30"
-                                >
-                                    <Send className="w-3 h-3" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button className="py-2 px-3 border border-stone-200 bg-white hover:bg-stone-50 text-xs font-semibold text-stone-600 flex items-center justify-center gap-1.5 rounded-lg transition-all uppercase tracking-wide">
+                                    <Download className="w-3.5 h-3.5 text-stone-400" /> Export
+                                </button>
+                                <button className="py-2 px-3 border border-stone-200 bg-white hover:bg-stone-50 text-xs font-semibold text-stone-600 flex items-center justify-center gap-1.5 rounded-lg transition-all uppercase tracking-wide">
+                                    <Share2 className="w-3.5 h-3.5 text-stone-400" /> Share
                                 </button>
                             </div>
                         </div>
-
-                        {/* Status footer */}
-                        <div className="bg-slate-100 px-3 py-1 flex justify-between items-center text-[8px] text-slate-500 font-mono border-t border-slate-200 shrink-0">
-                            <div className="flex items-center gap-1">
-                                <Wifi className="w-2.5 h-2.5" />
-                                <span>SYS: ONLINE</span>
-                            </div>
-                            <span>LATENCY: 12ms</span>
-                        </div>
                     </div>
-                ) : (
-                    /* AI collapsed pill */
-                    <button
-                        onClick={() => { setAiOpen(true); setProfitOpen(false); }}
-                        className="w-10 h-10 bg-slate-900 border border-slate-900 text-white flex items-center justify-center hover:bg-slate-700 transition-colors shadow-md"
-                        title="Open Voyageur AI"
-                    >
-                        <Terminal className="w-4 h-4" />
-                    </button>
                 )}
             </div>
 
-            {/* ── Approve / Reject — bottom center ─────────────────────────────── */}
+            {/* Shared Voyageur AI Panel */}
+            <VoyageurAIPanel
+                open={aiOpen}
+                onOpenChange={setAiOpen}
+                insightTag="Optimization Complete"
+                insightTagColor="bg-indigo-50 text-indigo-700 border-indigo-200"
+                insightBody={
+                    <ul className="space-y-2 mt-1">
+                        {[
+                            { dot: 'bg-indigo-400', text: 'Conflict resolved: FAM_A vs FAM_C overlap.' },
+                            { dot: 'bg-indigo-400', text: 'Split-path generated: 2.5H duration.' },
+                            { dot: 'bg-emerald-400', text: <><span className="font-semibold text-stone-800">Overhead reduction: 18%</span> verified.</> },
+                            { dot: 'bg-emerald-400', text: <><span className="font-semibold text-stone-800">Margin impact: +2.4%</span> applied.</> },
+                        ].map((item, i) => (
+                            <li key={i} className="flex gap-2 items-start">
+                                <span className={cn('w-1.5 h-1.5 rounded-full mt-1 shrink-0', item.dot)} />
+                                <span>{item.text}</span>
+                            </li>
+                        ))}
+                    </ul>
+                }
+                inputPlaceholder="Ask about this itinerary..."
+                seedMessage="Optimization complete. Conflict resolved for FAM_A & FAM_C. Margin improved +2.4%. Ask me anything."
+                getAIReply={(text) => `Analyzing: "${text}". Recommend reviewing Day 2 subgroup allocations. Run new optimization pass?`}
+            />
+
+            {/* ── Approve / Reject ─────────────────────────────────────────────── */}
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-0">
                 <button className="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-300 border-r-0 text-slate-700 font-semibold text-xs hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all uppercase tracking-wide font-mono">
                     <X className="w-3.5 h-3.5" />

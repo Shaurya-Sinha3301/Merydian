@@ -5,11 +5,12 @@ import {
     Search, Star, Clock, Key,
     Send, Minimize2, Maximize2, AlertTriangle, Crown,
     Calendar, FileText,
-    Sparkles, CheckCircle, XCircle,
+    CheckCircle, XCircle,
     MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTripById } from '@/lib/trips';
+import VoyageurAIPanel from './VoyageurAIPanel';
 
 // ─── Types & Mock Data ─────────────────────────────────────────────────────────
 
@@ -51,12 +52,6 @@ interface ChatMessage {
     role: 'guest' | 'agent';
     text: string;
     initials: string;
-}
-
-interface AiMessage {
-    role: 'user' | 'ai';
-    text: string;
-    time: string;
 }
 
 const FAMILIES: Family[] = [
@@ -153,9 +148,6 @@ export default function GroupsView({ tripId }: { tripId: string }) {
 
     // Voyageur AI floating panel
     const [aiOpen, setAiOpen] = useState(false);
-    const [aiInput, setAiInput] = useState('');
-    const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
-    const [aiTyping, setAiTyping] = useState(false);
 
     // Chat minimise/expand
     const [chatOpen, setChatOpen] = useState(true);
@@ -164,32 +156,14 @@ export default function GroupsView({ tripId }: { tripId: string }) {
     const [mapExpanded, setMapExpanded] = useState(false);
 
     const chatEndRef = useRef<HTMLDivElement>(null);
-    const aiEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages]);
-    useEffect(() => { aiEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [aiMessages, aiTyping]);
 
     const sendChat = () => {
         const text = chatInput.trim();
         if (!text) return;
         setChatMessages(prev => [...prev, { role: 'agent', initials: 'AG', text }]);
         setChatInput('');
-    };
-
-    const sendAiMessage = () => {
-        const text = aiInput.trim();
-        if (!text) return;
-        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        setAiMessages(prev => [...prev, { role: 'user', text, time: now }]);
-        setAiInput('');
-        setAiTyping(true);
-        setTimeout(() => {
-            setAiTyping(false);
-            setAiMessages(prev => [
-                ...prev,
-                { role: 'ai', text: 'Based on satisfaction scores, I recommend approving the late checkout for Room 402 – it\'s a low-risk, high-satisfaction move.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
-            ]);
-        }, 1400);
     };
 
     const filteredFamilies = FAMILIES.filter(f => {
@@ -582,102 +556,30 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                 </div>
             </aside>
 
-            {/* ── Voyageur AI Floating Button + Panel (bottom-right) ────────── */}
-            <div className="fixed bottom-6 right-6 z-[60] flex items-end gap-3">
-                {/* Collapsed button */}
-                {!aiOpen && (
-                    <button
-                        onClick={() => setAiOpen(true)}
-                        className="w-12 h-12 bg-[#353b48] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#2d323c] transition-all hover:scale-105"
-                        title="Open Voyageur AI"
-                    >
-                        <Sparkles className="w-5 h-5" />
-                    </button>
-                )}
-
-                {/* Expanded panel */}
-                {aiOpen && (
-                    <div className="w-[340px] max-h-[70vh] bg-stone-50 border border-stone-300 shadow-2xl rounded-xl flex flex-col overflow-hidden">
-                        {/* Header */}
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200 shrink-0 bg-white">
-                            <div className="flex items-center gap-2">
-                                <Sparkles className="w-4 h-4 text-stone-500" />
-                                <span className="text-xs font-bold uppercase tracking-widest text-stone-700">Voyageur AI</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1 bg-white px-1.5 py-0.5 rounded-full border border-stone-200 shadow-sm">
-                                    <span className="w-1.5 h-1.5 bg-[#4f5d4e] rounded-full" />
-                                    <span className="text-[9px] font-bold text-stone-500">LIVE</span>
-                                </div>
-                                <button onClick={() => setAiOpen(false)} className="text-stone-400 hover:text-stone-700 transition-colors p-1">
-                                    <Minimize2 className="w-3.5 h-3.5" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Static insight card */}
-                        <div className="m-3 mb-0 bg-white border border-stone-200 rounded-lg p-3 shrink-0">
-                            <div className="flex items-center justify-between mb-2 border-b border-stone-100 pb-2">
-                                <span className="text-[9px] font-bold text-[#4f5d4e] bg-[#4f5d4e]/10 border border-[#4f5d4e]/20 px-2 py-0.5 rounded-full tracking-wider">HIGH SATISFACTION</span>
-                            </div>
-                            <p className="text-xs leading-relaxed text-stone-600">
-                                Positive sentiment detected. It&apos;s a great time to upsell the{' '}
-                                <strong className="text-stone-800 font-semibold italic">Sunset Cruise</strong>{' '}
-                                experience for their final evening.
-                            </p>
-                            <button className="w-full mt-3 py-2 bg-[#353b48] hover:bg-[#2d323c] text-white text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
-                                <Send className="w-3 h-3" /> Draft Proposal
-                            </button>
-                        </div>
-
-                        {/* AI chat messages */}
-                        <div className="flex-1 overflow-y-auto scrollbar-hide px-3 pt-3 pb-2 space-y-3 min-h-[80px]">
-                            {aiMessages.map((msg, i) => (
-                                <div key={i} className={cn('flex flex-col gap-0.5', msg.role === 'user' ? 'items-end' : 'items-start')}>
-                                    <div className={cn(
-                                        'px-3 py-2 rounded-xl text-xs leading-relaxed max-w-[90%]',
-                                        msg.role === 'ai'
-                                            ? 'bg-white border border-stone-200 text-stone-700'
-                                            : 'bg-[#353b48] text-white'
-                                    )}>{msg.text}</div>
-                                    <span className="text-[9px] text-stone-400 px-1">{msg.time}</span>
-                                </div>
-                            ))}
-                            {aiTyping && (
-                                <div className="flex items-start">
-                                    <div className="bg-white border border-stone-200 px-3 py-2.5 rounded-xl flex gap-1 items-center">
-                                        {[0, 150, 300].map(d => (
-                                            <span key={d} className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce" style={{ animationDelay: `${d}ms` }} />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            <div ref={aiEndRef} />
-                        </div>
-
-                        {/* AI input */}
-                        <div className="px-3 pb-3 pt-2 shrink-0 border-t border-stone-100 bg-white">
-                            <div className="relative flex gap-2">
-                                <input
-                                    type="text"
-                                    value={aiInput}
-                                    onChange={e => setAiInput(e.target.value)}
-                                    onKeyDown={e => { if (e.key === 'Enter') sendAiMessage(); }}
-                                    placeholder="Ask about groups or families..."
-                                    className="flex-1 bg-stone-50 border border-stone-200 rounded-lg py-2 pl-3 pr-3 text-xs text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300"
-                                />
-                                <button
-                                    onClick={sendAiMessage}
-                                    disabled={!aiInput.trim()}
-                                    className="w-8 bg-[#4a647c] text-white rounded-lg flex items-center justify-center hover:bg-[#3d5368] transition-colors disabled:opacity-40"
-                                >
-                                    <Send className="w-3 h-3" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+            {/* ── Voyageur AI Floating Panel (shared component) ─────────────────── */}
+            <VoyageurAIPanel
+                open={aiOpen}
+                onOpenChange={setAiOpen}
+                insightTag="Group Intelligence"
+                insightTagColor="bg-stone-100 text-stone-700 border-stone-300"
+                insightBody={
+                    <ul className="space-y-2 mt-1">
+                        {[
+                            { dot: 'bg-emerald-400', text: <>Late checkout approved for <strong>Room 402</strong> — low risk, high satisfaction.</> },
+                            { dot: 'bg-amber-400', text: <>Sharma family satisfaction dipped to 3.1 — action recommended.</> },
+                            { dot: 'bg-indigo-400', text: <>2 new reviews submitted overnight — sentiment neutral.</> },
+                        ].map((item, i) => (
+                            <li key={i} className="flex gap-2 items-start">
+                                <span className={cn('w-1.5 h-1.5 rounded-full mt-1 shrink-0', item.dot)} />
+                                <span>{item.text}</span>
+                            </li>
+                        ))}
+                    </ul>
+                }
+                inputPlaceholder="Ask about groups or families..."
+                seedMessage="Group intelligence loaded. Ask about family satisfaction, activity requests, or logistics."
+                getAIReply={(text) => `Analyzing: "${text}". Based on satisfaction scores, I recommend approving the late checkout for Room 402.`}
+            />
         </div>
     );
 }
