@@ -298,14 +298,14 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
             )}>
                 {/* Sticky day header — new design: muted date + bold day title */}
                 <div className="sticky top-0 z-30 border-b border-gray-200 bg-gray-50 w-full">
-                    <div className="px-6 h-8 flex items-center justify-between text-[10px] uppercase tracking-wider">
+                    <div className="px-6 py-3 flex items-center justify-between">
                         <div className="flex items-center gap-4 font-semibold">
-                            <span className="text-gray-500">
+                            <span className="text-[10px] uppercase tracking-widest font-mono text-gray-500">
                                 {trip.dateRange?.split('–')?.[0]?.trim() ?? 'OCT 12'}
                             </span>
-                            <span className="text-black text-sm font-bold normal-case tracking-normal">Day 1: Paris Sightseeing</span>
+                            <span className="text-black text-xl font-bold normal-case tracking-normal">Day 1: Paris Sightseeing</span>
                         </div>
-                        <div className="text-gray-500">{TIMELINE_ROWS.length} SLOTS · 08:00 – 14:30</div>
+                        <div className="text-[10px] uppercase tracking-wider text-gray-500">{TIMELINE_ROWS.length} SLOTS · 08:00 – 14:30</div>
                     </div>
                 </div>
 
