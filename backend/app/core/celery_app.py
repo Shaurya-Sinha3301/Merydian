@@ -11,6 +11,8 @@ celery_app = Celery(
 # Task routing — booking tasks go to dedicated queue
 celery_app.conf.task_routes = {
     "app.worker.process_hotel_booking": {"queue": "booking_queue"},
+    'app.worker.process_event_task': {'queue': 'event_queue'},
+    'app.worker.process_notification_task': {'queue': 'notification_queue'},
 }
 
 # Serialization

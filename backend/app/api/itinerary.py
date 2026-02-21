@@ -5,7 +5,7 @@ import uuid as uuid_lib
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, get_optional_user
 from app.schemas.auth import TokenPayload
 from app.schemas.events import EventCreate, EventType, EventResponse
 from app.services.itinerary_service import ItineraryService
@@ -44,6 +44,9 @@ class FeedbackResponse(BaseModel):
     message: str
     event_created: EventResponse
 
+from app.core.redis import RedisManager
+import json
+
 @router.get("/current", response_model=Dict[str, Any])
 async def get_current_itinerary(
     current_user: TokenPayload = Depends(get_current_user)
@@ -61,6 +64,17 @@ async def get_current_itinerary(
         
         family_id = uuid_lib.UUID(current_user.family_id)
         
+        # Check Cache
+        redis = await RedisManager.get_redis()
+        cache_key = f"itinerary:current:{family_id}"
+        cached_data = await redis.get(cache_key)
+        
+        if cached_data:
+            try:
+                return json.loads(cached_data)
+            except:
+                pass # Fallback to DB if cache corrupted
+
         # Get current itinerary from database
         itinerary_data = ItineraryService.get_current_itinerary(family_id)
         
@@ -70,15 +84,47 @@ async def get_current_itinerary(
                 detail="No active itinerary found for this family"
             )
         
+        # Set Cache (expire in 60 seconds)
+        try:
+            await redis.setex(cache_key, 60, json.dumps(itinerary_data, default=str))
+        except Exception as e:
+            print(f"Failed to cache itinerary: {e}")
+
         return itinerary_data
         
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid family ID: {str(e)}")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to retrieve itinerary: {str(e)}"
         )
+
+
+@router.get("/diff")
+async def get_itinerary_diff(
+    version_a: int,
+    version_b: int,
+    current_user: TokenPayload = Depends(get_current_user),
+) -> Any:
+    """
+    Get a structured diff between two itinerary versions.
+
+    Compares POIs, costs, and satisfaction scores between versions.
+    """
+    if not current_user.family_id:
+        raise HTTPException(status_code=400, detail="User is not associated with a family")
+
+    family_id = uuid_lib.UUID(current_user.family_id)
+    diff = ItineraryService.diff_itineraries(family_id, version_a, version_b)
+    if diff is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"One or both itinerary versions not found (v{version_a}, v{version_b})",
+        )
+    return diff
 
 
 
@@ -119,9 +165,9 @@ async def submit_feedback(
         
         print(f"[Itinerary API] Created feedback event: {db_event.id} for POI {feedback.node_id}")
         
-        # TODO: Trigger agentic processing
-        # from app.services.agent_service import AgentService
-        # AgentService.process_feedback(db_event.id)
+        # Trigger agentic processing async
+        from app.worker import process_event_task
+        process_event_task.delay(str(db_event.id))
         
         # Determine feedback sentiment for response message
         if feedback.rating <= 2:
@@ -162,7 +208,7 @@ class AgentFeedbackResponse(BaseModel):
 @router.post("/feedback/agent", response_model=AgentFeedbackResponse)
 async def process_agent_feedback(
     feedback: AgentFeedbackRequest,
-    current_user: Optional[TokenPayload] = Depends(lambda: None)  # Make auth optional for testing
+    current_user: Optional[TokenPayload] = Depends(get_optional_user)
 ) -> Any:
     """
     Process feedback through the agent pipeline.
@@ -302,9 +348,9 @@ async def submit_poi_request(
         
         print(f"[Itinerary API] Created POI request: {request_id} for {poi_request.poi_name}")
         
-        # TODO: Trigger agentic processing
-        # from app.services.agent_service import AgentService
-        # AgentService.process_poi_request(db_event.id)
+        # Trigger agentic processing async
+        from app.worker import process_event_task
+        process_event_task.delay(str(db_event.id))
         
         # Response message based on urgency
         if poi_request.urgency == UrgencyLevel.HIGH:

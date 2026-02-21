@@ -1,12 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { apiClient } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function SignupPage() {
-    const router = useRouter();
+    const { signup } = useAuth();
     const [userType, setUserType] = useState<'customer' | 'agent'>('customer');
     const [formData, setFormData] = useState({
         name: '',
@@ -15,45 +14,36 @@ export default function SignupPage() {
         confirmPassword: '',
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
         setIsLoading(true);
 
         // Basic validation
         if (formData.password !== formData.confirmPassword) {
-            alert('Passwords do not match!');
+            setError('Passwords do not match!');
+            setIsLoading(false);
+            return;
+        }
+
+        if (formData.password.length < 8) {
+            setError('Password must be at least 8 characters long');
             setIsLoading(false);
             return;
         }
 
         try {
-            const response = await apiClient.signup({
-                email: formData.email,
-                password: formData.password,
-                full_name: formData.name,
-                role: userType === 'agent' ? 'agent' : 'traveller'
-            });
-
-            // Store token and user details
-            localStorage.setItem('token', response.access_token);
-            apiClient.setToken(response.access_token);
-
-            localStorage.setItem('user_type', userType);
-            localStorage.setItem('user_email', formData.email);
-            localStorage.setItem('user_name', formData.name);
-            localStorage.setItem('is_new_user', 'true'); // Mark as new user
-
-            // Redirect based on user type
-            if (userType === 'customer') {
-                // New customers go to preferences first
-                router.push('/customer-preferences');
-            } else {
-                // Agents go directly to dashboard
-                router.push('/agent-dashboard');
-            }
-        } catch (error: any) {
-            alert(error.message || 'Signup failed');
+            await signup(
+                formData.email,
+                formData.password,
+                formData.name,
+                userType === 'agent' ? 'agent' : 'traveller'
+            );
+            // Redirect is handled by AuthContext based on user role
+        } catch (err: any) {
+            setError(err.message || 'Signup failed');
         } finally {
             setIsLoading(false);
         }
@@ -73,6 +63,13 @@ export default function SignupPage() {
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
                     <p className="text-gray-600">Join us to start planning your perfect trip</p>
                 </div>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                        <p className="text-sm text-red-600">{error}</p>
+                    </div>
+                )}
 
                 {/* User Type Selection */}
                 <div className="flex bg-gray-100 rounded-2xl p-1 mb-6">

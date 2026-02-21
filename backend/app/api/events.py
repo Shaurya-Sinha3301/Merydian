@@ -32,10 +32,9 @@ async def create_event(
         
         print(f"[Event API] Created event: {db_event.event_type} | ID: {db_event.id} | Family: {family_id}")
         
-        # TODO: Trigger Celery task for async processing
-        # from app.tasks.event_tasks import process_event_async
-        # process_event_async.delay(str(db_event.id))
-        print(f"[Event API] (TODO) Trigger async processing for event {db_event.id}")
+        # Trigger Celery task for async processing
+        from app.worker import process_event_task
+        process_event_task.delay(str(db_event.id))
         
         return EventResponse(event_id=db_event.id, status=db_event.status)
         

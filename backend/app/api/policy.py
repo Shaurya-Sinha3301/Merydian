@@ -1,11 +1,13 @@
-from typing import Any
-from fastapi import APIRouter, HTTPException
+from typing import Any, Optional
+from fastapi import APIRouter, HTTPException, Query
 
 from app.schemas.policy import PolicyEvaluationRequest, PolicyDecisionResponse
 from app.agents.policy_agent import policy_agent
-from app.models.policy import POIRequest, FamilyResponseMessage, DecisionLog
-from app.services.optimizer_service import get_db_session
+from app.services.policy_service import PolicyService
 
+import logging
+
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.post("/decision-policy/evaluate", response_model=PolicyDecisionResponse)
@@ -21,38 +23,49 @@ async def evaluate_policy(
         # 1. Evaluate via Agent
         decision_response = await policy_agent.evaluate(request)
         
-        # 2. Persist to database
-        with get_db_session() as session:
-            # Store Request
-            db_request = POIRequest(
+        # 2. Persist to database (non-blocking — failures logged but don't crash)
+        try:
+            family_responses = [
+                {
+                    "family_id": fr.family_id,
+                    "response": fr.response,
+                    "confidence": fr.confidence,
+                }
+                for fr in request.family_responses
+            ]
+            PolicyService.save_decision(
                 request_id=request.request_id,
                 origin_family=request.origin_family,
                 location_id=request.requested_location_id,
-                status=decision_response.decision
-            )
-            session.add(db_request)
-            
-            # Store Responses
-            for fam_resp in request.family_responses:
-                db_resp = FamilyResponseMessage(
-                    request_id=request.request_id,
-                    family_id=fam_resp.family_id,
-                    response=fam_resp.response,
-                    confidence=fam_resp.confidence
-                )
-                session.add(db_resp)
-                
-            # Store Decision Log
-            db_log = DecisionLog(
-                request_id=request.request_id,
                 decision=decision_response.decision,
                 trigger_score=decision_response.score,
                 threshold=decision_response.threshold,
-                optimizer_called=decision_response.optimizer_triggered
+                optimizer_called=decision_response.optimizer_triggered,
+                family_responses=family_responses,
             )
-            session.add(db_log)
+        except Exception as db_err:
+            logger.error(f"Failed to persist policy decision: {db_err}")
         
         return decision_response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/decision-policy/history")
+async def get_policy_history(
+    limit: int = Query(50, ge=1, le=200, description="Max results"),
+) -> Any:
+    """
+    Get recent policy decision history for audit and review.
+    """
+    return PolicyService.get_decision_history(limit=limit)
+
+
+@router.get("/decision-policy/{request_id}")
+async def get_policy_decision(request_id: str) -> Any:
+    """Get a specific policy decision by request ID."""
+    result = PolicyService.get_decision_by_request_id(request_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Decision not found")
+    return result
