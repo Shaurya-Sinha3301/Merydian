@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     .join('')
             );
             const payload = JSON.parse(jsonPayload);
-            
+
             return {
                 id: payload.sub,
                 email: '', // Will be fetched from profile endpoint if needed
@@ -93,21 +93,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const login = useCallback(async (email: string, password: string) => {
         try {
             const response = await apiClient.login(email, password);
-            
+
             // Store access token
             localStorage.setItem('access_token', response.access_token);
             apiClient.setToken(response.access_token);
-            
+
             // Decode and set user
             const userData = decodeToken(response.access_token);
             if (userData) {
                 setUser(userData);
-                
+
                 // Redirect based on role
                 if (userData.role === 'agent') {
                     router.push('/agent-dashboard');
                 } else {
-                    router.push('/customer-dashboard');
+                    router.push('/customer-portal');
                 }
             }
         } catch (error: any) {
@@ -129,22 +129,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 full_name: fullName,
                 role,
             });
-            
+
             // Store access token
             localStorage.setItem('access_token', response.access_token);
             apiClient.setToken(response.access_token);
-            
+
             // Decode and set user
             const userData = decodeToken(response.access_token);
             if (userData) {
                 setUser(userData);
-                
+
                 // Redirect based on role
                 if (role === 'agent') {
                     router.push('/agent-dashboard');
                 } else {
-                    // New customers go to preferences first
-                    router.push('/customer-preferences');
+                    // New customers go to portal directly now
+                    router.push('/customer-portal');
                 }
             }
         } catch (error: any) {
@@ -170,11 +170,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const refreshToken = useCallback(async (): Promise<boolean> => {
         try {
             const response = await apiClient.refreshToken();
-            
+
             // Store new access token
             localStorage.setItem('access_token', response.access_token);
             apiClient.setToken(response.access_token);
-            
+
             // Update user data
             const userData = decodeToken(response.access_token);
             if (userData) {

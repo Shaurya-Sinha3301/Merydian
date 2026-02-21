@@ -14,18 +14,28 @@ import {
 } from '@/lib/agent-dashboard/itinerary-data';
 import TimelineEventCard from './TimelineEventCard';
 import ImageGalleryModal from './ImageGalleryModal';
+import SuggestChangeModal from '@/app/customer-portal/components/SuggestChangeModal';
 
 interface ItineraryViewProps {
   groupId: string;
+  isCustomerView?: boolean; // Hide agent-only features when true
 }
 
-export default function ItineraryView({ groupId }: ItineraryViewProps) {
+export default function ItineraryView({ groupId, isCustomerView = false }: ItineraryViewProps) {
   const itinerary = getItineraryByGroupId(groupId);
   const [selectedDay, setSelectedDay] = useState(1);
   const [showOptimizeModal, setShowOptimizeModal] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [galleryTitle, setGalleryTitle] = useState('');
+  const [showSuggestChange, setShowSuggestChange] = useState(false);
+  const [suggestionContext, setSuggestionContext] = useState<{
+    eventId: string;
+    eventTitle: string;
+    eventType?: string;
+    eventTime?: string;
+    preselectedAction?: string;
+  } | null>(null);
 
   const openGallery = (images: string[], title: string) => {
     // Filter out empty or invalid image URLs
@@ -35,6 +45,18 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
       setGalleryTitle(title);
       setShowGallery(true);
     }
+  };
+
+  const handleSuggestChange = (eventId: string, eventTitle: string, preselectedAction?: string) => {
+    const event = currentDay?.timelineEvents.find(e => e.id === eventId);
+    setSuggestionContext({
+      eventId,
+      eventTitle,
+      eventType: event?.type,
+      eventTime: event?.startTime,
+      preselectedAction
+    });
+    setShowSuggestChange(true);
   };
 
   if (!itinerary) {
@@ -53,8 +75,8 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
 
   return (
     <div className="space-y-6 bg-gray-50 min-h-screen p-6">
-      {/* Disruption Alert Banner */}
-      {hasAnyDisruptions && (
+      {/* Disruption Alert Banner - Only for agents */}
+      {!isCustomerView && hasAnyDisruptions && (
         <div className="bg-black text-white p-6 rounded-2xl">
           <h3 className="text-xl font-bold mb-2">
             {allDisruptions.length} Active Disruption{allDisruptions.length > 1 ? 's' : ''}
@@ -184,6 +206,10 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
                 key={event.id}
                 event={event}
                 isLast={index === currentDay.timelineEvents.length - 1}
+                isCustomerView={isCustomerView}
+                dayNumber={currentDay.dayNumber}
+                dayTitle={currentDay.title}
+                onSuggestChange={isCustomerView ? handleSuggestChange : undefined}
               />
             ))}
           </div>
@@ -229,7 +255,23 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
         <button className="flex-1 py-4 px-6 bg-white text-black font-semibold rounded-xl border-2 border-black hover:bg-black hover:text-white transition-colors">
           Share with Group
         </button>
-        {hasAnyDisruptions && (
+        {isCustomerView && (
+          <button 
+            onClick={() => {
+              setSuggestionContext({
+                eventId: 'general',
+                eventTitle: 'General Suggestion',
+                preselectedAction: 'add-place'
+              });
+              setShowSuggestChange(true);
+            }}
+            className="flex-1 py-4 px-6 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <span>💡</span>
+            <span>Suggest Changes</span>
+          </button>
+        )}
+        {!isCustomerView && hasAnyDisruptions && (
           <button 
             onClick={() => setShowOptimizeModal(true)}
             className="flex-1 py-4 px-6 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors"
@@ -239,8 +281,8 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
         )}
       </div>
 
-      {/* Optimize Modal */}
-      {showOptimizeModal && (
+      {/* Optimize Modal - Only for agents */}
+      {!isCustomerView && showOptimizeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center neu-modal-overlay" onClick={() => setShowOptimizeModal(false)}>
           <div 
             className="neu-modal max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto p-8"
@@ -328,6 +370,23 @@ export default function ItineraryView({ groupId }: ItineraryViewProps) {
         images={galleryImages}
         title={galleryTitle}
       />
+
+      {/* Suggest Change Modal */}
+      {isCustomerView && showSuggestChange && suggestionContext && (
+        <SuggestChangeModal
+          eventId={suggestionContext.eventId}
+          eventTitle={suggestionContext.eventTitle}
+          eventType={suggestionContext.eventType}
+          eventTime={suggestionContext.eventTime}
+          dayNumber={currentDay?.dayNumber}
+          dayTitle={currentDay?.title}
+          preselectedAction={suggestionContext.preselectedAction}
+          onClose={() => {
+            setShowSuggestChange(false);
+            setSuggestionContext(null);
+          }}
+        />
+      )}
     </div>
   );
 }

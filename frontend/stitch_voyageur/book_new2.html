@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Proactive Operations Command - NexTravel</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .bg-checkered {
+                background-color: #fdfcf8;
+                background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+                background-size: 24px 24px;
+            }
+            .glass-panel {
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(8px);
+                border: 1px solid rgba(226, 232, 240, 0.8);
+            }
+            .mono-text {
+                font-family: 'JetBrains Mono', monospace;
+            }
+            .sidebar-transition {
+                transition: width 0.3s ease-in-out;
+            }
+            .status-indicator {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+            }
+            .clean-card {
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 4px;
+            }
+        }
+        :root {
+            --primary: #0f172a;
+            --accent-gold: #c5a059;
+            --bg-canvas: #fdfcf8;
+        }
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--primary);
+            font-family: 'Inter', sans-serif;
+        }
+        .manifest-grid {
+            display: grid;
+            grid-template-columns: minmax(200px, 2fr) 120px 120px 140px 150px 100px;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-hidden bg-checkered">
+<header class="w-full bg-white border-b border-slate-200 z-50 h-16 px-6 flex items-center justify-between">
+<div class="flex items-center gap-4 w-1/4">
+<div class="w-9 h-9 rounded bg-slate-900 flex items-center justify-center text-white font-bold font-mono text-sm tracking-tighter">NT</div>
+<div>
+<span class="font-bold text-sm tracking-tight block leading-tight text-slate-900 uppercase">NexTravel</span>
+<span class="text-[9px] text-slate-400 uppercase tracking-[0.2em] font-bold font-mono">Operations Portal</span>
+</div>
+</div>
+<div class="flex-1 flex justify-center">
+<div class="flex items-center bg-slate-50 p-1 rounded-full border border-slate-200">
+<button class="px-5 py-1.5 rounded-full text-xs font-medium text-slate-400 hover:text-slate-600 transition-all">Optimization</button>
+<button class="px-5 py-1.5 rounded-full text-xs font-bold text-slate-900 bg-white shadow-sm border border-slate-200">Groups</button>
+<button class="px-5 py-1.5 rounded-full text-xs font-medium text-slate-400 hover:text-slate-600 transition-all">Bookings</button>
+<button class="px-5 py-1.5 rounded-full text-xs font-medium text-slate-400 hover:text-slate-600 transition-all">Intelligence</button>
+</div>
+</div>
+<div class="flex items-center justify-end gap-3 w-1/4">
+<button class="px-4 py-2 rounded border border-slate-200 bg-white text-slate-700 text-[11px] font-bold hover:bg-slate-50 flex items-center gap-2 transition-all uppercase tracking-wider">
+<span class="material-symbols-outlined text-[18px]">add</span>
+            New Group
+        </button>
+<div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined text-slate-500 text-sm">person</span>
+</div>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden">
+<main class="flex-1 flex flex-col overflow-hidden relative">
+<div class="px-8 py-6 border-b border-slate-200 bg-white/60 backdrop-blur-sm">
+<div class="flex justify-between items-end">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Current Operation</span>
+<span class="px-2 py-0.5 rounded-sm bg-slate-900 text-white text-[9px] font-mono border border-slate-800">GBR-26</span>
+</div>
+<h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+                        Goa Beach Retreat 2026
+                        <span class="material-symbols-outlined text-slate-300">verified</span>
+</h1>
+<div class="flex items-center gap-5 text-[11px] text-slate-500 mt-3 font-mono uppercase tracking-tighter">
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">location_on</span> IN-GOA</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">calendar_today</span> 10 Feb — 17 Feb</span>
+<span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">group</span> 22 Pax Capacity</span>
+</div>
+</div>
+<div class="flex gap-2">
+<div class="flex items-center bg-white border border-slate-200 rounded p-1">
+<button class="p-1.5 rounded bg-slate-50 text-slate-900"><span class="material-symbols-outlined text-sm">view_list</span></button>
+<button class="p-1.5 rounded text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-sm">grid_view</span></button>
+<button class="p-1.5 rounded text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-sm">calendar_view_day</span></button>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-600 hover:bg-slate-50">
+<span class="material-symbols-outlined text-sm text-slate-400">filter_list</span>
+                        Filters
+                    </button>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-auto p-8">
+<div class="mb-4 flex items-center justify-between">
+<div class="flex items-center gap-6">
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Operational Manifest</h3>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-100 uppercase">All Services</span>
+<span class="px-2 py-0.5 rounded bg-transparent text-slate-400 text-[10px] font-bold hover:bg-slate-50 cursor-pointer uppercase">Upcoming</span>
+<span class="px-2 py-0.5 rounded bg-transparent text-slate-400 text-[10px] font-bold hover:bg-slate-50 cursor-pointer uppercase">Resolved</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Manifest TCV</span>
+<span class="text-lg font-mono font-medium text-slate-900">₹499,400.00</span>
+</div>
+</div>
+<div class="manifest-grid px-6 py-3 border border-slate-200 bg-slate-50 rounded-t-md text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-px">
+<div>Service Description</div>
+<div class="text-center">Reference</div>
+<div class="text-center">Schedule</div>
+<div class="text-center">Status</div>
+<div class="text-right">Investment</div>
+<div class="text-right">Actions</div>
+</div>
+<div class="space-y-px">
+<div class="bg-white/40 px-6 py-2 border-x border-slate-200 border-b border-slate-100 flex items-center justify-between">
+<span class="text-[10px] font-bold text-slate-500 font-mono tracking-widest uppercase flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-slate-300 rounded-full"></span> 
+                        Operation Day 01
+                    </span>
+<span class="text-[9px] text-slate-400 font-mono">2026-02-10</span>
+</div>
+<div class="manifest-grid px-6 py-4 bg-white border border-slate-200 hover:shadow-md transition-shadow relative group">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined text-lg">flight</span>
+</div>
+<div>
+<div class="text-xs font-bold text-slate-900">IndiGo Flight 6E4407</div>
+<div class="text-[10px] text-slate-500">BOM → GOI • Bulk Arrival</div>
+</div>
+</div>
+<div class="text-center font-mono text-[10px] text-slate-600">6E-4407A</div>
+<div class="text-center font-mono text-[10px] text-slate-600">08:30 IST</div>
+<div class="flex justify-center">
+<span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-[9px] font-bold border border-green-100">
+<span class="status-indicator bg-green-500"></span> CONFIRMED
+                        </span>
+</div>
+<div class="text-right font-mono text-[11px] text-slate-900">₹99,000.00</div>
+<div class="flex justify-end gap-1">
+<button class="p-1.5 text-slate-400 hover:text-slate-900"><span class="material-symbols-outlined text-sm">history</span></button>
+<button class="p-1.5 text-slate-400 hover:text-slate-900"><span class="material-symbols-outlined text-sm">more_vert</span></button>
+</div>
+</div>
+<div class="manifest-grid px-6 py-4 bg-white border border-slate-200 hover:shadow-md transition-shadow relative group">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined text-lg">hotel</span>
+</div>
+<div>
+<div class="text-xs font-bold text-slate-900">Ocean Breeze Resort</div>
+<div class="text-[10px] text-slate-500">11x Deluxe Rooms • Check-in Ready</div>
+</div>
+</div>
+<div class="text-center font-mono text-[10px] text-slate-600">HT9601</div>
+<div class="text-center font-mono text-[10px] text-slate-600">14:00 IST</div>
+<div class="flex justify-center">
+<span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-[9px] font-bold border border-green-100">
+<span class="status-indicator bg-green-500"></span> CONFIRMED
+                        </span>
+</div>
+<div class="text-right font-mono text-[11px] text-slate-900">₹400,400.00</div>
+<div class="flex justify-end gap-1">
+<button class="p-1.5 text-slate-400 hover:text-slate-900"><span class="material-symbols-outlined text-sm">history</span></button>
+<button class="p-1.5 text-slate-400 hover:text-slate-900"><span class="material-symbols-outlined text-sm">more_vert</span></button>
+</div>
+</div>
+<div class="manifest-grid px-6 py-4 bg-slate-50/50 border border-slate-200 relative group opacity-70">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-300">
+<span class="material-symbols-outlined text-lg">restaurant</span>
+</div>
+<div>
+<div class="text-xs font-bold text-slate-400 line-through">Welcome Dinner</div>
+<div class="text-[10px] text-slate-400">Fisherman's Wharf • Cancelled</div>
+</div>
+</div>
+<div class="text-center font-mono text-[10px] text-slate-400">DIN-001</div>
+<div class="text-center font-mono text-[10px] text-slate-400">20:00 IST</div>
+<div class="flex justify-center">
+<span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-[9px] font-bold border border-red-100">
+<span class="status-indicator bg-red-500"></span> CANCELLED
+                        </span>
+</div>
+<div class="text-right font-mono text-[11px] text-slate-400">₹22,000.00</div>
+<div class="flex justify-end gap-1">
+<button class="px-2 py-1 bg-white border border-slate-200 text-[9px] font-bold text-slate-600 uppercase rounded hover:bg-slate-50 transition-all">Restore</button>
+</div>
+</div>
+<div class="manifest-grid px-6 py-4 bg-white border border-slate-200 hover:shadow-md transition-shadow relative group">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500">
+<span class="material-symbols-outlined text-lg">directions_bus</span>
+</div>
+<div>
+<div class="text-xs font-bold text-slate-900">Airport Shuttle</div>
+<div class="text-[10px] text-slate-500">Private Coach • Traffic Delay</div>
+</div>
+</div>
+<div class="text-center font-mono text-[10px] text-slate-600">TR-GOA-01</div>
+<div class="text-center font-mono text-[10px] text-amber-600">Est. 11:15</div>
+<div class="flex justify-center">
+<span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[9px] font-bold border border-amber-100">
+<span class="status-indicator bg-amber-500"></span> DELAYED
+                        </span>
+</div>
+<div class="text-right font-mono text-[10px] text-slate-400 uppercase">Included</div>
+<div class="flex justify-end gap-1">
+<button class="px-2 py-1 bg-amber-600 text-white text-[9px] font-bold uppercase rounded hover:bg-amber-700 transition-all">Contact Driver</button>
+</div>
+</div>
+<div class="bg-white/40 px-6 py-2 border-x border-slate-200 border-b border-slate-100 flex items-center justify-between mt-4">
+<span class="text-[10px] font-bold text-slate-500 font-mono tracking-widest uppercase flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-slate-300 rounded-full"></span> 
+                        Operation Day 02
+                    </span>
+<span class="text-[9px] text-slate-400 font-mono">2026-02-11</span>
+</div>
+<div class="manifest-grid px-6 py-4 bg-white border border-slate-200 hover:shadow-md transition-shadow relative group rounded-b-md">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined text-lg">scuba_diving</span>
+</div>
+<div>
+<div class="text-xs font-bold text-slate-900">Scuba Diving Group</div>
+<div class="text-[10px] text-slate-500">Grand Island Trip • High Priority</div>
+</div>
+</div>
+<div class="text-center font-mono text-[10px] text-slate-600">ADV-09</div>
+<div class="text-center font-mono text-[10px] text-slate-600">07:00 IST</div>
+<div class="flex justify-center">
+<span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-50 text-slate-500 text-[9px] font-bold border border-slate-200">
+<span class="status-indicator bg-slate-400"></span> PENDING
+                        </span>
+</div>
+<div class="text-right font-mono text-[11px] text-slate-900">₹65,000.00</div>
+<div class="flex justify-end gap-1">
+<button class="p-1.5 text-slate-400 hover:text-slate-900"><span class="material-symbols-outlined text-sm">notifications_active</span></button>
+<button class="p-1.5 text-slate-400 hover:text-slate-900"><span class="material-symbols-outlined text-sm">edit</span></button>
+</div>
+</div>
+<div class="py-6 flex justify-center">
+<button class="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-slate-200 rounded text-xs font-bold text-slate-400 hover:border-slate-300 hover:text-slate-500 transition-all uppercase tracking-widest">
+<span class="material-symbols-outlined text-lg">add_circle</span>
+                        Append to Manifest
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<aside class="w-[360px] bg-white border-l border-slate-200 flex flex-col shadow-2xl relative z-40">
+<div class="h-16 px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-900 text-lg">terminal</span>
+<h2 class="text-xs font-bold text-slate-900 uppercase tracking-[0.15em]">Command Center</h2>
+</div>
+<div class="flex gap-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span class="w-2 h-2 rounded-full bg-slate-200"></span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<section class="p-6 border-b border-slate-100">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Efficiency Matrix</h3>
+<span class="text-[10px] font-mono font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">+12.4% Optimal</span>
+</div>
+<div class="space-y-5">
+<div class="clean-card p-4 bg-slate-50/50">
+<div class="flex justify-between text-[10px] mb-2 font-mono font-bold text-slate-500 uppercase">
+<span>Budget Burn Rate</span>
+<span class="text-slate-900">78%</span>
+</div>
+<div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+<div class="h-full bg-slate-900 w-[78%]"></div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-200/50">
+<div>
+<span class="text-[9px] uppercase text-slate-400 font-bold block">Remaining</span>
+<div class="font-mono text-xs font-semibold text-slate-700">₹140,600</div>
+</div>
+<div class="text-right">
+<span class="text-[9px] uppercase text-slate-400 font-bold block">Net Margin</span>
+<div class="font-mono text-xs font-bold text-green-600">+₹52.4k</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="clean-card p-3 flex flex-col">
+<span class="text-[9px] text-slate-400 font-bold uppercase">Pax Ready</span>
+<span class="text-lg font-mono font-medium">18/22</span>
+</div>
+<div class="clean-card p-3 flex flex-col">
+<span class="text-[9px] text-slate-400 font-bold uppercase">Vendor Conf.</span>
+<span class="text-lg font-mono font-medium">92%</span>
+</div>
+</div>
+</div>
+</section>
+<section class="p-6 bg-slate-50/30">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-slate-400 text-lg">bolt</span>
+<h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Intelligence</h3>
+</div>
+<div class="space-y-3">
+<div class="p-3 bg-red-50 border border-red-100 rounded text-[11px] leading-relaxed relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+<div class="flex gap-2 font-bold text-red-700 mb-1 uppercase tracking-tight">
+<span class="material-symbols-outlined text-[14px]">error</span> CRITICAL
+                        </div>
+<div class="text-slate-700 font-mono">Dinner [DIN-001] cancelled by vendor. <span class="text-blue-600 underline cursor-pointer">Auto-reserve alternate?</span></div>
+<div class="mt-2 text-[9px] text-slate-400 font-mono">T-MINUS 04:22:00</div>
+</div>
+<div class="p-3 bg-indigo-50 border border-indigo-100 rounded text-[11px] leading-relaxed relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+<div class="flex gap-2 font-bold text-indigo-700 mb-1 uppercase tracking-tight">
+<span class="material-symbols-outlined text-[14px]">lightbulb</span> OPTIMIZATION
+                        </div>
+<div class="text-slate-700 font-mono">2x Suite Upgrades available at Ocean Breeze for ₹12k total. Potential Pax satisfaction +15%.</div>
+</div>
+<div class="p-3 bg-amber-50 border border-amber-100 rounded text-[11px] leading-relaxed relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
+<div class="flex gap-2 font-bold text-amber-700 mb-1 uppercase tracking-tight">
+<span class="material-symbols-outlined text-[14px]">warning</span> TRAFFIC WARNING
+                        </div>
+<div class="text-slate-700 font-mono">Local political rally near GOI Airport. Shuttle delay likely +45min.</div>
+</div>
+</div>
+<div class="mt-6 relative">
+<input class="w-full bg-white border border-slate-200 py-3 pl-10 pr-4 text-xs font-mono text-slate-700 placeholder-slate-400 focus:ring-0 focus:border-slate-400 rounded shadow-sm" placeholder="Ask Nex Intelligence..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-3 text-slate-300 text-sm">alternate_email</span>
+</div>
+</section>
+</div>
+<div class="p-4 border-t border-slate-200 bg-white grid grid-cols-2 gap-2">
+<button class="flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded text-[10px] font-bold text-slate-600 hover:bg-slate-50 uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm">ios_share</span> Export
+            </button>
+<button class="flex items-center justify-center gap-2 py-2 px-3 bg-slate-900 text-white rounded text-[10px] font-bold hover:bg-slate-800 uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm">save</span> Archive
+            </button>
+</div>
+</aside>
+</div>
+
+</body></html>

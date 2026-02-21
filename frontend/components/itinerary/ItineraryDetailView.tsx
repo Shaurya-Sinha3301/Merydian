@@ -1,264 +1,483 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
-    ArrowLeft, TrendingUp, Sparkles, ChevronUp, ChevronDown,
-    Zap, MessageSquare, Send, GripVertical, Plus, Minimize2,
-    Maximize2
+    ArrowLeft, TrendingUp, GripVertical, Check, X, Minimize2, Download, Share2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTripById } from '@/lib/trips';
+import VoyageurAIPanel from './VoyageurAIPanel';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type LaneCard = {
     id: string;
+    evtId: string;
     category: string;
-    categoryColor: string;               // Tailwind bg class for badge
-    categoryTextColor: string;           // Tailwind text class for badge
-    laneBorderColor?: string;            // Tailwind border class for card left accent
-    laneBgColor?: string;                // Tailwind bg class for card tint
+    categoryBorder: string;
+    categoryBg: string;
+    categoryText: string;
+    locationCode: string;
     durationLabel: string;
-    durationColor?: string;
+    durationColor: string;
     title: string;
+    subtitle?: string;
     description: string;
-    participants: { label: string; color: string }[];
+    participants: { code: string; color: string }[];
     statusLabel: string;
-    statusColor: string;
+    statusIcon: 'confirmed' | 'limited' | 'info';
+    imageUrl: string;
 };
 
 type TimeRow = {
     time: string;
-    period: 'AM' | 'PM';
+    period: 'AM' | 'PM' | 'UTC+1';
     splitIcon?: 'split' | 'merge';
     cards: LaneCard[];
 };
 
-// ─── Static data (mirrors Stitch design) ─────────────────────────────────────
+type Day = {
+    date: string;
+    label: string;
+    timeRange: string;
+    rows: TimeRow[];
+};
 
-const TIMELINE_ROWS: TimeRow[] = [
+// ─── Static data — 3-day Paris itinerary ─────────────────────────────────────
+
+const DAYS: Day[] = [
     {
-        time: '08:00',
-        period: 'AM',
-        cards: [
+        date: 'OCT 12',
+        label: 'Day 1: Paris Sightseeing',
+        timeRange: '08:00 – 17:00',
+        rows: [
             {
-                id: 'breakfast',
-                category: 'Dining',
-                categoryColor: 'bg-orange-100',
-                categoryTextColor: 'text-orange-700',
-                durationLabel: '1h',
-                title: 'Breakfast at Café de Flore',
-                description: 'Classic Parisian breakfast with croissants and coffee. All groups attending together.',
-                participants: [
-                    { label: 'Family A', color: 'bg-blue-100 text-blue-700 border border-blue-200' },
-                    { label: 'Family B', color: 'bg-blue-100 text-blue-700 border border-blue-200' },
-                    { label: 'Family C', color: 'bg-indigo-100 text-indigo-700 border border-indigo-200' },
+                time: '08:00', period: 'UTC+1',
+                cards: [{
+                    id: 'd1-breakfast', evtId: 'EVT-892', category: 'Dining',
+                    categoryBorder: 'border-orange-200', categoryBg: 'bg-orange-50', categoryText: 'text-orange-700',
+                    locationCode: 'PARIS_06', durationLabel: '1H 00M', durationColor: 'text-slate-500',
+                    title: 'Breakfast at Café de Flore',
+                    description: 'Sequence: Croissants, Coffee. Full group synchronization required.',
+                    participants: [
+                        { code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }, { code: 'FAM C', color: '' },
+                    ],
+                    statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                    imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200&q=80',
+                }],
+            },
+            {
+                // 2-way branch: FAM A+B → Louvre, FAM C → Eiffel
+                time: '10:00', period: 'UTC+1',
+                cards: [
+                    {
+                        id: 'd1-louvre', evtId: 'ACT-401', category: 'Activity',
+                        categoryBorder: 'border-blue-200', categoryBg: 'bg-blue-50', categoryText: 'text-blue-700',
+                        locationCode: 'PARIS_01', durationLabel: '3H 00M', durationColor: 'text-blue-600',
+                        title: 'Louvre Museum', subtitle: 'Richelieu Wing',
+                        description: 'Guided Mona Lisa wing tour. Wheelchair accessible route.',
+                        participants: [{ code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }],
+                        statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                        imageUrl: 'https://images.unsplash.com/photo-1499856374916-4f4b4e26cdb4?w=200&q=80',
+                    },
+                    {
+                        id: 'd1-eiffel', evtId: 'ACT-404', category: 'Activity',
+                        categoryBorder: 'border-purple-200', categoryBg: 'bg-purple-50', categoryText: 'text-purple-700',
+                        locationCode: 'PARIS_07', durationLabel: '2H 30M', durationColor: 'text-purple-600',
+                        title: 'Eiffel Tower Summit', subtitle: 'Top Deck',
+                        description: 'Summit access via priority elevator. Photographers pass included.',
+                        participants: [{ code: 'FAM C', color: '' }],
+                        statusLabel: 'Limited', statusIcon: 'limited',
+                        imageUrl: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=200&q=80',
+                    },
                 ],
-                statusLabel: 'Confirmed for All',
-                statusColor: 'text-green-600 bg-green-50',
+            },
+            {
+                time: '13:00', period: 'UTC+1',
+                cards: [{
+                    id: 'd1-lunch', evtId: 'EVT-894', category: 'Dining',
+                    categoryBorder: 'border-orange-200', categoryBg: 'bg-orange-50', categoryText: 'text-orange-700',
+                    locationCode: 'PARIS_01', durationLabel: '1H 30M', durationColor: 'text-slate-500',
+                    title: 'Lunch at Le Nemours',
+                    description: 'Casual seating. Croque monsieur. Terrace reserved for full party.',
+                    participants: [
+                        { code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }, { code: 'FAM C', color: '' },
+                    ],
+                    statusLabel: '~$60 / PAX', statusIcon: 'info',
+                    imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=200&q=80',
+                }],
+            },
+            {
+                // 3-way branch: afternoon split across all three families
+                time: '15:00', period: 'UTC+1',
+                cards: [
+                    {
+                        id: 'd1-musee', evtId: 'ACT-410', category: 'Activity',
+                        categoryBorder: 'border-blue-200', categoryBg: 'bg-blue-50', categoryText: 'text-blue-700',
+                        locationCode: 'PARIS_08', durationLabel: '2H 00M', durationColor: 'text-blue-600',
+                        title: 'Musée d\'Orsay', subtitle: 'Impressionist Collection',
+                        description: 'Renoir, Monet & Van Gogh highlights. Skip-the-line entry.',
+                        participants: [{ code: 'FAM A', color: '' }],
+                        statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                        imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=200&q=80',
+                    },
+                    {
+                        id: 'd1-seine', evtId: 'ACT-411', category: 'Activity',
+                        categoryBorder: 'border-teal-200', categoryBg: 'bg-teal-50', categoryText: 'text-teal-700',
+                        locationCode: 'PARIS_04', durationLabel: '1H 30M', durationColor: 'text-teal-600',
+                        title: 'Seine River Cruise', subtitle: 'Pont de l\'Alma Pier',
+                        description: 'Panoramic river cruise. Audio guide in 12 languages. All ages.',
+                        participants: [{ code: 'FAM B', color: '' }],
+                        statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                        imageUrl: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=200&q=80',
+                    },
+                    {
+                        id: 'd1-shopping', evtId: 'ACT-412', category: 'Activity',
+                        categoryBorder: 'border-pink-200', categoryBg: 'bg-pink-50', categoryText: 'text-pink-700',
+                        locationCode: 'PARIS_09', durationLabel: '2H 00M', durationColor: 'text-pink-600',
+                        title: 'Le Marais Shopping', subtitle: 'Rue des Francs-Bourgeois',
+                        description: 'Boutique shopping + gallery browsing. Free roam with meeting point.',
+                        participants: [{ code: 'FAM C', color: '' }],
+                        statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                        imageUrl: 'https://images.unsplash.com/photo-1555529160-d1af5eddccd0?w=200&q=80',
+                    },
+                ],
+            },
+            {
+                time: '17:30', period: 'UTC+1',
+                cards: [{
+                    id: 'd1-dinner', evtId: 'EVT-900', category: 'Dining',
+                    categoryBorder: 'border-orange-200', categoryBg: 'bg-orange-50', categoryText: 'text-orange-700',
+                    locationCode: 'PARIS_06', durationLabel: '2H 00M', durationColor: 'text-slate-500',
+                    title: 'Dinner at Brasserie Lipp',
+                    description: 'Full group reunion dinner. Prix-fixe menu. Wine pairings included.',
+                    participants: [
+                        { code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }, { code: 'FAM C', color: '' },
+                    ],
+                    statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                    imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200&q=80',
+                }],
             },
         ],
     },
     {
-        time: '10:00',
-        period: 'AM',
-        splitIcon: 'split',
-        cards: [
+        date: 'OCT 13',
+        label: 'Day 2: Versailles & Montmartre',
+        timeRange: '09:00 – 21:00',
+        rows: [
             {
-                id: 'louvre',
-                category: 'Activity',
-                categoryColor: 'bg-blue-100',
-                categoryTextColor: 'text-blue-700',
-                laneBorderColor: 'border-blue-100',
-                laneBgColor: 'bg-blue-50/20',
-                durationLabel: '3h',
-                durationColor: 'text-blue-500',
-                title: 'Louvre Museum',
-                description: 'Guided Mona Lisa wing tour. Wheelchair accessible route through the Richelieu wing.',
-                participants: [
-                    { label: 'Family A + B', color: 'bg-blue-100 text-blue-700' },
-                ],
-                statusLabel: 'Confirmed',
-                statusColor: 'text-green-600 bg-green-50',
+                time: '09:00', period: 'UTC+1',
+                cards: [{
+                    id: 'd2-train', evtId: 'TRN-201', category: 'Transit',
+                    categoryBorder: 'border-slate-300', categoryBg: 'bg-slate-50', categoryText: 'text-slate-600',
+                    locationCode: 'GARE_STL', durationLabel: '0H 45M', durationColor: 'text-slate-500',
+                    title: 'RER C to Versailles',
+                    description: 'Depart Gare Saint-Lazare. Reserved carriages for group. Validate tickets.',
+                    participants: [
+                        { code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }, { code: 'FAM C', color: '' },
+                    ],
+                    statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                    imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=200&q=80',
+                }],
             },
             {
-                id: 'eiffel',
-                category: 'Activity',
-                categoryColor: 'bg-purple-100',
-                categoryTextColor: 'text-purple-700',
-                laneBorderColor: 'border-purple-100',
-                laneBgColor: 'bg-purple-50/20',
-                durationLabel: '2.5h',
-                durationColor: 'text-purple-500',
-                title: 'Eiffel Tower Summit',
-                description: 'Summit access via priority elevator. Photographers pass included for family portraits.',
-                participants: [
-                    { label: 'Family C', color: 'bg-indigo-100 text-indigo-700' },
+                // 2-way branch at Versailles: Palace vs Gardens
+                time: '10:00', period: 'UTC+1',
+                cards: [
+                    {
+                        id: 'd2-palace', evtId: 'ACT-501', category: 'Activity',
+                        categoryBorder: 'border-amber-200', categoryBg: 'bg-amber-50', categoryText: 'text-amber-700',
+                        locationCode: 'VER_PAL', durationLabel: '3H 00M', durationColor: 'text-amber-600',
+                        title: 'Palace of Versailles', subtitle: 'Hall of Mirrors Tour',
+                        description: 'Guided interior tour. State apartments + Hall of Mirrors. Audio included.',
+                        participants: [{ code: 'FAM A', color: '' }, { code: 'FAM C', color: '' }],
+                        statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                        imageUrl: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=200&q=80',
+                    },
+                    {
+                        id: 'd2-gardens', evtId: 'ACT-502', category: 'Activity',
+                        categoryBorder: 'border-green-200', categoryBg: 'bg-green-50', categoryText: 'text-green-700',
+                        locationCode: 'VER_GDN', durationLabel: '3H 00M', durationColor: 'text-green-600',
+                        title: 'Versailles Gardens', subtitle: 'Grand Canal & Fountains',
+                        description: 'Self-guided garden exploration. Fountain show at 11:00. Bicycle rental.',
+                        participants: [{ code: 'FAM B', color: '' }],
+                        statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                        imageUrl: 'https://images.unsplash.com/photo-1543349689-9a4d426bee8e?w=200&q=80',
+                    },
                 ],
-                statusLabel: 'Limited',
-                statusColor: 'text-orange-600 bg-orange-50',
+            },
+            {
+                time: '13:30', period: 'UTC+1',
+                cards: [{
+                    id: 'd2-picnic', evtId: 'EVT-910', category: 'Dining',
+                    categoryBorder: 'border-orange-200', categoryBg: 'bg-orange-50', categoryText: 'text-orange-700',
+                    locationCode: 'VER_GDN', durationLabel: '1H 00M', durationColor: 'text-slate-500',
+                    title: 'Garden Picnic Lunch',
+                    description: 'Catered picnic baskets. Cheese, charcuterie, baguettes. Grand Canal setting.',
+                    participants: [
+                        { code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }, { code: 'FAM C', color: '' },
+                    ],
+                    statusLabel: '~$45 / PAX', statusIcon: 'info',
+                    imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&q=80',
+                }],
+            },
+            {
+                time: '15:30', period: 'UTC+1',
+                cards: [{
+                    id: 'd2-return', evtId: 'TRN-202', category: 'Transit',
+                    categoryBorder: 'border-slate-300', categoryBg: 'bg-slate-50', categoryText: 'text-slate-600',
+                    locationCode: 'GARE_STL', durationLabel: '0H 45M', durationColor: 'text-slate-500',
+                    title: 'Return to Paris',
+                    description: 'RER C from Versailles-Château. Drop-off at Gare Saint-Lazare.',
+                    participants: [
+                        { code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }, { code: 'FAM C', color: '' },
+                    ],
+                    statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                    imageUrl: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=200&q=80',
+                }],
+            },
+            {
+                // 3-way branch: Montmartre evening split
+                time: '17:00', period: 'UTC+1',
+                cards: [
+                    {
+                        id: 'd2-sacre', evtId: 'ACT-510', category: 'Activity',
+                        categoryBorder: 'border-blue-200', categoryBg: 'bg-blue-50', categoryText: 'text-blue-700',
+                        locationCode: 'PARIS_18', durationLabel: '1H 30M', durationColor: 'text-blue-600',
+                        title: 'Sacré-Cœur Basilica', subtitle: 'Sunset Mass',
+                        description: 'Evening visit. Panoramic hilltop views of all Paris. Sunset service.',
+                        participants: [{ code: 'FAM A', color: '' }],
+                        statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                        imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=200&q=80',
+                    },
+                    {
+                        id: 'd2-art', evtId: 'ACT-511', category: 'Activity',
+                        categoryBorder: 'border-pink-200', categoryBg: 'bg-pink-50', categoryText: 'text-pink-700',
+                        locationCode: 'PARIS_18', durationLabel: '1H 30M', durationColor: 'text-pink-600',
+                        title: 'Montmartre Art Walk', subtitle: 'Place du Tertre',
+                        description: 'Live artists at the terrace. Portrait sessions available. Cobblestone stroll.',
+                        participants: [{ code: 'FAM B', color: '' }],
+                        statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                        imageUrl: 'https://images.unsplash.com/photo-1555529160-d1af5eddccd0?w=200&q=80',
+                    },
+                    {
+                        id: 'd2-cabaret', evtId: 'EVT-512', category: 'Activity',
+                        categoryBorder: 'border-red-200', categoryBg: 'bg-red-50', categoryText: 'text-red-700',
+                        locationCode: 'PARIS_18', durationLabel: '2H 00M', durationColor: 'text-red-600',
+                        title: 'Moulin Rouge Preview', subtitle: 'Evening Show',
+                        description: 'Early seated show preview. Champagne included. Smart dress required.',
+                        participants: [{ code: 'FAM C', color: '' }],
+                        statusLabel: 'Limited', statusIcon: 'limited',
+                        imageUrl: 'https://images.unsplash.com/photo-1549887534-1541e9326642?w=200&q=80',
+                    },
+                ],
+            },
+            {
+                time: '19:30', period: 'UTC+1',
+                cards: [{
+                    id: 'd2-dinner', evtId: 'EVT-920', category: 'Dining',
+                    categoryBorder: 'border-orange-200', categoryBg: 'bg-orange-50', categoryText: 'text-orange-700',
+                    locationCode: 'PARIS_18', durationLabel: '1H 30M', durationColor: 'text-slate-500',
+                    title: 'Dinner at Le Relais de la Butte',
+                    description: 'Intimate neighbourhood bistro. Onion soup, duck confit. Rooftop terrace.',
+                    participants: [
+                        { code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }, { code: 'FAM C', color: '' },
+                    ],
+                    statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                    imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=200&q=80',
+                }],
             },
         ],
     },
     {
-        time: '01:00',
-        period: 'PM',
-        splitIcon: 'merge',
-        cards: [
+        date: 'OCT 14',
+        label: 'Day 3: Food & Departure',
+        timeRange: '08:30 – 16:00',
+        rows: [
             {
-                id: 'lunch',
-                category: 'Dining',
-                categoryColor: 'bg-orange-100',
-                categoryTextColor: 'text-orange-700',
-                durationLabel: '1.5h',
-                title: 'Lunch at Le Nemours',
-                description: 'Casual lunch near Palais Royal. Famous croque monsieur for the whole party. Outdoor terrace reserved.',
-                participants: [
-                    { label: 'Family A', color: 'bg-blue-100 text-blue-700 border border-blue-200' },
-                    { label: 'Family B', color: 'bg-blue-100 text-blue-700 border border-blue-200' },
-                    { label: 'Family C', color: 'bg-indigo-100 text-indigo-700 border border-indigo-200' },
+                time: '08:30', period: 'UTC+1',
+                cards: [{
+                    id: 'd3-market', evtId: 'ACT-601', category: 'Activity',
+                    categoryBorder: 'border-green-200', categoryBg: 'bg-green-50', categoryText: 'text-green-700',
+                    locationCode: 'PARIS_05', durationLabel: '1H 30M', durationColor: 'text-green-600',
+                    title: 'Marché d\'Aligre', subtitle: 'Flea & Food Market',
+                    description: 'Bustling morning market. Fresh produce, cheese, vintage finds. Chef-guided.',
+                    participants: [
+                        { code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }, { code: 'FAM C', color: '' },
+                    ],
+                    statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                    imageUrl: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=200&q=80',
+                }],
+            },
+            {
+                // 2-way branch: cooking class vs patisserie workshop
+                time: '10:30', period: 'UTC+1',
+                cards: [
+                    {
+                        id: 'd3-cooking', evtId: 'ACT-610', category: 'Activity',
+                        categoryBorder: 'border-amber-200', categoryBg: 'bg-amber-50', categoryText: 'text-amber-700',
+                        locationCode: 'PARIS_11', durationLabel: '2H 30M', durationColor: 'text-amber-600',
+                        title: 'French Cooking Class', subtitle: 'Le Cordon Bleu Pop-up',
+                        description: 'Hands-on class: coq au vin + soufflé. Chef instructor. Aprons provided.',
+                        participants: [{ code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }],
+                        statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                        imageUrl: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=200&q=80',
+                    },
+                    {
+                        id: 'd3-pastry', evtId: 'ACT-611', category: 'Activity',
+                        categoryBorder: 'border-pink-200', categoryBg: 'bg-pink-50', categoryText: 'text-pink-700',
+                        locationCode: 'PARIS_02', durationLabel: '2H 30M', durationColor: 'text-pink-600',
+                        title: 'Pâtisserie Workshop', subtitle: 'Ladurée Atelier',
+                        description: 'Macaron & éclair workshop. Take-home box included. Kid-friendly session.',
+                        participants: [{ code: 'FAM C', color: '' }],
+                        statusLabel: 'Limited', statusIcon: 'limited',
+                        imageUrl: 'https://images.unsplash.com/photo-1558326567-98ae2405596b?w=200&q=80',
+                    },
                 ],
-                statusLabel: 'Avg. ~$60 per person',
-                statusColor: 'text-muted-foreground',
+            },
+            {
+                time: '13:00', period: 'UTC+1',
+                cards: [{
+                    id: 'd3-farewell', evtId: 'EVT-940', category: 'Dining',
+                    categoryBorder: 'border-orange-200', categoryBg: 'bg-orange-50', categoryText: 'text-orange-700',
+                    locationCode: 'PARIS_08', durationLabel: '2H 00M', durationColor: 'text-slate-500',
+                    title: 'Farewell Lunch – Jules Verne',
+                    description: 'Eiffel Tower second floor. Tasting menu. Champagne toast. Full group.',
+                    participants: [
+                        { code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }, { code: 'FAM C', color: '' },
+                    ],
+                    statusLabel: '~$180 / PAX', statusIcon: 'info',
+                    imageUrl: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=200&q=80',
+                }],
+            },
+            {
+                time: '15:30', period: 'UTC+1',
+                cards: [{
+                    id: 'd3-transfer', evtId: 'TRN-301', category: 'Transit',
+                    categoryBorder: 'border-slate-300', categoryBg: 'bg-slate-50', categoryText: 'text-slate-600',
+                    locationCode: 'CDG_T2', durationLabel: '1H 00M', durationColor: 'text-slate-500',
+                    title: 'Transfer to CDG Airport',
+                    description: 'Private coach. All luggage pre-loaded from hotel. 2h30m buffer to departure.',
+                    participants: [
+                        { code: 'FAM A', color: '' }, { code: 'FAM B', color: '' }, { code: 'FAM C', color: '' },
+                    ],
+                    statusLabel: 'Confirmed', statusIcon: 'confirmed',
+                    imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&q=80',
+                }],
             },
         ],
     },
-];
-
-// ─── AI insights ─────────────────────────────────────────────────────────────
-
-const AI_INSIGHTS = [
-    { text: 'Preference conflict detected between Family A & C', dot: 'bg-indigo-400' },
-    { text: 'Subgroup formed for 2.5h', dot: 'bg-indigo-400' },
-    { text: 'Travel overhead reduced by 18%', dot: 'bg-green-500' },
-    { text: <>Margin improved by <span className="font-bold text-green-700">+2.4%</span></>, dot: 'bg-green-500' },
-];
-
-const PROFIT_INSIGHTS = [
-    { text: <>Subgroup routing reduced travel cost by <span className="font-bold text-slate-800">$320</span></>, dot: 'bg-indigo-400' },
-    { text: <>Lunch relocation increased margin by <span className="font-bold text-slate-800">1.2%</span></>, dot: 'bg-indigo-400' },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SplitIcon({ type }: { type: 'split' | 'merge' }) {
+/** Category tag — monochrome black outline, no colour */
+function CategoryTag({ category }: { category: string }) {
     return (
-        <div className={cn(
-            'w-4 h-4 rounded-full flex items-center justify-center mt-1.5',
-            type === 'split' ? 'bg-indigo-200 text-indigo-500' : 'bg-green-200 text-green-600',
-        )}>
-            {type === 'split' ? (
-                <svg viewBox="0 0 12 12" className="w-3 h-3" fill="currentColor">
-                    <path d="M6 2 L6 6 M6 6 L2 10 M6 6 L10 10" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                </svg>
-            ) : (
-                <svg viewBox="0 0 12 12" className="w-3 h-3" fill="currentColor">
-                    <path d="M2 2 L6 6 M10 2 L6 6 M6 6 L6 10" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                </svg>
-            )}
-        </div>
+        <span className="inline-flex items-center px-1.5 py-px font-bold uppercase tracking-wider text-[0.6rem] leading-none border border-gray-900 text-gray-900 bg-white">
+            {category}
+        </span>
     );
 }
 
-function ActivityCard({ card, isLane, laneCount }: { card: LaneCard; isLane: boolean; laneCount?: number }) {
+/** Family tag — colour-coded per family for at-a-glance branching */
+const FAM_COLORS: Record<string, string> = {
+    'FAM A': 'bg-blue-50 text-blue-700 border-blue-400',
+    'FAM B': 'bg-amber-50 text-amber-700 border-amber-400',
+    'FAM C': 'bg-rose-50 text-rose-700 border-rose-400',
+};
+
+function FamTag({ code }: { code: string }) {
+    const color = FAM_COLORS[code] ?? 'bg-slate-50 text-slate-600 border-slate-300';
+    return (
+        <span className={cn(
+            'inline-flex items-center px-1.5 py-0.5 font-bold uppercase tracking-wide text-[0.65rem] leading-none border',
+            color,
+        )}>
+            {code}
+        </span>
+    );
+}
+
+/** Status indicator (confirmed / limited / info) */
+function StatusBadge({ icon, label }: { icon: 'confirmed' | 'limited' | 'info'; label: string }) {
+    const base = 'flex items-center gap-1 font-bold text-[0.65rem] uppercase tracking-wide leading-none';
+    if (icon === 'confirmed') return (
+        <span className={cn(base, 'text-emerald-600')}>
+            <Check className="w-3 h-3" />
+            {label}
+        </span>
+    );
+    if (icon === 'limited') return (
+        <span className={cn(base, 'text-amber-600')}>{label}</span>
+    );
+    return (
+        <span className={cn(base, 'text-slate-500 font-mono')}>{label}</span>
+    );
+}
+
+function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) {
     return (
         <div className={cn(
-            'neu-flat rounded-2xl p-5 flex flex-col relative group/card transition-all duration-300 hover:scale-[1.01]',
-            isLane
-                ? `flex-1 min-w-0 ${card.laneBorderColor ?? 'border-white'} ${card.laneBgColor ?? ''} border`
-                : 'flex-1 border border-white bg-slate-100/20 min-w-[500px]',
+            'group/card flex gap-3 items-center',
+            'bg-white border border-slate-200 transition-all duration-200',
+            'hover:border-slate-300 hover:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]',
+            'h-24 p-3',
+            compact ? 'w-[480px] shrink-0' : 'flex-1 min-w-0',
         )}>
-            {/* Drag handle */}
-            <div className="absolute top-4 right-4 text-muted-foreground/30 cursor-grab">
-                <GripVertical className="w-4 h-4" />
+            {/* Image */}
+            <div className="w-24 h-full flex-shrink-0 relative border border-slate-200 overflow-hidden bg-slate-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src={card.imageUrl}
+                    alt={card.title}
+                    className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-300"
+                />
             </div>
 
-            {/* Badge row */}
-            <div className="flex justify-between items-start mb-2 pr-6">
-                <span className={cn('px-2 py-0.5 rounded-md text-[10px] font-bold uppercase', card.categoryColor, card.categoryTextColor)}>
-                    {card.category}
-                </span>
-                <span className={cn('text-[10px] font-bold uppercase', card.durationColor ?? 'text-muted-foreground')}>
-                    {card.durationLabel}
-                </span>
-            </div>
+            {/* Content */}
+            <div className="flex-1 flex flex-col justify-center h-full gap-1 min-w-0">
+                {/* Top row: title + tag + evt id + drag */}
+                <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-tight leading-none truncate">
+                            {card.title}
+                        </h4>
+                        <CategoryTag category={card.category} />
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <span className="font-mono text-[9px] text-gray-400">{card.evtId}</span>
+                        <GripVertical className="w-3.5 h-3.5 text-gray-300 hover:text-gray-500 cursor-grab" />
+                    </div>
+                </div>
 
-            {/* Title */}
-            <div className="flex-1">
-                <h4 className="font-[Outfit] text-base font-bold text-foreground">{card.title}</h4>
-                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-3">{card.description}</p>
-            </div>
+                {/* Subtitle */}
+                {card.subtitle && (
+                    <div className="text-[10px] text-gray-500 font-medium truncate">{card.subtitle}</div>
+                )}
 
-            {/* Footer */}
-            <div className="mt-4 pt-3 border-t border-slate-200/50 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                    {card.participants.length > 1 && (
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight mr-1">Participants:</span>
-                    )}
-                    {card.participants.map((p) => (
-                        <span key={p.label} className={cn('px-2 py-0.5 rounded text-[9px] font-bold', p.color)}>
-                            {p.label}
+                {/* Description */}
+                <div className="text-[10px] text-gray-400 truncate leading-snug">{card.description}</div>
+
+                {/* Bottom row: status + duration | ALLOC: tags */}
+                <div className="flex justify-between items-center mt-auto pt-1.5 border-t border-gray-100/70">
+                    <div className="flex items-center gap-3">
+                        <StatusBadge icon={card.statusIcon} label={card.statusLabel} />
+                        <span className="text-[9px] font-mono text-gray-400 border-l border-gray-200 pl-3">
+                            {card.durationLabel}
                         </span>
-                    ))}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-mono text-gray-400">ALLOC:</span>
+                        <div className="flex gap-1">
+                            {card.participants.map((p) => (
+                                <FamTag key={p.code} code={p.code} />
+                            ))}
+                        </div>
+                    </div>
                 </div>
-                <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded shrink-0', card.statusColor)}>
-                    {card.statusLabel}
-                </span>
             </div>
-        </div>
-    );
-}
-
-// ─── Floating Panel ───────────────────────────────────────────────────────────
-
-function FloatingPanel({
-    title,
-    icon,
-    isOpen,
-    onToggle,
-    children,
-    position,
-    onMouseEnter,
-    onMouseLeave,
-}: {
-    title: React.ReactNode;
-    icon: React.ReactNode;
-    isOpen: boolean;
-    onToggle: () => void;
-    children: React.ReactNode;
-    position: 'left' | 'right';
-    onMouseEnter?: () => void;
-    onMouseLeave?: () => void;
-}) {
-    return (
-        <div
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-            className={cn(
-                // fixed keeps the panel anchored to the viewport bottom regardless of scroll
-                'fixed bottom-6 z-[60] w-[calc(50vw-220px)] min-w-[320px] max-w-[440px] neu-card rounded-3xl border border-white/60 shadow-2xl transition-all duration-300',
-                position === 'left' ? 'left-[calc(256px+24px)]' : 'right-6',
-            )}
-        >
-            {/* Panel header */}
-            <div className={cn('flex items-center justify-between p-5', isOpen ? 'pb-4' : '')}>
-                <div className="flex items-center gap-3">
-                    {icon}
-                    <h3 className="font-[Outfit] font-bold text-foreground text-base">{title}</h3>
-                </div>
-                <button
-                    onClick={onToggle}
-                    className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
-                >
-                    {isOpen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                </button>
-            </div>
-
-            {/* Panel body */}
-            {isOpen && (
-                <div className="px-5 pb-5 space-y-3">
-                    {children}
-                </div>
-            )}
         </div>
     );
 }
@@ -266,26 +485,23 @@ function FloatingPanel({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 interface ItineraryDetailViewProps {
-    /** The trip's ID from the URL param (e.g. "TR-8821") */
     tripId: string;
 }
 
 export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps) {
     const trip = getTripById(tripId);
-
-    const [activePanel, setActivePanel] = useState<'profit' | 'ai' | null>('ai');
-    const [aiInput, setAiInput] = useState('');
+    const [aiOpen, setAiOpen] = useState(false);
+    const [profitOpen, setProfitOpen] = useState(false);
     const [panelHovered, setPanelHovered] = useState(false);
 
-    // ── Guard: trip not found ───────────────────────────────────────────
     if (!trip) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
-                <p className="font-[Outfit] font-bold text-xl text-foreground">Trip not found</p>
-                <p className="text-sm text-muted-foreground">No trip with ID “{tripId}” exists.</p>
+                <p className="font-bold text-xl text-[var(--bp-text)]">Trip not found</p>
+                <p className="text-sm text-[var(--bp-muted)]">No trip with ID &quot;{tripId}&quot; exists.</p>
                 <Link
                     href="/agent-dashboard/itinerary-management"
-                    className="neu-button px-5 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-muted-foreground hover:text-foreground no-underline"
+                    className="bp-card px-5 py-2 text-sm font-semibold flex items-center gap-2 no-underline text-[var(--bp-text)] hover:border-black transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back to Itineraries
                 </Link>
@@ -293,266 +509,153 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
         );
     }
 
-    // ── Chat state ─────────────────────────────────────────────────────────────
-
-    type ChatMessage = { role: 'ai' | 'user'; text: string; time: string };
-
-    // Locale-neutral format — always HH:MM, no locale mismatch between SSR and client
-    const now = () => new Date().toTimeString().slice(0, 5);
-
-    const [messages, setMessages] = useState<ChatMessage[]>([
-        {
-            role: 'ai',
-            time: '', // populated client-side via useEffect to avoid SSR/hydration mismatch
-            text: 'Here’s the latest optimization summary:\n\n• Preference conflict detected between Family A & C\n• Subgroup formed for 2.5h activity slots\n• Travel overhead reduced by 18%\n• Margin improved by +2.4%\n\nAsk me anything about this itinerary!',
-        },
-    ]);
-    const [isTyping, setIsTyping] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-
-    // Stamp the seed message time after mount (client-only) to prevent hydration mismatch
-    useEffect(() => {
-        setMessages((prev) => prev.map((msg, i) => i === 0 ? { ...msg, time: now() } : msg));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isTyping, activePanel]);
-
-    const sendMessage = () => {
-        const text = aiInput.trim();
-        if (!text) return;
-        const userMsg: ChatMessage = { role: 'user', text, time: now() };
-        setMessages((prev) => [...prev, userMsg]);
-        setAiInput('');
-        setIsTyping(true);
-        // Simulate AI reply after 1.2s
-        setTimeout(() => {
-            setIsTyping(false);
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: 'ai',
-                    time: now(),
-                    text: `I’m analyzing your request about “${text}”. Based on the current optimization, I recommend reviewing the subgroup allocations for Day 2. Would you like me to run a new optimization pass?`,
-                },
-            ]);
-        }, 1200);
-    };
-
     return (
-        <div className="flex-1 flex flex-col overflow-hidden relative bg-background h-full">
+        <div className="flex-1 flex flex-col overflow-hidden relative h-full bp-grid-bg bg-white">
 
-            {/* ── Timeline ─────────────────────────────────────────────────────────── */}
-            <div className={cn('flex-1 pb-72 scrollbar-hide', panelHovered ? 'overflow-hidden' : 'overflow-auto')}>
-
-                {TIMELINE_ROWS.map((row) => {
-                    const isMultiLane = row.cards.length > 1;
-
-                    return (
-                        <div
-                            key={row.time}
-                            className="flex border-b border-slate-200 min-h-[180px]"
-                        >
-                            {/* Time column */}
-                            <div className="w-24 shrink-0 sticky left-0 flex flex-col items-center justify-center border-r border-slate-300 bg-background/70 z-30 backdrop-blur-sm gap-1">
-                                <span className={cn(
-                                    'text-sm font-bold font-[JetBrains_Mono,monospace]',
-                                    row.splitIcon === 'split' ? 'text-indigo-600' : 'text-foreground',
-                                )}>
-                                    {row.time}
-                                </span>
-                                <span className={cn(
-                                    'text-[10px] font-bold uppercase',
-                                    row.splitIcon === 'split' ? 'text-indigo-400' : 'text-muted-foreground',
-                                )}>
-                                    {row.period}
-                                </span>
-                                {row.splitIcon && <SplitIcon type={row.splitIcon} />}
-                            </div>
-
-                            {/* Cards area */}
-                            <div className={cn(
-                                'flex-1 p-4 pl-10 flex gap-5',
-                                isMultiLane ? '' : '',
-                            )}>
-                                {row.cards.map((card) => (
-                                    <ActivityCard key={card.id} card={card} isLane={isMultiLane} laneCount={row.cards.length} />
-                                ))}
-
-                                {/* Add lane button for multi-lane rows */}
-                                {isMultiLane && (
-                                    <button className="w-16 shrink-0 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center hover:bg-white/60 transition-colors group/add">
-                                        <Plus className="w-5 h-5 text-muted-foreground/40 group-hover/add:text-muted-foreground transition-colors" />
-                                    </button>
-                                )}
+            {/* ── Timeline ──────────────────────────────────────────────────────── */}
+            <div className={cn(
+                'flex-1 scrollbar-hide pb-28 bg-transparent',
+                panelHovered ? 'overflow-hidden' : 'overflow-auto',
+            )}>
+                {/* All 3 days rendered sequentially — continuous scroll */}
+                {DAYS.map((day) => (
+                    <div key={day.date}>
+                        {/* Per-day sticky header */}
+                        <div className="sticky top-0 z-30 border-b border-gray-200 bg-gray-50 w-full">
+                            <div className="px-6 py-3 flex items-center justify-between">
+                                <div className="flex items-center gap-4 font-semibold">
+                                    <span className="text-[10px] uppercase tracking-widest font-mono text-gray-500">
+                                        {day.date}
+                                    </span>
+                                    <span className="text-black text-xl font-bold normal-case tracking-normal">{day.label}</span>
+                                </div>
+                                <div className="text-[10px] uppercase tracking-wider text-gray-500">
+                                    {day.rows.length} SLOTS · {day.timeRange}
+                                </div>
                             </div>
                         </div>
-                    );
-                })}
+
+                        {/* Timeline rows for this day */}
+                        <div className="relative px-6 py-6">
+                            {/* Dashed vertical connector line */}
+                            <div className="absolute left-[4.5rem] top-6 bottom-6 border-l border-dashed border-gray-300 pointer-events-none" />
+
+                            <div className="space-y-4">
+                                {day.rows.map((row: TimeRow) => {
+                                    const count = row.cards.length;
+                                    const isMulti = count > 1;
+                                    return (
+                                        <div
+                                            key={row.time}
+                                            className={cn(
+                                                'grid gap-8 relative group/row',
+                                                isMulti ? 'items-start' : 'items-center',
+                                            )}
+                                            style={{ gridTemplateColumns: '80px 1fr' }}
+                                        >
+                                            {/* Time column */}
+                                            <div className="text-right relative z-10">
+                                                <div className="font-bold text-gray-900 text-sm leading-none">{row.time}</div>
+                                                <div className="text-[9px] text-gray-400 font-mono mt-0.5">{row.period}</div>
+                                                <div className="absolute right-[-2.25rem] top-1.5 w-1.5 h-1.5 bg-white border border-gray-400 rounded-full group-hover/row:border-black transition-all" />
+                                            </div>
+
+                                            {/* Cards — 1, 2 or 3 col grid depending on branch count */}
+                                            {isMulti ? (
+                                                <div className={cn(
+                                                    'grid gap-4',
+                                                    count === 3 ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1 md:grid-cols-2',
+                                                )}>
+                                                    {row.cards.map((card: LaneCard) => (
+                                                        <ActivityCard key={card.id} card={card} compact={false} />
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <ActivityCard card={row.cards[0]} compact={false} />
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Day separator */}
+                        <div className="mx-6 border-t-2 border-dashed border-gray-200 mb-2" />
+                    </div>
+                ))}
             </div>
 
-
-            {/* ── Floating Panels (bottom-right, only one open at a time) ───────────── */}
-            {/*
-             *  activePanel === 'profit' → Profit Impact card, VoyageurAI icon pill beside it
-             *  activePanel === 'ai'     → VoyageurAI card, Profit Impact icon pill beside it
-             *  activePanel === null     → Both collapsed to icon pills side-by-side
-             */}
+            {/* ── Floating panels ─────────────────────────────────────────────── */}
             <div
                 className="fixed bottom-6 right-6 z-[60] flex items-end gap-3"
                 onMouseEnter={() => setPanelHovered(true)}
                 onMouseLeave={() => setPanelHovered(false)}
             >
-                {/* Profit Impact icon pill — shown when AI panel is active or both collapsed */}
-                {activePanel !== 'profit' && (
+                {/* Profit pill (collapsed) */}
+                {!profitOpen && (
                     <button
-                        onClick={() => setActivePanel('profit')}
-                        className="relative neu-card w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition-all shadow-lg border border-white/50 shrink-0"
+                        onClick={() => setProfitOpen(true)}
+                        className="relative w-10 h-10 rounded-full bg-[#faf9f6] border border-stone-300 shadow-md flex items-center justify-center hover:border-emerald-400 transition-colors group"
                         title="Open Profit Impact"
                     >
-                        <TrendingUp className="w-6 h-6 text-green-500" />
-                        <span className="absolute -top-1 -right-1 bg-green-100 border border-green-200 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                        <TrendingUp className="w-4 h-4 text-stone-600 group-hover:text-emerald-600 transition-colors" />
+                        <div className="absolute -top-1.5 -left-1.5 bg-emerald-100 border border-emerald-300 text-emerald-800 text-[8px] font-bold px-1 py-px rounded shadow-sm font-mono">
                             +2.4%
-                        </span>
+                        </div>
                     </button>
                 )}
 
-                {/* VoyageurAI icon pill — shown when Profit panel is active or both collapsed */}
-                {activePanel !== 'ai' && (
-                    <button
-                        onClick={() => setActivePanel('ai')}
-                        className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white hover:scale-105 transition-all shadow-lg shrink-0"
-                        title="Open Voyageur AI"
-                    >
-                        <MessageSquare className="w-6 h-6" />
-                    </button>
-                )}
-
-                {/* ── Profit Impact expanded card ── */}
-                {activePanel === 'profit' && (
-                    <div className="w-[360px] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
-                        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
+                {/* Profit panel (expanded) */}
+                {profitOpen && (
+                    <div className="w-[300px] bg-[#faf9f6] border border-stone-300 shadow-2xl rounded-xl flex flex-col overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200 bg-white shrink-0">
                             <div className="flex items-center gap-2">
-                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Profit Impact</h3>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">+2.4%</span>
+                                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                                <span className="text-xs font-bold uppercase tracking-widest text-stone-800">Profit Impact</span>
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full font-mono">+2.4%</span>
                             </div>
-                            <button
-                                onClick={() => setActivePanel(null)}
-                                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
-                                title="Minimize"
-                            >
-                                <Minimize2 className="w-4 h-4" />
+                            <button onClick={() => setProfitOpen(false)} className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-md transition-colors">
+                                <Minimize2 className="w-3.5 h-3.5" />
                             </button>
                         </div>
-                        <div className="px-5 pb-5 space-y-3">
-                            <div>
-                                <div className="flex items-end gap-2 mb-1">
-                                    <span className="text-4xl font-bold text-foreground leading-none tracking-tight font-[Outfit]">21.1%</span>
-                                    <TrendingUp className="w-6 h-6 text-green-500 mb-1" />
-                                </div>
-                                <p className="text-xs text-muted-foreground font-medium">
-                                    Previous:{' '}
-                                    <span className="line-through text-muted-foreground/60">18.7%</span>
-                                    <span className="mx-1">→</span>
-                                    <span className="text-green-600 font-bold">Now: 21.1%</span>
-                                </p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="neu-pressed rounded-xl p-3 flex flex-col">
-                                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Total Revenue</span>
-                                    <span className="text-base font-bold text-foreground font-[Outfit]">$12,450</span>
-                                </div>
-                                <div className="neu-pressed rounded-xl p-3 flex flex-col">
-                                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Est. Cost</span>
-                                    <span className="text-base font-bold text-muted-foreground font-[Outfit]">$9,820</span>
-                                </div>
-                            </div>
-                            <div className="neu-pressed rounded-2xl p-4">
-                                <div className="flex items-center gap-2 mb-2.5">
-                                    <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                                    <span className="text-[10px] uppercase font-bold text-indigo-500 tracking-wider">AI Insights</span>
-                                </div>
-                                <ul className="space-y-2">
-                                    {PROFIT_INSIGHTS.map((item, i) => (
-                                        <li key={i} className="flex gap-2 items-start text-[11px] text-muted-foreground leading-tight">
-                                            <span className={cn('w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0', item.dot)} />
-                                            {item.text}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* ── VoyageurAI chatbot expanded card ── */}
-                {activePanel === 'ai' && (
-                    <div className="w-[360px] max-h-[78vh] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
-                        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shrink-0">
-                                    <MessageSquare className="w-4 h-4" />
-                                </div>
-                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Voyageur AI</h3>
-                                {isTyping && (
-                                    <span className="flex gap-1 items-center">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
-                                    </span>
-                                )}
-                            </div>
-                            <button
-                                onClick={() => setActivePanel(null)}
-                                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
-                                title="Minimize"
-                            >
-                                <Minimize2 className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto px-4 pb-2 scrollbar-hide space-y-3 min-h-0">
-                            {messages.map((msg, i) => (
-                                <div key={i} className={cn('flex flex-col gap-1', msg.role === 'user' ? 'items-end' : 'items-start')}>
-                                    <div className={cn(
-                                        'px-3.5 py-2.5 rounded-2xl text-[12px] leading-relaxed max-w-[88%] whitespace-pre-line',
-                                        msg.role === 'ai'
-                                            ? 'neu-pressed text-foreground rounded-tl-sm'
-                                            : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-tr-sm shadow-md',
-                                    )}>
-                                        {msg.text}
+                        <div className="p-4 space-y-3">
+                            <div className="bg-white border border-stone-200 rounded-lg p-3 shadow-sm">
+                                <div className="grid grid-cols-3 divide-x divide-stone-100 mb-3">
+                                    <div className="pr-3 flex flex-col">
+                                        <span className="text-[8px] uppercase font-bold text-stone-400 font-mono tracking-wider">Revenue</span>
+                                        <span className="text-sm font-bold text-stone-800 font-mono">$12,450</span>
                                     </div>
-                                    <span suppressHydrationWarning className="text-[9px] text-muted-foreground/60 px-1">{msg.time}</span>
-                                </div>
-                            ))}
-                            {isTyping && (
-                                <div className="flex items-start">
-                                    <div className="neu-pressed px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1 items-center">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
+                                    <div className="px-3 flex flex-col">
+                                        <span className="text-[8px] uppercase font-bold text-stone-400 font-mono tracking-wider">Cost</span>
+                                        <span className="text-sm font-bold text-stone-600 font-mono">$9,820</span>
+                                    </div>
+                                    <div className="pl-3 flex flex-col">
+                                        <span className="text-[8px] uppercase font-bold text-stone-400 font-mono tracking-wider">Margin</span>
+                                        <span className="text-sm font-bold text-emerald-600 font-mono">21.1%</span>
                                     </div>
                                 </div>
-                            )}
-                            <div ref={messagesEndRef} />
-                        </div>
-                        <div className="px-4 pb-4 pt-2 shrink-0">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={aiInput}
-                                    onChange={(e) => setAiInput(e.target.value)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
-                                    placeholder="Ask Voyageur AI..."
-                                    className="w-full neu-pressed rounded-xl py-3 pl-4 pr-10 text-xs font-medium text-foreground placeholder-muted-foreground focus:outline-none border-none bg-transparent"
-                                />
-                                <button
-                                    onClick={sendMessage}
-                                    disabled={!aiInput.trim()}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-indigo-500 hover:bg-black/5 transition-colors disabled:opacity-30"
-                                >
-                                    <Send className="w-3.5 h-3.5" />
+                                <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '21%' }} />
+                                </div>
+                            </div>
+                            <div className="bg-white border border-stone-200 rounded-lg p-3 shadow-sm space-y-1.5">
+                                <div className="text-[8px] font-bold text-stone-400 uppercase tracking-wider pb-1 border-b border-stone-100">AI Insights</div>
+                                {[
+                                    <><span className="font-bold text-stone-700">$320</span> saved via subgroup routing</>,
+                                    <>Lunch relocation improved margin by <span className="font-bold text-stone-700">1.2%</span></>,
+                                ].map((t, i) => (
+                                    <div key={i} className="flex gap-1.5 items-start text-[10px] text-stone-600">
+                                        <span className="text-emerald-500 mt-0.5 shrink-0">›</span>
+                                        <span>{t}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button className="py-2 px-3 border border-stone-200 bg-white hover:bg-stone-50 text-xs font-semibold text-stone-600 flex items-center justify-center gap-1.5 rounded-lg transition-all uppercase tracking-wide">
+                                    <Download className="w-3.5 h-3.5 text-stone-400" /> Export
+                                </button>
+                                <button className="py-2 px-3 border border-stone-200 bg-white hover:bg-stone-50 text-xs font-semibold text-stone-600 flex items-center justify-center gap-1.5 rounded-lg transition-all uppercase tracking-wide">
+                                    <Share2 className="w-3.5 h-3.5 text-stone-400" /> Share
                                 </button>
                             </div>
                         </div>
@@ -560,13 +663,41 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                 )}
             </div>
 
-            {/* ── Approve / Reject floating bar — bottom-centre ───────────────────────── */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3">
-                <button className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 font-semibold text-sm neu-card hover:bg-red-100 hover:scale-[1.03] transition-all shadow-lg">
-                    <span className="text-base">✕</span> Reject
+            {/* Shared Voyageur AI Panel */}
+            <VoyageurAIPanel
+                open={aiOpen}
+                onOpenChange={setAiOpen}
+                insightTag="Optimization Complete"
+                insightTagColor="bg-indigo-50 text-indigo-700 border-indigo-200"
+                insightBody={
+                    <ul className="space-y-2 mt-1">
+                        {[
+                            { dot: 'bg-indigo-400', text: 'Conflict resolved: FAM_A vs FAM_C overlap.' },
+                            { dot: 'bg-indigo-400', text: 'Split-path generated: 2.5H duration.' },
+                            { dot: 'bg-emerald-400', text: <><span className="font-semibold text-stone-800">Overhead reduction: 18%</span> verified.</> },
+                            { dot: 'bg-emerald-400', text: <><span className="font-semibold text-stone-800">Margin impact: +2.4%</span> applied.</> },
+                        ].map((item, i) => (
+                            <li key={i} className="flex gap-2 items-start">
+                                <span className={cn('w-1.5 h-1.5 rounded-full mt-1 shrink-0', item.dot)} />
+                                <span>{item.text}</span>
+                            </li>
+                        ))}
+                    </ul>
+                }
+                inputPlaceholder="Ask about this itinerary..."
+                seedMessage="Optimization complete. Conflict resolved for FAM_A & FAM_C. Margin improved +2.4%. Ask me anything."
+                getAIReply={(text) => `Analyzing: "${text}". Recommend reviewing Day 2 subgroup allocations. Run new optimization pass?`}
+            />
+
+            {/* ── Approve / Reject ─────────────────────────────────────────────── */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-0">
+                <button className="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-300 border-r-0 text-slate-700 font-semibold text-xs hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all uppercase tracking-wide font-mono">
+                    <X className="w-3.5 h-3.5" />
+                    Reject
                 </button>
-                <button className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-green-50 border border-green-200 text-green-700 font-semibold text-sm neu-card hover:bg-green-100 hover:scale-[1.03] transition-all shadow-lg">
-                    <span className="text-base">✓</span> Approve
+                <button className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 border border-slate-900 text-white font-semibold text-xs hover:bg-slate-700 transition-all uppercase tracking-wide font-mono">
+                    <Check className="w-3.5 h-3.5" />
+                    Approve
                 </button>
             </div>
         </div>
