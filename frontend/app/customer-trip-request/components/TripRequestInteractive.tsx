@@ -238,7 +238,7 @@ const TripRequestContent = () => {
 
       setShowSubmitConfirmation(true);
       setTimeout(() => {
-        router.push('/customer-dashboard');
+        router.push('/customer-portal');
       }, 2000);
     } catch (error) {
       console.error("Failed to initialize trip:", error);

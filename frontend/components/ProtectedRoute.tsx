@@ -32,7 +32,7 @@ export default function ProtectedRoute({
             if (user?.role === 'agent') {
                 router.push('/agent-dashboard');
             } else {
-                router.push('/customer-dashboard');
+                router.push('/customer-portal');
             }
         }
     }, [isAuthenticated, isLoading, user, requiredRole, redirectTo, router]);
