@@ -2,12 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import {
-    Search, Star, Clock, Key, Plane,
-    Send, MoreHorizontal, Maximize2,
-    Smile, Meh, Frown, AlertTriangle, Crown,
-    Calendar, Users, DollarSign, FileText,
-    Sparkles, Zap, MessageSquare, Minimize2,
-    MapPin, CheckCircle, XCircle
+    Search, Star, Clock, Key,
+    Send, Minimize2, Maximize2, AlertTriangle, Crown,
+    Calendar, FileText,
+    Sparkles, CheckCircle, XCircle,
+    MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTripById } from '@/lib/trips';
@@ -15,19 +14,17 @@ import { getTripById } from '@/lib/trips';
 // ─── Types & Mock Data ─────────────────────────────────────────────────────────
 
 type Sentiment = 'happy' | 'neutral' | 'unhappy';
-type FamilyFilter = 'all' | 'urgent' | 'happy';
+type FamilyFilter = 'all' | 'attention' | 'stable';
 
 interface FamilyTag {
     label: string;
-    color: string;
-    icon?: 'vip' | 'warning';
+    variant: 'neutral' | 'warning';
 }
 
 interface Family {
     id: string;
     name: string;
-    initial: string;
-    avatarColor: string;
+    initials: string;
     pax: number;
     room: string;
     lastMessageTime: string;
@@ -42,19 +39,18 @@ type LogFilter = 'all' | 'requests' | 'reviews';
 interface ActivityLogItem {
     id: string;
     type: ActivityType;
+    badge: string;
     title: string;
     body?: string;
     time: string;
     accentColor: string;
-    iconBg: string;
-    icon: React.ElementType;
     actionable?: boolean;
-    faded?: boolean;
 }
 
 interface ChatMessage {
     role: 'guest' | 'agent';
     text: string;
+    initials: string;
 }
 
 interface AiMessage {
@@ -65,84 +61,82 @@ interface AiMessage {
 
 const FAMILIES: Family[] = [
     {
-        id: 'sharma', name: 'Sharma Family', initial: 'S',
-        avatarColor: 'bg-blue-100 text-blue-700',
-        pax: 4, room: 'Suite 402', lastMessageTime: '14m ago', sentiment: 'happy',
+        id: 'sharma', name: 'Sharma Family', initials: 'SH',
+        pax: 4, room: 'Room 402', lastMessageTime: 'Now', sentiment: 'happy',
         tags: [
-            { label: 'VIP', color: 'bg-blue-100 text-blue-700', icon: 'vip' },
-            { label: 'Late Checkout', color: 'bg-amber-100 text-amber-700' },
+            { label: 'VIP Platinum', variant: 'neutral' },
+            { label: 'Late Checkout', variant: 'neutral' },
         ],
     },
     {
-        id: 'patel', name: 'Patel Family', initial: 'P',
-        avatarColor: 'bg-orange-100 text-orange-700',
+        id: 'patel', name: 'Patel Group', initials: 'PA',
         pax: 3, room: 'Villa 12', lastMessageTime: '2h ago', sentiment: 'neutral',
-        lastMessage: '"Is the breakfast buffet open until 11?"',
+        lastMessage: '"Checking on the buffet status..."',
     },
     {
-        id: 'mehta', name: 'Mehta Family', initial: 'M',
-        avatarColor: 'bg-red-100 text-red-700',
+        id: 'mehta', name: 'Mehta Couple', initials: 'ME',
         pax: 2, room: 'Room 204', lastMessageTime: '5h ago', sentiment: 'unhappy',
-        tags: [{ label: 'AC Issue', color: 'bg-red-100 text-red-700', icon: 'warning' }],
+        tags: [{ label: 'A/C Issue', variant: 'warning' }],
     },
     {
-        id: 'singh', name: 'Singh Family', initial: 'S',
-        avatarColor: 'bg-emerald-100 text-emerald-700',
+        id: 'singh', name: 'Singh Family', initials: 'SI',
         pax: 5, room: 'Exec Suite', lastMessageTime: '1d ago', sentiment: 'happy',
     },
     {
-        id: 'kapoor', name: 'Kapoor Family', initial: 'K',
-        avatarColor: 'bg-violet-100 text-violet-700',
+        id: 'kapoor', name: 'Kapoor Family', initials: 'KA',
         pax: 3, room: 'Room 318', lastMessageTime: '2d ago', sentiment: 'happy',
     },
     {
-        id: 'nair', name: 'Nair Family', initial: 'N',
-        avatarColor: 'bg-teal-100 text-teal-700',
+        id: 'nair', name: 'Nair Family', initials: 'NA',
         pax: 6, room: 'Suite 501', lastMessageTime: '3d ago', sentiment: 'neutral',
     },
 ];
 
 const ACTIVITY_LOG: ActivityLogItem[] = [
     {
-        id: 'act-1', type: 'request', title: 'Late Checkout Request',
+        id: 'act-1', type: 'request', badge: 'PENDING',
+        title: 'Late Checkout Request',
         body: '"We\'d love to stay until 3 PM as our flight is in the evening. Any possibility for Room 402?"',
-        time: 'Today, 10:45 AM',
-        accentColor: 'border-amber-400', iconBg: 'bg-amber-100 text-amber-700',
-        icon: Clock, actionable: true,
+        time: '10:45 AM • Room 402',
+        accentColor: 'bg-[#8d7b5b]',
+        actionable: true,
     },
     {
-        id: 'act-2', type: 'review', title: '5-Star Dining Review',
+        id: 'act-2', type: 'review', badge: 'FEEDBACK',
+        title: '5-Star Dining Review',
         body: '"The seafood platter at Coastal Grill was phenomenal! The kids loved the live music near the beach."',
-        time: 'Yesterday, 08:20 PM',
-        accentColor: 'border-green-500', iconBg: 'bg-green-100 text-green-700',
-        icon: Star,
+        time: 'Yesterday • Coastal Grill',
+        accentColor: 'bg-[#4f5d4e]',
     },
     {
-        id: 'act-3', type: 'system', title: 'Room Access Granted',
-        time: 'Yesterday, 02:00 PM',
-        accentColor: 'border-slate-300', iconBg: 'bg-slate-100 text-slate-500',
-        icon: Key, faded: true,
-    },
-    {
-        id: 'act-4', type: 'system', title: 'Check-in Complete',
-        time: 'Yesterday, 01:45 PM',
-        accentColor: 'border-slate-300', iconBg: 'bg-slate-100 text-slate-500',
-        icon: Plane, faded: true,
+        id: 'act-3', type: 'system', badge: 'SYSTEM',
+        title: 'Room Access Granted',
+        time: 'Yesterday • Digital Key #99283',
+        accentColor: 'bg-stone-300',
     },
 ];
+
+const activityIcons: Record<string, React.ElementType> = {
+    'act-1': Clock,
+    'act-2': Star,
+    'act-3': Key,
+};
 
 const INITIAL_CHAT: ChatMessage[] = [
-    { role: 'guest', text: 'Hello, can we get extra towels for the pool?' },
-    { role: 'agent', text: "Of course! I've sent a request to housekeeping. They should be there in 10 mins." },
-    { role: 'guest', text: 'Thank you! Also about that late checkout...' },
+    { role: 'guest', initials: 'S', text: 'Hello, can we get extra towels for the pool?' },
+    { role: 'agent', initials: 'AG', text: "Absolutely! I've forwarded your request to Housekeeping. They should be there in about 10 minutes." },
 ];
 
-// ─── Subcomponents ─────────────────────────────────────────────────────────────
+// ─── Sentiment dot ─────────────────────────────────────────────────────────────
 
-function SentimentIcon({ sentiment }: { sentiment: Sentiment }) {
-    if (sentiment === 'happy') return <Smile className="w-4 h-4 text-green-500" />;
-    if (sentiment === 'neutral') return <Meh className="w-4 h-4 text-amber-500" />;
-    return <Frown className="w-4 h-4 text-red-500" />;
+function SentimentDot({ sentiment }: { sentiment: Sentiment }) {
+    return (
+        <div className={cn(
+            'w-2.5 h-2.5 rounded-full mt-1',
+            sentiment === 'happy' ? 'bg-emerald-400' :
+                sentiment === 'neutral' ? 'bg-amber-400' : 'bg-rose-400'
+        )} />
+    );
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────────
@@ -152,35 +146,33 @@ export default function GroupsView({ tripId }: { tripId: string }) {
 
     const [familyFilter, setFamilyFilter] = useState<FamilyFilter>('all');
     const [search, setSearch] = useState('');
-    const [activeFamilyId, setActiveFamilyId] = useState<string>('sharma');
+    const [activeFamilyId, setActiveFamilyId] = useState('sharma');
     const [logFilter, setLogFilter] = useState<LogFilter>('all');
     const [chatInput, setChatInput] = useState('');
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT);
 
-    // Voyageur AI panel — closed by default
+    // Voyageur AI floating panel
     const [aiOpen, setAiOpen] = useState(false);
     const [aiInput, setAiInput] = useState('');
     const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
     const [aiTyping, setAiTyping] = useState(false);
-    
-    // Chat section toggle
+
+    // Chat minimise/expand
     const [chatOpen, setChatOpen] = useState(true);
+
+    // Map expand modal
+    const [mapExpanded, setMapExpanded] = useState(false);
 
     const chatEndRef = useRef<HTMLDivElement>(null);
     const aiEndRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [chatMessages]);
-
-    useEffect(() => {
-        aiEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [aiMessages, aiTyping]);
+    useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages]);
+    useEffect(() => { aiEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [aiMessages, aiTyping]);
 
     const sendChat = () => {
         const text = chatInput.trim();
         if (!text) return;
-        setChatMessages(prev => [...prev, { role: 'agent', text }]);
+        setChatMessages(prev => [...prev, { role: 'agent', initials: 'AG', text }]);
         setChatInput('');
     };
 
@@ -195,7 +187,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
             setAiTyping(false);
             setAiMessages(prev => [
                 ...prev,
-                { role: 'ai', text: 'I\'m analyzing the request. Based on satisfaction scores, I recommend approving the late checkout for Room 402 – it\'s a low-risk, high-satisfaction move.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+                { role: 'ai', text: 'Based on satisfaction scores, I recommend approving the late checkout for Room 402 – it\'s a low-risk, high-satisfaction move.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
             ]);
         }, 1400);
     };
@@ -204,8 +196,8 @@ export default function GroupsView({ tripId }: { tripId: string }) {
         const matchSearch = f.name.toLowerCase().includes(search.toLowerCase());
         const matchFilter =
             familyFilter === 'all' ||
-            (familyFilter === 'happy' && f.sentiment === 'happy') ||
-            (familyFilter === 'urgent' && (f.sentiment === 'unhappy' || f.tags?.some(t => t.icon === 'warning')));
+            (familyFilter === 'attention' && (f.sentiment === 'unhappy' || f.tags?.some(t => t.variant === 'warning'))) ||
+            (familyFilter === 'stable' && f.sentiment === 'happy');
         return matchSearch && matchFilter;
     });
 
@@ -215,418 +207,468 @@ export default function GroupsView({ tripId }: { tripId: string }) {
         return a.type === 'review';
     });
 
-    const activeFamilyData = FAMILIES.find(f => f.id === activeFamilyId);
+    const activeFamily = FAMILIES.find(f => f.id === activeFamilyId);
 
-    if (!trip) return <div className="p-8 text-center text-muted-foreground">Trip not found</div>;
+    if (!trip) return <div className="p-8 text-center text-stone-500">Trip not found</div>;
 
     return (
-        <div className="flex-1 flex overflow-hidden h-full bg-background relative">
+        <div className="flex-1 flex overflow-hidden h-full relative"
+            style={{ background: '#f2efea', backgroundImage: 'linear-gradient(rgba(120,113,108,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(120,113,108,0.1) 1px,transparent 1px)', backgroundSize: '24px 24px' }}>
 
-            {/* ── LEFT SIDEBAR: Families ─────────────────────────────────────────── */}
-            <aside className="w-[270px] shrink-0 flex flex-col border-r border-slate-200/70 overflow-hidden">
-                <div className="px-4 pt-5 pb-3 shrink-0">
-                    <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-base font-bold text-slate-800">Families</h2>
-                        <span className="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                            {FAMILIES.length} Active
+            {/* ── LEFT SIDEBAR: Families ──────────────────────────────────────── */}
+            <aside className="w-[300px] shrink-0 flex flex-col gap-3 p-4 overflow-hidden">
+                {/* Header panel */}
+                <div className="bg-[#faf9f6] border border-stone-200/80 shadow-sm rounded-lg p-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                        <h2 className="text-sm font-bold text-stone-900 tracking-wide uppercase">Family Groups</h2>
+                        <span className="bg-stone-200/50 border border-stone-200 text-stone-700 text-xs font-semibold px-2 py-1 rounded-full">
+                            Active: {FAMILIES.length}
                         </span>
                     </div>
-                    <div className="relative mb-2.5">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                    {/* Search */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            placeholder="Find family..."
-                            className="w-full neu-pressed rounded-xl py-2 pl-8 pr-3 text-xs text-slate-700 placeholder-slate-400 focus:outline-none bg-transparent border-none"
+                            placeholder="Search family or booking ID..."
+                            className="w-full bg-stone-50 border border-stone-200 rounded-lg py-2 pl-10 pr-3 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300"
                         />
                     </div>
-                    <div className="flex gap-1.5">
-                        {(['all', 'urgent', 'happy'] as FamilyFilter[]).map(f => (
+                    {/* Filter pills */}
+                    <div className="flex gap-2">
+                        {(['all', 'attention', 'stable'] as FamilyFilter[]).map(f => (
                             <button
                                 key={f}
                                 onClick={() => setFamilyFilter(f)}
                                 className={cn(
-                                    'flex-1 py-1 rounded-lg text-[10px] font-bold capitalize transition-all',
+                                    'flex-1 py-1.5 border rounded-md text-xs font-semibold capitalize transition-all duration-150',
                                     familyFilter === f
-                                        ? f === 'urgent' ? 'bg-red-100 text-red-600 border border-red-200'
-                                            : f === 'happy' ? 'bg-green-100 text-green-700 border border-green-200'
-                                                : 'bg-slate-800 text-white'
-                                        : 'neu-raised text-slate-500 hover:text-slate-700'
+                                        ? 'bg-stone-800 border-stone-800 text-white shadow-sm ring-2 ring-stone-400/30'
+                                        : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50 hover:text-stone-700'
                                 )}
                             >{f}</button>
                         ))}
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pb-24 space-y-2.5">
-                    {filteredFamilies.map(family => (
-                        <button
-                            key={family.id}
-                            onClick={() => setActiveFamilyId(family.id)}
-                            className={cn(
-                                'w-full text-left rounded-2xl p-3.5 transition-all border',
-                                family.id === activeFamilyId
-                                    ? 'neu-pressed border-l-4 border-l-blue-500 border-blue-200'
-                                    : 'neu-raised border-transparent hover:border-slate-200/60 hover:bg-white/40'
-                            )}
-                        >
-                            <div className="flex justify-between items-start mb-2">
-                                <div className="flex items-center gap-2.5">
-                                    <div className={cn('w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0', family.avatarColor)}>
-                                        {family.initial}
+                {/* Family cards list */}
+                <div className="flex-1 overflow-y-auto scrollbar-hide space-y-2.5 pr-0.5">
+                    {filteredFamilies.map(family => {
+                        const isActive = family.id === activeFamilyId;
+                        const isWarning = family.tags?.some(t => t.variant === 'warning');
+                        return (
+                            <button
+                                key={family.id}
+                                onClick={() => setActiveFamilyId(family.id)}
+                                className={cn(
+                                    'w-full text-left rounded-lg border p-4 transition-all cursor-pointer',
+                                    isActive
+                                        ? 'bg-stone-200/50 border-stone-300'
+                                        : isWarning
+                                            ? 'bg-[#faf9f6] border-[#8e5a4e]/30 shadow-sm hover:border-[#8e5a4e]/50 hover:shadow-md'
+                                            : 'bg-[#faf9f6] border-stone-200 shadow-sm hover:border-stone-300 hover:shadow-md'
+                                )}
+                                style={isActive ? {
+                                    boxShadow: 'inset 3px 3px 7px rgba(0,0,0,0.12), inset -2px -2px 5px rgba(255,255,255,0.8)',
+                                } : undefined}
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                            'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border border-stone-200',
+                                            isWarning ? 'bg-stone-100 text-[#8e5a4e]' : 'bg-stone-100 text-stone-700'
+                                        )}>
+                                            {family.initials}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-stone-800 text-sm">{family.name}</h4>
+                                            <span className="text-xs text-stone-500 block mt-0.5">{family.pax} Guests • {family.room}</span>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-bold text-slate-800 text-xs leading-tight">{family.name}</p>
-                                        <p className="text-[10px] text-slate-500">{family.pax} Pax • {family.room}</p>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-xs font-medium text-stone-400">{family.lastMessageTime}</span>
+                                        <SentimentDot sentiment={family.sentiment} />
                                     </div>
                                 </div>
-                                <div className="flex flex-col items-end gap-0.5">
-                                    <span className="text-[9px] font-bold text-slate-400">{family.lastMessageTime}</span>
-                                    <SentimentIcon sentiment={family.sentiment} />
-                                </div>
-                            </div>
-                            {family.lastMessage && (
-                                <p className="text-[10px] text-slate-500 truncate mb-1.5">{family.lastMessage}</p>
-                            )}
-                            {family.tags && family.tags.length > 0 && (
-                                <div className="flex gap-1 flex-wrap">
-                                    {family.tags.map((tag, i) => (
-                                        <span key={i} className={cn('px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase flex items-center gap-0.5', tag.color)}>
-                                            {tag.icon === 'vip' && <Crown className="w-2.5 h-2.5" />}
-                                            {tag.icon === 'warning' && <AlertTriangle className="w-2.5 h-2.5" />}
-                                            {tag.label}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-                        </button>
-                    ))}
+                                {family.lastMessage && (
+                                    <div className="mt-2 text-xs text-stone-600 bg-stone-100/50 p-2 rounded border border-stone-100 italic">
+                                        {family.lastMessage}
+                                    </div>
+                                )}
+                                {family.tags && family.tags.length > 0 && (
+                                    <div className="flex gap-2 mt-3 pt-3 border-t border-stone-100 flex-wrap">
+                                        {family.tags.map((tag, i) => (
+                                            <span key={i} className={cn(
+                                                'text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 border',
+                                                tag.variant === 'warning'
+                                                    ? 'bg-[#8e5a4e]/10 text-[#8e5a4e] border-[#8e5a4e]/20'
+                                                    : 'bg-stone-100 text-stone-700 border-stone-200'
+                                            )}>
+                                                {tag.variant === 'warning' ? <AlertTriangle className="w-2.5 h-2.5" /> : <Crown className="w-2.5 h-2.5" />}
+                                                {tag.label}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
             </aside>
 
-            {/* ── CENTER COLUMN ──────────────────────────────────────────────────── */}
-            <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+            {/* ── CENTER: Activity Timeline + Chat ──────────────────────────── */}
+            <main className="flex-1 flex flex-col gap-4 p-4 min-w-0 overflow-hidden">
 
-                {/* Activity Log - Dynamic height based on chat state */}
-                <div className={cn("overflow-hidden p-4 pb-2 flex flex-col transition-all", chatOpen ? "flex-1" : "flex-[2]")}>
-                    <div className="neu-raised rounded-3xl flex flex-col overflow-hidden border border-white/60 h-full">
-                        {/* Header */}
-                        <div className="flex items-center justify-between px-5 py-3 shrink-0 border-b border-slate-200/40">
-                            <div>
-                                <h2 className="text-sm font-bold text-slate-800">Activity Log</h2>
-                                <p className="text-[10px] text-slate-500">Reviews, requests, and system events</p>
+                {/* Activity Timeline */}
+                <div className="flex-[1.2] bg-[#faf9f6] border border-stone-200 rounded-xl shadow-sm flex flex-col overflow-hidden">
+                    <div className="flex justify-between items-center px-5 py-3.5 border-b border-stone-100 bg-[#faf9f6] shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="p-1.5 bg-stone-100 rounded text-stone-600">
+                                <FileText className="w-4 h-4" />
                             </div>
-                            <div className="flex gap-1 neu-pressed p-1 rounded-xl">
-                                {(['all', 'requests', 'reviews'] as LogFilter[]).map(f => (
-                                    <button
-                                        key={f}
-                                        onClick={() => setLogFilter(f)}
-                                        className={cn(
-                                            'px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all',
-                                            logFilter === f
-                                                ? 'bg-white shadow-sm text-slate-800 border border-slate-100'
-                                                : 'text-slate-500 hover:text-slate-800'
-                                        )}
-                                    >
-                                        {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
-                                    </button>
-                                ))}
-                            </div>
+                            <h2 className="text-sm font-bold text-stone-800 tracking-wide uppercase">Activity Timeline</h2>
                         </div>
+                        <div className="flex gap-1.5 bg-stone-100/50 p-1 rounded-md border border-stone-100">
+                            {(['all', 'requests', 'reviews'] as LogFilter[]).map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => setLogFilter(f)}
+                                    className={cn(
+                                        'px-3 py-1 text-xs font-semibold capitalize transition-colors rounded',
+                                        logFilter === f
+                                            ? 'bg-white shadow-sm text-stone-700 border border-stone-200'
+                                            : 'text-stone-500 hover:text-stone-700'
+                                    )}
+                                >
+                                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-                        {/* Compact log items */}
-                        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-3 space-y-2">
-                            {filteredLog.map(item => {
-                                const Icon = item.icon;
-                                return (
-                                    <div
-                                        key={item.id}
-                                        className={cn(
-                                            'rounded-xl p-3 border-l-4 bg-white/60 flex items-start gap-3',
-                                            item.accentColor,
-                                            item.faded && 'opacity-55'
-                                        )}
-                                    >
-                                        {/* Icon */}
-                                        <span className={cn('p-1.5 rounded-lg shrink-0', item.iconBg)}>
-                                            <Icon className="w-3 h-3" />
-                                        </span>
-
-                                        {/* Content */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-baseline justify-between gap-2 mb-0.5">
-                                                <span className="font-bold text-slate-700 text-xs">{item.title}</span>
-                                                <span className="text-[9px] text-slate-400 font-bold shrink-0">{item.time}</span>
+                    <div className="flex-1 overflow-y-auto scrollbar-hide p-5 space-y-3 bg-stone-100/20">
+                        {filteredLog.map(item => {
+                            const Icon = activityIcons[item.id] ?? Clock;
+                            return (
+                                <div key={item.id} className="group bg-white border border-stone-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden">
+                                    {/* Left accent bar */}
+                                    <div className={cn('absolute left-0 top-0 bottom-0 w-1', item.accentColor)} />
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex items-start gap-4">
+                                            <div className="mt-0.5 bg-stone-50 text-stone-500 p-2 rounded-lg shrink-0">
+                                                <Icon className="w-4 h-4" />
                                             </div>
-                                            {item.body && (
-                                                <p className="text-[11px] text-slate-500 leading-snug line-clamp-2">{item.body}</p>
-                                            )}
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h3 className="text-sm font-bold text-stone-800">{item.title}</h3>
+                                                    <span className="bg-stone-100 text-stone-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-stone-200">{item.badge}</span>
+                                                </div>
+                                                <p className="text-xs text-stone-500 font-medium">{item.time}</p>
+                                                {item.body && (
+                                                    <p className="text-sm text-stone-600 bg-stone-50 p-2.5 rounded-lg border border-stone-100 mt-2 italic">
+                                                        {item.body}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
-
-                                        {/* Inline actions (if actionable) */}
+                                        {/* Hover actions */}
                                         {item.actionable && (
-                                            <div className="flex flex-col gap-1 shrink-0">
-                                                <button className="flex items-center gap-1 px-2.5 py-1 bg-slate-800 text-white text-[10px] font-bold rounded-lg hover:bg-slate-700 transition-colors shadow">
-                                                    <CheckCircle className="w-2.5 h-2.5" /> Approve
+                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                                <button className="px-3 py-1.5 bg-[#4f5d4e] text-white text-xs font-semibold rounded-md hover:bg-[#3d4a3c] transition-colors flex items-center gap-1">
+                                                    <CheckCircle className="w-3 h-3" /> Approve
                                                 </button>
-                                                <button className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-slate-50 transition-colors">
-                                                    <XCircle className="w-2.5 h-2.5" /> Reject
+                                                <button className="px-3 py-1.5 border border-stone-200 bg-white text-stone-600 text-xs font-semibold rounded-md hover:bg-stone-50 transition-colors flex items-center gap-1">
+                                                    <XCircle className="w-3 h-3" /> Reject
                                                 </button>
                                             </div>
                                         )}
                                     </div>
-                                );
-                            })}
-                        </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
-                {/* Chat - Dynamic height based on chatOpen state */}
-                <div className={cn("px-4 pb-4 flex flex-col transition-all", chatOpen ? "flex-1" : "flex-[0_0_auto]")}>
-                    <div className="neu-raised rounded-3xl flex flex-col overflow-hidden border border-white/60 h-full">
-                        {/* Chat header */}
-                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200/40 shrink-0">
-                            <div className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                <span className="font-bold text-slate-800 text-xs">Chat</span>
-                                {activeFamilyData && (
-                                    <span className="text-[10px] text-slate-500">— {activeFamilyData.name}</span>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {chatOpen && (
-                                    <>
-                                        {/* Quick pills */}
-                                        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-                                            {['Send Itinerary', 'Suggest Activity', 'Room Service'].map(label => (
-                                                <button key={label} className="whitespace-nowrap text-[9px] neu-raised-sm px-2 py-1 rounded-lg font-bold text-slate-600 hover:text-slate-800 transition-colors border border-white/60">
-                                                    {label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button className="text-slate-400 hover:text-slate-600 transition-colors">
-                                            <MoreHorizontal className="w-3.5 h-3.5" />
-                                        </button>
-                                    </>
-                                )}
-                                {/* Toggle chat button */}
-                                <button
-                                    onClick={() => setChatOpen(!chatOpen)}
-                                    className="text-slate-400 hover:text-slate-800 transition-colors p-1 rounded-lg hover:bg-slate-100"
-                                    title={chatOpen ? "Minimize Chat" : "Expand Chat"}
-                                >
-                                    {chatOpen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-                                </button>
+                {/* Live Chat Panel */}
+                <div className={cn('bg-[#faf9f6] border border-stone-200 rounded-xl shadow-lg flex flex-col overflow-hidden transition-all duration-300', chatOpen ? 'flex-1' : 'flex-[0_0_auto]')}>
+                    {/* Chat header */}
+                    <div className="px-5 py-3 border-b border-stone-100 bg-[#faf9f6] flex justify-between items-center shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.5)] animate-pulse" />
+                            <div>
+                                <h3 className="font-bold text-stone-800 text-sm">
+                                    {activeFamily?.name ?? 'Family'} Chat
+                                </h3>
+                                <span className="text-xs text-stone-400">Active now</span>
                             </div>
                         </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] bg-stone-100 text-stone-500 px-2 py-1 rounded font-bold uppercase tracking-widest">
+                                Secure Channel
+                            </span>
+                            <button
+                                onClick={() => setChatOpen(o => !o)}
+                                className="p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                                title={chatOpen ? 'Minimise chat' : 'Expand chat'}
+                            >
+                                {chatOpen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                            </button>
+                        </div>
+                    </div>
 
-                        {chatOpen && (
-                            <>
-                                {/* Messages area */}
-                                <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-2 space-y-1.5 neu-pressed">
-                                    {chatMessages.map((msg, i) => (
-                                        <div key={i} className={cn('flex', msg.role === 'agent' ? 'justify-end' : 'justify-start')}>
+                    {/* Messages — only rendered when expanded */}
+                    {chatOpen && (
+                        <>
+                            <div className="flex-1 overflow-y-auto scrollbar-hide p-5 space-y-4 bg-stone-50/50">
+                                <div className="flex justify-center mb-1">
+                                    <span className="text-[10px] font-bold text-stone-400 bg-stone-200/40 px-3 py-1 rounded-full uppercase tracking-widest">Today</span>
+                                </div>
+                                {chatMessages.map((msg, i) => (
+                                    <div key={i} className={cn('flex', msg.role === 'agent' ? 'justify-end' : 'justify-start')}>
+                                        <div className={cn('flex gap-2 max-w-[85%]', msg.role === 'agent' ? 'flex-row-reverse' : '')}>
                                             <div className={cn(
-                                                'rounded-2xl px-3 py-1.5 text-xs max-w-[75%] shadow-sm',
+                                                'w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold mt-1',
+                                                msg.role === 'guest' ? 'bg-stone-200 text-stone-700' : 'bg-[#353b48] text-white'
+                                            )}>
+                                                {msg.initials}
+                                            </div>
+                                            <div className={cn(
+                                                'px-4 py-3 text-sm rounded-2xl shadow-sm',
                                                 msg.role === 'guest'
-                                                    ? 'bg-white text-slate-700 rounded-tl-none border border-slate-100'
-                                                    : 'bg-slate-800 text-white rounded-tr-none shadow-lg'
+                                                    ? 'bg-white border border-stone-200 text-stone-700 rounded-tl-none'
+                                                    : 'bg-[#353b48] text-white rounded-tr-none'
                                             )}>
                                                 {msg.text}
                                             </div>
                                         </div>
-                                    ))}
-                                    <div ref={chatEndRef} />
-                                </div>
-
-                                {/* Input */}
-                                <div className="px-3 py-2 border-t border-slate-200/40 shrink-0">
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            value={chatInput}
-                                            onChange={e => setChatInput(e.target.value)}
-                                            onKeyDown={e => { if (e.key === 'Enter') sendChat(); }}
-                                            placeholder="Type your message..."
-                                            className="w-full neu-pressed rounded-xl py-2 pl-3 pr-9 text-xs text-slate-700 placeholder-slate-400 focus:outline-none bg-transparent border-none"
-                                        />
-                                        <button
-                                            onClick={sendChat}
-                                            disabled={!chatInput.trim()}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 bg-indigo-500 text-white rounded-lg flex items-center justify-center shadow hover:bg-indigo-600 transition-colors disabled:opacity-40"
-                                        >
-                                            <Send className="w-3 h-3" />
-                                        </button>
                                     </div>
+                                ))}
+                                <div ref={chatEndRef} />
+                            </div>
+
+                            {/* Quick action chips + input */}
+                            <div className="p-4 bg-white border-t border-stone-100 shrink-0">
+                                <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-hide">
+                                    {['Send Itinerary', 'Suggest Activity', 'Room Service'].map(label => (
+                                        <button key={label} className="whitespace-nowrap text-xs font-bold border border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100 px-3 py-1.5 rounded-full transition-colors uppercase tracking-wider flex items-center gap-1">
+                                            <Calendar className="w-3 h-3" /> {label}
+                                        </button>
+                                    ))}
                                 </div>
-                            </>
-                        )}
-                    </div>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={chatInput}
+                                        onChange={e => setChatInput(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') sendChat(); }}
+                                        placeholder="Type your message..."
+                                        className="flex-1 bg-stone-50 border border-stone-200 rounded-lg py-2.5 px-4 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300 transition-all"
+                                    />
+                                    <button
+                                        onClick={sendChat}
+                                        disabled={!chatInput.trim()}
+                                        className="w-10 bg-[#4a647c] text-white rounded-lg flex items-center justify-center hover:bg-[#3d5368] transition-colors disabled:opacity-40"
+                                    >
+                                        <Send className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </main>
 
-            {/* ── RIGHT SIDEBAR ──────────────────────────────────────────────────── */}
-            <aside className="w-[256px] shrink-0 flex flex-col gap-3 border-l border-slate-200/70 overflow-y-auto scrollbar-hide p-4">
+            {/* ── RIGHT SIDEBAR: Map + Manifest ─────────────────────────────── */}
+            <aside className="w-[260px] shrink-0 flex flex-col gap-4 p-4 overflow-y-auto scrollbar-hide">
 
                 {/* Map */}
-                <div className="neu-raised rounded-3xl p-1.5 border border-white/60 shrink-0" style={{ height: '190px' }}>
-                    <div className="relative w-full h-full rounded-2xl overflow-hidden">
+                <div className="bg-[#faf9f6] border border-stone-200 rounded-xl shadow-sm overflow-hidden h-[180px] relative group">
+                    {/* Label badge */}
+                    <div className="absolute top-2.5 left-2.5 z-10 bg-white/90 backdrop-blur text-stone-700 text-[10px] font-bold px-2 py-1 rounded-md shadow-sm border border-stone-200 flex items-center gap-1.5 uppercase tracking-wider">
+                        <span className="w-1.5 h-1.5 bg-[#4a647c] rounded-full" />
+                        Pool Sector 04
+                    </div>
+                    {/* Maximize button */}
+                    <button
+                        onClick={() => setMapExpanded(true)}
+                        className="absolute top-2.5 right-2.5 z-10 w-7 h-7 bg-white/90 backdrop-blur border border-stone-200 rounded-md shadow-sm flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
+                        title="Expand map"
+                    >
+                        <Maximize2 className="w-3.5 h-3.5" />
+                    </button>
+                    {/* Colorful iframe — overflow-hidden clips the OSM footer */}
+                    <div className="w-full h-[220px] relative">
                         <iframe
-                            src="https://www.openstreetmap.org/export/embed.html?bbox=73.74%2C15.54%2C73.80%2C15.60&layer=mapnik&marker=15.57%2C73.77"
+                            src="https://www.openstreetmap.org/export/embed.html?bbox=73.74%2C15.54%2C73.78%2C15.58&layer=mapnik&marker=15.56%2C73.76"
                             width="100%" height="100%"
-                            style={{ border: 'none', filter: 'saturate(0.9) contrast(1.05)' }}
+                            style={{ border: 'none', filter: 'sepia(30%) saturate(70%) brightness(1.05)' }}
                             scrolling="no"
                             title="Trip Location Map"
                         />
-                        <div className="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur-sm px-2.5 py-1.5 rounded-xl border border-white/60 shadow-sm flex items-center justify-between">
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" />
-                                <span className="text-[9px] font-bold text-slate-700">Near Pool Area</span>
-                            </div>
-                            <button className="text-slate-400 hover:text-slate-700 transition-colors">
-                                <Maximize2 className="w-3 h-3" />
-                            </button>
-                        </div>
                     </div>
                 </div>
 
-                {/* Trip Details */}
-                <div className="neu-raised rounded-3xl p-4 border border-white/60">
-                    <h3 className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">Trip Details</h3>
-                    <div className="space-y-2.5">
-                        {[
-                            { icon: Calendar, label: 'Dates', value: trip.dateRange },
-                            { icon: Users, label: 'Groups', value: `${filteredFamilies.length} Families` },
-                            { icon: DollarSign, label: 'Pkg Tier', value: 'Premium All-Inc' },
-                            { icon: MapPin, label: 'Client', value: trip.client },
-                        ].map(({ icon: Icon, label, value }) => (
-                            <div key={label} className="flex items-center justify-between pb-2 border-b border-slate-200/40 last:border-0 last:pb-0">
-                                <div className="flex items-center gap-1.5 text-slate-500">
-                                    <Icon className="w-3 h-3" />
-                                    <span className="text-[10px]">{label}</span>
+                {/* Map expanded modal */}
+                {mapExpanded && (
+                    <div
+                        className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                        onClick={() => setMapExpanded(false)}
+                    >
+                        <div
+                            className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-stone-200"
+                            style={{ width: '70vw', height: '65vh' }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {/* Modal header */}
+                            <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2.5 bg-white/95 backdrop-blur border-b border-stone-200">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-[#4a647c] rounded-full" />
+                                    <span className="text-xs font-bold text-stone-700 uppercase tracking-wider">Pool Sector 04</span>
                                 </div>
-                                <span className="text-[10px] font-bold text-slate-800 text-right max-w-[120px] truncate">{value}</span>
+                                <button
+                                    onClick={() => setMapExpanded(false)}
+                                    className="w-7 h-7 flex items-center justify-center rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 transition-colors"
+                                >
+                                    <Minimize2 className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                            {/* Full-color map — extra height to clip OSM footer */}
+                            <div className="w-full h-[calc(100%+40px)] pt-10">
+                                <iframe
+                                    src="https://www.openstreetmap.org/export/embed.html?bbox=73.72%2C15.52%2C73.80%2C15.60&layer=mapnik&marker=15.56%2C73.76"
+                                    width="100%" height="100%"
+                                    style={{ border: 'none', filter: 'sepia(30%) saturate(70%) brightness(1.05)' }}
+                                    scrolling="no"
+                                    title="Trip Location Map Expanded"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Manifest Details */}
+                <div className="bg-[#faf9f6] border border-stone-200/80 shadow-sm rounded-lg p-4 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 mb-4 border-b border-stone-100 pb-2">
+                        <FileText className="w-4 h-4 text-stone-400" />
+                        <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest">Manifest Details</h3>
+                    </div>
+                    <div className="space-y-3">
+                        {[
+                            { label: 'Dates', value: trip.dateRange },
+                            { label: 'Guests', valueNode: <div className="flex gap-1"><span className="text-stone-800 font-bold bg-stone-100 px-1.5 py-0.5 rounded text-xs border border-stone-200">2 ADT</span><span className="text-stone-800 font-bold bg-stone-100 px-1.5 py-0.5 rounded text-xs border border-stone-200">2 CHD</span></div> },
+                            { label: 'Package', value: 'PREMIUM ALL-INC', mono: true },
+                        ].map(({ label, value, valueNode, mono }) => (
+                            <div key={label} className="flex justify-between items-center text-sm">
+                                <span className="text-stone-500 font-medium text-xs">{label}</span>
+                                {valueNode ?? (
+                                    <span className={cn(
+                                        'text-stone-800 font-bold bg-stone-100 px-2 py-0.5 rounded border border-stone-200 text-xs',
+                                        mono && 'uppercase tracking-wider text-[10px]'
+                                    )}>{value}</span>
+                                )}
                             </div>
                         ))}
                     </div>
-                    <button className="mt-4 w-full py-2.5 bg-slate-800 text-white rounded-xl text-[10px] font-bold shadow hover:bg-slate-700 transition-colors flex items-center justify-center gap-1.5">
-                        <FileText className="w-3 h-3" />
-                        View Contract
-                    </button>
+                    <div className="mt-auto pt-4 border-t border-stone-100 border-dashed">
+                        <button className="w-full py-2.5 bg-stone-100/50 border border-stone-200 text-stone-700 hover:bg-white hover:border-stone-300 hover:shadow-sm transition-all text-[10px] font-bold rounded-lg flex items-center justify-center gap-2 uppercase tracking-widest">
+                            <FileText className="w-3.5 h-3.5 text-stone-400" />
+                            Open Contract PDF
+                        </button>
+                    </div>
                 </div>
-
             </aside>
 
-            {/* ── Voyageur AI Floating Button + Panel (bottom-right, closed by default) ── */}
+            {/* ── Voyageur AI Floating Button + Panel (bottom-right) ────────── */}
             <div className="fixed bottom-6 right-6 z-[60] flex items-end gap-3">
-                {/* AI toggle button */}
+                {/* Collapsed button */}
                 {!aiOpen && (
                     <button
                         onClick={() => setAiOpen(true)}
-                        className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white hover:scale-105 transition-all shadow-lg"
+                        className="w-12 h-12 bg-[#353b48] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#2d323c] transition-all hover:scale-105"
                         title="Open Voyageur AI"
                     >
-                        <MessageSquare className="w-6 h-6" />
+                        <Sparkles className="w-5 h-5" />
                     </button>
                 )}
 
-                {/* AI Panel */}
+                {/* Expanded panel */}
                 {aiOpen && (
-                    <div className="w-[360px] max-h-[78vh] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
-                        {/* AI Panel Header */}
-                        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shrink-0">
-                                    <MessageSquare className="w-4 h-4" />
-                                </div>
-                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Voyageur AI</h3>
-                                {aiTyping && (
-                                    <span className="flex gap-1 items-center">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
-                                    </span>
-                                )}
+                    <div className="w-[340px] max-h-[70vh] bg-stone-50 border border-stone-300 shadow-2xl rounded-xl flex flex-col overflow-hidden">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200 shrink-0 bg-white">
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-stone-500" />
+                                <span className="text-xs font-bold uppercase tracking-widest text-stone-700">Voyageur AI</span>
                             </div>
-                            <button
-                                onClick={() => setAiOpen(false)}
-                                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
-                                title="Minimize"
-                            >
-                                <Minimize2 className="w-4 h-4" />
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 bg-white px-1.5 py-0.5 rounded-full border border-stone-200 shadow-sm">
+                                    <span className="w-1.5 h-1.5 bg-[#4f5d4e] rounded-full" />
+                                    <span className="text-[9px] font-bold text-stone-500">LIVE</span>
+                                </div>
+                                <button onClick={() => setAiOpen(false)} className="text-stone-400 hover:text-stone-700 transition-colors p-1">
+                                    <Minimize2 className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Static insight card */}
+                        <div className="m-3 mb-0 bg-white border border-stone-200 rounded-lg p-3 shrink-0">
+                            <div className="flex items-center justify-between mb-2 border-b border-stone-100 pb-2">
+                                <span className="text-[9px] font-bold text-[#4f5d4e] bg-[#4f5d4e]/10 border border-[#4f5d4e]/20 px-2 py-0.5 rounded-full tracking-wider">HIGH SATISFACTION</span>
+                            </div>
+                            <p className="text-xs leading-relaxed text-stone-600">
+                                Positive sentiment detected. It&apos;s a great time to upsell the{' '}
+                                <strong className="text-stone-800 font-semibold italic">Sunset Cruise</strong>{' '}
+                                experience for their final evening.
+                            </p>
+                            <button className="w-full mt-3 py-2 bg-[#353b48] hover:bg-[#2d323c] text-white text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+                                <Send className="w-3 h-3" /> Draft Proposal
                             </button>
                         </div>
 
-                        {/* Group Insights (Static Section) */}
-                        <div className="px-5 pb-2 shrink-0">
-                            <div className="neu-pressed rounded-2xl p-4 border border-slate-200/60 shadow-inner">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Zap className="w-3.5 h-3.5 text-purple-600 fill-purple-100" />
-                                    <span className="text-[10px] uppercase font-bold text-purple-600 tracking-wider">Group Insights</span>
-                                </div>
-                                <ul className="space-y-3">
-                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0 shadow-sm" />
-                                        <span>Sharma & Singh families show high satisfaction scores.</span>
-                                    </li>
-                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0 shadow-sm" />
-                                        <span><span className="font-bold text-slate-800">Urgent:</span> Mehta family AC complaint requires follow-up.</span>
-                                    </li>
-                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0 shadow-sm" />
-                                        <span>1 pending late checkout request awaiting approval.</span>
-                                    </li>
-                                    <li className="flex gap-2 items-start text-[11px] text-slate-600 leading-snug">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 shrink-0 shadow-sm" />
-                                        <span><span className="font-bold text-slate-800">Suggestion:</span> Offer Sunset Cruise upgrade to high-satisfaction families.</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        {/* AI Chat messages */}
-                        <div className="flex-1 overflow-y-auto px-4 pb-2 scrollbar-hide space-y-3 min-h-[100px]">
+                        {/* AI chat messages */}
+                        <div className="flex-1 overflow-y-auto scrollbar-hide px-3 pt-3 pb-2 space-y-3 min-h-[80px]">
                             {aiMessages.map((msg, i) => (
-                                <div key={i} className={cn('flex flex-col gap-1', msg.role === 'user' ? 'items-end' : 'items-start')}>
+                                <div key={i} className={cn('flex flex-col gap-0.5', msg.role === 'user' ? 'items-end' : 'items-start')}>
                                     <div className={cn(
-                                        'px-3.5 py-2.5 rounded-2xl text-[12px] leading-relaxed max-w-[88%] shadow-sm',
+                                        'px-3 py-2 rounded-xl text-xs leading-relaxed max-w-[90%]',
                                         msg.role === 'ai'
-                                            ? 'neu-pressed text-foreground rounded-tl-sm border border-slate-200/60'
-                                            : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-tr-sm shadow-md border-t border-white/20'
+                                            ? 'bg-white border border-stone-200 text-stone-700'
+                                            : 'bg-[#353b48] text-white'
                                     )}>{msg.text}</div>
-                                    <span className="text-[9px] text-muted-foreground/60 px-1">{msg.time}</span>
+                                    <span className="text-[9px] text-stone-400 px-1">{msg.time}</span>
                                 </div>
                             ))}
                             {aiTyping && (
                                 <div className="flex items-start">
-                                    <div className="neu-pressed px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1 items-center border border-slate-200/60 shadow-inner">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
+                                    <div className="bg-white border border-stone-200 px-3 py-2.5 rounded-xl flex gap-1 items-center">
+                                        {[0, 150, 300].map(d => (
+                                            <span key={d} className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce" style={{ animationDelay: `${d}ms` }} />
+                                        ))}
                                     </div>
                                 </div>
                             )}
                             <div ref={aiEndRef} />
                         </div>
 
-                        {/* AI Input */}
-                        <div className="px-4 pb-4 pt-2 shrink-0">
-                            <div className="relative">
+                        {/* AI input */}
+                        <div className="px-3 pb-3 pt-2 shrink-0 border-t border-stone-100 bg-white">
+                            <div className="relative flex gap-2">
                                 <input
                                     type="text"
                                     value={aiInput}
                                     onChange={e => setAiInput(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') sendAiMessage(); }}
                                     placeholder="Ask about groups or families..."
-                                    className="w-full neu-pressed rounded-xl py-3 pl-4 pr-10 text-xs font-medium text-foreground placeholder-muted-foreground focus:outline-none border-none bg-transparent shadow-inner transition-shadow focus:shadow-[inset_2px_2px_5px_#b8b9be,inset_-3px_-3px_7px_#ffffff]"
+                                    className="flex-1 bg-stone-50 border border-stone-200 rounded-lg py-2 pl-3 pr-3 text-xs text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300"
                                 />
                                 <button
                                     onClick={sendAiMessage}
                                     disabled={!aiInput.trim()}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-indigo-500 hover:bg-black/5 transition-colors disabled:opacity-30"
+                                    className="w-8 bg-[#4a647c] text-white rounded-lg flex items-center justify-center hover:bg-[#3d5368] transition-colors disabled:opacity-40"
                                 >
-                                    <Send className="w-3.5 h-3.5" />
+                                    <Send className="w-3 h-3" />
                                 </button>
                             </div>
                         </div>

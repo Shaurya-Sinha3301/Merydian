@@ -33,43 +33,55 @@ export default function TripDetailNavbar({ tripId }: { tripId: string }) {
     if (!trip) return null;
 
     return (
-        <div className="flex items-center px-6 py-3 border-b border-border bg-background/80 backdrop-blur-sm z-40 shrink-0">
-            {/* Left: back + trip title */}
-            <div className="flex items-center gap-4 w-1/4 min-w-0">
-                <button
-                    onClick={() => router.push('/agent-dashboard/itinerary-management')}
-                    className="neu-button w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground transition-all shrink-0"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                </button>
-                <div className="min-w-0">
-                    <h2 className="font-[Outfit] font-bold text-lg text-foreground leading-tight truncate">{trip.title}</h2>
-                    <p className="text-xs text-muted-foreground truncate">Client: {trip.client} · {trip.dateRange}</p>
+        /* Matches ItineraryOptimizerWindow header container */
+        <div className="shrink-0 w-full z-40 bg-white/95 backdrop-blur-sm border-b border-[var(--bp-border)]">
+            <div className="px-6 md:px-8 pt-4 pb-4 flex items-center gap-6">
+
+                {/* ── Left: back button + trip info ───────────────────────── */}
+                <div className="flex items-center gap-4 min-w-0 w-1/4">
+                    {/* Sharp square back button — Optimizer style */}
+                    <button
+                        onClick={() => router.push('/agent-dashboard/itinerary-management')}
+                        className="w-9 h-9 flex items-center justify-center border border-[var(--bp-border)] hover:border-black bg-white text-[var(--bp-muted)] hover:text-black transition-colors shrink-0"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </button>
+
+                    <div className="min-w-0">
+                        {/* Large light title — same weight/tracking as Optimizer h1 */}
+                        <h2 className="text-2xl md:text-3xl font-[300] tracking-[-0.02em] text-black leading-tight truncate">
+                            {trip.title}
+                        </h2>
+                        <p className="text-[var(--bp-muted)] mt-0.5 font-light text-xs tracking-wide truncate">
+                            Client: {trip.client} · {trip.dateRange}
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            {/* Centre: pill-bar (inteli.html nav-pill design) */}
-            <div className="flex-1 flex justify-center">
-                <nav className="flex items-center bg-white p-1 rounded-full border border-gray-100 shadow-sm gap-0.5">
-                    {TABS.map(({ key, label, suffix }) => (
-                        <Link
-                            key={key}
-                            href={`${basePath}${suffix}`}
-                            className={cn(
-                                'px-4 py-1.5 rounded-full text-xs font-medium transition-colors border',
-                                activeTab === key
-                                    ? 'bg-black text-white border-black'
-                                    : 'text-gray-500 border-transparent hover:text-black hover:border-gray-200',
-                            )}
-                        >
-                            {label}
-                        </Link>
-                    ))}
-                </nav>
-            </div>
+                {/* ── Centre: pill-bar ─────────────────────────────────────── */}
+                <div className="flex-1 flex justify-center">
+                    {/* Rounded-lg segmented pill bar — group_new.html style */}
+                    <nav className="flex items-center bg-stone-100 p-1 rounded-lg border border-stone-200 gap-0.5 mt-2">
+                        {TABS.map(({ key, label, suffix }) => (
+                            <Link
+                                key={key}
+                                href={`${basePath}${suffix}`}
+                                className={cn(
+                                    'px-5 py-1.5 rounded-md text-sm font-medium transition-all duration-200',
+                                    activeTab === key
+                                        ? 'bg-white border border-stone-200 text-stone-800 shadow-sm font-semibold'
+                                        : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50',
+                                )}
+                            >
+                                {label}
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
 
-            {/* Right spacer */}
-            <div className="w-1/4" />
+                {/* ── Right spacer ─────────────────────────────────────────── */}
+                <div className="w-1/4" />
+            </div>
         </div>
     );
 }
