@@ -147,97 +147,113 @@ const TIMELINE_ROWS: TimeRow[] = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SplitMergeIcon({ type }: { type: 'split' | 'merge' }) {
-    const isSplit = type === 'split';
+/** Tiny badge for category type */
+function CategoryTag({ category, categoryBg, categoryText, categoryBorder }: {
+    category: string;
+    categoryBg: string;
+    categoryText: string;
+    categoryBorder: string;
+}) {
     return (
-        <div className="mt-2 flex flex-col items-center gap-0.5">
-            <div className={cn('w-px h-3', isSplit ? 'bg-indigo-200' : 'bg-emerald-200')} />
-            <div className={cn(
-                'text-[10px] font-bold mono-font px-0.5',
-                isSplit ? 'text-indigo-400' : 'text-emerald-400',
-            )}>
-                {isSplit ? '⑂' : '⑁'}
-            </div>
-            <div className={cn('w-px h-3', isSplit ? 'bg-indigo-200' : 'bg-emerald-200')} />
-        </div>
+        <span className={cn(
+            'inline-flex items-center px-1 py-px rounded-sm font-bold uppercase tracking-wider',
+            'text-[0.6rem] leading-none border',
+            categoryBg, categoryText, categoryBorder,
+        )}>
+            {category}
+        </span>
+    );
+}
+
+/** Tiny family allocation tag */
+function FamTag({ code }: { code: string }) {
+    return (
+        <span className="inline-flex items-center px-1 py-px rounded-sm font-bold uppercase tracking-wider text-[0.55rem] leading-none border bg-slate-50 text-slate-500 border-slate-200">
+            {code}
+        </span>
+    );
+}
+
+/** Status indicator (confirmed / limited / info) */
+function StatusBadge({ icon, label }: { icon: 'confirmed' | 'limited' | 'info'; label: string }) {
+    const base = 'flex items-center gap-1 font-bold text-[0.65rem] uppercase tracking-wide leading-none';
+    if (icon === 'confirmed') return (
+        <span className={cn(base, 'text-emerald-600')}>
+            <Check className="w-3 h-3" />
+            {label}
+        </span>
+    );
+    if (icon === 'limited') return (
+        <span className={cn(base, 'text-amber-600')}>{label}</span>
+    );
+    return (
+        <span className={cn(base, 'text-slate-500 font-mono')}>{label}</span>
     );
 }
 
 function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) {
     return (
         <div className={cn(
-            'tech-card flex flex-row group/card relative transition-all duration-200 hover:translate-x-0.5 hover:shadow-md h-[110px]',
+            'group/card flex gap-3 items-center',
+            'bg-white border border-slate-200 transition-all duration-200',
+            'hover:border-slate-300 hover:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]',
+            'h-24 p-3',
             compact ? 'w-[480px] shrink-0' : 'flex-1 min-w-0',
         )}>
-            {/* Drag handle */}
-            <div className="absolute top-1.5 right-1.5 text-slate-300 hover:text-slate-500 cursor-grab z-10">
-                <GripVertical className="w-3.5 h-3.5" />
-            </div>
-
             {/* Image */}
-            <div className="w-[88px] h-full flex-shrink-0 relative border-r border-slate-200 bg-slate-100 overflow-hidden">
+            <div className="w-24 h-full flex-shrink-0 relative border border-slate-100 rounded-sm overflow-hidden bg-slate-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src={card.imageUrl}
                     alt={card.title}
-                    className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-500"
+                    className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-300"
                 />
-                <div className="absolute inset-0 ring-1 ring-inset ring-black/5" />
-                <div className="absolute bottom-1 left-1 bg-black/80 text-white text-[7px] px-1 py-px font-mono leading-none">
-                    {card.locationCode}
-                </div>
             </div>
 
             {/* Content */}
-            <div className="flex-1 px-4 flex flex-col justify-center gap-1.5 min-w-0 pr-8">
-                <div className="flex justify-between items-start gap-2">
-                    <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-sm font-bold text-slate-900 uppercase tracking-tight leading-tight">
-                                {card.title}
-                            </h4>
-                            <span className="text-[10px] text-slate-400 font-mono shrink-0">{card.evtId}</span>
-                            <span className={cn(
-                                'px-1.5 py-px border text-[10px] font-bold uppercase tracking-wider rounded-sm shrink-0',
-                                card.categoryBorder, card.categoryBg, card.categoryText,
-                            )}>
-                                {card.category}
-                            </span>
-                        </div>
-                        {card.subtitle && (
-                            <span className="text-xs text-slate-500 font-mono font-medium mt-0.5">{card.subtitle}</span>
-                        )}
+            <div className="flex-1 flex flex-col justify-center h-full gap-1 min-w-0">
+                {/* Top row: title + tag + evt id + drag */}
+                <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-tight leading-none truncate">
+                            {card.title}
+                        </h4>
+                        <CategoryTag
+                            category={card.category}
+                            categoryBg={card.categoryBg}
+                            categoryText={card.categoryText}
+                            categoryBorder={card.categoryBorder}
+                        />
                     </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={cn('text-xs font-mono font-semibold', card.durationColor)}>
-                            {card.durationLabel}
-                        </span>
-                        <div className="flex items-center gap-0.5 flex-wrap justify-end">
-                            {card.participants.map((p) => (
-                                <span
-                                    key={p.code}
-                                    className={cn('px-1.5 py-0.5 border rounded text-[10px] font-bold font-mono', p.color)}
-                                >
-                                    {p.code}
-                                </span>
-                            ))}
-                        </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <span className="font-mono text-[9px] text-gray-400">{card.evtId}</span>
+                        <GripVertical className="w-3.5 h-3.5 text-gray-300 hover:text-gray-500 cursor-grab" />
                     </div>
                 </div>
 
-                <div className="flex justify-between items-center gap-4">
-                    <p className="text-xs text-slate-500 font-mono leading-tight truncate flex-1">
-                        {card.description}
-                    </p>
-                    <div className={cn(
-                        'flex items-center gap-1 shrink-0',
-                        card.statusIcon === 'confirmed' ? 'text-emerald-600' :
-                            card.statusIcon === 'limited' ? 'text-orange-500' : 'text-slate-500',
-                    )}>
-                        {card.statusIcon === 'confirmed' && <Check className="w-3 h-3" />}
-                        <span className="text-[11px] font-bold uppercase tracking-wider font-mono">
-                            {card.statusLabel}
+                {/* Subtitle */}
+                {card.subtitle && (
+                    <div className="text-[10px] text-gray-500 font-medium truncate">{card.subtitle}</div>
+                )}
+
+                {/* Description */}
+                <div className="text-[10px] text-gray-400 truncate leading-snug">{card.description}</div>
+
+                {/* Bottom row: status + duration | ALLOC: tags */}
+                <div className="flex justify-between items-center mt-auto pt-1.5 border-t border-gray-100/70">
+                    <div className="flex items-center gap-3">
+                        <StatusBadge icon={card.statusIcon} label={card.statusLabel} />
+                        <span className="text-[9px] font-mono text-gray-400 border-l border-gray-200 pl-3">
+                            {card.durationLabel}
                         </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-mono text-gray-400">ALLOC:</span>
+                        <div className="flex gap-1">
+                            {card.participants.map((p) => (
+                                <FamTag key={p.code} code={p.code} />
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -280,58 +296,59 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                 'flex-1 scrollbar-hide pb-28 bg-transparent',
                 panelHovered ? 'overflow-hidden' : 'overflow-auto',
             )}>
-                {/* Sticky day header */}
-                <div className="sticky top-0 z-30 flex items-center gap-4 bg-slate-100/90 backdrop-blur border-b border-slate-200 px-6 py-2.5 w-full">
-                    <div className="w-16 text-right font-bold text-slate-500 text-[10px] uppercase tracking-widest font-mono">
-                        {trip.dateRange?.split('–')?.[0]?.trim() ?? 'OCT 12'}
+                {/* Sticky day header — new design: muted date + bold day title */}
+                <div className="sticky top-0 z-30 border-b border-gray-200 bg-gray-50 w-full">
+                    <div className="px-6 h-8 flex items-center justify-between text-[10px] uppercase tracking-wider">
+                        <div className="flex items-center gap-4 font-semibold">
+                            <span className="text-gray-500">
+                                {trip.dateRange?.split('–')?.[0]?.trim() ?? 'OCT 12'}
+                            </span>
+                            <span className="text-black text-sm font-bold normal-case tracking-normal">Day 1: Paris Sightseeing</span>
+                        </div>
+                        <div className="text-gray-500">{TIMELINE_ROWS.length} SLOTS · 08:00 – 14:30</div>
                     </div>
-                    <div className="h-4 w-px bg-slate-300" />
-                    <h2 className="text-sm font-bold text-slate-900 uppercase tracking-tight">
-                        Day 1: Paris Sightseeing
-                    </h2>
-                    <span className="ml-auto text-[10px] font-mono text-slate-400 font-medium">
-                        {TIMELINE_ROWS.length} SLOTS · 08:00 – 14:30
-                    </span>
                 </div>
 
-                {/* Timeline rows */}
-                {TIMELINE_ROWS.map((row) => {
-                    const isMulti = row.cards.length > 1;
-                    return (
-                        <div
-                            key={row.time}
-                            className={cn(
-                                'flex border-b border-slate-200 group/row relative',
-                                isMulti ? 'bg-slate-50/50' : 'bg-white',
-                            )}
-                            style={{ minHeight: '130px' }}
-                        >
-                            {/* Time column */}
-                            <div className="w-20 shrink-0 sticky left-0 flex flex-col items-center justify-center border-r border-slate-200 bg-white z-30">
-                                <span className={cn(
-                                    'text-sm font-bold font-mono',
-                                    row.splitIcon === 'split' ? 'text-indigo-600' : 'text-slate-900',
-                                )}>
-                                    {row.time}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 font-mono">
-                                    {row.period}
-                                </span>
-                                {row.splitIcon && <SplitMergeIcon type={row.splitIcon} />}
-                            </div>
+                {/* Timeline — grid layout with dashed vertical connector */}
+                <div className="relative px-6 py-6">
+                    {/* Dashed vertical line at the 80px column boundary */}
+                    <div className="absolute left-[4.5rem] top-6 bottom-6 border-l border-dashed border-gray-300 pointer-events-none" />
 
-                            {/* Cards */}
-                            <div className={cn(
-                                'flex-1 px-6 flex items-center',
-                                isMulti ? 'gap-4 overflow-x-auto scrollbar-hide' : '',
-                            )}>
-                                {row.cards.map((card) => (
-                                    <ActivityCard key={card.id} card={card} compact={isMulti} />
-                                ))}
-                            </div>
-                        </div>
-                    );
-                })}
+                    <div className="space-y-4">
+                        {TIMELINE_ROWS.map((row) => {
+                            const isMulti = row.cards.length > 1;
+                            return (
+                                <div
+                                    key={row.time}
+                                    className={cn(
+                                        'grid gap-8 relative group/row',
+                                        isMulti ? 'items-start' : 'items-center',
+                                    )}
+                                    style={{ gridTemplateColumns: '80px 1fr' }}
+                                >
+                                    {/* Time column */}
+                                    <div className="text-right relative z-10">
+                                        <div className="font-bold text-gray-900 text-sm leading-none">{row.time}</div>
+                                        <div className="text-[9px] text-gray-400 font-mono mt-0.5">{row.period}</div>
+                                        {/* Dot marker on the vertical dashed line */}
+                                        <div className="absolute right-[-2.25rem] top-1.5 w-1.5 h-1.5 bg-white border border-gray-400 rounded-full group-hover/row:border-black transition-all" />
+                                    </div>
+
+                                    {/* Cards — 2-col grid for split rows, full-width otherwise */}
+                                    {isMulti ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-[40px]">
+                                            {row.cards.map((card) => (
+                                                <ActivityCard key={card.id} card={card} compact={false} />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <ActivityCard card={row.cards[0]} compact={false} />
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
 
             {/* ── Floating panels ─────────────────────────────────────────────── */}
