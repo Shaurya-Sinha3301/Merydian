@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # Refresh tokens valid for 7 days
     
     # DATABASE
     SQLALCHEMY_DATABASE_URI: str
@@ -28,8 +29,8 @@ class Settings(BaseSettings):
 
     # TBO HOTEL API
     TBO_API_URL: str = "http://api.tbotechnology.in/TBOHolidays_HotelAPI"
-    TBO_USERNAME: str = "hackathontest"
-    TBO_PASSWORD: str = "Hac@98147521"
+    TBO_USERNAME: str
+    TBO_PASSWORD: str
 
     # CELERY / REDIS
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"

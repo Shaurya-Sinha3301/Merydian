@@ -438,30 +438,28 @@ async def update_family_preferences(
         )
 
 
-@router.get("/", response_model=List[TripDetailResponse])
+from app.core.pagination import PaginationParams, PaginatedResponse
+
+@router.get("/", response_model=PaginatedResponse[TripDetailResponse])
 async def list_trips(
-    limit: int = 10,
-    offset: int = 0,
+    pagination: PaginationParams = Depends(),
     trip_status: str = None,
 ):
     """
     List all trips (with pagination).
-
-    Args:
-        limit: Maximum number of trips to return (default 10)
-        offset: Number of trips to skip for pagination (default 0)
-        trip_status: Optional filter by trip status ('active', 'archived')
-
-    Returns:
-        List of trip summaries ordered by creation date (newest first)
     """
     try:
-        trips = TripService.list_trips(
-            limit=limit,
-            offset=offset,
+        trips, total = TripService.list_trips(
+            limit=pagination.limit,
+            offset=pagination.skip,
             status_filter=trip_status,
         )
-        return [TripDetailResponse(**t) for t in trips]
+        return PaginatedResponse(
+            items=[TripDetailResponse(**t) for t in trips],
+            total=total,
+            skip=pagination.skip,
+            limit=pagination.limit
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -740,7 +740,7 @@ class TripService:
         Returns:
             List of trip summary dictionaries
         """
-        from sqlmodel import select
+        from sqlmodel import select, func
 
         with get_db_session() as session:
             statement = select(TripSession).order_by(TripSession.created_at.desc())
@@ -750,6 +750,14 @@ class TripService:
 
             statement = statement.offset(offset).limit(limit)
             trips = session.exec(statement).all()
+
+            # Get total count
+            # Create separate count query
+            count_stmt = select(func.count()).select_from(TripSession)
+            if status_filter:
+                count_stmt = count_stmt.where(TripSession.status == status_filter)
+            
+            total = session.exec(count_stmt).one()
 
             results = []
             for trip in trips:
@@ -773,7 +781,7 @@ class TripService:
                     "last_updated": trip.updated_at.isoformat() if trip.updated_at else None,
                 })
 
-            return results
+            return results, total
 
     @staticmethod
     def delete_trip(trip_id: str) -> Dict[str, Any]:

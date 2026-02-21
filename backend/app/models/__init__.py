@@ -13,6 +13,7 @@ from .itinerary_option import ItineraryOptionDB
 from .booking_job import BookingJob
 from .hotel_booking import HotelBooking
 from .policy import POIRequest, FamilyResponseMessage, DecisionLog
+from .trip_session import TripSession
 
 __all__ = [
     "User",
@@ -26,4 +27,5 @@ __all__ = [
     "POIRequest",
     "FamilyResponseMessage",
     "DecisionLog",
+    "TripSession",
 ]
