@@ -49,6 +49,13 @@ module.exports = {
                     DEFAULT: 'var(--card)',
                     foreground: 'var(--card-foreground)',
                 },
+                // Blueprint design tokens
+                'bp-sage': 'var(--bp-sage)',
+                'bp-sage-hover': 'var(--bp-sage-hover)',
+                'bp-border': 'var(--bp-border)',
+                'bp-muted': 'var(--bp-muted)',
+                'bp-text': 'var(--bp-text)',
+                'bp-red': 'var(--bp-red)',
             },
             borderRadius: {
                 sm: 'var(--radius-sm)',
