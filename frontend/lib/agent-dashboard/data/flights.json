@@ -1,0 +1,123 @@
+{
+    "meta": {
+        "currency": "INR",
+        "total_flights": 6,
+        "generated_for": "web_dev_testing"
+    },
+    "flights": [
+        {
+            "id": "FL001",
+            "airline": "IndiGo",
+            "flight_number": "6E-554",
+            "departure": {
+                "airport": "DEL",
+                "city": "New Delhi",
+                "time": "2023-11-15T08:30:00"
+            },
+            "arrival": {
+                "airport": "BOM",
+                "city": "Mumbai",
+                "time": "2023-11-15T10:45:00"
+            },
+            "duration": "2h 15m",
+            "price": 4500,
+            "class": "Economy",
+            "seats_available": 42
+        },
+        {
+            "id": "FL002",
+            "airline": "Air India",
+            "flight_number": "AI-887",
+            "departure": {
+                "airport": "BOM",
+                "city": "Mumbai",
+                "time": "2023-11-15T14:00:00"
+            },
+            "arrival": {
+                "airport": "BLR",
+                "city": "Bangalore",
+                "time": "2023-11-15T15:40:00"
+            },
+            "duration": "1h 40m",
+            "price": 3800,
+            "class": "Economy",
+            "seats_available": 15
+        },
+        {
+            "id": "FL003",
+            "airline": "Vistara",
+            "flight_number": "UK-992",
+            "departure": {
+                "airport": "DEL",
+                "city": "New Delhi",
+                "time": "2023-11-16T18:00:00"
+            },
+            "arrival": {
+                "airport": "CCU",
+                "city": "Kolkata",
+                "time": "2023-11-16T20:15:00"
+            },
+            "duration": "2h 15m",
+            "price": 6200,
+            "class": "Business",
+            "seats_available": 8
+        },
+        {
+            "id": "FL004",
+            "airline": "SpiceJet",
+            "flight_number": "SG-332",
+            "departure": {
+                "airport": "MAA",
+                "city": "Chennai",
+                "time": "2023-11-17T07:15:00"
+            },
+            "arrival": {
+                "airport": "HYD",
+                "city": "Hyderabad",
+                "time": "2023-11-17T08:30:00"
+            },
+            "duration": "1h 15m",
+            "price": 2900,
+            "class": "Economy",
+            "seats_available": 25
+        },
+        {
+            "id": "FL005",
+            "airline": "Air India Express",
+            "flight_number": "IX-445",
+            "departure": {
+                "airport": "COK",
+                "city": "Kochi",
+                "time": "2023-11-18T22:00:00"
+            },
+            "arrival": {
+                "airport": "DXB",
+                "city": "Dubai",
+                "time": "2023-11-19T00:30:00"
+            },
+            "duration": "4h 00m",
+            "price": 12500,
+            "class": "Economy",
+            "seats_available": 10
+        },
+        {
+            "id": "FL006",
+            "airline": "Akasa Air",
+            "flight_number": "QP-112",
+            "departure": {
+                "airport": "BLR",
+                "city": "Bangalore",
+                "time": "2023-11-16T09:00:00"
+            },
+            "arrival": {
+                "airport": "GOI",
+                "city": "Goa",
+                "time": "2023-11-16T10:15:00"
+            },
+            "duration": "1h 15m",
+            "price": 3100,
+            "class": "Economy",
+            "seats_available": 50
+        }
+    ]
+}

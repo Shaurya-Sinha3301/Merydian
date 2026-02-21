@@ -5,110 +5,23 @@ import DashboardMetrics from './DashboardMetrics';
 import RequestFilters, { FilterState } from './RequestFilters';
 import RequestsTable from './RequestsTable';
 import MobileRequestsList from './MobileRequestsList';
-
-interface TripRequest {
-  id: string;
-  customerName: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  groupSize: {
-    adults: number;
-    children: number;
-    seniors: number;
-  };
-  budgetRange: {
-    min: number;
-    max: number;
-  };
-  status: 'new' | 'in-review' | 'approved' | 'booked';
-  priority: 'high' | 'medium' | 'low';
-  constraints: Array<{
-    type: 'mobility' | 'time' | 'budget' | 'preference';
-    severity: 'high' | 'medium' | 'low';
-    description: string;
-  }>;
-  confidenceScore: number;
-  submittedAt: string;
-}
-
-const mockRequests: TripRequest[] = [
-  {
-    id: 'GRP-2026-001',
-    customerName: 'The Johnson Family Group',
-    destination: 'Paris, France',
-    startDate: '2026-03-15',
-    endDate: '2026-03-22',
-    groupSize: { adults: 2, children: 1, seniors: 0 },
-    budgetRange: { min: 3500, max: 4500 },
-    status: 'new', // active in system but new
-    priority: 'high',
-    constraints: [
-      { type: 'mobility', severity: 'medium', description: 'Child-friendly activities required' },
-      { type: 'preference', severity: 'low', description: 'Prefer morning museum visits' },
-    ],
-    confidenceScore: 85,
-    submittedAt: '2026-01-18T09:30:00',
-  },
-  {
-    id: 'GRP-2026-002',
-    customerName: 'Chen & Lee Families',
-    destination: 'Tokyo, Japan',
-    startDate: '2026-04-10',
-    endDate: '2026-04-20',
-    groupSize: { adults: 4, children: 2, seniors: 2 },
-    budgetRange: { min: 15000, max: 20000 },
-    status: 'in-review',
-    priority: 'medium',
-    constraints: [
-      { type: 'mobility', severity: 'high', description: 'Limited walking ability for seniors' },
-      { type: 'time', severity: 'medium', description: 'Prefer slower-paced itinerary' },
-    ],
-    confidenceScore: 72,
-    submittedAt: '2026-01-17T14:20:00',
-  },
-  {
-    id: 'GRP-2026-003',
-    customerName: 'Rodriguez Reunion',
-    destination: 'Barcelona, Spain',
-    startDate: '2026-05-05',
-    endDate: '2026-05-12',
-    groupSize: { adults: 8, children: 3, seniors: 0 },
-    budgetRange: { min: 12500, max: 15500 },
-    status: 'new',
-    priority: 'low',
-    constraints: [],
-    confidenceScore: 92,
-    submittedAt: '2026-01-18T11:45:00',
-  },
-  {
-    id: 'GRP-2026-004',
-    customerName: 'Thompson Corporate Retreat',
-    destination: 'Rome, Italy',
-    startDate: '2026-06-01',
-    endDate: '2026-06-08',
-    groupSize: { adults: 12, children: 0, seniors: 0 },
-    budgetRange: { min: 40000, max: 55000 },
-    status: 'approved',
-    priority: 'high',
-    constraints: [
-      { type: 'budget', severity: 'high', description: 'Strict budget limit due to large group' },
-      { type: 'preference', severity: 'medium', description: 'Must avoid crowded tourist spots' },
-    ],
-    confidenceScore: 68,
-    submittedAt: '2026-01-16T16:10:00',
-  },
-];
+import { TripRequest } from '@/lib/agent-dashboard/types';
+import { activeGroups } from '@/lib/agent-dashboard/data';
+import BookingExplorer from './BookingExplorer';
+import { ArrowLeft } from 'lucide-react';
 
 const AgentDashboardInteractive = () => {
   const [isHydrated, setIsHydrated] = useState(false);
-  const [filteredRequests, setFilteredRequests] = useState<TripRequest[]>(mockRequests);
+  const [filteredRequests, setFilteredRequests] = useState<TripRequest[]>(activeGroups);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<FilterState>({
     status: 'all',
     priority: 'all',
     sortBy: 'newest',
   });
+
+  // New State for Booking View
+  const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -117,7 +30,7 @@ const AgentDashboardInteractive = () => {
   useEffect(() => {
     if (!isHydrated) return;
 
-    let filtered = [...mockRequests];
+    let filtered = [...activeGroups];
 
     // Apply search filter
     if (searchTerm) {
@@ -171,12 +84,14 @@ const AgentDashboardInteractive = () => {
 
   const handleQuickAction = (requestId: string, action: string) => {
     console.log(`Quick action: ${action} for request ${requestId}`);
-    // In a real application, this would trigger an API call
+    if (action === 'approve' || action === 'review') { // Assuming 'approve' or entering review opens booking
+      setSelectedRequest(requestId);
+    }
   };
 
   const metrics = {
-    pendingRequests: mockRequests.filter((r) => r.status === 'new').length,
-    inReview: mockRequests.filter((r) => r.status === 'in-review').length,
+    pendingRequests: activeGroups.filter((r) => r.status === 'new').length,
+    inReview: activeGroups.filter((r) => r.status === 'in-review').length,
     completionRate: 87,
     revenueProjection: '$124,500',
     marginAverage: '18.5%',
@@ -194,6 +109,25 @@ const AgentDashboardInteractive = () => {
           </div>
           <div className="h-64 bg-muted rounded-lg" />
         </div>
+      </div>
+    );
+  }
+
+  // Render Booking Explorer if a request is selected
+  if (selectedRequest) {
+    const request = activeGroups.find(r => r.id === selectedRequest);
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <button
+          onClick={() => setSelectedRequest(null)}
+          className="mb-4 flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+        </button>
+        <BookingExplorer
+          requestId={selectedRequest}
+          initialLocation={request?.destination || "Goa"}
+        />
       </div>
     );
   }
@@ -218,7 +152,7 @@ const AgentDashboardInteractive = () => {
       <div className="mb-4">
         <p className="text-sm text-muted-foreground">
           Showing <span className="font-medium text-foreground">{filteredRequests.length}</span> of{' '}
-          <span className="font-medium text-foreground">{mockRequests.length}</span> requests
+          <span className="font-medium text-foreground">{activeGroups.length}</span> active groups
         </p>
       </div>
 

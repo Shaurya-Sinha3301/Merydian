@@ -206,3 +206,175 @@ class ItineraryService:
             f"{len(created_ids)} families"
         )
         return created_ids
+
+    @staticmethod
+    def diff_itineraries(family_id: UUID, version_a: int, version_b: int) -> dict:
+        """
+        Compute a structured diff between two itinerary versions.
+
+        Returns a dict compatible with ItineraryDiffResponse schema.
+        """
+        with Session(engine) as session:
+            # Get both versions
+            stmt_a = (
+                select(Itinerary)
+                .where(Itinerary.family_id == family_id, Itinerary.version == version_a)
+            )
+            stmt_b = (
+                select(Itinerary)
+                .where(Itinerary.family_id == family_id, Itinerary.version == version_b)
+            )
+            itin_a = session.exec(stmt_a).first()
+            itin_b = session.exec(stmt_b).first()
+
+            if not itin_a or not itin_b:
+                return None
+
+            data_a = itin_a.data or {}
+            data_b = itin_b.data or {}
+
+            days_a = {d.get("day", i): d for i, d in enumerate(data_a.get("days", []))}
+            days_b = {d.get("day", i): d for i, d in enumerate(data_b.get("days", []))}
+
+            all_days = sorted(set(list(days_a.keys()) + list(days_b.keys())))
+
+            day_changes = []
+            total_added = 0
+            total_removed = 0
+            total_modified = 0
+
+            for day_num in all_days:
+                day_a = days_a.get(day_num)
+                day_b = days_b.get(day_num)
+
+                if day_a and not day_b:
+                    # Day removed
+                    pois_a = day_a.get("pois", [])
+                    total_removed += len(pois_a)
+                    day_changes.append({
+                        "day": day_num,
+                        "change_type": "removed",
+                        "poi_changes": [
+                            {
+                                "poi_id": p.get("poi_id", ""),
+                                "poi_name": p.get("name", ""),
+                                "change_type": "removed",
+                                "day": day_num,
+                                "old_values": p,
+                                "new_values": {},
+                            }
+                            for p in pois_a
+                        ],
+                    })
+                elif day_b and not day_a:
+                    # Day added
+                    pois_b = day_b.get("pois", [])
+                    total_added += len(pois_b)
+                    day_changes.append({
+                        "day": day_num,
+                        "change_type": "added",
+                        "poi_changes": [
+                            {
+                                "poi_id": p.get("poi_id", ""),
+                                "poi_name": p.get("name", ""),
+                                "change_type": "added",
+                                "day": day_num,
+                                "old_values": {},
+                                "new_values": p,
+                            }
+                            for p in pois_b
+                        ],
+                    })
+                else:
+                    # Day exists in both — compare POIs
+                    pois_a = {p.get("poi_id", f"idx_{i}"): p for i, p in enumerate(day_a.get("pois", []))}
+                    pois_b = {p.get("poi_id", f"idx_{i}"): p for i, p in enumerate(day_b.get("pois", []))}
+
+                    poi_changes = []
+                    for pid in set(list(pois_a.keys()) + list(pois_b.keys())):
+                        pa = pois_a.get(pid)
+                        pb = pois_b.get(pid)
+
+                        if pa and not pb:
+                            poi_changes.append({
+                                "poi_id": pid,
+                                "poi_name": pa.get("name", ""),
+                                "change_type": "removed",
+                                "day": day_num,
+                                "old_values": pa,
+                                "new_values": {},
+                            })
+                            total_removed += 1
+                        elif pb and not pa:
+                            poi_changes.append({
+                                "poi_id": pid,
+                                "poi_name": pb.get("name", ""),
+                                "change_type": "added",
+                                "day": day_num,
+                                "old_values": {},
+                                "new_values": pb,
+                            })
+                            total_added += 1
+                        elif pa != pb:
+                            poi_changes.append({
+                                "poi_id": pid,
+                                "poi_name": pb.get("name", pa.get("name", "")),
+                                "change_type": "modified",
+                                "day": day_num,
+                                "old_values": pa,
+                                "new_values": pb,
+                            })
+                            total_modified += 1
+
+                    if poi_changes:
+                        day_changes.append({
+                            "day": day_num,
+                            "change_type": "modified",
+                            "poi_changes": poi_changes,
+                        })
+
+            # Cost diff
+            old_cost = data_a.get("total_cost", itin_a.total_cost or 0.0)
+            new_cost = data_b.get("total_cost", itin_b.total_cost or 0.0)
+            cost_delta = new_cost - old_cost
+            cost_pct = (cost_delta / old_cost * 100) if old_cost else 0.0
+
+            # Satisfaction diff
+            old_sat = data_a.get("total_satisfaction", itin_a.total_satisfaction or 0.0)
+            new_sat = data_b.get("total_satisfaction", itin_b.total_satisfaction or 0.0)
+            sat_delta = new_sat - old_sat
+
+            # Summary
+            parts = []
+            if total_added:
+                parts.append(f"{total_added} POI(s) added")
+            if total_removed:
+                parts.append(f"{total_removed} POI(s) removed")
+            if total_modified:
+                parts.append(f"{total_modified} POI(s) modified")
+            if cost_delta:
+                parts.append(f"cost {'increased' if cost_delta > 0 else 'decreased'} by {abs(cost_delta):.0f}")
+            summary = "; ".join(parts) if parts else "No changes detected"
+
+            return {
+                "family_id": str(family_id),
+                "version_a": version_a,
+                "version_b": version_b,
+                "day_changes": day_changes,
+                "cost_diff": {
+                    "old_cost": old_cost,
+                    "new_cost": new_cost,
+                    "delta": cost_delta,
+                    "percent_change": round(cost_pct, 2),
+                },
+                "satisfaction_diff": {
+                    "old_satisfaction": old_sat,
+                    "new_satisfaction": new_sat,
+                    "delta": sat_delta,
+                },
+                "total_pois_added": total_added,
+                "total_pois_removed": total_removed,
+                "total_pois_modified": total_modified,
+                "summary": summary,
+            }
+

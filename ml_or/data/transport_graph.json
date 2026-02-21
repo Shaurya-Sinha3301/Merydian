@@ -27138,5 +27138,205 @@
     "cost": 58,
     "reliability": 1.0,
     "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2715",
+    "from": "LOC_003",
+    "to": "LOC_008",
+    "mode": "METRO",
+    "duration_min": 26,
+    "cost": 21,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2716",
+    "from": "LOC_003",
+    "to": "LOC_013",
+    "mode": "METRO",
+    "duration_min": 22,
+    "cost": 18,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2717",
+    "from": "LOC_003",
+    "to": "LOC_014",
+    "mode": "METRO",
+    "duration_min": 16,
+    "cost": 13,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2718",
+    "from": "LOC_003",
+    "to": "LOC_018",
+    "mode": "METRO",
+    "duration_min": 11,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2719",
+    "from": "LOC_008",
+    "to": "LOC_003",
+    "mode": "METRO",
+    "duration_min": 26,
+    "cost": 21,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2720",
+    "from": "LOC_008",
+    "to": "LOC_013",
+    "mode": "METRO",
+    "duration_min": 8,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2721",
+    "from": "LOC_008",
+    "to": "LOC_014",
+    "mode": "METRO",
+    "duration_min": 11,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2722",
+    "from": "LOC_008",
+    "to": "LOC_018",
+    "mode": "METRO",
+    "duration_min": 16,
+    "cost": 13,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2723",
+    "from": "LOC_013",
+    "to": "LOC_003",
+    "mode": "METRO",
+    "duration_min": 22,
+    "cost": 18,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2724",
+    "from": "LOC_013",
+    "to": "LOC_008",
+    "mode": "METRO",
+    "duration_min": 8,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2725",
+    "from": "LOC_013",
+    "to": "LOC_014",
+    "mode": "METRO",
+    "duration_min": 8,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2726",
+    "from": "LOC_013",
+    "to": "LOC_018",
+    "mode": "METRO",
+    "duration_min": 11,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2727",
+    "from": "LOC_014",
+    "to": "LOC_003",
+    "mode": "METRO",
+    "duration_min": 16,
+    "cost": 13,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2728",
+    "from": "LOC_014",
+    "to": "LOC_008",
+    "mode": "METRO",
+    "duration_min": 11,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2729",
+    "from": "LOC_014",
+    "to": "LOC_013",
+    "mode": "METRO",
+    "duration_min": 8,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2730",
+    "from": "LOC_014",
+    "to": "LOC_018",
+    "mode": "METRO",
+    "duration_min": 8,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2731",
+    "from": "LOC_018",
+    "to": "LOC_003",
+    "mode": "METRO",
+    "duration_min": 11,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2732",
+    "from": "LOC_018",
+    "to": "LOC_008",
+    "mode": "METRO",
+    "duration_min": 16,
+    "cost": 13,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2733",
+    "from": "LOC_018",
+    "to": "LOC_013",
+    "mode": "METRO",
+    "duration_min": 11,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
+  },
+  {
+    "edge_id": "EDGE_M_2734",
+    "from": "LOC_018",
+    "to": "LOC_014",
+    "mode": "METRO",
+    "duration_min": 8,
+    "cost": 10,
+    "reliability": 0.95,
+    "available": true
   }
 ]

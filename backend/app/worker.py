@@ -363,3 +363,101 @@ def _process_single_hotel(
         "total_fare": selected_room.get("TotalFare"),
         "currency": selected_hotel.get("Currency", "USD"),
     }
+
+
+@celery_app.task(name="app.worker.process_event_task", bind=True, max_retries=3)
+def process_event_task(self, event_id: str):
+    """
+    Async task to process a system event (e.g., feedback, POI request).
+    Dispatches to AgentService.
+    """
+    from app.services.agent_service import AgentService
+    from app.services.event_service import EventService
+    from app.models.event import EventType, EventStatus
+
+    try:
+        # Get event
+        event = EventService.get_event_by_id(UUID(event_id))
+        if not event:
+            logger.error(f"Event {event_id} not found during async processing")
+            return
+
+        # Double check status to avoid reprocessing
+        if event.status in (EventStatus.COMPLETED, EventStatus.FAILED):
+            return
+
+        logger.info(f"Processing event {event_id} (type={event.event_type})")
+
+        # Dispatch based on type
+        if event.event_type == EventType.FEEDBACK:
+            AgentService.process_feedback_event(event_id)
+        elif event.event_type == EventType.POI_REQUEST:
+            AgentService.process_poi_request_event(event_id)
+        elif event.event_type == EventType.INCIDENT:
+            # Placeholder for incident processing
+            EventService.update_event_status(
+                UUID(event_id), 
+                EventStatus.COMPLETED, 
+                {"message": "Incident logged (no action taken)"}
+            )
+        else:
+            logger.warning(f"Unknown event type {event.event_type} for event {event_id}")
+
+    except Exception as e:
+        logger.error(f"Failed to process event {event_id}: {e}")
+        # Retry with exponential backoff
+        raise self.retry(exc=e, countdown=2 ** self.request.retries)
+
+
+@celery_app.task(name="app.worker.process_notification_task")
+def process_notification_task(
+    notification_type: str,
+    payload: dict,
+    target_users: list = None,
+    target_agents: list = None
+):
+    """
+    Async task to send notifications via Redis pub/sub → WebSocket.
+    
+    Args:
+        notification_type: Type identifier (e.g., 'itinerary_update')
+        payload: Data content
+        target_users: List of user_ids to notify via 'traveller_notifications'
+        target_agents: List of agent_ids to notify via 'booking_notifications'
+    """
+    try:
+        redis = get_redis()
+        timestamp = datetime.utcnow().isoformat()
+        
+        # 1. Notify Travellers
+        if target_users:
+            for user_id in target_users:
+                msg = {
+                    "type": notification_type,
+                    "user_id": str(user_id),
+                    "timestamp": timestamp,
+                    **payload
+                }
+                redis.publish("traveller_notifications", json.dumps(msg, default=str))
+                logger.info(f"Notification sent to traveller {user_id}: {notification_type}")
+        
+        # 2. Notify Agents
+        if target_agents:
+            for agent_id in target_agents:
+                msg = {
+                    "type": notification_type,
+                    "agent_id": str(agent_id),
+                    "timestamp": timestamp,
+                    **payload
+                }
+                redis.publish("booking_notifications", json.dumps(msg, default=str))
+                logger.info(f"Notification sent to agent {agent_id}: {notification_type}")
+                
+        # 3. Broadcast if no targets specified (optional, handle with care)
+        if not target_users and not target_agents:
+            # Broadcast to all travellers associated with the payload's family?
+            # For now, just log warning
+            logger.warning("Notification task received with no targets")
+
+    except Exception as e:
+        logger.error(f"Failed to process notification task: {e}")

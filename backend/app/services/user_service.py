@@ -4,10 +4,7 @@ from uuid import UUID, uuid4
 from sqlmodel import Session, select
 from app.core.db import engine
 from app.models.user import User
-
-# Use pbkdf2_sha256 for better compatibility
-from passlib.context import CryptContext
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+from app.core.security import verify_password, get_password_hash
 
 
 class UserService:
@@ -16,12 +13,12 @@ class UserService:
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash."""
-        return pwd_context.verify(plain_password, hashed_password)
+        return verify_password(plain_password, hashed_password)
     
     @staticmethod
     def get_password_hash(password: str) -> str:
         """Hash a password."""
-        return pwd_context.hash(password)
+        return get_password_hash(password)
     
     @staticmethod
     def get_user_by_email(email: str) -> Optional[User]:
@@ -88,6 +85,35 @@ class UserService:
             session.commit()
             session.refresh(user)
             
+            return user
+    
+    @staticmethod
+    def update_user_profile(user_id: UUID, update_data) -> Optional[User]:
+        """
+        Update a user's profile fields.
+        
+        Args:
+            user_id: User ID
+            update_data: Pydantic model with fields to update
+            
+        Returns:
+            Updated User object, or None if not found
+        """
+        from datetime import datetime
+        
+        with Session(engine) as session:
+            user = session.get(User, user_id)
+            if not user:
+                return None
+            
+            update_dict = update_data.model_dump(exclude_unset=True)
+            for field, value in update_dict.items():
+                setattr(user, field, value)
+            
+            user.updated_at = datetime.utcnow()
+            session.add(user)
+            session.commit()
+            session.refresh(user)
             return user
     
     @staticmethod

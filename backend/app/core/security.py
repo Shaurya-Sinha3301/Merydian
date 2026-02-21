@@ -4,6 +4,7 @@ from jose import jwt
 from passlib.context import CryptContext
 from app.core.config import settings
 
+# Use bcrypt for password hashing (industry standard)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None, additional_claims: dict = {}) -> str:

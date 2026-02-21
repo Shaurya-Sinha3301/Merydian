@@ -32,12 +32,14 @@ class OptimizerAgent:
         # Data paths
         self.data_dir = self.ml_or_dir / "data"
         self.locations_path = self.data_dir / "locations.json"
+        self.hotels_path = self.data_dir / "hotels.json"
         self.transport_path = self.data_dir / "transport_graph.json"
-        self.base_itinerary_path = self.data_dir / "base_itinerary_final.json"
+        self.base_itinerary_path = self.data_dir / "base_itinerary_clustered.json"
         self.base_prefs_path = self.data_dir / "family_preferences_3fam_strict.json"
         
-        # Load locations map once
+        # Load locations map (merge locations and hotels)
         self.locations_map = load_locations_map(self.locations_path)
+        self.locations_map.update(load_locations_map(self.hotels_path))
         
         logger.info("OptimizerAgent initialized with real optimizer")
     
@@ -88,7 +90,9 @@ class OptimizerAgent:
         current_prefs_path: Optional[Path] = None,
         session_manager: Optional[Any] = None,  # TripSessionManager
         trip_id: Optional[str] = None,
-        current_solution: Optional[Dict] = None  # Existing trip solution for re-opt
+        current_solution: Optional[Dict] = None,  # Existing trip solution for re-opt
+        user_input: str = "",  # User's natural language request
+        start_day: int = 0  # 0-indexed day to start optimization from (freeze prior days)
     ) -> Dict[str, Path]:
         """
         Run the optimizer with updated preferences/constraints.
@@ -98,6 +102,7 @@ class OptimizerAgent:
             constraints: Updated constraints (currently unused)
             base_solution_path: Path to baseline solution for comparison (optional)
             output_dir: Directory to save outputs (optional, defaults to agents/tests/run_*)
+            user_input: Original user text for explainability context
         
         Returns:
             Dictionary with paths to generated files
@@ -107,7 +112,7 @@ class OptimizerAgent:
         logger.info("Running optimizer with real ItineraryOptimizer...")
         
         # Determine output directory
-        context_start_day = 0 # Default initialization
+        context_start_day = start_day  # Freeze days before this index
         if output_dir:
             run_dir = Path(output_dir)
             run_dir.mkdir(parents=True, exist_ok=True)
@@ -205,6 +210,7 @@ class OptimizerAgent:
                 from ml_or.itinerary_optimizer import ItineraryOptimizer
                 temp_optimizer = ItineraryOptimizer(
                     locations_file=str(self.locations_path),
+                    hotels_file=str(self.hotels_path),
                     transport_file=str(self.transport_path),
                     base_itinerary_file=str(self.base_itinerary_path),
                     family_prefs_file=str(self.base_prefs_path)
@@ -241,6 +247,28 @@ class OptimizerAgent:
                 logger.info(f"  [CONSTRAINT] Enforcing placement on Day {best_day + 1}")
         
         # ═══════════════════════════════════════════════════════════════
+        # STEP 1.8: Hotel & Skeleton Backbone Optimization
+        # ═══════════════════════════════════════════════════════════════
+        logger.info("Running HotelSkeletonOptimizer...")
+        
+        from ml_or.hotel_optimizer import HotelSkeletonOptimizer
+        
+        # Initialize Hotel Optimizer
+        # Uses updated preferences to respect constraints
+        hotel_opt = HotelSkeletonOptimizer(
+            locations_file=str(self.locations_path),
+            hotels_file=str(self.hotels_path),
+            base_itinerary_file=str(self.base_itinerary_path),
+            family_prefs_file=str(updated_prefs_path)
+        )
+        
+        # Optimize Hotel Backbone
+        backbone_file = run_dir / "optimized_backbone.json"
+        hotel_opt.optimize(output_file=str(backbone_file))
+        
+        logger.info(f"Hotel backbone saved to: {backbone_file}")
+
+        # ═══════════════════════════════════════════════════════════════
         # STEP 2: Initialize and Run Optimizer
         # ═══════════════════════════════════════════════════════════════
         
@@ -276,9 +304,11 @@ class OptimizerAgent:
         logger.info("Initializing ItineraryOptimizer...")
         optimizer = ItineraryOptimizer(
             locations_file=str(self.locations_path),
+            hotels_file=str(self.hotels_path),
             transport_file=transport_file_to_use,
             base_itinerary_file=str(self.base_itinerary_path),
-            family_prefs_file=str(updated_prefs_path)
+            family_prefs_file=str(updated_prefs_path),
+            optimized_backbone_file=str(backbone_file)  # Incorporate Backbone
         )
         
         # Decide: Single-day re-opt or full trip?
@@ -455,7 +485,7 @@ class OptimizerAgent:
         payloads = builder.build_payloads(
             enriched_diffs,
             optimizer.locations,
-            audience="TRAVEL_AGENT"
+            user_input=user_input
         )
         
         logger.info(f"Generated {len(payloads)} explanation payload(s)")

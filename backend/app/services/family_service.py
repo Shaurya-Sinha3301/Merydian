@@ -115,3 +115,49 @@ class FamilyService:
                 statement = statement.where(Family.is_active == True)
             results = session.exec(statement)
             return list(results.all())
+
+    @staticmethod
+    def get_family_members(family_id: UUID) -> list:
+        """Get all users belonging to a family."""
+        from app.models.user import User
+        with Session(engine) as session:
+            statement = select(User).where(User.family_id == family_id)
+            results = session.exec(statement)
+            return list(results.all())
+
+    @staticmethod
+    def add_member(family_id: UUID, user_id: UUID):
+        """
+        Add a user to a family by setting their family_id.
+        
+        Returns the updated User, or None if user not found.
+        """
+        from app.models.user import User
+        with Session(engine) as session:
+            user = session.get(User, user_id)
+            if not user:
+                return None
+            user.family_id = family_id
+            user.updated_at = datetime.utcnow()
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            return user
+
+    @staticmethod
+    def remove_member(family_id: UUID, user_id: UUID) -> bool:
+        """
+        Remove a user from a family by clearing their family_id.
+        
+        Returns True if successful, False if user not in this family.
+        """
+        from app.models.user import User
+        with Session(engine) as session:
+            user = session.get(User, user_id)
+            if not user or user.family_id != family_id:
+                return False
+            user.family_id = None
+            user.updated_at = datetime.utcnow()
+            session.add(user)
+            session.commit()
+            return True
