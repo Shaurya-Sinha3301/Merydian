@@ -149,8 +149,29 @@ export default function GroupsView({ tripId }: { tripId: string }) {
     // Voyageur AI floating panel
     const [aiOpen, setAiOpen] = useState(false);
 
-    // Chat minimise/expand
-    const [chatOpen, setChatOpen] = useState(true);
+    // Panels minimise/expand
+    const [timelineOpen, setTimelineOpen] = useState(true);
+    const [chatOpen, setChatOpen] = useState(false);
+
+    const toggleTimeline = () => {
+        if (timelineOpen) {
+            setTimelineOpen(false);
+            setChatOpen(true);
+        } else {
+            setTimelineOpen(true);
+            setChatOpen(false);
+        }
+    };
+
+    const toggleChat = () => {
+        if (chatOpen) {
+            setChatOpen(false);
+            setTimelineOpen(true);
+        } else {
+            setChatOpen(true);
+            setTimelineOpen(false);
+        }
+    };
 
     // Map expand modal
     const [mapExpanded, setMapExpanded] = useState(false);
@@ -295,7 +316,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
             <main className="flex-1 flex flex-col gap-4 p-4 min-w-0 overflow-hidden">
 
                 {/* Activity Timeline */}
-                <div className="flex-[1.2] bg-[#faf9f6] border border-stone-200 rounded-xl shadow-sm flex flex-col overflow-hidden">
+                <div className={cn('min-h-0 bg-[#faf9f6] border border-stone-200 rounded-xl shadow-sm flex flex-col overflow-hidden transition-all duration-300', timelineOpen ? 'flex-[1.2]' : 'flex-[0_0_auto]')}>
                     <div className="flex justify-between items-center px-5 py-3.5 border-b border-stone-100 bg-[#faf9f6] shrink-0">
                         <div className="flex items-center gap-3">
                             <div className="p-1.5 bg-stone-100 rounded text-stone-600">
@@ -303,69 +324,80 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                             </div>
                             <h2 className="text-sm font-bold text-stone-800 tracking-wide uppercase">Activity Timeline</h2>
                         </div>
-                        <div className="flex gap-1.5 bg-stone-100/50 p-1 rounded-md border border-stone-100">
-                            {(['all', 'requests', 'reviews'] as LogFilter[]).map(f => (
-                                <button
-                                    key={f}
-                                    onClick={() => setLogFilter(f)}
-                                    className={cn(
-                                        'px-3 py-1 text-xs font-semibold capitalize transition-colors rounded',
-                                        logFilter === f
-                                            ? 'bg-white shadow-sm text-stone-700 border border-stone-200'
-                                            : 'text-stone-500 hover:text-stone-700'
-                                    )}
-                                >
-                                    {f.charAt(0).toUpperCase() + f.slice(1)}
-                                </button>
-                            ))}
+                        <div className="flex items-center gap-2">
+                            <div className="flex gap-1.5 bg-stone-100/50 p-1 rounded-md border border-stone-100 mr-2">
+                                {(['all', 'requests', 'reviews'] as LogFilter[]).map(f => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setLogFilter(f)}
+                                        className={cn(
+                                            'px-3 py-1 text-xs font-semibold capitalize transition-colors rounded',
+                                            logFilter === f
+                                                ? 'bg-white shadow-sm text-stone-700 border border-stone-200'
+                                                : 'text-stone-500 hover:text-stone-700'
+                                        )}
+                                    >
+                                        {f.charAt(0).toUpperCase() + f.slice(1)}
+                                    </button>
+                                ))}
+                            </div>
+                            <button
+                                onClick={toggleTimeline}
+                                className="p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                                title={timelineOpen ? 'Minimise timeline' : 'Expand timeline'}
+                            >
+                                {timelineOpen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                            </button>
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto scrollbar-hide p-5 space-y-3 bg-stone-100/20">
-                        {filteredLog.map(item => {
-                            const Icon = activityIcons[item.id] ?? Clock;
-                            return (
-                                <div key={item.id} className="group bg-white border border-stone-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden">
-                                    {/* Left accent bar */}
-                                    <div className={cn('absolute left-0 top-0 bottom-0 w-1', item.accentColor)} />
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-start gap-4">
-                                            <div className="mt-0.5 bg-stone-50 text-stone-500 p-2 rounded-lg shrink-0">
-                                                <Icon className="w-4 h-4" />
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h3 className="text-sm font-bold text-stone-800">{item.title}</h3>
-                                                    <span className="bg-stone-100 text-stone-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-stone-200">{item.badge}</span>
+                    {timelineOpen && (
+                        <div className="flex-1 overflow-y-auto scrollbar-hide p-5 space-y-3 bg-stone-100/20">
+                            {filteredLog.map(item => {
+                                const Icon = activityIcons[item.id] ?? Clock;
+                                return (
+                                    <div key={item.id} className="group bg-white border border-stone-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden">
+                                        {/* Left accent bar */}
+                                        <div className={cn('absolute left-0 top-0 bottom-0 w-1', item.accentColor)} />
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-start gap-4">
+                                                <div className="mt-0.5 bg-stone-50 text-stone-500 p-2 rounded-lg shrink-0">
+                                                    <Icon className="w-4 h-4" />
                                                 </div>
-                                                <p className="text-xs text-stone-500 font-medium">{item.time}</p>
-                                                {item.body && (
-                                                    <p className="text-sm text-stone-600 bg-stone-50 p-2.5 rounded-lg border border-stone-100 mt-2 italic">
-                                                        {item.body}
-                                                    </p>
-                                                )}
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <h3 className="text-sm font-bold text-stone-800">{item.title}</h3>
+                                                        <span className="bg-stone-100 text-stone-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-stone-200">{item.badge}</span>
+                                                    </div>
+                                                    <p className="text-xs text-stone-500 font-medium">{item.time}</p>
+                                                    {item.body && (
+                                                        <p className="text-sm text-stone-600 bg-stone-50 p-2.5 rounded-lg border border-stone-100 mt-2 italic">
+                                                            {item.body}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
+                                            {/* Hover actions */}
+                                            {item.actionable && (
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                                    <button className="px-3 py-1.5 bg-[#4f5d4e] text-white text-xs font-semibold rounded-md hover:bg-[#3d4a3c] transition-colors flex items-center gap-1">
+                                                        <CheckCircle className="w-3 h-3" /> Approve
+                                                    </button>
+                                                    <button className="px-3 py-1.5 border border-stone-200 bg-white text-stone-600 text-xs font-semibold rounded-md hover:bg-stone-50 transition-colors flex items-center gap-1">
+                                                        <XCircle className="w-3 h-3" /> Reject
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
-                                        {/* Hover actions */}
-                                        {item.actionable && (
-                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                                <button className="px-3 py-1.5 bg-[#4f5d4e] text-white text-xs font-semibold rounded-md hover:bg-[#3d4a3c] transition-colors flex items-center gap-1">
-                                                    <CheckCircle className="w-3 h-3" /> Approve
-                                                </button>
-                                                <button className="px-3 py-1.5 border border-stone-200 bg-white text-stone-600 text-xs font-semibold rounded-md hover:bg-stone-50 transition-colors flex items-center gap-1">
-                                                    <XCircle className="w-3 h-3" /> Reject
-                                                </button>
-                                            </div>
-                                        )}
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
 
                 {/* Live Chat Panel */}
-                <div className={cn('bg-[#faf9f6] border border-stone-200 rounded-xl shadow-lg flex flex-col overflow-hidden transition-all duration-300', chatOpen ? 'flex-1' : 'flex-[0_0_auto]')}>
+                <div className={cn('min-h-0 bg-[#faf9f6] border border-stone-200 rounded-xl shadow-lg flex flex-col overflow-hidden transition-all duration-300', chatOpen ? 'flex-1' : 'flex-[0_0_auto]')}>
                     {/* Chat header */}
                     <div className="px-5 py-3 border-b border-stone-100 bg-[#faf9f6] flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-3">
@@ -382,7 +414,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                 Secure Channel
                             </span>
                             <button
-                                onClick={() => setChatOpen(o => !o)}
+                                onClick={toggleChat}
                                 className="p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
                                 title={chatOpen ? 'Minimise chat' : 'Expand chat'}
                             >
