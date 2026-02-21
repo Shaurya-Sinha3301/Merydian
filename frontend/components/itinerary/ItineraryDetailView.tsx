@@ -372,28 +372,29 @@ const DAYS: Day[] = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** Tiny badge for category type */
-function CategoryTag({ category, categoryBg, categoryText, categoryBorder }: {
-    category: string;
-    categoryBg: string;
-    categoryText: string;
-    categoryBorder: string;
-}) {
+/** Category tag — monochrome black outline, no colour */
+function CategoryTag({ category }: { category: string }) {
     return (
-        <span className={cn(
-            'inline-flex items-center px-1 py-px rounded-sm font-bold uppercase tracking-wider',
-            'text-[0.6rem] leading-none border',
-            categoryBg, categoryText, categoryBorder,
-        )}>
+        <span className="inline-flex items-center px-1.5 py-px font-bold uppercase tracking-wider text-[0.6rem] leading-none border border-gray-900 text-gray-900 bg-white">
             {category}
         </span>
     );
 }
 
-/** Tiny family allocation tag */
+/** Family tag — colour-coded per family for at-a-glance branching */
+const FAM_COLORS: Record<string, string> = {
+    'FAM A': 'bg-blue-50 text-blue-700 border-blue-400',
+    'FAM B': 'bg-amber-50 text-amber-700 border-amber-400',
+    'FAM C': 'bg-rose-50 text-rose-700 border-rose-400',
+};
+
 function FamTag({ code }: { code: string }) {
+    const color = FAM_COLORS[code] ?? 'bg-slate-50 text-slate-600 border-slate-300';
     return (
-        <span className="inline-flex items-center px-1 py-px rounded-sm font-bold uppercase tracking-wider text-[0.55rem] leading-none border bg-slate-50 text-slate-500 border-slate-200">
+        <span className={cn(
+            'inline-flex items-center px-1.5 py-0.5 font-bold uppercase tracking-wide text-[0.65rem] leading-none border',
+            color,
+        )}>
             {code}
         </span>
     );
@@ -426,7 +427,7 @@ function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) 
             compact ? 'w-[480px] shrink-0' : 'flex-1 min-w-0',
         )}>
             {/* Image */}
-            <div className="w-24 h-full flex-shrink-0 relative border border-slate-100 rounded-sm overflow-hidden bg-slate-100">
+            <div className="w-24 h-full flex-shrink-0 relative border border-slate-200 overflow-hidden bg-slate-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src={card.imageUrl}
@@ -443,12 +444,7 @@ function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) 
                         <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-tight leading-none truncate">
                             {card.title}
                         </h4>
-                        <CategoryTag
-                            category={card.category}
-                            categoryBg={card.categoryBg}
-                            categoryText={card.categoryText}
-                            categoryBorder={card.categoryBorder}
-                        />
+                        <CategoryTag category={card.category} />
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-2">
                         <span className="font-mono text-[9px] text-gray-400">{card.evtId}</span>
