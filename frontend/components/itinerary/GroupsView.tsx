@@ -516,12 +516,12 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                         onClick={() => setMapExpanded(false)}
                     >
                         <div
-                            className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-stone-200"
+                            className="relative bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-stone-200"
                             style={{ width: '70vw', height: '65vh' }}
                             onClick={e => e.stopPropagation()}
                         >
-                            {/* Modal header */}
-                            <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2.5 bg-white/95 backdrop-blur border-b border-stone-200">
+                            {/* Modal header - locked at top */}
+                            <div className="flex items-center justify-between px-4 py-3 bg-white/95 backdrop-blur border-b border-stone-200 z-10 shrink-0">
                                 <div className="flex items-center gap-2">
                                     <span className="w-2 h-2 bg-[#4a647c] rounded-full" />
                                     <span className="text-xs font-bold text-stone-700 uppercase tracking-wider">Pool Sector 04</span>
@@ -533,15 +533,18 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                     <Minimize2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>
-                            {/* Full-color map — extra height to clip OSM footer */}
-                            <div className="w-full h-[calc(100%+40px)] pt-10">
-                                <iframe
-                                    src="https://www.openstreetmap.org/export/embed.html?bbox=73.72%2C15.52%2C73.80%2C15.60&layer=mapnik&marker=15.56%2C73.76"
-                                    width="100%" height="100%"
-                                    style={{ border: 'none', filter: 'sepia(30%) saturate(70%) brightness(1.05)' }}
-                                    scrolling="no"
-                                    title="Trip Location Map Expanded"
-                                />
+
+                            {/* Full-color map — pushed down 45px outside parent to clip OSM footer */}
+                            <div className="flex-1 relative bg-stone-50 z-0 pointer-events-auto overflow-hidden">
+                                <div className="absolute top-0 left-0 right-0 bottom-[-45px]">
+                                    <iframe
+                                        src="https://www.openstreetmap.org/export/embed.html?bbox=73.72%2C15.52%2C73.80%2C15.60&layer=mapnik&marker=15.56%2C73.76"
+                                        width="100%" height="100%"
+                                        style={{ border: 'none', filter: 'sepia(30%) saturate(70%) brightness(1.05)' }}
+                                        scrolling="no"
+                                        title="Trip Location Map Expanded"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
