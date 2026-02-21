@@ -20,7 +20,15 @@ export default function LoginPage() {
     return typeParam === 'agent' ? 'agent' : 'customer';
   });
 
-  const handleLogin = (e: React.MouseEvent) => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    rememberMe: false
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault();
     // Navigate to appropriate dashboard based on user type
     router.push(REDIRECT_ROUTES[userType]);
@@ -54,8 +62,8 @@ export default function LoginPage() {
             type="button"
             onClick={() => setUserType('customer')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${userType === 'customer'
-                ? 'bg-[#FDFDFF] text-[#212121] shadow-sm'
-                : 'text-[#212121]/70 hover:text-[#212121]'
+              ? 'bg-[#FDFDFF] text-[#212121] shadow-sm'
+              : 'text-[#212121]/70 hover:text-[#212121]'
               }`}
           >
             Customer
@@ -64,8 +72,8 @@ export default function LoginPage() {
             type="button"
             onClick={() => setUserType('agent')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${userType === 'agent'
-                ? 'bg-[#FDFDFF] text-[#212121] shadow-sm'
-                : 'text-[#212121]/70 hover:text-[#212121]'
+              ? 'bg-[#FDFDFF] text-[#212121] shadow-sm'
+              : 'text-[#212121]/70 hover:text-[#212121]'
               }`}
           >
             Travel Agent
@@ -73,7 +81,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-[#212121] mb-2">
               Email Address
