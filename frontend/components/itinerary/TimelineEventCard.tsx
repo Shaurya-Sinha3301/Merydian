@@ -7,9 +7,20 @@ import TicketModal from './TicketModal';
 interface TimelineEventCardProps {
   event: TimelineEvent;
   isLast?: boolean;
+  isCustomerView?: boolean;
+  dayNumber?: number;
+  dayTitle?: string;
+  onSuggestChange?: (eventId: string, eventTitle: string, preselectedAction?: string) => void;
 }
 
-export default function TimelineEventCard({ event, isLast = false }: TimelineEventCardProps) {
+export default function TimelineEventCard({ 
+  event, 
+  isLast = false, 
+  isCustomerView = false,
+  dayNumber,
+  dayTitle,
+  onSuggestChange 
+}: TimelineEventCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
 
@@ -112,6 +123,100 @@ export default function TimelineEventCard({ event, isLast = false }: TimelineEve
                 <span className="px-3 py-1.5 text-xs font-bold bg-gray-100 text-black rounded-lg">{event.meal.mealType}</span>
               )}
             </div>
+
+            {/* Customer Suggestion Buttons */}
+            {isCustomerView && onSuggestChange && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                {/* Only show suggestions for activities and meals */}
+                {(event.type === 'activity' || event.type === 'meal') ? (
+                  <>
+                    <p className="text-xs font-semibold text-gray-500 mb-2">Quick Actions:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSuggestChange(event.id, event.title, 'more-adventure');
+                        }}
+                        className="px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5.05 3.636a1 1 0 010 1.414 7 7 0 000 9.9 1 1 0 11-1.414 1.414 9 9 0 010-12.728 1 1 0 011.414 0zm9.9 0a1 1 0 011.414 0 9 9 0 010 12.728 1 1 0 11-1.414-1.414 7 7 0 000-9.9 1 1 0 010-1.414zM7.879 6.464a1 1 0 010 1.414 3 3 0 000 4.243 1 1 0 11-1.415 1.414 5 5 0 010-7.07 1 1 0 011.415 0zm4.242 0a1 1 0 011.415 0 5 5 0 010 7.072 1 1 0 01-1.415-1.415 3 3 0 000-4.242 1 1 0 010-1.415zM10 9a1 1 0 011 1v.01a1 1 0 11-2 0V10a1 1 0 011-1z" clipRule="evenodd"/>
+                        </svg>
+                        More Adventurous
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSuggestChange(event.id, event.title, 'replace-activity');
+                        }}
+                        className="px-3 py-1.5 text-xs font-semibold bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors flex items-center gap-1.5"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+                        </svg>
+                        Replace This
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSuggestChange(event.id, event.title, 'change-timing');
+                        }}
+                        className="px-3 py-1.5 text-xs font-semibold bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors flex items-center gap-1.5"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
+                        </svg>
+                        Change Time
+                      </button>
+                      {event.type === 'activity' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSuggestChange(event.id, event.title, 'remove-event');
+                          }}
+                          className="px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-1.5"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
+                          </svg>
+                          Remove
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSuggestChange(event.id, event.title);
+                        }}
+                        className="px-3 py-1.5 text-xs font-semibold bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1.5"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"/>
+                        </svg>
+                        Other
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <svg className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold text-gray-700 mb-1">
+                          {event.type === 'transport' ? 'Transport Booking' : 'Accommodation Booking'}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {event.type === 'transport' 
+                            ? 'For changes to flights or transport, please contact your travel agent directly.'
+                            : 'For changes to hotel bookings, please contact your travel agent directly.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Expanded Details */}
             {isExpanded && (

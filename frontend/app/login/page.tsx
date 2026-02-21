@@ -13,7 +13,7 @@ const REDIRECT_ROUTES = {
 export default function LoginPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   // Initialize user type from URL parameter or default to 'customer'
   const [userType, setUserType] = useState<'customer' | 'agent'>(() => {
     const typeParam = searchParams.get('type');
@@ -53,22 +53,20 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setUserType('customer')}
-            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
-              userType === 'customer'
+            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${userType === 'customer'
                 ? 'bg-[#FDFDFF] text-[#212121] shadow-sm'
                 : 'text-[#212121]/70 hover:text-[#212121]'
-            }`}
+              }`}
           >
             Customer
           </button>
           <button
             type="button"
             onClick={() => setUserType('agent')}
-            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
-              userType === 'agent'
+            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${userType === 'agent'
                 ? 'bg-[#FDFDFF] text-[#212121] shadow-sm'
                 : 'text-[#212121]/70 hover:text-[#212121]'
-            }`}
+              }`}
           >
             Travel Agent
           </button>
@@ -126,6 +124,7 @@ export default function LoginPage() {
             <button
               onClick={handleLogin}
               className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center"
+
             >
               Login to Customer Portal
             </button>
