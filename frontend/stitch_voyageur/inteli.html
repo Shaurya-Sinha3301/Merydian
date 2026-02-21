@@ -2,7 +2,7 @@
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Advanced Intelligence Manifest V4</title>
+<title>Strategic Agency Intelligence Hub</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
@@ -40,16 +40,12 @@
             border-color: #000;
             box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
         }
-        .blueprint-title {
-            font-weight: 300;
-            letter-spacing: -0.02em;
-        }
         .technical-label {
-            font-size: 10px;
+            font-size: 14px;
             font-weight: 600;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            letter-spacing: 0.1em;
+            text-transform: capitalize;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
             margin-bottom: 6px;
             font-family: 'Inter', sans-serif;
         }
@@ -88,13 +84,14 @@
         .command-node-header {
             background: black;
             color: white;
-            padding: 8px 12px;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-family: 'Space Mono', monospace;
+            font-family: 'Inter', sans-serif;
             text-transform: uppercase;
             font-size: 11px;
+            font-weight: 600;
             letter-spacing: 0.05em;
         }
         .meter-container {
@@ -141,69 +138,81 @@
             stroke: black;
             stroke-width: 1.5;
         }
-        .radar-axis {
-            stroke: #e5e5e5;
-            stroke-width: 1;
-            stroke-dasharray: 2,2;
-        }
         .nav-pill {
-            @apply px-4 py-1.5 rounded-full text-xs font-medium transition-colors border border-transparent;
+            @apply px-5 py-2 rounded-full text-xs font-medium transition-all duration-200 border border-transparent;
         }
         .nav-pill.active {
-            @apply bg-black text-white border-black;
+            @apply bg-black text-white shadow-md;
         }
         .nav-pill:not(.active) {
-            @apply text-gray-500 hover:text-black hover:border-gray-200;
+            @apply text-gray-500 hover:text-black hover:bg-gray-50;
+        }.command-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .command-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .command-scroll::-webkit-scrollbar-thumb {
+            background: #ddd; 
+        }
+        .command-scroll::-webkit-scrollbar-thumb:hover {
+            background: #bbb; 
+        }
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
         }
     </style>
 </head>
 <body class="min-h-screen text-sm bg-white">
 <main class="w-full min-h-screen grid-bg p-6 md:p-10">
-<header class="w-full max-w-[1600px] mx-auto mb-10">
-<div class="flex flex-col md:flex-row justify-between items-center border-b border-gray-200 pb-4 mb-6">
-<div class="flex items-center gap-2">
-<div class="w-8 h-8 bg-black flex items-center justify-center text-white font-bold text-xs tracking-tighter">NX</div>
+<header class="w-full max-w-[1600px] mx-auto mb-12">
+<div class="flex flex-col md:flex-row justify-between items-center pb-4">
+<div class="flex items-center gap-4">
+<div class="h-10 w-10 bg-black flex items-center justify-center rounded-sm text-white font-bold text-lg tracking-tighter">NX</div>
 <div class="flex flex-col">
-<span class="font-bold text-lg leading-none tracking-tight">NexTravel</span>
-<span class="text-[10px] text-gray-400 uppercase tracking-widest font-mono">Precision Portal</span>
+<h1 class="font-bold text-xl leading-none tracking-tight text-gray-900">NexTravel</h1>
+<span class="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-mono mt-1">Strategy Dashboard</span>
 </div>
 </div>
-<nav class="flex items-center gap-2 bg-white p-1 rounded-full border border-gray-100 shadow-sm mt-4 md:mt-0">
+<nav class="flex items-center bg-white p-1.5 rounded-full border border-gray-100 shadow-sm mt-4 md:mt-0">
 <a class="nav-pill" href="#">Optimization</a>
-<a class="nav-pill" href="#">Groups</a>
-<a class="nav-pill" href="#">Bookings</a>
+<a class="nav-pill" href="#">Portfolio</a>
+<a class="nav-pill" href="#">Revenue</a>
 <a class="nav-pill active" href="#">Intelligence</a>
 </nav>
-<div class="flex items-center gap-4 mt-4 md:mt-0">
-<div class="flex flex-col items-end">
-<span class="text-xs font-bold">Admin Console</span>
-<span class="text-[10px] text-gray-500 font-mono">ID: AG-9921</span>
+<div class="flex items-center gap-6 mt-4 md:mt-0">
+<div class="text-right hidden sm:block">
+<span class="block text-xs font-bold text-gray-900">Lead Strategist Console</span>
+<span class="block text-[10px] text-gray-400 font-mono tracking-wide">ID: AG-9921</span>
 </div>
-<div class="h-8 w-8 rounded-full bg-gray-100 border border-gray-200"></div>
+<div class="h-10 w-10 rounded-full bg-gray-100 border border-gray-200 shadow-inner"></div>
 </div>
 </div>
 </header>
-<div class="max-w-[1600px] mx-auto grid grid-cols-12 gap-6">
-<div class="col-span-12 lg:col-span-8 flex flex-col gap-6">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div class="blueprint-card p-5 h-full">
-<div class="flex justify-between items-center mb-4">
+<div class="max-w-[1600px] mx-auto grid grid-cols-12 gap-8">
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="blueprint-card p-6 h-full">
+<div class="flex justify-between items-center mb-6">
 <span class="technical-label flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">view_quilt</span>
-                            Category Spend Distribution
-                        </span>
+<span class="material-symbols-outlined text-lg">view_quilt</span>
+                        Portfolio Expenditure Allocation
+                    </span>
 <span class="text-[10px] font-mono text-gray-400">Q3-2024</span>
 </div>
 <div class="treemap-container">
 <div class="treemap-item treemap-item-lg flex flex-col justify-between">
-<span class="text-[10px] font-bold uppercase tracking-wider">Flight Logistics</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Aviation Logistics</span>
 <div class="text-right">
 <span class="block text-xl font-mono font-bold">45%</span>
 <span class="text-[9px] text-gray-500">$45.2k</span>
 </div>
 </div>
 <div class="treemap-item flex flex-col justify-between">
-<span class="text-[9px] font-bold uppercase tracking-wider text-gray-600">Accommodation</span>
+<span class="text-[9px] font-bold uppercase tracking-wider text-gray-600">Premium Stay</span>
 <div class="text-right">
 <span class="block text-sm font-mono font-bold">30%</span>
 <span class="text-[8px] text-gray-500">$30.1k</span>
@@ -211,8 +220,8 @@
 </div>
 <div class="treemap-item flex flex-col justify-between">
 <div class="flex justify-between w-full">
-<span class="text-[8px] font-bold uppercase tracking-wider text-gray-500">Services</span>
-<span class="text-[8px] font-bold uppercase tracking-wider text-gray-500">Misc</span>
+<span class="text-[8px] font-bold uppercase tracking-wider text-gray-500">Curated</span>
+<span class="text-[8px] font-bold uppercase tracking-wider text-gray-500">Ancillary</span>
 </div>
 <div class="flex justify-between w-full items-end mt-1">
 <div>
@@ -225,16 +234,16 @@
 </div>
 </div>
 </div>
-<div class="blueprint-card p-5 h-full">
-<div class="flex justify-between items-center mb-4">
+<div class="blueprint-card p-6 h-full">
+<div class="flex justify-between items-center mb-6">
 <span class="technical-label flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">show_chart</span>
-                            Daily Financial Flux
-                        </span>
+<span class="material-symbols-outlined text-lg">show_chart</span>
+                        Real-Time Revenue Performance
+                    </span>
 <div class="flex gap-2">
-<span class="text-[9px] font-mono px-1 border border-black bg-black text-white">D</span>
-<span class="text-[9px] font-mono px-1 border border-gray-200 text-gray-400">W</span>
-<span class="text-[9px] font-mono px-1 border border-gray-200 text-gray-400">M</span>
+<span class="text-[9px] font-mono px-1.5 border border-black bg-black text-white">D</span>
+<span class="text-[9px] font-mono px-1.5 border border-gray-200 text-gray-400">W</span>
+<span class="text-[9px] font-mono px-1.5 border border-gray-200 text-gray-400">M</span>
 </div>
 </div>
 <div class="h-[200px] w-full relative border-b border-l border-black">
@@ -250,7 +259,7 @@
 <circle cx="60" cy="40" fill="black" r="1.5"></circle>
 <circle cx="100" cy="20" fill="red" r="2" stroke="white" stroke-width="0.5"></circle>
 </svg>
-<div class="absolute -bottom-5 w-full flex justify-between text-[9px] font-mono text-gray-500">
+<div class="absolute -bottom-6 w-full flex justify-between text-[9px] font-mono text-gray-500">
 <span>00:00</span>
 <span>06:00</span>
 <span>12:00</span>
@@ -260,17 +269,17 @@
 </div>
 </div>
 </div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<div class="blueprint-card p-5 h-full flex flex-col">
-<div class="flex justify-between items-center mb-4">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="blueprint-card p-6 h-full flex flex-col">
+<div class="flex justify-between items-center mb-6">
 <span class="technical-label flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">grid_on</span>
-                            Margin Efficiency
-                        </span>
+<span class="material-symbols-outlined text-lg">grid_on</span>
+                        Regional Yield Efficiency
+                    </span>
 <span class="text-[9px] font-mono text-gray-400 border border-gray-200 px-1">HM-01</span>
 </div>
 <div class="flex-1 flex flex-col justify-center">
-<div class="heatmap-grid w-full aspect-square border border-black mb-2">
+<div class="heatmap-grid w-full aspect-square border border-black mb-3">
 <div class="heatmap-cell bg-black/90"><span>JP</span></div>
 <div class="heatmap-cell bg-black/80"><span>UK</span></div>
 <div class="heatmap-cell bg-black/40"><span>US</span></div>
@@ -289,21 +298,21 @@
 <div class="heatmap-cell bg-white text-black"><span>MX</span></div>
 </div>
 <div class="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-wider mt-2">
-<span>Lo Margin</span>
+<span>Base Yield</span>
 <div class="h-1 w-20 bg-gradient-to-r from-white via-gray-400 to-black border border-gray-200"></div>
-<span>Hi Margin</span>
+<span>Optimal Yield</span>
 </div>
 </div>
 </div>
-<div class="blueprint-card p-5 h-full flex flex-col">
-<div class="flex justify-between items-center mb-4">
+<div class="blueprint-card p-6 h-full flex flex-col">
+<div class="flex justify-between items-center mb-6">
 <span class="technical-label flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">trending_up</span>
-                            Booking Velocity
-                        </span>
-<span class="text-[9px] font-mono text-green-600">+12%</span>
+<span class="material-symbols-outlined text-lg">trending_up</span>
+                        Acquisition Velocity
+                    </span>
+<span class="text-[9px] font-mono text-green-600">+12.4%</span>
 </div>
-<div class="flex-1 relative border border-gray-200 bg-gray-50/50">
+<div class="flex-1 relative border border-gray-200 bg-gray-50/50 min-h-[160px]">
 <div class="absolute inset-0 grid grid-cols-6 grid-rows-4">
 <div class="border-r border-gray-200/50"></div><div class="border-r border-gray-200/50"></div>
 <div class="border-r border-gray-200/50"></div><div class="border-r border-gray-200/50"></div>
@@ -323,21 +332,21 @@
 </svg>
 </div>
 <div class="flex justify-between mt-3 text-[9px] font-mono text-gray-400">
-<span>PREV</span>
-<span>NOW</span>
+<span>PRIOR</span>
+<span>CURRENT</span>
 </div>
 <div class="mt-2 text-[9px] font-mono text-gray-500 border-t border-gray-100 pt-2">
 <span class="text-black font-bold">AVG:</span> 42/hr <span class="mx-1">|</span> <span class="text-black font-bold">PEAK:</span> 15:00
-                    </div>
+                </div>
 </div>
-<div class="blueprint-card p-5 h-full flex flex-col">
+<div class="blueprint-card p-6 h-full flex flex-col">
 <div class="flex justify-between items-center mb-2">
 <span class="technical-label flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">radar</span>
-                            Sentiment Index
-                        </span>
+<span class="material-symbols-outlined text-lg">radar</span>
+                        Client Sentiment Index
+                    </span>
 </div>
-<div class="flex-1 relative flex items-center justify-center py-2">
+<div class="flex-1 relative flex items-center justify-center py-4">
 <div class="relative w-40 h-40">
 <svg class="w-full h-full overflow-visible" viewBox="0 0 100 100">
 <circle cx="50" cy="50" fill="none" r="45" stroke="#f0f0f0"></circle>
@@ -362,7 +371,7 @@
 </div>
 </div>
 <div class="mt-2 text-center text-[9px] font-mono text-gray-500">
-                        IDX SCORE: <span class="text-black font-bold">8.4</span>
+                    BENCHMARK SCORE: <span class="text-black font-bold">8.4</span>
 </div>
 </div>
 </div>
@@ -371,86 +380,102 @@
 <div class="border-2 border-black h-full bg-white flex flex-col shadow-lg">
 <div class="command-node-header">
 <div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">settings_input_component</span>
-                        Command Node
-                    </div>
-<span class="animate-pulse text-green-400">● ONLINE</span>
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+                    Strategic Insights
+                </div>
+<span class="flex items-center gap-2 text-[10px] tracking-wider">
+<span class="animate-pulse text-green-400">●</span> ACTIVE ANALYSIS
+                </span>
 </div>
-<div class="p-6 flex flex-col gap-6 flex-1 overflow-y-auto">
-<div class="blueprint-card p-4 border-l-4 border-l-black">
-<div class="flex justify-between items-start mb-3">
-<span class="technical-label text-black">Priority Alpha</span>
-<span class="text-[9px] font-mono border border-black px-1">#REC-01</span>
+<div class="p-6 flex flex-col gap-6 flex-1 overflow-y-auto command-scroll">
+<div class="blueprint-card p-6 border-l-4 border-l-black">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold text-black uppercase tracking-[0.1em]">Strategic Imperative</span>
+<span class="text-[10px] font-mono border border-black px-1.5 py-0.5">#SI-01</span>
 </div>
-<h3 class="text-sm font-bold uppercase leading-snug mb-2">Renegotiate Kyoto Group Rate</h3>
-<div class="grid grid-cols-2 gap-4 mb-4">
-<div>
-<span class="text-[9px] text-gray-400 block mb-1 uppercase tracking-wider">Risk vs Reward</span>
-<div class="meter-container">
+<h3 class="text-base font-bold leading-tight mb-5">Maximize Margins on Kyoto Group Bookings</h3>
+<div class="flex items-end justify-between mb-6">
+<div class="flex flex-col">
+<span class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Estimated Growth</span>
+<span class="text-3xl font-mono text-green-600 tracking-tight">+4.2%</span>
+</div>
+<button class="bg-gray-100 text-black border border-gray-200 text-[10px] font-bold uppercase py-2.5 px-6 hover:bg-black hover:text-white hover:border-black transition-all flex items-center justify-center gap-2 tracking-wider">
+<span class="material-symbols-outlined text-sm">auto_fix_high</span> Execute
+                        </button>
+</div>
+<details class="group">
+<summary class="cursor-pointer text-[10px] font-bold uppercase text-gray-400 hover:text-black flex items-center gap-1 select-none transition-colors border-t border-gray-100 pt-3">
+<span class="material-symbols-outlined text-base transition-transform group-open:rotate-90">expand_more</span>
+                            Analytical Rationale
+                        </summary>
+<div class="pt-4 pl-2">
+<div class="mb-4">
+<span class="text-[9px] text-gray-400 block mb-1 uppercase tracking-wider">Yield vs Risk Assessment</span>
+<div class="meter-container max-w-[200px]">
 <div class="meter-fill w-[85%] bg-black"></div>
 <div class="meter-marker left-[20%]"></div>
 </div>
-<div class="flex justify-between text-[8px] font-mono mt-1 text-gray-500">
-<span>LO</span>
-<span>HI</span>
+<div class="flex justify-between max-w-[200px] text-[8px] font-mono mt-1 text-gray-500">
+<span>CONSERVATIVE</span>
+<span>AGRESSIVE</span>
 </div>
 </div>
-<div class="text-right">
-<span class="text-[9px] text-gray-400 block mb-1 uppercase tracking-wider">Impact</span>
-<span class="text-xl font-mono font-bold text-green-600">+4.2%</span>
+<div class="bg-gray-50 p-3 border border-gray-100">
+<p class="font-mono text-[10px] leading-relaxed text-gray-600">
+                                    &gt; SIGNAL: Q4 Occupancy Trend Alert<br/>
+                                    &gt; OPPORTUNITY: Preferential Rate Negotiation<br/>
+                                    &gt; PROJECTED REVENUE: +$2.4k Net
+                                </p>
 </div>
 </div>
-<div class="bg-gray-50 p-3 border border-gray-100 mb-4">
-<span class="text-[8px] font-bold uppercase text-gray-400 mb-1 block">Execution Logic</span>
-<p class="font-mono text-[9px] leading-relaxed text-gray-700">
-                                &gt; DETECTED: Occupancy drop (Week 42)<br/>
-                                &gt; ACTION: Leverage volume for rate reduction<br/>
-                                &gt; EST. SAVINGS: $2,400
-                            </p>
+</details>
 </div>
-<button class="w-full bg-black text-white text-[10px] font-bold uppercase py-2 hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-xs">bolt</span> Initiate
+<div class="blueprint-card p-6 border-l-4 border-l-gray-300">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">Strategic Imperative</span>
+<span class="text-[10px] font-mono border border-gray-200 text-gray-400 px-1.5 py-0.5">#SI-02</span>
+</div>
+<h3 class="text-base font-bold leading-tight mb-5 text-gray-800">Optimize Iceland Logistics Efficiency</h3>
+<div class="flex items-end justify-between mb-6">
+<div class="flex flex-col">
+<span class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Estimated Growth</span>
+<span class="text-3xl font-mono text-green-600 tracking-tight">+2.8%</span>
+</div>
+<button class="bg-gray-50 text-gray-600 border border-gray-200 text-[10px] font-bold uppercase py-2.5 px-6 hover:bg-black hover:text-white hover:border-black transition-all flex items-center justify-center gap-2 tracking-wider">
+<span class="material-symbols-outlined text-sm">visibility</span> Review Plan
                         </button>
 </div>
-<div class="blueprint-card p-4 border-l-4 border-l-gray-300">
-<div class="flex justify-between items-start mb-3">
-<span class="technical-label text-gray-500">Priority Beta</span>
-<span class="text-[9px] font-mono border border-gray-200 text-gray-400 px-1">#REC-02</span>
-</div>
-<h3 class="text-sm font-bold uppercase leading-snug mb-2">Consolidate Iceland Transfers</h3>
-<div class="grid grid-cols-2 gap-4 mb-4">
-<div>
-<span class="text-[9px] text-gray-400 block mb-1 uppercase tracking-wider">Risk vs Reward</span>
-<div class="meter-container">
+<details class="group">
+<summary class="cursor-pointer text-[10px] font-bold uppercase text-gray-400 hover:text-black flex items-center gap-1 select-none transition-colors border-t border-gray-100 pt-3">
+<span class="material-symbols-outlined text-base transition-transform group-open:rotate-90">expand_more</span>
+                            Analytical Rationale
+                        </summary>
+<div class="pt-4 pl-2">
+<div class="mb-4">
+<span class="text-[9px] text-gray-400 block mb-1 uppercase tracking-wider">Yield vs Risk Assessment</span>
+<div class="meter-container max-w-[200px]">
 <div class="meter-fill w-[45%] bg-gray-400"></div>
 <div class="meter-marker left-[60%] bg-orange-500"></div>
 </div>
-<div class="flex justify-between text-[8px] font-mono mt-1 text-gray-500">
-<span>LO</span>
-<span>HI</span>
+<div class="flex justify-between max-w-[200px] text-[8px] font-mono mt-1 text-gray-500">
+<span>CONSERVATIVE</span>
+<span>AGRESSIVE</span>
 </div>
 </div>
-<div class="text-right">
-<span class="text-[9px] text-gray-400 block mb-1 uppercase tracking-wider">Impact</span>
-<span class="text-xl font-mono font-bold text-green-600">+2.8%</span>
+<div class="bg-gray-50 p-3 border border-gray-100">
+<p class="font-mono text-[10px] leading-relaxed text-gray-600">
+                                    &gt; SIGNAL: Fragmented Transfer Patterns<br/>
+                                    &gt; OPPORTUNITY: Group Transport Consolidation<br/>
+                                    &gt; PROJECTED REVENUE: +$850 Net
+                                </p>
 </div>
 </div>
-<div class="bg-gray-50 p-3 border border-gray-100 mb-4">
-<span class="text-[8px] font-bold uppercase text-gray-400 mb-1 block">Execution Logic</span>
-<p class="font-mono text-[9px] leading-relaxed text-gray-700">
-                                &gt; DETECTED: 4x Single Pax Transfers<br/>
-                                &gt; ACTION: Merge to Group Coach #B4<br/>
-                                &gt; EST. SAVINGS: $850
-                            </p>
+</details>
 </div>
-<button class="w-full border border-black text-black text-[10px] font-bold uppercase py-2 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-xs">visibility</span> Review Plan
-                        </button>
-</div>
-<div class="mt-auto border-t border-dashed border-gray-300 pt-4">
+<div class="mt-auto border-t border-dashed border-gray-300 pt-6">
 <div class="flex justify-between items-end mb-2">
-<span class="technical-label">System Resources</span>
-<span class="text-[9px] font-mono">14ms latency</span>
+<span class="text-[10px] font-bold uppercase text-gray-500 tracking-wider">Platform Health</span>
+<span class="text-[9px] font-mono text-gray-400">Response: 14ms</span>
 </div>
 <div class="flex gap-1 h-1.5 mb-1">
 <div class="bg-black w-1/4"></div>
