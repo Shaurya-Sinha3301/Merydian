@@ -11,6 +11,7 @@ const TABS = [
     { key: 'optimization', label: 'Optimization', suffix: '' },
     { key: 'groups', label: 'Groups', suffix: '/groups' },
     { key: 'bookings', label: 'Bookings', suffix: '/bookings' },
+    { key: 'intelligence', label: 'Intelligence', suffix: '/intelligence' },
 ] as const;
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -21,11 +22,13 @@ export default function TripDetailNavbar({ tripId }: { tripId: string }) {
     const basePath = `/agent-dashboard/itinerary-management/${tripId}`;
 
     // Determine active tab from URL
-    const activeTab = pathname.endsWith('/bookings')
-        ? 'bookings'
-        : pathname.endsWith('/groups')
-            ? 'groups'
-            : 'optimization';
+    const activeTab = pathname.endsWith('/intelligence')
+        ? 'intelligence'
+        : pathname.endsWith('/bookings')
+            ? 'bookings'
+            : pathname.endsWith('/groups')
+                ? 'groups'
+                : 'optimization';
 
     if (!trip) return null;
 
@@ -45,27 +48,27 @@ export default function TripDetailNavbar({ tripId }: { tripId: string }) {
                 </div>
             </div>
 
-            {/* Centre: tab pill */}
+            {/* Centre: pill-bar (inteli.html nav-pill design) */}
             <div className="flex-1 flex justify-center">
-                <div className="flex items-center bg-background/60 p-1.5 rounded-2xl neu-flat border border-white/60">
+                <nav className="flex items-center bg-white p-1 rounded-full border border-gray-100 shadow-sm gap-0.5">
                     {TABS.map(({ key, label, suffix }) => (
                         <Link
                             key={key}
                             href={`${basePath}${suffix}`}
                             className={cn(
-                                'px-6 py-2 rounded-xl text-sm font-semibold capitalize transition-all',
+                                'px-4 py-1.5 rounded-full text-xs font-medium transition-colors border',
                                 activeTab === key
-                                    ? 'neu-pressed text-foreground shadow-inner'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-white/50',
+                                    ? 'bg-black text-white border-black'
+                                    : 'text-gray-500 border-transparent hover:text-black hover:border-gray-200',
                             )}
                         >
                             {label}
                         </Link>
                     ))}
-                </div>
+                </nav>
             </div>
 
-            {/* Right spacer — balances the left column so the pill stays centred */}
+            {/* Right spacer */}
             <div className="w-1/4" />
         </div>
     );

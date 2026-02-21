@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Advanced Intelligence Manifest V4</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --bg-main: #ffffff;
+            --bg-card: #ffffff;
+            --border-primary: #000000;
+            --text-primary: #1a1a1a;
+            --text-secondary: #555555;
+            --accent-sage: #000000;
+            --status-red: #d98d8d;
+            --status-gray: #f3f4f6;
+            --blueprint-line: rgba(0,0,0,0.08);
+            --chart-bar-1: #000000;
+            --chart-bar-2: #cccccc;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        .font-mono {
+            font-family: 'Space Mono', monospace;
+        }
+        .blueprint-card {
+            border: 1px solid #e5e5e5;
+            transition: all 0.2s ease;
+            position: relative;
+            background: white;
+        }
+        .blueprint-card:hover {
+            border-color: #000;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+        .blueprint-title {
+            font-weight: 300;
+            letter-spacing: -0.02em;
+        }
+        .technical-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.1em;
+            margin-bottom: 6px;
+            font-family: 'Inter', sans-serif;
+        }
+        .grid-bg {
+            background-image: 
+                linear-gradient(var(--blueprint-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--blueprint-line) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .treemap-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 2px;
+            height: 200px;
+            background: #000;
+            border: 1px solid #000;
+            padding: 2px;
+        }
+        .treemap-item {
+            background: white;
+            padding: 8px;
+            position: relative;
+            transition: background-color 0.2s;
+            overflow: hidden;
+        }
+        .treemap-item:hover {
+            background: #f4f4f4;
+        }
+        .treemap-item-lg { grid-row: span 2; }
+        .area-chart-path {
+            fill: rgba(0,0,0,0.05);
+            stroke: black;
+            stroke-width: 1.5;
+        }
+        .command-node-header {
+            background: black;
+            color: white;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+        .meter-container {
+            height: 6px;
+            background: #e5e5e5;
+            width: 100%;
+            position: relative;
+            margin-top: 8px;
+        }
+        .meter-fill {
+            height: 100%;
+            background: black;
+            position: relative;
+        }
+        .meter-marker {
+            position: absolute;
+            top: -2px;
+            width: 2px;
+            height: 10px;
+            background: red;
+        }
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: #eee;
+            border: 1px solid #eee;
+        }
+        .heatmap-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: white;
+            transition: opacity 0.2s;
+            position: relative;
+        }
+        .heatmap-cell:hover { opacity: 0.8; }
+        .heatmap-cell span { position: relative; z-index: 2; }
+        .radar-poly {
+            fill: rgba(0,0,0,0.05);
+            stroke: black;
+            stroke-width: 1.5;
+        }
+        .radar-axis {
+            stroke: #e5e5e5;
+            stroke-width: 1;
+            stroke-dasharray: 2,2;
+        }
+        .nav-pill {
+            @apply px-4 py-1.5 rounded-full text-xs font-medium transition-colors border border-transparent;
+        }
+        .nav-pill.active {
+            @apply bg-black text-white border-black;
+        }
+        .nav-pill:not(.active) {
+            @apply text-gray-500 hover:text-black hover:border-gray-200;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-sm bg-white">
+<main class="w-full min-h-screen grid-bg p-6 md:p-10">
+<header class="w-full max-w-[1600px] mx-auto mb-10">
+<div class="flex flex-col md:flex-row justify-between items-center border-b border-gray-200 pb-4 mb-6">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-black flex items-center justify-center text-white font-bold text-xs tracking-tighter">NX</div>
+<div class="flex flex-col">
+<span class="font-bold text-lg leading-none tracking-tight">NexTravel</span>
+<span class="text-[10px] text-gray-400 uppercase tracking-widest font-mono">Precision Portal</span>
+</div>
+</div>
+<nav class="flex items-center gap-2 bg-white p-1 rounded-full border border-gray-100 shadow-sm mt-4 md:mt-0">
+<a class="nav-pill" href="#">Optimization</a>
+<a class="nav-pill" href="#">Groups</a>
+<a class="nav-pill" href="#">Bookings</a>
+<a class="nav-pill active" href="#">Intelligence</a>
+</nav>
+<div class="flex items-center gap-4 mt-4 md:mt-0">
+<div class="flex flex-col items-end">
+<span class="text-xs font-bold">Admin Console</span>
+<span class="text-[10px] text-gray-500 font-mono">ID: AG-9921</span>
+</div>
+<div class="h-8 w-8 rounded-full bg-gray-100 border border-gray-200"></div>
+</div>
+</div>
+</header>
+<div class="max-w-[1600px] mx-auto grid grid-cols-12 gap-6">
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="blueprint-card p-5 h-full">
+<div class="flex justify-between items-center mb-4">
+<span class="technical-label flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">view_quilt</span>
+                            Category Spend Distribution
+                        </span>
+<span class="text-[10px] font-mono text-gray-400">Q3-2024</span>
+</div>
+<div class="treemap-container">
+<div class="treemap-item treemap-item-lg flex flex-col justify-between">
+<span class="text-[10px] font-bold uppercase tracking-wider">Flight Logistics</span>
+<div class="text-right">
+<span class="block text-xl font-mono font-bold">45%</span>
+<span class="text-[9px] text-gray-500">$45.2k</span>
+</div>
+</div>
+<div class="treemap-item flex flex-col justify-between">
+<span class="text-[9px] font-bold uppercase tracking-wider text-gray-600">Accommodation</span>
+<div class="text-right">
+<span class="block text-sm font-mono font-bold">30%</span>
+<span class="text-[8px] text-gray-500">$30.1k</span>
+</div>
+</div>
+<div class="treemap-item flex flex-col justify-between">
+<div class="flex justify-between w-full">
+<span class="text-[8px] font-bold uppercase tracking-wider text-gray-500">Services</span>
+<span class="text-[8px] font-bold uppercase tracking-wider text-gray-500">Misc</span>
+</div>
+<div class="flex justify-between w-full items-end mt-1">
+<div>
+<span class="block text-xs font-mono font-bold">15%</span>
+</div>
+<div class="border-l border-gray-200 pl-2">
+<span class="block text-xs font-mono font-bold">10%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="blueprint-card p-5 h-full">
+<div class="flex justify-between items-center mb-4">
+<span class="technical-label flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">show_chart</span>
+                            Daily Financial Flux
+                        </span>
+<div class="flex gap-2">
+<span class="text-[9px] font-mono px-1 border border-black bg-black text-white">D</span>
+<span class="text-[9px] font-mono px-1 border border-gray-200 text-gray-400">W</span>
+<span class="text-[9px] font-mono px-1 border border-gray-200 text-gray-400">M</span>
+</div>
+</div>
+<div class="h-[200px] w-full relative border-b border-l border-black">
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+<div class="w-full h-px bg-gray-100 border-t border-dashed border-gray-200"></div>
+<div class="w-full h-px bg-gray-100 border-t border-dashed border-gray-200"></div>
+<div class="w-full h-px bg-gray-100 border-t border-dashed border-gray-200"></div>
+<div class="w-full h-px bg-gray-100 border-t border-dashed border-gray-200"></div>
+</div>
+<svg class="w-full h-full absolute inset-0 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
+<path class="area-chart-path" d="M0,80 Q10,75 20,60 T40,55 T60,40 T80,45 T100,20 V100 H0 Z"></path>
+<circle cx="20" cy="60" fill="black" r="1.5"></circle>
+<circle cx="60" cy="40" fill="black" r="1.5"></circle>
+<circle cx="100" cy="20" fill="red" r="2" stroke="white" stroke-width="0.5"></circle>
+</svg>
+<div class="absolute -bottom-5 w-full flex justify-between text-[9px] font-mono text-gray-500">
+<span>00:00</span>
+<span>06:00</span>
+<span>12:00</span>
+<span>18:00</span>
+<span>24:00</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="blueprint-card p-5 h-full flex flex-col">
+<div class="flex justify-between items-center mb-4">
+<span class="technical-label flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">grid_on</span>
+                            Margin Efficiency
+                        </span>
+<span class="text-[9px] font-mono text-gray-400 border border-gray-200 px-1">HM-01</span>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<div class="heatmap-grid w-full aspect-square border border-black mb-2">
+<div class="heatmap-cell bg-black/90"><span>JP</span></div>
+<div class="heatmap-cell bg-black/80"><span>UK</span></div>
+<div class="heatmap-cell bg-black/40"><span>US</span></div>
+<div class="heatmap-cell bg-black/20 text-black font-bold"><span>IT</span></div>
+<div class="heatmap-cell bg-black/70"><span>FR</span></div>
+<div class="heatmap-cell bg-black/95"><span>DE</span></div>
+<div class="heatmap-cell bg-black/30 text-black"><span>ES</span></div>
+<div class="heatmap-cell bg-black/10 text-black"><span>PT</span></div>
+<div class="heatmap-cell bg-black/50"><span>CN</span></div>
+<div class="heatmap-cell bg-black/60"><span>SG</span></div>
+<div class="heatmap-cell bg-black/20 text-black"><span>TH</span></div>
+<div class="heatmap-cell bg-black/5 text-black"><span>VN</span></div>
+<div class="heatmap-cell bg-black/85"><span>AU</span></div>
+<div class="heatmap-cell bg-black/75"><span>NZ</span></div>
+<div class="heatmap-cell bg-black/15 text-black"><span>CA</span></div>
+<div class="heatmap-cell bg-white text-black"><span>MX</span></div>
+</div>
+<div class="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-wider mt-2">
+<span>Lo Margin</span>
+<div class="h-1 w-20 bg-gradient-to-r from-white via-gray-400 to-black border border-gray-200"></div>
+<span>Hi Margin</span>
+</div>
+</div>
+</div>
+<div class="blueprint-card p-5 h-full flex flex-col">
+<div class="flex justify-between items-center mb-4">
+<span class="technical-label flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                            Booking Velocity
+                        </span>
+<span class="text-[9px] font-mono text-green-600">+12%</span>
+</div>
+<div class="flex-1 relative border border-gray-200 bg-gray-50/50">
+<div class="absolute inset-0 grid grid-cols-6 grid-rows-4">
+<div class="border-r border-gray-200/50"></div><div class="border-r border-gray-200/50"></div>
+<div class="border-r border-gray-200/50"></div><div class="border-r border-gray-200/50"></div>
+<div class="border-r border-gray-200/50"></div><div></div>
+<div class="col-span-6 border-b border-gray-200/50"></div>
+<div class="col-span-6 border-b border-gray-200/50"></div>
+<div class="col-span-6 border-b border-gray-200/50"></div>
+</div>
+<svg class="w-full h-full absolute inset-0 overflow-visible p-2" preserveAspectRatio="none" viewBox="0 0 100 100">
+<polyline fill="none" points="0,70 20,65 40,60 60,62 80,55 100,50" stroke="#ccc" stroke-dasharray="2,2" stroke-width="1.5"></polyline>
+<polyline fill="none" points="0,80 20,70 40,55 60,40 80,35 100,20" stroke="black" stroke-width="2"></polyline>
+<circle cx="20" cy="70" fill="black" r="1.5"></circle>
+<circle cx="40" cy="55" fill="black" r="1.5"></circle>
+<circle cx="60" cy="40" fill="black" r="1.5"></circle>
+<circle cx="80" cy="35" fill="black" r="1.5"></circle>
+<circle cx="100" cy="20" fill="black" r="2.5" stroke="white" stroke-width="1"></circle>
+</svg>
+</div>
+<div class="flex justify-between mt-3 text-[9px] font-mono text-gray-400">
+<span>PREV</span>
+<span>NOW</span>
+</div>
+<div class="mt-2 text-[9px] font-mono text-gray-500 border-t border-gray-100 pt-2">
+<span class="text-black font-bold">AVG:</span> 42/hr <span class="mx-1">|</span> <span class="text-black font-bold">PEAK:</span> 15:00
+                    </div>
+</div>
+<div class="blueprint-card p-5 h-full flex flex-col">
+<div class="flex justify-between items-center mb-2">
+<span class="technical-label flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">radar</span>
+                            Sentiment Index
+                        </span>
+</div>
+<div class="flex-1 relative flex items-center justify-center py-2">
+<div class="relative w-40 h-40">
+<svg class="w-full h-full overflow-visible" viewBox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#f0f0f0"></circle>
+<circle cx="50" cy="50" fill="none" r="30" stroke="#f0f0f0"></circle>
+<circle cx="50" cy="50" fill="none" r="15" stroke="#f0f0f0"></circle>
+<line stroke="#e5e5e5" stroke-dasharray="2,2" x1="50" x2="50" y1="5" y2="95"></line>
+<line stroke="#e5e5e5" stroke-dasharray="2,2" x1="5" x2="95" y1="50" y2="50"></line>
+<line stroke="#e5e5e5" stroke-dasharray="2,2" x1="18" x2="82" y1="18" y2="82"></line>
+<line stroke="#e5e5e5" stroke-dasharray="2,2" x1="18" x2="82" y1="82" y2="18"></line>
+<polygon class="radar-poly" fill="rgba(0,0,0,0.1)" points="50,15 80,40 70,80 30,80 20,40" stroke="black"></polygon>
+<circle cx="50" cy="15" fill="black" r="1.5"></circle>
+<circle cx="80" cy="40" fill="black" r="1.5"></circle>
+<circle cx="70" cy="80" fill="black" r="1.5"></circle>
+<circle cx="30" cy="80" fill="black" r="1.5"></circle>
+<circle cx="20" cy="40" fill="black" r="1.5"></circle>
+</svg>
+<div class="absolute top-0 left-1/2 -translate-x-1/2 -mt-1 text-[8px] font-mono bg-white px-1">TRUST</div>
+<div class="absolute top-[30%] right-0 -mr-2 text-[8px] font-mono bg-white px-1">VALUE</div>
+<div class="absolute bottom-[20%] right-[10%] text-[8px] font-mono bg-white px-1">EASE</div>
+<div class="absolute bottom-[20%] left-[10%] text-[8px] font-mono bg-white px-1">SAFETY</div>
+<div class="absolute top-[30%] left-0 -ml-3 text-[8px] font-mono bg-white px-1">SUPPORT</div>
+</div>
+</div>
+<div class="mt-2 text-center text-[9px] font-mono text-gray-500">
+                        IDX SCORE: <span class="text-black font-bold">8.4</span>
+</div>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-4 h-full">
+<div class="border-2 border-black h-full bg-white flex flex-col shadow-lg">
+<div class="command-node-header">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">settings_input_component</span>
+                        Command Node
+                    </div>
+<span class="animate-pulse text-green-400">● ONLINE</span>
+</div>
+<div class="p-6 flex flex-col gap-6 flex-1 overflow-y-auto">
+<div class="blueprint-card p-4 border-l-4 border-l-black">
+<div class="flex justify-between items-start mb-3">
+<span class="technical-label text-black">Priority Alpha</span>
+<span class="text-[9px] font-mono border border-black px-1">#REC-01</span>
+</div>
+<h3 class="text-sm font-bold uppercase leading-snug mb-2">Renegotiate Kyoto Group Rate</h3>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div>
+<span class="text-[9px] text-gray-400 block mb-1 uppercase tracking-wider">Risk vs Reward</span>
+<div class="meter-container">
+<div class="meter-fill w-[85%] bg-black"></div>
+<div class="meter-marker left-[20%]"></div>
+</div>
+<div class="flex justify-between text-[8px] font-mono mt-1 text-gray-500">
+<span>LO</span>
+<span>HI</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-[9px] text-gray-400 block mb-1 uppercase tracking-wider">Impact</span>
+<span class="text-xl font-mono font-bold text-green-600">+4.2%</span>
+</div>
+</div>
+<div class="bg-gray-50 p-3 border border-gray-100 mb-4">
+<span class="text-[8px] font-bold uppercase text-gray-400 mb-1 block">Execution Logic</span>
+<p class="font-mono text-[9px] leading-relaxed text-gray-700">
+                                &gt; DETECTED: Occupancy drop (Week 42)<br/>
+                                &gt; ACTION: Leverage volume for rate reduction<br/>
+                                &gt; EST. SAVINGS: $2,400
+                            </p>
+</div>
+<button class="w-full bg-black text-white text-[10px] font-bold uppercase py-2 hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-xs">bolt</span> Initiate
+                        </button>
+</div>
+<div class="blueprint-card p-4 border-l-4 border-l-gray-300">
+<div class="flex justify-between items-start mb-3">
+<span class="technical-label text-gray-500">Priority Beta</span>
+<span class="text-[9px] font-mono border border-gray-200 text-gray-400 px-1">#REC-02</span>
+</div>
+<h3 class="text-sm font-bold uppercase leading-snug mb-2">Consolidate Iceland Transfers</h3>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div>
+<span class="text-[9px] text-gray-400 block mb-1 uppercase tracking-wider">Risk vs Reward</span>
+<div class="meter-container">
+<div class="meter-fill w-[45%] bg-gray-400"></div>
+<div class="meter-marker left-[60%] bg-orange-500"></div>
+</div>
+<div class="flex justify-between text-[8px] font-mono mt-1 text-gray-500">
+<span>LO</span>
+<span>HI</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-[9px] text-gray-400 block mb-1 uppercase tracking-wider">Impact</span>
+<span class="text-xl font-mono font-bold text-green-600">+2.8%</span>
+</div>
+</div>
+<div class="bg-gray-50 p-3 border border-gray-100 mb-4">
+<span class="text-[8px] font-bold uppercase text-gray-400 mb-1 block">Execution Logic</span>
+<p class="font-mono text-[9px] leading-relaxed text-gray-700">
+                                &gt; DETECTED: 4x Single Pax Transfers<br/>
+                                &gt; ACTION: Merge to Group Coach #B4<br/>
+                                &gt; EST. SAVINGS: $850
+                            </p>
+</div>
+<button class="w-full border border-black text-black text-[10px] font-bold uppercase py-2 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-xs">visibility</span> Review Plan
+                        </button>
+</div>
+<div class="mt-auto border-t border-dashed border-gray-300 pt-4">
+<div class="flex justify-between items-end mb-2">
+<span class="technical-label">System Resources</span>
+<span class="text-[9px] font-mono">14ms latency</span>
+</div>
+<div class="flex gap-1 h-1.5 mb-1">
+<div class="bg-black w-1/4"></div>
+<div class="bg-black w-1/4"></div>
+<div class="bg-black w-1/6"></div>
+<div class="bg-gray-200 w-1/3"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+</body></html>
