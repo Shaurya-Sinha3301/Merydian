@@ -324,7 +324,7 @@ export default function BookingsView({ tripId }: { tripId: string }) {
     if (!trip) return <div className="p-8 text-center text-muted-foreground font-mono text-sm">Trip not found.</div>;
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden relative h-full bg-slate-50">
+        <div className="flex-1 flex flex-col overflow-hidden relative h-full bp-grid-bg bg-white">
 
             {/* ── Sub-header: Filters & Cost ──────────────────────────────────────── */}
             <div className="border-b border-slate-200 bg-white px-8 py-3 flex justify-between items-center shrink-0">
@@ -358,7 +358,7 @@ export default function BookingsView({ tripId }: { tripId: string }) {
 
             {/* ── Scrollable Booking List ──────────────────────────────────────────── */}
             <div className={cn(
-                'flex-1 overflow-auto pb-32 p-8 bg-slate-50 scrollbar-hide',
+                'flex-1 overflow-auto pb-32 p-8 bg-transparent scrollbar-hide',
                 panelHovered ? 'overflow-hidden' : ''
             )}>
                 {BOOKINGS_DATA.map((group) => (

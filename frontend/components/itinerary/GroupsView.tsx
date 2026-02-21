@@ -207,8 +207,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
     if (!trip) return <div className="p-8 text-center text-stone-500">Trip not found</div>;
 
     return (
-        <div className="flex-1 flex overflow-hidden h-full relative"
-            style={{ background: '#f2efea', backgroundImage: 'linear-gradient(rgba(120,113,108,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(120,113,108,0.1) 1px,transparent 1px)', backgroundSize: '24px 24px' }}>
+        <div className="flex-1 flex overflow-hidden h-full relative bp-grid-bg bg-white">
 
             {/* ── LEFT SIDEBAR: Families ──────────────────────────────────────── */}
             <aside className="w-[300px] shrink-0 flex flex-col gap-3 p-4 overflow-hidden">

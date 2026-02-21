@@ -277,7 +277,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
 
             {/* ── Timeline ──────────────────────────────────────────────────────── */}
             <div className={cn(
-                'flex-1 scrollbar-hide pb-28 bg-white/60 backdrop-blur-sm',
+                'flex-1 scrollbar-hide pb-28 bg-transparent',
                 panelHovered ? 'overflow-hidden' : 'overflow-auto',
             )}>
                 {/* Sticky day header */}
