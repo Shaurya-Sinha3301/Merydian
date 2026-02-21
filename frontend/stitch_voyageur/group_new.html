@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Travel Specialist Portal V2 - Understated Elegance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .tech-border {
+                @apply border border-stone-200;
+            }
+            .tech-panel {
+                @apply bg-[#faf9f6] border border-stone-200/80 shadow-sm rounded-lg;
+            }
+            .tech-grid-bg {
+                background-image: 
+                    linear-gradient(rgba(120, 113, 108, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(120, 113, 108, 0.1) 1px, transparent 1px);
+                background-size: 24px 24px;
+                background-position: -1px -1px;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .log-entry:hover .log-details {
+                display: block;
+                opacity: 1;
+                max-height: 200px;
+                margin-top: 0.5rem;
+            }
+            .log-details {
+                display: none;
+                opacity: 0;
+                max-height: 0;
+                transition: all 0.2s ease-in-out;
+            }
+        }
+        :root {--primary: #2d2d2d;
+            --accent-blue: #4a647c;--accent-green: #4f5d4e;--accent-red: #8e5a4e;--accent-gold: #8d7b5b;--bg-color: #f2efea;--card-bg: #faf9f6;}
+        body {
+            background-color: var(--bg-color);
+            color: var(--primary);
+            font-family: 'Outfit', sans-serif;
+        }
+        .font-brand {
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col text-stone-800 overflow-hidden tech-grid-bg">
+<header class="w-full bg-[#faf9f6] border-b border-stone-200 z-50 py-3 px-6 shadow-sm flex-shrink-0">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-[#353b48] text-[#f2efea] rounded-lg flex items-center justify-center font-brand font-bold text-lg shadow-sm">
+                V
+            </div>
+<div class="flex flex-col">
+<span class="font-brand font-bold text-lg tracking-tight text-stone-900">Voyageur Portal</span>
+<span class="text-xs text-stone-500 font-medium">Enterprise Edition v2.0</span>
+</div>
+</div>
+<div class="flex items-center bg-stone-100 p-1 rounded-lg border border-stone-200">
+<button class="px-5 py-1.5 text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors rounded-md">Optimization</button>
+<button class="px-5 py-1.5 text-sm font-semibold bg-white border border-stone-200 text-stone-800 shadow-sm rounded-md">Groups</button>
+<button class="px-5 py-1.5 text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors rounded-md">Bookings</button>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col items-end border-r border-stone-200 pr-6">
+<span class="text-[10px] uppercase font-bold text-stone-400 tracking-wider">System Status</span>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-[#4f5d4e] rounded-full"></span>
+<span class="text-xs font-medium text-stone-600">Online &amp; Secure</span>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="w-9 h-9 border border-stone-200 bg-white hover:bg-stone-50 rounded-full flex items-center justify-center text-stone-600 transition-colors">
+<span class="material-symbols-outlined text-xl">settings</span>
+</button>
+<button class="w-9 h-9 border border-stone-200 bg-white hover:bg-stone-50 rounded-full flex items-center justify-center text-stone-600 transition-colors relative">
+<span class="material-symbols-outlined text-xl">notifications</span>
+<span class="absolute top-0 right-0 w-2.5 h-2.5 bg-[#8e5a4e] rounded-full border-2 border-white"></span>
+</button>
+<div class="w-9 h-9 bg-stone-200 rounded-full flex items-center justify-center text-stone-700 font-bold border border-stone-300">
+                    JD
+                </div>
+</div>
+</div>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden p-6 gap-6">
+<aside class="w-[320px] flex flex-col gap-4">
+<div class="tech-panel p-4 flex flex-col gap-4">
+<div class="flex items-center justify-between border-b border-stone-100 pb-3">
+<h2 class="text-sm font-bold text-stone-900 tracking-wide uppercase">Family Groups</h2>
+<span class="bg-stone-200/50 border border-stone-200 text-stone-700 text-xs font-semibold px-2 py-1 rounded-full">Active: 6</span>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-stone-600 transition-colors text-lg">search</span>
+<input class="w-full bg-stone-50 border border-stone-200 rounded-lg py-2 pl-10 text-sm focus:ring-1 focus:ring-stone-300 focus:border-stone-400 text-stone-700 placeholder-stone-400 transition-all" placeholder="Search family or booking ID..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-1.5 border border-stone-200 rounded-md text-xs font-semibold bg-stone-200/50 text-stone-700 hover:bg-stone-200 transition-colors">All</button>
+<button class="flex-1 py-1.5 border border-stone-200 rounded-md text-xs font-semibold bg-white text-stone-500 hover:bg-stone-50 transition-colors">Attention</button>
+<button class="flex-1 py-1.5 border border-stone-200 rounded-md text-xs font-semibold bg-white text-stone-500 hover:bg-stone-50 transition-colors">Stable</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto space-y-3 scrollbar-hide pr-1">
+<div class="bg-[#faf9f6] rounded-lg border border-stone-300/60 p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ring-1 ring-stone-100/50">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center text-stone-700 font-bold text-sm border border-stone-200">SH</div>
+<div>
+<h4 class="font-bold text-stone-800 text-sm">Sharma Family</h4>
+<span class="text-xs text-stone-500 block mt-0.5">4 Guests • Room 402</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-xs font-medium text-stone-400">Now</span>
+<div class="w-2.5 h-2.5 rounded-full bg-[#4f5d4e] mt-1"></div>
+</div>
+</div>
+<div class="flex gap-2 mt-3 pt-3 border-t border-stone-100">
+<span class="bg-stone-100 text-stone-700 border border-stone-200 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">VIP PLATINUM</span>
+<span class="bg-stone-100 text-stone-700 border border-stone-200 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">LATE CHECKOUT</span>
+</div>
+</div>
+<div class="bg-[#faf9f6] rounded-lg border border-stone-200 p-4 hover:border-stone-300 transition-all cursor-pointer hover:shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center text-stone-700 font-bold text-sm border border-stone-200">PA</div>
+<div>
+<h4 class="font-bold text-stone-800 text-sm">Patel Group</h4>
+<span class="text-xs text-stone-500 block mt-0.5">3 Guests • Villa 12</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-xs font-medium text-stone-400">2h ago</span>
+<div class="w-2.5 h-2.5 rounded-full bg-[#8d7b5b] mt-1"></div>
+</div>
+</div>
+<div class="mt-2 text-xs text-stone-600 bg-stone-100/50 p-2 rounded border border-stone-100 italic">
+                    "Checking on the buffet status..."
+                </div>
+</div>
+<div class="bg-[#faf9f6] rounded-lg border border-[#8e5a4e]/30 p-4 hover:border-[#8e5a4e]/50 transition-all cursor-pointer hover:shadow-sm ring-1 ring-[#8e5a4e]/5">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center text-[#8e5a4e] font-bold text-sm border border-stone-200">ME</div>
+<div>
+<h4 class="font-bold text-stone-800 text-sm">Mehta Couple</h4>
+<span class="text-xs text-stone-500 block mt-0.5">2 Guests • Room 204</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-xs font-medium text-stone-400">5h ago</span>
+<div class="w-2.5 h-2.5 rounded-full bg-[#8e5a4e] mt-1"></div>
+</div>
+</div>
+<div class="flex gap-2 mt-3 pt-3 border-t border-stone-100">
+<span class="bg-[#8e5a4e]/10 text-[#8e5a4e] border border-[#8e5a4e]/20 text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">warning</span> A/C ISSUE
+                    </span>
+</div>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col gap-6 min-w-0">
+<div class="flex-[1.2] tech-panel flex flex-col overflow-hidden relative border border-stone-200 rounded-xl shadow-sm">
+<div class="flex justify-between items-center px-6 py-4 border-b border-stone-100 bg-[#faf9f6]">
+<div class="flex items-center gap-3">
+<div class="p-1.5 bg-stone-100 rounded text-stone-600">
+<span class="material-symbols-outlined text-lg">list_alt</span>
+</div>
+<h2 class="text-sm font-bold text-stone-800 tracking-wide uppercase">Activity Timeline</h2>
+</div>
+<div class="flex gap-2 bg-stone-100/50 p-1 rounded-md border border-stone-100">
+<button class="px-3 py-1 text-xs font-semibold text-stone-700 bg-white shadow-sm rounded border border-stone-200">All</button>
+<button class="px-3 py-1 text-xs font-medium text-stone-500 hover:text-stone-700 transition-colors">Requests</button>
+<button class="px-3 py-1 text-xs font-medium text-stone-500 hover:text-stone-700 transition-colors">Reviews</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-4 bg-stone-100/20">
+<div class="log-entry group bg-white border border-stone-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-[#8d7b5b]"></div>
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-4">
+<div class="mt-1 bg-stone-50 text-stone-500 p-2 rounded-lg">
+<span class="material-symbols-outlined text-xl">schedule</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h3 class="text-sm font-bold text-stone-800">Late Checkout Request</h3>
+<span class="bg-stone-100 text-stone-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-stone-200">PENDING</span>
+</div>
+<p class="text-xs text-stone-500 font-medium">10:45 AM • Room 402</p>
+</div>
+</div>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1.5 border border-stone-200 bg-[#4f5d4e] text-white text-xs font-semibold rounded-md hover:bg-[#3d4a3c] transition-colors">Approve</button>
+<button class="px-3 py-1.5 border border-stone-200 bg-white text-stone-600 text-xs font-semibold rounded-md hover:bg-stone-50 transition-colors">Reject</button>
+</div>
+</div>
+<div class="log-details pl-[52px]">
+<p class="text-sm text-stone-600 bg-stone-50 p-3 rounded-lg border border-stone-100 mt-2">
+                            "We'd love to stay until 3 PM as our flight is in the evening. Any possibility for Room 402?"
+                        </p>
+</div>
+</div>
+<div class="log-entry group bg-white border border-stone-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-[#4f5d4e]"></div>
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-4">
+<div class="mt-1 bg-stone-50 text-stone-500 p-2 rounded-lg">
+<span class="material-symbols-outlined text-xl">star</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h3 class="text-sm font-bold text-stone-800">5-Star Dining Review</h3>
+<span class="bg-stone-100 text-stone-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-stone-200">FEEDBACK</span>
+</div>
+<p class="text-xs text-stone-500 font-medium">Yesterday • Coastal Grill</p>
+</div>
+</div>
+</div>
+<div class="log-details pl-[52px]">
+<p class="text-sm text-stone-600 bg-stone-50 p-3 rounded-lg border border-stone-100 mt-2">
+                            "The seafood platter at Coastal Grill was phenomenal! The kids loved the live music near the beach."
+                        </p>
+</div>
+</div>
+<div class="log-entry group bg-white border border-stone-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-stone-300"></div>
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-4">
+<div class="mt-1 bg-stone-50 text-stone-500 p-2 rounded-lg">
+<span class="material-symbols-outlined text-xl">key</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h3 class="text-sm font-bold text-stone-800">Room Access Granted</h3>
+<span class="bg-stone-100 text-stone-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-stone-200">SYSTEM</span>
+</div>
+<p class="text-xs text-stone-500 font-medium">Yesterday • Digital Key #99283</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-1 tech-panel flex flex-col overflow-hidden relative border border-stone-200 rounded-xl shadow-lg">
+<div class="px-6 py-3 border-b border-stone-100 bg-[#faf9f6] flex justify-between items-center z-10 h-14">
+<div class="flex items-center gap-3">
+<div class="w-2.5 h-2.5 bg-[#4f5d4e] rounded-full shadow-[0_0_8px_rgba(79,93,78,0.4)]"></div>
+<div>
+<h3 class="font-bold text-stone-800 text-sm">Sharma Family Chat</h3>
+<span class="text-xs text-stone-400">Active now</span>
+</div>
+</div>
+<span class="text-[10px] bg-stone-100 text-stone-500 px-2 py-1 rounded font-bold uppercase tracking-widest">Secure Channel</span>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-4 bg-stone-50/50 relative scrollbar-hide">
+<div class="flex justify-center mb-2">
+<span class="text-[10px] font-bold text-stone-400 bg-stone-200/40 px-3 py-1 rounded-full uppercase tracking-widest">Today</span>
+</div>
+<div class="flex justify-start">
+<div class="flex gap-2 max-w-[85%]">
+<div class="w-8 h-8 rounded-full bg-stone-200 flex-shrink-0 flex items-center justify-center text-stone-700 text-xs font-bold mt-1">S</div>
+<div class="bg-white border border-stone-200 px-4 py-3 text-sm text-stone-700 rounded-2xl rounded-tl-none shadow-sm">
+                            Hello, can we get extra towels for the pool?
+                        </div>
+</div>
+</div>
+<div class="flex justify-end">
+<div class="flex gap-2 max-w-[85%] flex-row-reverse">
+<div class="w-8 h-8 rounded-full bg-[#353b48] flex-shrink-0 flex items-center justify-center text-white text-xs font-bold mt-1">AG</div>
+<div class="bg-[#353b48] px-4 py-3 text-sm text-white rounded-2xl rounded-tr-none shadow-sm">
+                            Absolutely! I've forwarded your request to Housekeeping. They should be there in about 10 minutes.
+                        </div>
+</div>
+</div>
+</div>
+<div class="p-4 bg-white border-t border-stone-100 z-10">
+<div class="flex gap-2 mb-3 overflow-x-auto scrollbar-hide">
+<button class="whitespace-nowrap text-xs font-bold border border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1 uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]">calendar_month</span> Send Itinerary
+                    </button>
+<button class="whitespace-nowrap text-xs font-bold border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 px-3 py-1.5 rounded-full transition-colors uppercase tracking-wider">Suggest Activity</button>
+<button class="whitespace-nowrap text-xs font-bold border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 px-3 py-1.5 rounded-full transition-colors uppercase tracking-wider">Room Service</button>
+</div>
+<div class="relative flex gap-2">
+<input class="w-full bg-stone-50 border border-stone-200 rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-stone-300 focus:border-stone-400 text-stone-700 placeholder-stone-400 transition-all" placeholder="Type your message..." type="text"/>
+<button class="w-10 bg-[#4a647c] text-white rounded-lg flex items-center justify-center hover:bg-[#3d5368] transition-colors">
+<span class="material-symbols-outlined text-lg">send</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<aside class="w-[280px] flex flex-col gap-6">
+<div class="tech-panel overflow-hidden h-[200px] flex flex-col relative rounded-xl border border-stone-200 shadow-sm group">
+<div class="absolute top-3 left-3 z-10 bg-[#faf9f6]/95 backdrop-blur text-stone-700 text-[10px] font-bold px-2 py-1 rounded-md shadow-sm border border-stone-200 flex items-center gap-1 uppercase tracking-wider">
+<span class="w-1.5 h-1.5 bg-[#4a647c] rounded-full"></span> Pool Sector 04
+            </div>
+<div class="relative w-full h-full">
+<iframe frameborder="0" height="100%" marginheight="0" marginwidth="0" scrolling="no" src="https://www.openstreetmap.org/export/embed.html?bbox=73.74%2C15.54%2C73.78%2C15.58&amp;layer=mapnik&amp;marker=15.56%2C73.76" style="border: none; filter: sepia(20%) grayscale(100%) opacity(0.5) contrast(90%);" width="100%"></iframe>
+<div class="absolute bottom-3 right-3 flex flex-col gap-1 bg-white/95 rounded-md shadow-sm border border-stone-200 overflow-hidden">
+<button class="p-1 hover:bg-stone-50 text-stone-600">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+<div class="h-[1px] bg-stone-200 w-full"></div>
+<button class="p-1 hover:bg-stone-50 text-stone-600">
+<span class="material-symbols-outlined text-base">remove</span>
+</button>
+</div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+<div class="w-3 h-3 bg-[#4a647c] rounded-full border-2 border-white shadow-md"></div>
+</div>
+</div>
+</div>
+<div class="tech-panel p-5 flex-1 flex flex-col">
+<div class="flex items-center gap-2 mb-4 border-b border-stone-100 pb-2">
+<span class="material-symbols-outlined text-stone-400 text-lg">badge</span>
+<h3 class="text-xs font-bold text-stone-500 uppercase tracking-widest">Manifest Details</h3>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-stone-500 font-medium">Dates</span>
+<span class="text-stone-800 font-bold bg-stone-100 px-2 py-0.5 rounded border border-stone-200 text-xs">Oct 12 - Oct 19</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-stone-500 font-medium">Guests</span>
+<div class="flex gap-1">
+<span class="text-stone-800 font-bold bg-stone-100 px-1.5 py-0.5 rounded text-xs border border-stone-200">2 ADT</span>
+<span class="text-stone-800 font-bold bg-stone-100 px-1.5 py-0.5 rounded text-xs border border-stone-200">2 CHD</span>
+</div>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-stone-500 font-medium">Package</span>
+<span class="text-stone-700 font-bold text-[10px] bg-stone-100 px-2 py-0.5 rounded border border-stone-200 uppercase tracking-wider">PREMIUM ALL-INC</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-stone-100 border-dashed">
+<button class="w-full py-2.5 bg-stone-100/50 border border-stone-200 text-stone-700 hover:bg-white hover:border-stone-300 hover:shadow-sm transition-all text-[10px] font-bold rounded-lg flex items-center justify-center gap-2 group uppercase tracking-widest">
+<span class="material-symbols-outlined text-base text-stone-400 group-hover:text-stone-600 transition-colors">description</span>
+                    Open Contract PDF
+                </button>
+</div>
+</div>
+<div class="bg-stone-50 border border-stone-300 p-5 shadow-sm rounded-xl relative overflow-hidden">
+<div class="absolute -right-6 -top-6 w-24 h-24 bg-stone-200/50 rounded-full blur-xl"></div>
+<div class="relative z-10">
+<div class="flex items-center justify-between mb-3 border-b border-stone-200 pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-stone-500 text-lg">auto_awesome</span>
+<span class="text-xs font-bold uppercase tracking-widest text-stone-700">Voyageur AI</span>
+</div>
+<div class="flex items-center gap-1 bg-white px-1.5 py-0.5 rounded-full border border-stone-200 shadow-sm">
+<span class="w-1.5 h-1.5 bg-[#4f5d4e] rounded-full"></span>
+<span class="text-[9px] font-bold text-stone-500">LIVE</span>
+</div>
+</div>
+<div class="mb-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="bg-[#4f5d4e]/10 text-[#4f5d4e] text-[9px] font-bold px-2 py-0.5 rounded-full border border-[#4f5d4e]/20 tracking-wider">HIGH SATISFACTION</span>
+</div>
+<p class="text-xs leading-relaxed text-stone-600">
+                        Positive sentiment detected. It's a great time to upsell the <strong class="text-stone-800 font-semibold italic">Sunset Cruise</strong> experience for their final evening.
+                    </p>
+</div>
+<button class="w-full py-2 bg-[#353b48] hover:bg-[#2d323c] text-white text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm">send</span>
+                    Draft Proposal
+                </button>
+</div>
+</div>
+</aside>
+</div>
+
+</body></html>

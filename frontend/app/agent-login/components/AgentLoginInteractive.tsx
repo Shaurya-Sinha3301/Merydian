@@ -51,13 +51,13 @@ const AgentLoginInteractive = () => {
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div>
                         <label className="block text-sm font-semibold text-[#212121] mb-2">
-                            Email Address
+                            Username / Email
                         </label>
                         <input
-                            type="email"
+                            type="text"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="agent@voyageur.com"
+                            placeholder="agent_username"
                             className="w-full px-4 py-3 bg-[#EDEDED] text-[#212121] rounded-xl shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)] focus:outline-none placeholder:text-[#212121]/40"
                         />
                     </div>
