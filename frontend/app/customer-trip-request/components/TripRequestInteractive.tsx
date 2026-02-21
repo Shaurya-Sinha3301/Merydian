@@ -231,8 +231,10 @@ const TripRequestContent = () => {
         ]
       };
 
-      const { apiClient } = await import('@/services/api');
-      await apiClient.initializeTrip(payload);
+      // TEMPORARILY DISABLED: Backend connection bypassed for testing
+      // const { apiClient } = await import('@/services/api');
+      // await apiClient.initializeTrip(payload);
+      console.log("TEMPORARY BYPASS: Backend call skipped", payload);
 
       setShowSubmitConfirmation(true);
       setTimeout(() => {
