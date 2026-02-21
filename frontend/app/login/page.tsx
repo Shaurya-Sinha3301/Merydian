@@ -1,33 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+
+// Redirect route mapping
+const REDIRECT_ROUTES = {
+  customer: '/customer-preferences',
+  agent: '/agent-dashboard/itinerary-management'
+} as const;
 
 export default function LoginPage() {
-  const { login, isLoading: authLoading } = useAuth();
-  const [userType, setUserType] = useState<'customer' | 'agent'>('customer');
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false,
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // Initialize user type from URL parameter or default to 'customer'
+  const [userType, setUserType] = useState<'customer' | 'agent'>(() => {
+    const typeParam = searchParams.get('type');
+    return typeParam === 'agent' ? 'agent' : 'customer';
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.MouseEvent) => {
     e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      await login(formData.email, formData.password);
-      // Redirect is handled by AuthContext based on user role
-    } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setIsLoading(false);
-    }
+    // Navigate to appropriate dashboard based on user type
+    router.push(REDIRECT_ROUTES[userType]);
   };
 
   return (
@@ -126,37 +122,21 @@ export default function LoginPage() {
             </a>
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                Signing in...
-              </span>
-            ) : (
-              `Sign in as ${userType === 'customer' ? 'Customer' : 'Agent'}`
-            )}
-          </button>
+          {userType === 'customer' ? (
+            <button
+              onClick={handleLogin}
+              className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center"
+            >
+              Login to Customer Portal
+            </button>
+          ) : (
+            <button
+              onClick={handleLogin}
+              className="w-full bg-[#212121] text-[#FDFDFF] py-3 px-4 rounded-xl font-bold hover:bg-[#212121]/90 transition-all text-center"
+            >
+              Login to Agent Portal
+            </button>
+          )}
         </form>
 
         <div className="mt-8 text-center">

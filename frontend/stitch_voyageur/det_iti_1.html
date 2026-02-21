@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dynamic Group Lanes Itinerary - Full Width</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=Source+Sans+3:wght@300;400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .neu-flat {
+                background: #eef2f6;
+                box-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+            }
+            .neu-pressed {
+                background: #eef2f6;
+                box-shadow: inset 6px 6px 12px #d1d9e6, inset -6px -6px 12px #ffffff;
+            }
+            .neu-raised {
+                background: #eef2f6;
+                box-shadow: 6px 6px 12px #d1d9e6, -6px -6px 12px #ffffff;
+            }
+            .neu-raised-sm {
+                background: #eef2f6;
+                box-shadow: 3px 3px 6px #d1d9e6, -3px -3px 6px #ffffff;
+            }
+            .glass-panel {
+                background: rgba(255, 255, 255, 0.65);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .lane-transition {
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+        }
+        :root {
+            --primary: #1e293b;
+            --secondary: #64748b;
+            --accent: #0ea5e9;
+            --bg-color: #eef2f6;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--primary);
+            font-family: 'Source Sans 3', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-700 overflow-hidden">
+<header class="w-full bg-[#eef2f6] border-b border-slate-200 z-50 py-2 px-6 shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white font-bold font-heading">N</div>
+<div>
+<span class="font-heading font-semibold text-lg tracking-tight block leading-tight">NexTravel</span>
+<span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Dynamic Manager</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 bg-white/60 p-2 px-4 rounded-2xl neu-raised-sm border border-white">
+<div class="flex flex-col border-r border-slate-200 pr-4">
+<span class="text-[9px] uppercase font-bold text-slate-400">Total Rev.</span>
+<span class="text-sm font-bold text-slate-800 leading-none">$12,450</span>
+</div>
+<div class="flex flex-col border-r border-slate-200 pr-4">
+<span class="text-[9px] uppercase font-bold text-slate-400">Est. Cost</span>
+<span class="text-sm font-bold text-slate-600 leading-none">$9,820</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="text-[9px] uppercase font-bold text-slate-400">Profit Margin</span>
+<span class="text-[9px] font-bold px-1.5 rounded bg-green-100 text-green-700">+2.4%</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-lg font-bold text-green-600 leading-none">21.1%</span>
+<div class="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+<div class="h-full bg-green-500 w-[21%]"></div>
+</div>
+</div>
+</div>
+</div>
+<button class="px-4 py-2 rounded-xl bg-slate-800 text-white shadow-lg text-sm font-semibold hover:bg-slate-700 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                    Save
+                </button>
+</div>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden">
+<main class="flex-1 flex flex-col overflow-hidden bg-slate-50 relative">
+<div class="absolute top-6 left-6 z-50">
+<button class="neu-raised rounded-xl p-3 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-white transition-all group">
+<span class="material-symbols-outlined group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
+</button>
+</div>
+<div class="flex-1 overflow-auto scrollbar-hide pb-48 pt-2">
+<div class="flex border-b border-slate-200 min-h-[160px] group/row">
+<div class="w-24 sticky left-0 flex flex-col items-center justify-center border-r border-slate-300 bg-white/60 z-30 backdrop-blur-sm">
+<span class="text-sm font-bold text-slate-800">08:00</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">AM</span>
+</div>
+<div class="flex-1 p-4 flex gap-4 pl-12">
+<div class="lane-transition neu-raised-sm rounded-2xl p-6 flex-1 border border-white bg-slate-100/30 relative flex flex-col group/card min-w-[600px]">
+<div class="absolute top-4 right-4 p-1 rounded hover:bg-white/80 cursor-grab text-slate-300">
+<span class="material-symbols-outlined text-lg">drag_indicator</span>
+</div>
+<div class="flex justify-between items-start mb-2 pr-8">
+<span class="px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 text-[10px] font-bold uppercase">Dining</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">1h</span>
+</div>
+<div class="flex-1">
+<h4 class="text-lg font-bold text-slate-800">Breakfast at Café de Flore</h4>
+<p class="text-xs text-slate-500 mt-2 italic max-w-4xl">Classic Parisian breakfast with croissants and coffee. All groups attending together.</p>
+</div>
+<div class="mt-4 flex items-center justify-between border-t border-slate-200/50 pt-3">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Participants:</span>
+<div class="flex gap-1.5">
+<span class="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold border border-blue-200">Family A</span>
+<span class="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold border border-blue-200">Family B</span>
+<span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[9px] font-bold border border-indigo-200">Family C</span>
+</div>
+</div>
+<span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Confirmed for All</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex border-b border-slate-200 min-h-[200px] group/row">
+<div class="w-24 sticky left-0 flex flex-col items-center justify-center border-r border-slate-300 bg-white/60 z-30 backdrop-blur-sm">
+<span class="text-sm font-bold text-indigo-600">10:00</span>
+<span class="text-[10px] text-indigo-400 font-bold uppercase">AM</span>
+<span class="material-symbols-outlined text-indigo-300 text-sm mt-1">call_split</span>
+</div>
+<div class="flex-1 p-4 flex gap-6 overflow-x-auto scrollbar-hide pl-12">
+<div class="lane-transition neu-raised-sm rounded-2xl p-6 w-[400px] flex-shrink-0 border border-blue-100 bg-blue-50/20 relative flex flex-col group/card">
+<div class="absolute top-4 right-4 p-1 rounded hover:bg-white/80 cursor-grab text-slate-300">
+<span class="material-symbols-outlined text-lg">drag_indicator</span>
+</div>
+<div class="flex justify-between items-start mb-2 pr-8">
+<span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 text-[10px] font-bold uppercase">Activity</span>
+<span class="text-[10px] text-blue-500 font-bold uppercase">3h</span>
+</div>
+<div class="flex-1">
+<h4 class="text-lg font-bold text-slate-800">Louvre Museum</h4>
+<p class="text-xs text-slate-500 mt-2 line-clamp-3">Guided Mona Lisa wing tour. Wheelchair accessible route through the Richelieu wing.</p>
+</div>
+<div class="mt-4 flex items-center justify-between border-t border-blue-200/30 pt-3">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold">Family A + B</span>
+</div>
+<span class="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 rounded">Confirmed</span>
+</div>
+</div>
+<div class="lane-transition neu-raised-sm rounded-2xl p-6 w-[400px] flex-shrink-0 border border-purple-100 bg-purple-50/20 relative flex flex-col group/card">
+<div class="absolute top-4 right-4 p-1 rounded hover:bg-white/80 cursor-grab text-slate-300">
+<span class="material-symbols-outlined text-lg">drag_indicator</span>
+</div>
+<div class="flex justify-between items-start mb-2 pr-8">
+<span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 text-[10px] font-bold uppercase">Activity</span>
+<span class="text-[10px] text-purple-500 font-bold uppercase">2.5h</span>
+</div>
+<div class="flex-1">
+<h4 class="text-lg font-bold text-slate-800">Eiffel Tower Summit</h4>
+<p class="text-xs text-slate-500 mt-2 line-clamp-3">Summit access via priority elevator. Photographers pass included for family portraits.</p>
+</div>
+<div class="mt-4 flex items-center justify-between border-t border-purple-200/30 pt-3">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[9px] font-bold">Family C</span>
+</div>
+<span class="text-[9px] font-bold text-orange-600 bg-orange-50 px-1.5 rounded">Limited</span>
+</div>
+</div>
+<button class="w-20 flex-shrink-0 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center hover:bg-white transition-colors group/add">
+<span class="material-symbols-outlined text-slate-300 group-hover/add:text-slate-400">add_circle</span>
+</button>
+</div>
+</div>
+<div class="flex border-b border-slate-200 min-h-[160px] group/row">
+<div class="w-24 sticky left-0 flex flex-col items-center justify-center border-r border-slate-300 bg-white/60 z-30 backdrop-blur-sm">
+<span class="text-sm font-bold text-slate-800">01:00</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">PM</span>
+<span class="material-symbols-outlined text-green-400 text-sm mt-1">call_merge</span>
+</div>
+<div class="flex-1 p-4 flex gap-4 pl-12">
+<div class="lane-transition neu-raised-sm rounded-2xl p-6 flex-1 border border-white bg-slate-100/30 relative flex flex-col group/card min-w-[600px]">
+<div class="absolute top-4 right-4 p-1 rounded hover:bg-white/80 cursor-grab text-slate-300">
+<span class="material-symbols-outlined text-lg">drag_indicator</span>
+</div>
+<div class="flex justify-between items-start mb-2 pr-8">
+<span class="px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 text-[10px] font-bold uppercase">Dining</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">1.5h</span>
+</div>
+<div class="flex-1">
+<h4 class="text-lg font-bold text-slate-800">Lunch at Le Nemours</h4>
+<p class="text-xs text-slate-500 mt-2 italic max-w-4xl">Casual lunch near Palais Royal. Famous croque monsieur for the whole party. Outdoor terrace reserved.</p>
+</div>
+<div class="mt-4 flex items-center justify-between border-t border-slate-200/50 pt-3">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Participants:</span>
+<div class="flex gap-1.5">
+<span class="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold border border-blue-200">Family A</span>
+<span class="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold border border-blue-200">Family B</span>
+<span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[9px] font-bold border border-indigo-200">Family C</span>
+</div>
+</div>
+<span class="text-[10px] font-bold text-slate-500">Avg. ~$60 per person</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-6 right-6 z-[60]">
+<div class="w-[360px] neu-raised rounded-3xl p-6 shadow-xl border border-white/50 relative bg-[#eef2f6]">
+<button class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+<span class="material-symbols-outlined text-xl">expand_more</span>
+</button>
+<div class="flex items-center gap-3 mb-4">
+<h3 class="font-bold text-slate-700 text-lg font-heading">Profit Impact</h3>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">+2.4%</span>
+</div>
+<div class="mb-5">
+<div class="flex items-end gap-2 mb-1">
+<span class="text-4xl font-bold text-slate-800 leading-none tracking-tight">21.1%</span>
+<span class="material-symbols-outlined text-green-500 text-2xl mb-1">trending_up</span>
+</div>
+<p class="text-xs text-slate-500 font-medium">Previous: <span class="text-slate-400 line-through decoration-slate-400">18.7%</span> <span class="mx-1 text-slate-400">→</span> <span class="text-green-600 font-bold">Now: 21.1%</span></p>
+</div>
+<div class="bg-slate-200/50 rounded-2xl p-4 border border-slate-200/60 inner-shadow">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-indigo-500 text-sm">auto_awesome</span>
+<span class="text-[10px] uppercase font-bold text-indigo-500 tracking-wider">AI Insights</span>
+</div>
+<ul class="space-y-2">
+<li class="flex gap-2 items-start text-[11px] text-slate-600 leading-tight">
+<span class="w-1 h-1 rounded-full bg-indigo-400 mt-1.5 flex-shrink-0"></span>
+                                Subgroup routing reduced travel cost by <span class="font-bold text-slate-800">$320</span>
+</li>
+<li class="flex gap-2 items-start text-[11px] text-slate-600 leading-tight">
+<span class="w-1 h-1 rounded-full bg-indigo-400 mt-1.5 flex-shrink-0"></span>
+                                Lunch relocation increased margin by <span class="font-bold text-slate-800">1.2%</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="absolute bottom-6 right-[400px] z-[60]">
+<button class="w-14 h-14 neu-raised rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:scale-105 transition-all shadow-lg border border-white/50 group">
+<span class="material-symbols-outlined text-2xl group-hover:animate-pulse">smart_toy</span>
+</button>
+</div>
+</main>
+</div>
+</body></html>
