@@ -12,7 +12,7 @@ export default function IntelligenceView() {
         <div className="flex h-full bp-grid-bg bg-white overflow-hidden">
 
             {/* ══ LEFT — Analysis Section ════════════════════════════════════ */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin-black px-6 md:px-8 py-6 min-w-0">
+            <div className="flex-1 overflow-y-auto scrollbar-hide px-6 md:px-8 py-6 min-w-0">
 
                 {/* Section label */}
                 <p className="bp-label mb-4 flex items-center gap-2">
@@ -209,7 +209,7 @@ export default function IntelligenceView() {
                 </div>
 
                 {/* Scrollable cards */}
-                <div className="flex-1 overflow-y-auto scrollbar-thin-black px-6 pb-6 space-y-4 pt-2">
+                <div className="flex-1 overflow-y-auto scrollbar-hide px-6 pb-6 space-y-4 pt-2">
                     {/* ── Priority Alpha ── */}
                     <RecommendationCard
                         priority="Priority Alpha"

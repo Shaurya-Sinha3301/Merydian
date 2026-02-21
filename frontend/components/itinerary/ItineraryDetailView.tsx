@@ -3,262 +3,260 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import {
-    ArrowLeft, TrendingUp, Sparkles, ChevronUp, ChevronDown,
-    Zap, MessageSquare, Send, GripVertical, Plus, Minimize2,
-    Maximize2
+    ArrowLeft, TrendingUp, ChevronDown, ChevronUp,
+    Send, GripVertical, Minimize2, Check, X, Terminal,
+    Wifi
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTripById } from '@/lib/trips';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 type LaneCard = {
     id: string;
+    evtId: string;
     category: string;
-    categoryColor: string;               // Tailwind bg class for badge
-    categoryTextColor: string;           // Tailwind text class for badge
-    laneBorderColor?: string;            // Tailwind border class for card left accent
-    laneBgColor?: string;                // Tailwind bg class for card tint
-    durationLabel: string;
-    durationColor?: string;
+    categoryBorder: string;
+    categoryBg: string;
+    categoryText: string;
+    locationCode: string;           // e.g. PARIS_06
+    durationLabel: string;          // e.g. 1H 00M
+    durationColor: string;
     title: string;
+    subtitle?: string;              // e.g. "Richelieu Wing"
     description: string;
-    participants: { label: string; color: string }[];
+    participants: { code: string; color: string }[];
     statusLabel: string;
-    statusColor: string;
+    statusIcon: 'confirmed' | 'limited' | 'info';
+    imageUrl: string;
 };
 
 type TimeRow = {
     time: string;
-    period: 'AM' | 'PM';
+    period: 'AM' | 'PM' | 'UTC+1';
     splitIcon?: 'split' | 'merge';
     cards: LaneCard[];
 };
 
-// ─── Static data (mirrors Stitch design) ─────────────────────────────────────
+// ─── Static data ─────────────────────────────────────────────────────────────
 
 const TIMELINE_ROWS: TimeRow[] = [
     {
         time: '08:00',
-        period: 'AM',
+        period: 'UTC+1',
         cards: [
             {
                 id: 'breakfast',
+                evtId: 'EVT-892',
                 category: 'Dining',
-                categoryColor: 'bg-orange-100',
-                categoryTextColor: 'text-orange-700',
-                durationLabel: '1h',
+                categoryBorder: 'border-orange-200',
+                categoryBg: 'bg-orange-50',
+                categoryText: 'text-orange-700',
+                locationCode: 'PARIS_06',
+                durationLabel: '1H 00M',
+                durationColor: 'text-slate-500',
                 title: 'Breakfast at Café de Flore',
-                description: 'Classic Parisian breakfast with croissants and coffee. All groups attending together.',
+                description: 'Sequence: Croissants, Coffee. Full group synchronization required.',
                 participants: [
-                    { label: 'Family A', color: 'bg-blue-100 text-blue-700 border border-blue-200' },
-                    { label: 'Family B', color: 'bg-blue-100 text-blue-700 border border-blue-200' },
-                    { label: 'Family C', color: 'bg-indigo-100 text-indigo-700 border border-indigo-200' },
+                    { code: 'FAM A', color: 'bg-slate-100 border-slate-200 text-slate-600' },
+                    { code: 'FAM B', color: 'bg-slate-100 border-slate-200 text-slate-600' },
+                    { code: 'FAM C', color: 'bg-slate-100 border-slate-200 text-slate-600' },
                 ],
-                statusLabel: 'Confirmed for All',
-                statusColor: 'text-green-600 bg-green-50',
+                statusLabel: 'Confirmed',
+                statusIcon: 'confirmed',
+                imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200&q=80',
             },
         ],
     },
     {
         time: '10:00',
-        period: 'AM',
+        period: 'UTC+1',
         splitIcon: 'split',
         cards: [
             {
                 id: 'louvre',
+                evtId: 'ACT-401',
                 category: 'Activity',
-                categoryColor: 'bg-blue-100',
-                categoryTextColor: 'text-blue-700',
-                laneBorderColor: 'border-blue-100',
-                laneBgColor: 'bg-blue-50/20',
-                durationLabel: '3h',
-                durationColor: 'text-blue-500',
+                categoryBorder: 'border-blue-200',
+                categoryBg: 'bg-blue-50',
+                categoryText: 'text-blue-700',
+                locationCode: 'PARIS_01',
+                durationLabel: '3H 00M',
+                durationColor: 'text-blue-600',
                 title: 'Louvre Museum',
-                description: 'Guided Mona Lisa wing tour. Wheelchair accessible route through the Richelieu wing.',
+                subtitle: 'Richelieu Wing',
+                description: 'Guided Mona Lisa wing tour. Wheelchair accessible route.',
                 participants: [
-                    { label: 'Family A + B', color: 'bg-blue-100 text-blue-700' },
+                    { code: 'FAM A', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+                    { code: 'FAM B', color: 'bg-blue-50 border-blue-200 text-blue-700' },
                 ],
                 statusLabel: 'Confirmed',
-                statusColor: 'text-green-600 bg-green-50',
+                statusIcon: 'confirmed',
+                imageUrl: 'https://images.unsplash.com/photo-1499856374916-4f4b4e26cdb4?w=200&q=80',
             },
             {
                 id: 'eiffel',
+                evtId: 'ACT-404',
                 category: 'Activity',
-                categoryColor: 'bg-purple-100',
-                categoryTextColor: 'text-purple-700',
-                laneBorderColor: 'border-purple-100',
-                laneBgColor: 'bg-purple-50/20',
-                durationLabel: '2.5h',
-                durationColor: 'text-purple-500',
+                categoryBorder: 'border-purple-200',
+                categoryBg: 'bg-purple-50',
+                categoryText: 'text-purple-700',
+                locationCode: 'PARIS_07',
+                durationLabel: '2H 30M',
+                durationColor: 'text-purple-600',
                 title: 'Eiffel Tower Summit',
-                description: 'Summit access via priority elevator. Photographers pass included for family portraits.',
+                subtitle: 'Top Deck',
+                description: 'Summit access via priority elevator. Photographers pass included.',
                 participants: [
-                    { label: 'Family C', color: 'bg-indigo-100 text-indigo-700' },
+                    { code: 'FAM C', color: 'bg-indigo-50 border-indigo-200 text-indigo-700' },
                 ],
                 statusLabel: 'Limited',
-                statusColor: 'text-orange-600 bg-orange-50',
+                statusIcon: 'limited',
+                imageUrl: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=200&q=80',
             },
         ],
     },
     {
-        time: '01:00',
-        period: 'PM',
+        time: '13:00',
+        period: 'UTC+1',
         splitIcon: 'merge',
         cards: [
             {
                 id: 'lunch',
+                evtId: 'EVT-894',
                 category: 'Dining',
-                categoryColor: 'bg-orange-100',
-                categoryTextColor: 'text-orange-700',
-                durationLabel: '1.5h',
+                categoryBorder: 'border-orange-200',
+                categoryBg: 'bg-orange-50',
+                categoryText: 'text-orange-700',
+                locationCode: 'PARIS_01',
+                durationLabel: '1H 30M',
+                durationColor: 'text-slate-500',
                 title: 'Lunch at Le Nemours',
-                description: 'Casual lunch near Palais Royal. Famous croque monsieur for the whole party. Outdoor terrace reserved.',
+                description: 'Casual seating. Croque monsieur. Terrace reserved for full party.',
                 participants: [
-                    { label: 'Family A', color: 'bg-blue-100 text-blue-700 border border-blue-200' },
-                    { label: 'Family B', color: 'bg-blue-100 text-blue-700 border border-blue-200' },
-                    { label: 'Family C', color: 'bg-indigo-100 text-indigo-700 border border-indigo-200' },
+                    { code: 'FAM A', color: 'bg-slate-100 border-slate-200 text-slate-600' },
+                    { code: 'FAM B', color: 'bg-slate-100 border-slate-200 text-slate-600' },
+                    { code: 'FAM C', color: 'bg-slate-100 border-slate-200 text-slate-600' },
                 ],
-                statusLabel: 'Avg. ~$60 per person',
-                statusColor: 'text-muted-foreground',
+                statusLabel: '~$60.00 / PAX',
+                statusIcon: 'info',
+                imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=200&q=80',
             },
         ],
     },
 ];
 
-// ─── AI insights ─────────────────────────────────────────────────────────────
-
-const AI_INSIGHTS = [
-    { text: 'Preference conflict detected between Family A & C', dot: 'bg-indigo-400' },
-    { text: 'Subgroup formed for 2.5h', dot: 'bg-indigo-400' },
-    { text: 'Travel overhead reduced by 18%', dot: 'bg-green-500' },
-    { text: <>Margin improved by <span className="font-bold text-green-700">+2.4%</span></>, dot: 'bg-green-500' },
-];
-
-const PROFIT_INSIGHTS = [
-    { text: <>Subgroup routing reduced travel cost by <span className="font-bold text-slate-800">$320</span></>, dot: 'bg-indigo-400' },
-    { text: <>Lunch relocation increased margin by <span className="font-bold text-slate-800">1.2%</span></>, dot: 'bg-indigo-400' },
+const AI_LOG = [
+    { color: 'text-indigo-600', text: 'Conflict resolved: FAM_A vs FAM_C overlap.' },
+    { color: 'text-indigo-600', text: 'Split-path generated: 2.5H duration.' },
+    { color: 'text-emerald-600', text: <>Overhead reduction: <span className="text-emerald-700 font-bold">18%</span> verified.</> },
+    { color: 'text-emerald-600', text: <>Margin impact: <span className="text-emerald-700 font-bold">+2.4%</span> applied.</> },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SplitIcon({ type }: { type: 'split' | 'merge' }) {
+function SplitMergeIcon({ type }: { type: 'split' | 'merge' }) {
+    const isSplit = type === 'split';
     return (
-        <div className={cn(
-            'w-4 h-4 rounded-full flex items-center justify-center mt-1.5',
-            type === 'split' ? 'bg-indigo-200 text-indigo-500' : 'bg-green-200 text-green-600',
-        )}>
-            {type === 'split' ? (
-                <svg viewBox="0 0 12 12" className="w-3 h-3" fill="currentColor">
-                    <path d="M6 2 L6 6 M6 6 L2 10 M6 6 L10 10" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                </svg>
-            ) : (
-                <svg viewBox="0 0 12 12" className="w-3 h-3" fill="currentColor">
-                    <path d="M2 2 L6 6 M10 2 L6 6 M6 6 L6 10" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                </svg>
-            )}
+        <div className="mt-2 flex flex-col items-center gap-0.5">
+            <div className={cn('w-px h-3', isSplit ? 'bg-indigo-200' : 'bg-emerald-200')} />
+            <div className={cn(
+                'text-[10px] font-bold mono-font px-0.5',
+                isSplit ? 'text-indigo-400' : 'text-emerald-400',
+            )}>
+                {isSplit ? '⑂' : '⑁'}
+            </div>
+            <div className={cn('w-px h-3', isSplit ? 'bg-indigo-200' : 'bg-emerald-200')} />
         </div>
     );
 }
 
-function ActivityCard({ card, isLane, laneCount }: { card: LaneCard; isLane: boolean; laneCount?: number }) {
+function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) {
     return (
         <div className={cn(
-            'neu-flat rounded-2xl p-5 flex flex-col relative group/card transition-all duration-300 hover:scale-[1.01]',
-            isLane
-                ? `flex-1 min-w-0 ${card.laneBorderColor ?? 'border-white'} ${card.laneBgColor ?? ''} border`
-                : 'flex-1 border border-white bg-slate-100/20 min-w-[500px]',
+            'tech-card flex flex-row group/card relative transition-all duration-200 hover:translate-x-0.5 hover:shadow-md items-stretch',
+            compact ? 'min-w-[440px] w-[480px]' : 'min-w-[640px] flex-1',
         )}>
             {/* Drag handle */}
-            <div className="absolute top-4 right-4 text-muted-foreground/30 cursor-grab">
-                <GripVertical className="w-4 h-4" />
+            <div className="absolute top-0 right-0 p-1.5 text-slate-300 hover:text-slate-500 cursor-grab z-10 bg-white/80 backdrop-blur-sm">
+                <GripVertical className="w-3.5 h-3.5" />
             </div>
 
-            {/* Badge row */}
-            <div className="flex justify-between items-start mb-2 pr-6">
-                <span className={cn('px-2 py-0.5 rounded-md text-[10px] font-bold uppercase', card.categoryColor, card.categoryTextColor)}>
-                    {card.category}
-                </span>
-                <span className={cn('text-[10px] font-bold uppercase', card.durationColor ?? 'text-muted-foreground')}>
-                    {card.durationLabel}
-                </span>
+            {/* Image thumbnail */}
+            <div className={cn(
+                'relative border-r border-slate-200 bg-slate-100 flex-shrink-0 overflow-hidden',
+                compact ? 'w-20' : 'w-[72px] h-full min-h-[80px]',
+            )}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src={card.imageUrl}
+                    alt={card.title}
+                    className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-500 opacity-90 group-hover/card:opacity-100"
+                />
+                <div className="absolute inset-0 ring-1 ring-inset ring-black/5" />
+                <div className="absolute bottom-1 left-1 bg-black/80 text-white text-[7px] px-1 py-px font-mono leading-none">
+                    {card.locationCode}
+                </div>
             </div>
 
-            {/* Title */}
-            <div className="flex-1">
-                <h4 className="font-[Outfit] text-base font-bold text-foreground">{card.title}</h4>
-                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-3">{card.description}</p>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-4 pt-3 border-t border-slate-200/50 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                    {card.participants.length > 1 && (
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight mr-1">Participants:</span>
-                    )}
-                    {card.participants.map((p) => (
-                        <span key={p.label} className={cn('px-2 py-0.5 rounded text-[9px] font-bold', p.color)}>
-                            {p.label}
+            {/* Content */}
+            <div className="flex-1 p-3 flex flex-col justify-center gap-1.5 min-w-0 pr-8">
+                {/* Top row: title + duration + participants */}
+                <div className="flex justify-between items-start gap-2">
+                    <div className="flex flex-col min-w-0">
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                            <h4 className="text-xs font-bold text-slate-900 uppercase tracking-tight leading-tight">
+                                {card.title}
+                            </h4>
+                            <span className="text-[9px] text-slate-400 font-mono shrink-0">{card.evtId}</span>
+                            <span className={cn(
+                                'px-1 py-px border text-[8px] font-bold uppercase tracking-wider rounded-sm shrink-0',
+                                card.categoryBorder, card.categoryBg, card.categoryText,
+                            )}>
+                                {card.category}
+                            </span>
+                        </div>
+                        {card.subtitle && (
+                            <span className="text-[10px] text-slate-500 font-mono font-bold mt-0.5">{card.subtitle}</span>
+                        )}
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                        <span className={cn('text-[10px] font-mono font-medium', card.durationColor)}>
+                            {card.durationLabel}
                         </span>
-                    ))}
+                        <div className="flex items-center gap-0.5 flex-wrap justify-end">
+                            {card.participants.map((p) => (
+                                <span
+                                    key={p.code}
+                                    className={cn(
+                                        'px-1.5 py-0.5 border rounded text-[8px] font-bold font-mono',
+                                        p.color,
+                                    )}
+                                >
+                                    {p.code}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
                 </div>
-                <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded shrink-0', card.statusColor)}>
-                    {card.statusLabel}
-                </span>
+
+                {/* Bottom row: description + status */}
+                <div className="flex justify-between items-center gap-2">
+                    <p className="text-[10px] text-slate-500 font-mono leading-tight truncate flex-1">
+                        {card.description}
+                    </p>
+                    <div className={cn(
+                        'flex items-center gap-1 shrink-0',
+                        card.statusIcon === 'confirmed' ? 'text-emerald-600' :
+                            card.statusIcon === 'limited' ? 'text-orange-500' : 'text-slate-500',
+                    )}>
+                        {card.statusIcon === 'confirmed' && <Check className="w-3 h-3" />}
+                        <span className="text-[9px] font-bold uppercase tracking-wider font-mono">
+                            {card.statusLabel}
+                        </span>
+                    </div>
+                </div>
             </div>
-        </div>
-    );
-}
-
-// ─── Floating Panel ───────────────────────────────────────────────────────────
-
-function FloatingPanel({
-    title,
-    icon,
-    isOpen,
-    onToggle,
-    children,
-    position,
-    onMouseEnter,
-    onMouseLeave,
-}: {
-    title: React.ReactNode;
-    icon: React.ReactNode;
-    isOpen: boolean;
-    onToggle: () => void;
-    children: React.ReactNode;
-    position: 'left' | 'right';
-    onMouseEnter?: () => void;
-    onMouseLeave?: () => void;
-}) {
-    return (
-        <div
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-            className={cn(
-                // fixed keeps the panel anchored to the viewport bottom regardless of scroll
-                'fixed bottom-6 z-[60] w-[calc(50vw-220px)] min-w-[320px] max-w-[440px] neu-card rounded-3xl border border-white/60 shadow-2xl transition-all duration-300',
-                position === 'left' ? 'left-[calc(256px+24px)]' : 'right-6',
-            )}
-        >
-            {/* Panel header */}
-            <div className={cn('flex items-center justify-between p-5', isOpen ? 'pb-4' : '')}>
-                <div className="flex items-center gap-3">
-                    {icon}
-                    <h3 className="font-[Outfit] font-bold text-foreground text-base">{title}</h3>
-                </div>
-                <button
-                    onClick={onToggle}
-                    className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
-                >
-                    {isOpen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                </button>
-            </div>
-
-            {/* Panel body */}
-            {isOpen && (
-                <div className="px-5 pb-5 space-y-3">
-                    {children}
-                </div>
-            )}
         </div>
     );
 }
@@ -266,26 +264,26 @@ function FloatingPanel({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 interface ItineraryDetailViewProps {
-    /** The trip's ID from the URL param (e.g. "TR-8821") */
     tripId: string;
 }
 
 export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps) {
     const trip = getTripById(tripId);
 
-    const [activePanel, setActivePanel] = useState<'profit' | 'ai' | null>('ai');
+    const [aiOpen, setAiOpen] = useState(true);
+    const [profitOpen, setProfitOpen] = useState(false);
     const [aiInput, setAiInput] = useState('');
     const [panelHovered, setPanelHovered] = useState(false);
 
-    // ── Guard: trip not found ───────────────────────────────────────────
+    // ── Guard ───────────────────────────────────────────────────────────────
     if (!trip) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
-                <p className="font-[Outfit] font-bold text-xl text-foreground">Trip not found</p>
-                <p className="text-sm text-muted-foreground">No trip with ID “{tripId}” exists.</p>
+                <p className="font-bold text-xl text-[var(--bp-text)]">Trip not found</p>
+                <p className="text-sm text-[var(--bp-muted)]">No trip with ID "{tripId}" exists.</p>
                 <Link
                     href="/agent-dashboard/itinerary-management"
-                    className="neu-button px-5 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-muted-foreground hover:text-foreground no-underline"
+                    className="bp-card px-5 py-2 text-sm font-semibold flex items-center gap-2 no-underline text-[var(--bp-text)] hover:border-black transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back to Itineraries
                 </Link>
@@ -293,41 +291,33 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
         );
     }
 
-    // ── Chat state ─────────────────────────────────────────────────────────────
-
-    type ChatMessage = { role: 'ai' | 'user'; text: string; time: string };
-
-    // Locale-neutral format — always HH:MM, no locale mismatch between SSR and client
+    // ── Chat state ──────────────────────────────────────────────────────────
+    type ChatMsg = { role: 'ai' | 'user'; text: string; time: string };
     const now = () => new Date().toTimeString().slice(0, 5);
-
-    const [messages, setMessages] = useState<ChatMessage[]>([
-        {
-            role: 'ai',
-            time: '', // populated client-side via useEffect to avoid SSR/hydration mismatch
-            text: 'Here’s the latest optimization summary:\n\n• Preference conflict detected between Family A & C\n• Subgroup formed for 2.5h activity slots\n• Travel overhead reduced by 18%\n• Margin improved by +2.4%\n\nAsk me anything about this itinerary!',
-        },
-    ]);
+    const [messages, setMessages] = useState<ChatMsg[]>([]);
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Stamp the seed message time after mount (client-only) to prevent hydration mismatch
+    // Seed message client-side to avoid SSR mismatch
     useEffect(() => {
-        setMessages((prev) => prev.map((msg, i) => i === 0 ? { ...msg, time: now() } : msg));
+        setMessages([{
+            role: 'ai',
+            time: now(),
+            text: 'Optimization complete. Conflict resolved for FAM_A & FAM_C. Margin improved +2.4%. Ask me anything.',
+        }]);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isTyping, activePanel]);
+    }, [messages, isTyping]);
 
     const sendMessage = () => {
         const text = aiInput.trim();
         if (!text) return;
-        const userMsg: ChatMessage = { role: 'user', text, time: now() };
-        setMessages((prev) => [...prev, userMsg]);
+        setMessages((prev) => [...prev, { role: 'user', text, time: now() }]);
         setAiInput('');
         setIsTyping(true);
-        // Simulate AI reply after 1.2s
         setTimeout(() => {
             setIsTyping(false);
             setMessages((prev) => [
@@ -335,150 +325,136 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                 {
                     role: 'ai',
                     time: now(),
-                    text: `I’m analyzing your request about “${text}”. Based on the current optimization, I recommend reviewing the subgroup allocations for Day 2. Would you like me to run a new optimization pass?`,
+                    text: `Analyzing: "${text}". Recommend reviewing Day 2 subgroup allocations. Run new optimization pass?`,
                 },
             ]);
         }, 1200);
     };
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden relative bg-background h-full">
+        <div className="flex-1 flex flex-col overflow-hidden relative h-full bp-grid-bg bg-white">
 
-            {/* ── Timeline ─────────────────────────────────────────────────────────── */}
-            <div className={cn('flex-1 pb-72 scrollbar-hide', panelHovered ? 'overflow-hidden' : 'overflow-auto')}>
+            {/* ── Timeline ──────────────────────────────────────────────────────── */}
+            <div className={cn(
+                'flex-1 scrollbar-hide pb-28 bg-white/60 backdrop-blur-sm',
+                panelHovered ? 'overflow-hidden' : 'overflow-auto',
+            )}>
+                {/* Sticky day header */}
+                <div className="sticky top-0 z-30 flex items-center gap-4 bg-slate-100/90 backdrop-blur border-b border-slate-200 px-6 py-2.5 w-full">
+                    <div className="w-16 text-right font-bold text-slate-500 text-[10px] uppercase tracking-widest font-mono">
+                        {trip.dateRange?.split('–')?.[0]?.trim() ?? 'OCT 12'}
+                    </div>
+                    <div className="h-4 w-px bg-slate-300" />
+                    <h2 className="text-sm font-bold text-slate-900 uppercase tracking-tight">
+                        Day 1: Paris Sightseeing
+                    </h2>
+                    <span className="ml-auto text-[10px] font-mono text-slate-400 font-medium">
+                        {TIMELINE_ROWS.length} SLOTS · 08:00 – 14:30
+                    </span>
+                </div>
 
+                {/* Rows */}
                 {TIMELINE_ROWS.map((row) => {
-                    const isMultiLane = row.cards.length > 1;
-
+                    const isMulti = row.cards.length > 1;
                     return (
                         <div
                             key={row.time}
-                            className="flex border-b border-slate-200 min-h-[180px]"
+                            className={cn(
+                                'flex border-b border-slate-200 min-h-[100px] group/row relative',
+                                isMulti ? 'bg-slate-50/50' : 'bg-white',
+                            )}
                         >
                             {/* Time column */}
-                            <div className="w-24 shrink-0 sticky left-0 flex flex-col items-center justify-center border-r border-slate-300 bg-background/70 z-30 backdrop-blur-sm gap-1">
+                            <div className="w-20 shrink-0 sticky left-0 flex flex-col items-center py-4 border-r border-slate-200 bg-white z-30">
                                 <span className={cn(
-                                    'text-sm font-bold font-[JetBrains_Mono,monospace]',
-                                    row.splitIcon === 'split' ? 'text-indigo-600' : 'text-foreground',
+                                    'text-sm font-bold font-mono',
+                                    row.splitIcon === 'split' ? 'text-indigo-600' : 'text-slate-900',
                                 )}>
                                     {row.time}
                                 </span>
-                                <span className={cn(
-                                    'text-[10px] font-bold uppercase',
-                                    row.splitIcon === 'split' ? 'text-indigo-400' : 'text-muted-foreground',
-                                )}>
+                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 font-mono">
                                     {row.period}
                                 </span>
-                                {row.splitIcon && <SplitIcon type={row.splitIcon} />}
+                                {row.splitIcon && <SplitMergeIcon type={row.splitIcon} />}
                             </div>
 
                             {/* Cards area */}
                             <div className={cn(
-                                'flex-1 p-4 pl-10 flex gap-5',
-                                isMultiLane ? '' : '',
+                                'flex-1 p-3 pl-8',
+                                isMulti ? 'flex gap-4 overflow-x-auto scrollbar-hide items-start' : '',
                             )}>
                                 {row.cards.map((card) => (
-                                    <ActivityCard key={card.id} card={card} isLane={isMultiLane} laneCount={row.cards.length} />
+                                    <ActivityCard key={card.id} card={card} compact={isMulti} />
                                 ))}
-
-                                {/* Add lane button for multi-lane rows */}
-                                {isMultiLane && (
-                                    <button className="w-16 shrink-0 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center hover:bg-white/60 transition-colors group/add">
-                                        <Plus className="w-5 h-5 text-muted-foreground/40 group-hover/add:text-muted-foreground transition-colors" />
-                                    </button>
-                                )}
                             </div>
                         </div>
                     );
                 })}
             </div>
 
-
-            {/* ── Floating Panels (bottom-right, only one open at a time) ───────────── */}
-            {/*
-             *  activePanel === 'profit' → Profit Impact card, VoyageurAI icon pill beside it
-             *  activePanel === 'ai'     → VoyageurAI card, Profit Impact icon pill beside it
-             *  activePanel === null     → Both collapsed to icon pills side-by-side
-             */}
+            {/* ── Floating panels ────────────────────────────────────────────────── */}
             <div
                 className="fixed bottom-6 right-6 z-[60] flex items-end gap-3"
                 onMouseEnter={() => setPanelHovered(true)}
                 onMouseLeave={() => setPanelHovered(false)}
             >
-                {/* Profit Impact icon pill — shown when AI panel is active or both collapsed */}
-                {activePanel !== 'profit' && (
+                {/* Profit impact pill */}
+                {!profitOpen && (
                     <button
-                        onClick={() => setActivePanel('profit')}
-                        className="relative neu-card w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition-all shadow-lg border border-white/50 shrink-0"
+                        onClick={() => { setProfitOpen(true); setAiOpen(false); }}
+                        className="relative w-10 h-10 rounded-full bg-white border border-slate-300 shadow-md flex items-center justify-center hover:border-emerald-400 transition-colors group"
                         title="Open Profit Impact"
                     >
-                        <TrendingUp className="w-6 h-6 text-green-500" />
-                        <span className="absolute -top-1 -right-1 bg-green-100 border border-green-200 text-green-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                        <TrendingUp className="w-4 h-4 text-slate-600 group-hover:text-emerald-600 transition-colors" />
+                        <div className="absolute -top-1.5 -left-1.5 bg-emerald-100 border border-emerald-300 text-emerald-800 text-[8px] font-bold px-1 py-px rounded shadow-sm font-mono">
                             +2.4%
-                        </span>
+                        </div>
                     </button>
                 )}
 
-                {/* VoyageurAI icon pill — shown when Profit panel is active or both collapsed */}
-                {activePanel !== 'ai' && (
-                    <button
-                        onClick={() => setActivePanel('ai')}
-                        className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white hover:scale-105 transition-all shadow-lg shrink-0"
-                        title="Open Voyageur AI"
-                    >
-                        <MessageSquare className="w-6 h-6" />
-                    </button>
-                )}
-
-                {/* ── Profit Impact expanded card ── */}
-                {activePanel === 'profit' && (
-                    <div className="w-[360px] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
-                        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
+                {/* Profit Impact expanded */}
+                {profitOpen && (
+                    <div className="w-[320px] bg-white border border-slate-300 shadow-2xl shadow-slate-200/50 flex flex-col">
+                        <div className="bg-slate-50 px-3 py-2 border-b border-slate-200 flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Profit Impact</h3>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">+2.4%</span>
+                                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+                                <span className="text-[10px] font-bold text-slate-800 uppercase tracking-widest font-mono">Profit Impact</span>
+                                <span className="text-[9px] font-bold px-1 py-px bg-emerald-100 text-emerald-700 border border-emerald-200 font-mono">+2.4%</span>
                             </div>
-                            <button
-                                onClick={() => setActivePanel(null)}
-                                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
-                                title="Minimize"
-                            >
-                                <Minimize2 className="w-4 h-4" />
+                            <button onClick={() => setProfitOpen(false)} className="text-slate-400 hover:text-slate-800 transition-colors">
+                                <Minimize2 className="w-3.5 h-3.5" />
                             </button>
                         </div>
-                        <div className="px-5 pb-5 space-y-3">
-                            <div>
-                                <div className="flex items-end gap-2 mb-1">
-                                    <span className="text-4xl font-bold text-foreground leading-none tracking-tight font-[Outfit]">21.1%</span>
-                                    <TrendingUp className="w-6 h-6 text-green-500 mb-1" />
+                        <div className="p-4 space-y-3">
+                            <div className="grid grid-cols-3 border border-slate-200 divide-x divide-slate-200">
+                                <div className="px-3 py-2 flex flex-col">
+                                    <span className="text-[8px] uppercase font-bold text-slate-400 font-mono tracking-wider">Revenue</span>
+                                    <span className="text-xs font-bold text-slate-800 font-mono">$12,450</span>
                                 </div>
-                                <p className="text-xs text-muted-foreground font-medium">
-                                    Previous:{' '}
-                                    <span className="line-through text-muted-foreground/60">18.7%</span>
-                                    <span className="mx-1">→</span>
-                                    <span className="text-green-600 font-bold">Now: 21.1%</span>
-                                </p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="neu-pressed rounded-xl p-3 flex flex-col">
-                                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Total Revenue</span>
-                                    <span className="text-base font-bold text-foreground font-[Outfit]">$12,450</span>
+                                <div className="px-3 py-2 flex flex-col">
+                                    <span className="text-[8px] uppercase font-bold text-slate-400 font-mono tracking-wider">Cost</span>
+                                    <span className="text-xs font-bold text-slate-600 font-mono">$9,820</span>
                                 </div>
-                                <div className="neu-pressed rounded-xl p-3 flex flex-col">
-                                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Est. Cost</span>
-                                    <span className="text-base font-bold text-muted-foreground font-[Outfit]">$9,820</span>
+                                <div className="px-3 py-2 flex flex-col">
+                                    <span className="text-[8px] uppercase font-bold text-slate-400 font-mono tracking-wider">Margin</span>
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-xs font-bold text-emerald-600 font-mono">21.1%</span>
+                                        <div className="w-8 h-1 bg-slate-200">
+                                            <div className="h-full bg-emerald-500 w-[21%]" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="neu-pressed rounded-2xl p-4">
-                                <div className="flex items-center gap-2 mb-2.5">
-                                    <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                                    <span className="text-[10px] uppercase font-bold text-indigo-500 tracking-wider">AI Insights</span>
-                                </div>
-                                <ul className="space-y-2">
-                                    {PROFIT_INSIGHTS.map((item, i) => (
-                                        <li key={i} className="flex gap-2 items-start text-[11px] text-muted-foreground leading-tight">
-                                            <span className={cn('w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0', item.dot)} />
-                                            {item.text}
+                            <div className="bg-slate-50 border border-slate-200 p-2 space-y-1">
+                                <div className="text-[8px] font-bold text-slate-400 uppercase tracking-wider font-mono pb-1 border-b border-slate-200">AI Insights</div>
+                                <ul className="space-y-1">
+                                    {[
+                                        <><span className="font-bold text-slate-700">$320</span> saved via subgroup routing</>,
+                                        <>Lunch relocation improved margin by <span className="font-bold text-slate-700">1.2%</span></>,
+                                    ].map((t, i) => (
+                                        <li key={i} className="flex gap-1.5 items-start text-[9px] text-slate-600 font-mono">
+                                            <span className="text-indigo-500 mt-0.5">{'>'}</span>
+                                            <span>{t}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -487,86 +463,124 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                     </div>
                 )}
 
-                {/* ── VoyageurAI chatbot expanded card ── */}
-                {activePanel === 'ai' && (
-                    <div className="w-[360px] max-h-[78vh] neu-card rounded-3xl border border-white/60 shadow-2xl flex flex-col">
-                        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shrink-0">
-                                    <MessageSquare className="w-4 h-4" />
-                                </div>
-                                <h3 className="font-[Outfit] font-bold text-foreground text-base">Voyageur AI</h3>
-                                {isTyping && (
-                                    <span className="flex gap-1 items-center">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
-                                    </span>
-                                )}
+                {/* ── Voyageur AI terminal panel ── */}
+                {aiOpen ? (
+                    <div className="w-[340px] bg-white border border-slate-300 shadow-2xl shadow-slate-200/50 flex flex-col max-h-[70vh]">
+                        {/* Header */}
+                        <div className="bg-slate-50 px-3 py-2 border-b border-slate-200 flex justify-between items-center shrink-0">
+                            <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse shadow-sm shadow-indigo-300" />
+                                <span className="text-[10px] font-bold text-slate-800 uppercase tracking-widest font-mono">
+                                    VOYAGEUR_AI // v2.0
+                                </span>
                             </div>
                             <button
-                                onClick={() => setActivePanel(null)}
-                                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-black/5"
-                                title="Minimize"
+                                onClick={() => setAiOpen(false)}
+                                className="text-slate-400 hover:text-slate-800 transition-colors"
                             >
-                                <Minimize2 className="w-4 h-4" />
+                                <ChevronDown className="w-3.5 h-3.5" />
                             </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto px-4 pb-2 scrollbar-hide space-y-3 min-h-0">
+
+                        {/* Optimization log */}
+                        <div className="shrink-0 m-3 mb-0 bg-slate-50 border border-slate-200 p-2">
+                            <div className="flex items-center gap-1.5 mb-1.5 border-b border-slate-200 pb-1">
+                                <Terminal className="w-3 h-3 text-indigo-600" />
+                                <span className="text-[9px] uppercase font-bold text-indigo-700 font-mono">Optimization Log</span>
+                            </div>
+                            <ul className="space-y-0.5">
+                                {AI_LOG.map((item, i) => (
+                                    <li key={i} className="flex gap-1.5 items-start text-[9px] text-slate-600 font-mono">
+                                        <span className={cn('mt-0.5 shrink-0', item.color)}>{'>'}</span>
+                                        <span>{item.text}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Chat messages */}
+                        <div className="flex-1 overflow-y-auto scrollbar-hide px-3 pt-2 pb-1 space-y-2 min-h-0">
                             {messages.map((msg, i) => (
-                                <div key={i} className={cn('flex flex-col gap-1', msg.role === 'user' ? 'items-end' : 'items-start')}>
+                                <div key={i} className={cn('flex flex-col gap-0.5', msg.role === 'user' ? 'items-end' : 'items-start')}>
                                     <div className={cn(
-                                        'px-3.5 py-2.5 rounded-2xl text-[12px] leading-relaxed max-w-[88%] whitespace-pre-line',
+                                        'px-3 py-2 text-[10px] leading-relaxed max-w-[88%] font-mono',
                                         msg.role === 'ai'
-                                            ? 'neu-pressed text-foreground rounded-tl-sm'
-                                            : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-tr-sm shadow-md',
+                                            ? 'bg-slate-50 border border-slate-200 text-slate-700'
+                                            : 'bg-slate-900 text-white',
                                     )}>
                                         {msg.text}
                                     </div>
-                                    <span suppressHydrationWarning className="text-[9px] text-muted-foreground/60 px-1">{msg.time}</span>
+                                    <span suppressHydrationWarning className="text-[8px] text-slate-400 font-mono px-1">{msg.time}</span>
                                 </div>
                             ))}
                             {isTyping && (
                                 <div className="flex items-start">
-                                    <div className="neu-pressed px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1 items-center">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
+                                    <div className="bg-slate-50 border border-slate-200 px-3 py-2 flex gap-1 items-center">
+                                        {[0, 150, 300].map((d) => (
+                                            <span
+                                                key={d}
+                                                className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce"
+                                                style={{ animationDelay: `${d}ms` }}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
                             )}
                             <div ref={messagesEndRef} />
                         </div>
-                        <div className="px-4 pb-4 pt-2 shrink-0">
-                            <div className="relative">
+
+                        {/* Input */}
+                        <div className="px-3 pb-3 pt-2 shrink-0">
+                            <div className="relative group">
+                                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-600 group-focus-within:bg-indigo-400 transition-colors" />
                                 <input
                                     type="text"
                                     value={aiInput}
                                     onChange={(e) => setAiInput(e.target.value)}
                                     onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
-                                    placeholder="Ask Voyageur AI..."
-                                    className="w-full neu-pressed rounded-xl py-3 pl-4 pr-10 text-xs font-medium text-foreground placeholder-muted-foreground focus:outline-none border-none bg-transparent"
+                                    placeholder="Input command or query..."
+                                    className="w-full bg-slate-50 border border-slate-200 border-l-0 py-2 pl-2 pr-8 text-[10px] text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white font-mono"
                                 />
                                 <button
                                     onClick={sendMessage}
                                     disabled={!aiInput.trim()}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-indigo-500 hover:bg-black/5 transition-colors disabled:opacity-30"
+                                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors disabled:opacity-30"
                                 >
-                                    <Send className="w-3.5 h-3.5" />
+                                    <Send className="w-3 h-3" />
                                 </button>
                             </div>
                         </div>
+
+                        {/* Status footer */}
+                        <div className="bg-slate-100 px-3 py-1 flex justify-between items-center text-[8px] text-slate-500 font-mono border-t border-slate-200 shrink-0">
+                            <div className="flex items-center gap-1">
+                                <Wifi className="w-2.5 h-2.5" />
+                                <span>SYS: ONLINE</span>
+                            </div>
+                            <span>LATENCY: 12ms</span>
+                        </div>
                     </div>
+                ) : (
+                    /* AI collapsed pill */
+                    <button
+                        onClick={() => { setAiOpen(true); setProfitOpen(false); }}
+                        className="w-10 h-10 bg-slate-900 border border-slate-900 text-white flex items-center justify-center hover:bg-slate-700 transition-colors shadow-md"
+                        title="Open Voyageur AI"
+                    >
+                        <Terminal className="w-4 h-4" />
+                    </button>
                 )}
             </div>
 
-            {/* ── Approve / Reject floating bar — bottom-centre ───────────────────────── */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3">
-                <button className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 font-semibold text-sm neu-card hover:bg-red-100 hover:scale-[1.03] transition-all shadow-lg">
-                    <span className="text-base">✕</span> Reject
+            {/* ── Approve / Reject — bottom center ─────────────────────────────── */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-0">
+                <button className="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-300 border-r-0 text-slate-700 font-semibold text-xs hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all uppercase tracking-wide font-mono">
+                    <X className="w-3.5 h-3.5" />
+                    Reject
                 </button>
-                <button className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-green-50 border border-green-200 text-green-700 font-semibold text-sm neu-card hover:bg-green-100 hover:scale-[1.03] transition-all shadow-lg">
-                    <span className="text-base">✓</span> Approve
+                <button className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 border border-slate-900 text-white font-semibold text-xs hover:bg-slate-700 transition-all uppercase tracking-wide font-mono">
+                    <Check className="w-3.5 h-3.5" />
+                    Approve
                 </button>
             </div>
         </div>
