@@ -20,3 +20,6 @@ __pycache__/
 output/
 sessions/
 optimizer_outputs/
+
+
+.kiro/specs/
