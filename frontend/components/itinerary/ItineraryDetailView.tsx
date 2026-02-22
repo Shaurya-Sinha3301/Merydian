@@ -1033,8 +1033,8 @@ function TechChangeModal({ data, onClose }: { data: TechChangeData; onClose: () 
                 {/* Header */}
                 <div className="flex items-start justify-between p-6 border-b border-gray-100">
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-gray-900 flex items-center justify-center flex-shrink-0">
-                            <span className="text-white text-sm">📊</span>
+                        <div className="w-10 h-10 bg-[#111] flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-lg font-serif italic tracking-tighter pr-1">V</span>
                         </div>
                         <div>
                             <h2 className="text-xl font-light text-gray-900 leading-tight">Technical Change Analysis</h2>
@@ -1077,8 +1077,8 @@ function TechChangeModal({ data, onClose }: { data: TechChangeData; onClose: () 
                                     background: '#fffdf9',
                                     backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), var(--gradient-opt)',
                                     backgroundOrigin: 'border-box',
-                                    backgroundClip: 'content-box, border-box',
-                                    border: '2px solid transparent',
+                                    backgroundClip: 'padding-box, border-box',
+                                    border: '1.5px solid transparent',
                                 }}>
                                     <div className="text-sm font-mono font-bold mb-1" style={{ color: '#c5a065' }}>{data.newTime}</div>
                                     <div className="font-semibold text-gray-900 text-sm">{data.newTitle}</div>
@@ -1120,22 +1120,26 @@ function TechChangeModal({ data, onClose }: { data: TechChangeData; onClose: () 
                     <div className="p-6 flex flex-col gap-4">
                         <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500">COST DELTA ANALYSIS</span>
 
-                        {/* Bar chart */}
-                        <div className="space-y-1">
+                        {/* Horizontal Bar chart */}
+                        <div className="space-y-4 mb-2">
                             {[
                                 { label: 'BASE', value: data.costBase, color: '#d1d5db' },
                                 { label: 'EARLY FEE', value: data.costEarlyFee, color: '#c5a065' },
                                 { label: 'TOTAL', value: data.costTotal, color: '#1a1a1a' },
                             ].map(bar => (
-                                <div key={bar.label}>
-                                    {bar.value > 0 && <div className="text-[10px] font-mono text-gray-500 mb-0.5 text-right">${bar.value.toLocaleString()}</div>}
-                                    <div className="h-10 bg-gray-50 border border-gray-100 flex items-end">
-                                        <div style={{ width: `${Math.max(10, (bar.value / barMax) * 100)}%`, background: bar.color, height: `${Math.max(20, (bar.value / barMax) * 100)}%`, maxHeight: '100%' }} />
+                                <div key={bar.label} className="relative">
+                                    {bar.value > 0 && (
+                                        <div className="absolute right-0 -top-5 text-[10px] font-mono text-gray-500">
+                                            ${bar.value.toLocaleString()}
+                                        </div>
+                                    )}
+                                    <div className="h-8 bg-gray-50 border border-gray-100 flex items-center relative w-full">
+                                        <div style={{ width: `${Math.max(2, (bar.value / barMax) * 100)}%`, background: bar.color, height: '100%' }} />
                                         {bar.label === 'EARLY FEE' && bar.value > 0 && (
-                                            <div className="absolute text-[10px] font-bold" style={{ color: '#c5a065' }}>+${bar.value}</div>
+                                            <div className="absolute left-2 text-[10px] font-bold" style={{ color: '#fff' }}>+${bar.value}</div>
                                         )}
                                     </div>
-                                    <div className="text-[9px] font-bold tracking-wider text-gray-400 text-center mt-0.5">{bar.label}</div>
+                                    <div className="text-[9px] font-bold tracking-wider text-gray-400 text-center mt-1.5">{bar.label}</div>
                                 </div>
                             ))}
                         </div>
