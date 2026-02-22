@@ -767,3 +767,55 @@
 .bp-card:hover .bp-img {
   filter: grayscale(0%) contrast(100%);
 }
+
+/* 3D Landing Page Styles */
+.brand-gold {
+  color: #d4af37;
+}
+
+.bg-brand-gold {
+  background-color: #d4af37;
+}
+
+.border-brand-gold {
+  border-color: #d4af37;
+}
+
+.hover\:bg-brand-gold:hover {
+  background-color: #d4af37;
+}
+
+.hover\:text-brand-gold:hover {
+  color: #d4af37;
+}
+
+.hover\:shadow-brand-gold\/20:hover {
+  box-shadow: 0 10px 40px rgba(212, 175, 55, 0.2);
+}
+
+/* Smooth scrolling for the landing page */
+html.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Glass Panel Effects */
+.glass-panel {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-gradient-gold {
+  background: linear-gradient(to right, #D4AF37, #FF6B35);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
