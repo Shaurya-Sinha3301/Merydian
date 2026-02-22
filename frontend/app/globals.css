@@ -827,3 +827,8 @@ html.smooth-scroll {
   color: transparent;
 }
 
+/* Radial Gradient for Hero Vignette */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+

@@ -1,137 +1,178 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { motion, useScroll, useTransform } from 'motion/react';
+import { useRef } from 'react';
 
 export default function AISupportSection() {
-  const aiStepsRef = useRef<HTMLDivElement[]>([]);
-  const routePathRef = useRef<SVGPathElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
 
-  useEffect(() => {
-    const aiObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry, index) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => {
-            entry.target.classList.remove('opacity-0', 'translate-y-5');
-            entry.target.classList.add('opacity-100', 'translate-y-0');
-          }, index * 400);
-        }
-      });
-    }, { threshold: 0.2 });
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
-    aiStepsRef.current.forEach(step => {
-      if (step) {
-        step.classList.add('opacity-0', 'translate-y-5', 'transition-all', 'duration-600', 'ease-out');
-        aiObserver.observe(step);
-      }
-    });
-
-    // SVG Path Animation
-    if (routePathRef.current) {
-      const pathObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && routePathRef.current) {
-            routePathRef.current.style.strokeDashoffset = '0';
-            routePathRef.current.style.transition = 'stroke-dashoffset 3s ease-in-out';
-          }
-        });
-      }, { threshold: 0.3 });
-      pathObserver.observe(routePathRef.current.parentElement!);
+  const aiSteps = [
+    {
+      status: "Alert Detected",
+      statusColor: "[#D4AF37]",
+      content: "Hotel Miramar cancelled for Smith Family (4 guests)",
+      delay: 0
+    },
+    {
+      status: "AI Processing",
+      statusColor: "[#D4AF37]/70",
+      content: "Analyzing 847 alternatives...",
+      hasProgress: true,
+      delay: 0.2
+    },
+    {
+      status: "Optimized Solution",
+      statusColor: "[#D4AF37]",
+      content: "Hotel Bellevue (4.8★) - $180/night",
+      metrics: [
+        { label: "Margin", value: "+$120" },
+        { label: "Satisfaction", value: "98%" }
+      ],
+      delay: 0.4
     }
-
-    return () => {
-      aiObserver.disconnect();
-    };
-  }, []);
+  ];
 
   return (
-    <section id="ai-support" className="py-32 bg-white">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center gap-4 mb-12 text-sm font-medium tracking-wide">
-          <span className="w-9 h-9 rounded-full border-2 border-neutral-900 flex items-center justify-center text-sm font-bold">1</span>
-          <div className="w-12 h-[2px] bg-neutral-900"></div>
-          <span className="uppercase tracking-[0.15em] text-xs font-black">AI Support</span>
-        </div>
-        
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div className="space-y-8">
-            <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif leading-[1.1] text-neutral-900">
-              When disruption strikes, <span className="italic text-teal-600">AI re-optimizes instantly.</span>
+    <section ref={sectionRef} id="ai-support" className="relative py-40 bg-white overflow-hidden">
+      {/* Gold decorative line */}
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent opacity-50" />
+      
+      <motion.div style={{ opacity }} className="max-w-[1400px] mx-auto px-8">
+        <div className="grid lg:grid-cols-2 gap-20 items-center">
+          {/* Left Content */}
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
+            className="space-y-12"
+          >
+            <motion.div 
+              initial={{ width: 0 }}
+              whileInView={{ width: "80px" }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="h-px bg-gradient-to-r from-[#D4AF37] to-transparent"
+            />
+            
+            <h2 className="text-6xl md:text-7xl font-serif leading-[1.1] text-black tracking-tight">
+              When disruption strikes, <span className="italic text-black/60">AI re-optimizes instantly.</span>
             </h2>
-            <p className="text-xl text-neutral-600 leading-relaxed max-w-xl">
+            
+            <p className="text-xl text-black/60 leading-relaxed font-light tracking-wide">
               Hotel cancellation? Flight delay? Our agentic AI analyzes alternatives in real-time, maximizing both profit margin and customer satisfaction.
             </p>
-            <div className="space-y-6">
-              <div className="border-l-4 border-neutral-900 pl-6">
-                <h3 className="text-lg font-bold mb-2">Instant Alternative Sourcing</h3>
-                <p className="text-neutral-600">AI scans 1000+ options in under 3 seconds across hotels, transport, and activities.</p>
-              </div>
-              <div className="border-l-4 border-neutral-900 pl-6">
-                <h3 className="text-lg font-bold mb-2">Profit + Satisfaction Optimization</h3>
-                <p className="text-neutral-600">Algorithm balances margin preservation with customer happiness scores.</p>
-              </div>
+            
+            <div className="space-y-8 pt-8">
+              {[
+                {
+                  title: "Instant Alternative Sourcing",
+                  description: "AI scans 1000+ options in under 3 seconds across hotels, transport, and activities."
+                },
+                {
+                  title: "Profit + Satisfaction Optimization",
+                  description: "Algorithm balances margin preservation with customer happiness scores."
+                }
+              ].map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.4 + idx * 0.1 }}
+                  className="border-l-2 border-[#D4AF37] pl-8 space-y-2"
+                >
+                  <h3 className="text-xl font-serif text-black tracking-tight">{feature.title}</h3>
+                  <p className="text-black/60 font-light leading-relaxed">{feature.description}</p>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
           
-          {/* AI Visualization */}
-          <div className="relative h-[600px] bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-[60px] p-12 overflow-hidden border border-neutral-200">
-            <div className="absolute inset-0 opacity-10">
-              <svg className="w-full h-full" viewBox="0 0 400 600">
-                <path 
-                  ref={routePathRef}
-                  d="M 50 50 Q 200 150 150 300 T 350 550" 
-                  stroke="#000000" 
-                  strokeWidth="3" 
-                  fill="none" 
-                  strokeDasharray="1000" 
-                  strokeDashoffset="1000"
-                />
-              </svg>
-            </div>
-            <div className="relative z-10 space-y-8">
-              <div ref={el => { if (el) aiStepsRef.current[0] = el; }}>
-                <div className="bg-white rounded-3xl p-6 shadow-xl border border-neutral-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-3 h-3 rounded-full bg-neutral-800 animate-pulse"></div>
-                    <span className="text-xs font-black uppercase tracking-widest text-neutral-800">Alert Detected</span>
-                  </div>
-                  <p className="text-sm font-medium text-neutral-900">Hotel Miramar cancelled for Smith Family (4 guests)</p>
-                </div>
-              </div>
-              <div ref={el => { if (el) aiStepsRef.current[1] = el; }}>
-                <div className="bg-white rounded-3xl p-6 shadow-xl border border-neutral-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-3 h-3 rounded-full bg-neutral-600 animate-pulse"></div>
-                    <span className="text-xs font-black uppercase tracking-widest text-neutral-600">AI Processing</span>
-                  </div>
-                  <p className="text-sm font-medium text-neutral-900 mb-3">Analyzing 847 alternatives...</p>
-                  <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-neutral-800 to-neutral-600 animate-progress"></div>
-                  </div>
-                </div>
-              </div>
-              <div ref={el => { if (el) aiStepsRef.current[2] = el; }}>
-                <div className="bg-white rounded-3xl p-6 shadow-xl border border-neutral-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-3 h-3 rounded-full bg-neutral-900"></div>
-                    <span className="text-xs font-black uppercase tracking-widest text-neutral-900">Optimized Solution</span>
-                  </div>
-                  <p className="text-sm font-medium text-neutral-900 mb-3">Hotel Bellevue (4.8★) - $180/night</p>
-                  <div className="flex gap-4 text-xs">
-                    <div>
-                      <span className="text-neutral-500">Margin:</span>
-                      <span className="font-bold text-neutral-900"> +$120</span>
+          {/* Right AI Visualization */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.1, 0.25, 1.0] }}
+            className="relative"
+          >
+            <div className="space-y-8">
+              {aiSteps.map((step, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: step.delay }}
+                  whileHover={{ scale: 1.02, x: 10 }}
+                  className="relative group"
+                >
+                  <div className="bg-black p-8 border border-black/20 shadow-xl relative overflow-hidden">
+                    {/* Gold corner accents */}
+                    <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    <div className="relative z-10 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <motion.div 
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className={`w-3 h-3 rounded-full bg-${step.statusColor}`}
+                        />
+                        <span className="text-xs uppercase tracking-[0.2em] text-white/80 font-light">
+                          {step.status}
+                        </span>
+                      </div>
+                      
+                      <p className="text-white font-light leading-relaxed">
+                        {step.content}
+                      </p>
+                      
+                      {step.hasProgress && (
+                        <div className="h-1 bg-white/10 overflow-hidden">
+                          <motion.div 
+                            initial={{ width: "0%" }}
+                            whileInView={{ width: "100%" }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 2, delay: step.delay + 0.3 }}
+                            className="h-full bg-gradient-to-r from-[#D4AF37] to-white"
+                          />
+                        </div>
+                      )}
+                      
+                      {step.metrics && (
+                        <div className="flex gap-6 pt-4 border-t border-white/10">
+                          {step.metrics.map((metric, metricIdx) => (
+                            <motion.div
+                              key={metricIdx}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              whileInView={{ opacity: 1, scale: 1 }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 0.5, delay: step.delay + 0.5 + metricIdx * 0.1 }}
+                              className="space-y-1"
+                            >
+                              <span className="text-xs text-white/50 font-light">{metric.label}:</span>
+                              <span className="text-lg font-serif text-[#D4AF37] ml-2">{metric.value}</span>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <span className="text-neutral-500">Satisfaction:</span>
-                      <span className="font-bold text-neutral-900"> 98%</span>
-                    </div>
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

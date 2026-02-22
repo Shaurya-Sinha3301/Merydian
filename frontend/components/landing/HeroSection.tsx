@@ -58,7 +58,7 @@ export default function HeroSection() {
       0.2
     );
 
-    // Scene 2: INTELLIGENT PLANNING (30% - 60%)
+    // Scene 2: ELEVATED TRAVEL MANAGEMENT (30% - 60%)
     tl.fromTo(
       textRef2.current,
       { opacity: 0, x: -50 },
@@ -71,7 +71,7 @@ export default function HeroSection() {
       0.55
     );
 
-    // Scene 3: YOUR JOURNEY AWAITS (65% - 100%)
+    // Scene 3: WHERE LUXURY MEETS INTELLIGENCE (65% - 100%)
     tl.fromTo(
       textRef3.current,
       { opacity: 0, scale: 0.9, y: 50 },
@@ -89,13 +89,26 @@ export default function HeroSection() {
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center text-white">
-        <h1 className="font-serif text-2xl tracking-widest mb-4">LOADING EXPERIENCE</h1>
-        <div className="w-64 h-0.5 bg-white/20 overflow-hidden">
-          <div
-            className="h-full bg-white transition-all duration-300 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          className="text-center space-y-6"
+        >
+          <h1 className="font-serif text-3xl tracking-[0.3em] uppercase text-white">
+            Meili AI
+          </h1>
+          <div className="w-64 h-px bg-white/10 overflow-hidden mx-auto">
+            <motion.div
+              className="h-full bg-gradient-to-r from-transparent via-white to-transparent"
+              style={{ width: `${progress}%` }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
+          <p className="text-xs uppercase tracking-[0.2em] text-white/40 font-light">
+            Loading Experience
+          </p>
+        </motion.div>
       </div>
     );
   }
@@ -109,12 +122,15 @@ export default function HeroSection() {
             className="block w-full h-full object-cover filter contrast-[1.05] saturate-[1.05]"
           />
 
+          {/* Vignette overlay */}
+          <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/60" />
+
           <div className="absolute inset-0 pointer-events-none z-10">
-            {/* Text 1: Centered */}
+            {/* Text 1: Centered - AI-POWERED TRAVEL */}
             <div className="absolute inset-0 flex items-center justify-center">
               <h1
                 ref={textRef1}
-                className="font-serif text-[clamp(4rem,10vw,8rem)] text-white text-center leading-[0.9] tracking-tighter opacity-0 drop-shadow-2xl"
+                className="font-serif text-[clamp(4rem,10vw,8rem)] text-white text-center leading-[0.9] tracking-tight opacity-0 drop-shadow-2xl"
               >
                 AI-POWERED
                 <br />
@@ -122,34 +138,48 @@ export default function HeroSection() {
               </h1>
             </div>
 
-            {/* Text 2: Bottom Left */}
-            <div className="absolute inset-0 flex items-end justify-start pb-32 pl-10 md:pl-20">
-              <div ref={textRef2} className="opacity-0">
-                <h1 className="font-serif text-[clamp(3rem,6vw,5rem)] text-white leading-none drop-shadow-2xl text-left">
-                  Intelligent
+            {/* Text 2: Bottom Left - Value Proposition */}
+            <div className="absolute inset-0 flex items-end justify-start pb-24 pl-10 md:pl-20">
+              <div ref={textRef2} className="opacity-0 max-w-2xl">
+                <motion.div 
+                  className="h-px w-16 bg-white/30 mb-8"
+                />
+                <h1 className="font-serif text-[clamp(3rem,7vw,6rem)] text-white leading-[1.1] tracking-tight drop-shadow-2xl mb-6">
+                  Elevated Travel
                   <br />
-                  Planning
-                  <br />
-                  Made Simple
+                  <span className="italic text-white/70">Management</span>
                 </h1>
+                <p className="text-lg text-white/70 mb-8 font-light tracking-wide max-w-xl leading-relaxed">
+                  Orchestrate exceptional journeys with precision and elegance
+                </p>
                 <Link href="/customer-login">
-                  <button className="mt-6 px-8 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white font-sans tracking-widest uppercase text-xs hover:bg-white/20 transition-all duration-300 shadow-lg hover:scale-105 hover:shadow-amber-400/20 pointer-events-auto">
-                    Get Started
+                  <button className="px-10 py-4 bg-white/5 backdrop-blur-md border border-white/20 text-white font-light tracking-[0.2em] uppercase text-xs hover:bg-white hover:text-black transition-all duration-500 pointer-events-auto group">
+                    <span className="flex items-center gap-3">
+                      Begin Your Journey
+                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                      </svg>
+                    </span>
                   </button>
                 </Link>
               </div>
             </div>
 
-            {/* Text 3: Center */}
+            {/* Text 3: Center - Final Message */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <h1
-                ref={textRef3}
-                className="font-serif text-[clamp(3rem,8vw,7rem)] text-white text-center leading-none opacity-0 drop-shadow-2xl"
-              >
-                YOUR JOURNEY
-                <br />
-                AWAITS
-              </h1>
+              <div ref={textRef3} className="opacity-0 text-center space-y-8 px-6">
+                <h1 className="font-serif text-[clamp(3.5rem,9vw,8rem)] text-white leading-[1.1] tracking-tight drop-shadow-2xl">
+                  Where Luxury
+                  <br />
+                  Meets <span className="italic text-white/70">Intelligence</span>
+                </h1>
+                <motion.div 
+                  className="h-px w-32 bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto"
+                />
+                <p className="text-sm uppercase tracking-[0.3em] text-white/50 font-light">
+                  Scroll to Explore
+                </p>
+              </div>
             </div>
           </div>
         </div>
