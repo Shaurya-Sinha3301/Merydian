@@ -595,9 +595,9 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                             {/* Gradient-border card */}
                                             <div>
                                                 {/* Badge bar */}
-                                                <div className="flex items-center gap-0 mb-[-1px] relative z-10">
+                                                <div className="flex items-center gap-2 mb-[-1px] relative z-10">
                                                     <div className="flex items-center gap-2 px-3 py-1.5 text-white text-[10px] font-bold tracking-widest" style={{ background: 'var(--gradient-opt)' }}>
-                                                        <span>✦</span> AI RECOMMENDED: {poi.badge}
+                                                        <span>✦</span> AI RECOMMENDED
                                                     </div>
                                                     <WhyButton onClick={() => setWhyModal(AI_POI_WHY_DATA[poi.id])} />
                                                 </div>
@@ -630,16 +630,37 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                         </div>
                                                         {/* Content */}
                                                         <div className="flex-1 flex flex-col justify-center h-full gap-1 min-w-0">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-bold uppercase tracking-widest border px-1.5 py-0.5" style={{ borderColor: '#8fa391', color: '#8fa391' }}>PENDING APPROVAL</span>
+                                                            {/* Top row: title + category */}
+                                                            <div className="flex justify-between items-start">
+                                                                <div className="flex items-center gap-2 min-w-0">
+                                                                    <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-tight leading-none truncate">{poi.title}</h4>
+                                                                    <span className="shrink-0 text-[9px] font-bold border border-amber-300 text-amber-700 px-1.5 py-0.5 bg-amber-50">Activity</span>
+                                                                </div>
                                                             </div>
-                                                            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-tight leading-none truncate">{poi.title}</h4>
+                                                            {/* Subtitle */}
                                                             <div className="text-[10px] text-gray-400 truncate leading-snug">{poi.subtitle}</div>
+                                                            {/* Bottom row: duration | ALLOC tags + accept/decline */}
+                                                            <div className="flex justify-between items-center mt-auto pt-1.5 border-t border-gray-100/70">
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className="flex items-center gap-1 font-bold text-[0.65rem] uppercase tracking-wide leading-none text-emerald-600">
+                                                                        <Check className="w-3 h-3" /> Suggested
+                                                                    </span>
+                                                                    <span className="text-[9px] font-mono text-gray-400 border-l border-gray-200 pl-3">{poi.durationLabel}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <span className="text-[9px] font-mono text-gray-400">ALLOC:</span>
+                                                                    <div className="flex gap-1">
+                                                                        {poi.participants.map((p: { code: string; color: string }) => (
+                                                                            <FamTag key={p.code} code={p.code} />
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                             {/* Accept / Decline */}
                                                             {accepted ? (
-                                                                <div className="text-[10px] font-bold mt-auto" style={{ color: '#8fa391' }}>✓ ACCEPTED — Added to itinerary</div>
+                                                                <div className="text-[10px] font-bold" style={{ color: '#8fa391' }}>✓ ACCEPTED — Added to itinerary</div>
                                                             ) : (
-                                                                <div className="flex items-center gap-4 mt-auto pt-1.5 border-t border-dashed" style={{ borderColor: '#e5e5e5' }}>
+                                                                <div className="flex items-center gap-4">
                                                                     <button onClick={() => setAcceptedPois(p => [...p, poi.id])} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-900 hover:text-amber-600 transition-colors"><span>⊕</span> Accept</button>
                                                                     <button onClick={() => setDismissedPois(p => [...p, poi.id])} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-400 transition-colors"><span>⊗</span> Decline</button>
                                                                 </div>
@@ -844,6 +865,11 @@ const AI_POI_ADDITIONS = [
         subtitle: 'Suggested addition due to proximity (5 min walk) and open schedule gap. Authenticated matcha experience.',
         badge: 'OPTIMAL ROUTE EFFICIENCY',
         imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80',
+        durationLabel: '1h 30m',
+        participants: [
+            { code: 'FA', color: '#4f86c6' },
+            { code: 'FB', color: '#e07b5a' },
+        ],
     },
     {
         id: 'poi-d2-market',
@@ -853,6 +879,12 @@ const AI_POI_ADDITIONS = [
         subtitle: 'AI detected scheduling gap and high satisfaction correlation for similar group profiles.',
         badge: 'HIGH SATISFACTION SCORE',
         imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200&q=80',
+        durationLabel: '45m',
+        participants: [
+            { code: 'FA', color: '#4f86c6' },
+            { code: 'FB', color: '#e07b5a' },
+            { code: 'FC', color: '#6bba75' },
+        ],
     },
 ];
 
