@@ -493,6 +493,10 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
     const [aiOpen, setAiOpen] = useState(false);
     const [profitOpen, setProfitOpen] = useState(false);
     const [panelHovered, setPanelHovered] = useState(false);
+    const [whyModal, setWhyModal] = useState<TechChangeData | null>(null);
+    const [dismissedPois, setDismissedPois] = useState<string[]>([]);
+    const [acceptedPois, setAcceptedPois] = useState<string[]>([]);
+    const [dismissedRemovals, setDismissedRemovals] = useState<string[]>([]);
 
     if (!trip) {
         return (
@@ -576,6 +580,174 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                         </div>
                                     );
                                 })}
+
+                                {/* ── AI-Recommended POI Additions ── */}
+                                {AI_POI_ADDITIONS.filter(p => p.dayDate === day.date && !dismissedPois.includes(p.id)).map(poi => {
+                                    const accepted = acceptedPois.includes(poi.id);
+                                    return (
+                                        <div key={poi.id} className="grid gap-8 relative group/row items-center" style={{ gridTemplateColumns: '80px 1fr' }}>
+                                            {/* Time */}
+                                            <div className="text-right relative z-10">
+                                                <div className="font-bold text-[var(--gradient-opt-gold)] text-sm leading-none">{poi.time}</div>
+                                                <div className="text-[9px] text-gray-400 font-mono mt-0.5">UTC+1</div>
+                                                <div className="absolute right-[-2.25rem] top-1.5 w-2 h-2 rounded-full" style={{ background: 'var(--gradient-opt-gold)', boxShadow: '0 0 0 3px rgba(197,160,101,0.2)' }} />
+                                            </div>
+                                            {/* Gradient-border card */}
+                                            <div>
+                                                {/* Badge bar */}
+                                                <div className="flex items-center gap-2 mb-[-1px] relative z-10">
+                                                    <div className="flex items-center gap-2 px-3 py-1.5 text-white text-[10px] font-bold tracking-widest" style={{ background: 'var(--gradient-opt)' }}>
+                                                        <span>✦</span> AI RECOMMENDED
+                                                    </div>
+                                                    <WhyButton onClick={() => setWhyModal(AI_POI_WHY_DATA[poi.id])} />
+                                                </div>
+                                                {/* Card with hover gradient border */}
+                                                <div className="relative group cursor-default transition-all duration-300" style={{ boxShadow: '0 10px 30px -10px rgba(197,160,101,0.1)' }}>
+                                                    {/* Default Background */}
+                                                    <div className="absolute inset-0 bg-white border border-gray-200 transition-opacity duration-300 group-hover:opacity-0" />
+
+                                                    {/* Corner Ticks (Visible by default, hidden on hover) */}
+                                                    <div className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-0 pointer-events-none">
+                                                        {(['tl', 'tr', 'bl', 'br'] as const).map(c => (
+                                                            <div key={c} style={{
+                                                                position: 'absolute', width: 10, height: 10, zIndex: 2,
+                                                                top: c[0] === 't' ? -1 : 'auto', bottom: c[0] === 'b' ? -1 : 'auto',
+                                                                left: c[1] === 'l' ? -1 : 'auto', right: c[1] === 'r' ? -1 : 'auto',
+                                                                borderTop: c[0] === 't' ? '1.5px solid #c5a065' : 'none',
+                                                                borderBottom: c[0] === 'b' ? '1.5px solid #c5a065' : 'none',
+                                                                borderLeft: c[1] === 'l' ? '1.5px solid #c5a065' : 'none',
+                                                                borderRight: c[1] === 'r' ? '1.5px solid #c5a065' : 'none',
+                                                            }} />
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Hover Gradient Border */}
+                                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{
+                                                        background: '#fffdf9',
+                                                        backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), var(--gradient-opt)',
+                                                        backgroundOrigin: 'border-box',
+                                                        backgroundClip: 'padding-box, border-box',
+                                                        border: '2px solid transparent',
+                                                    }} />
+                                                    <div className="relative z-10 flex gap-3 items-center p-3 h-24">
+                                                        {/* Image */}
+                                                        <div className="w-24 h-full flex-shrink-0 border overflow-hidden bg-amber-50" style={{ borderColor: '#c5a065' }}>
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img src={poi.imageUrl} alt={poi.title} className="w-full h-full object-cover" />
+                                                        </div>
+                                                        {/* Content matches ActivityCard layout exactly */}
+                                                        <div className="flex-1 flex flex-col justify-center h-full gap-1 min-w-0">
+                                                            {/* Top row: title + tag */}
+                                                            <div className="flex justify-between items-start">
+                                                                <div className="flex items-center gap-2 min-w-0">
+                                                                    <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-tight leading-none truncate">
+                                                                        {poi.title}
+                                                                    </h4>
+                                                                    <CategoryTag category={poi.category as any} />
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Subtitle / Description */}
+                                                            <div className="text-[10px] text-gray-500 font-medium truncate">{poi.subtitle}</div>
+
+                                                            {/* Bottom row: status (Accept/Decline + Time) + ALLOC tags */}
+                                                            <div className="flex justify-between items-center mt-auto pt-1.5 border-t border-gray-100/70">
+                                                                <div className="flex items-center gap-3">
+                                                                    {accepted ? (
+                                                                        <div className="text-[10px] font-bold text-emerald-600 flex items-center gap-1"><Check className="w-3 h-3" /> ACCEPTED</div>
+                                                                    ) : (
+                                                                        <div className="flex items-center gap-4">
+                                                                            <button onClick={() => setAcceptedPois(p => [...p, poi.id])} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-900 hover:text-emerald-600 transition-colors"><span>⊕</span> Accept</button>
+                                                                            <button onClick={() => setDismissedPois(p => [...p, poi.id])} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-400 transition-colors"><span>⊗</span> Decline</button>
+                                                                        </div>
+                                                                    )}
+                                                                    <span className="text-[9px] font-mono text-gray-400 border-l border-gray-200 pl-3">
+                                                                        {poi.durationLabel}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <span className="text-[9px] font-mono text-gray-400">ALLOC:</span>
+                                                                    <div className="flex gap-1">
+                                                                        {poi.participants.map((p: string) => (
+                                                                            <FamTag key={p} code={p} />
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* ── AI-Flagged Removals ── */}
+                                {AI_REMOVALS.filter(r => r.dayDate === day.date && !dismissedRemovals.includes(r.id)).map(rem => (
+                                    <div key={rem.id} className="grid gap-8 relative group/row items-center" style={{ gridTemplateColumns: '80px 1fr' }}>
+                                        {/* Time */}
+                                        <div className="text-right relative z-10">
+                                            <div className="font-bold text-gray-300 text-sm leading-none line-through">{rem.time}</div>
+                                            <div className="text-[9px] text-gray-300 font-mono mt-0.5">UTC+1</div>
+                                            <div className="absolute right-[-2.25rem] top-1.5 w-1.5 h-1.5 bg-gray-200 border border-gray-300 rounded-full" />
+                                        </div>
+                                        <div>
+                                            {/* Badge bar */}
+                                            <div className="flex items-center gap-2 mb-[-1px] relative z-10">
+                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-200 text-gray-500 text-[10px] font-bold tracking-widest">
+                                                    <span>⊗</span> {rem.badge}
+                                                </div>
+                                                <WhyButton onClick={() => setWhyModal(AI_REMOVAL_WHY_DATA[rem.id])} />
+                                            </div>
+                                            {/* Greyed card matches ActivityCard layout exactly */}
+                                            <div className="relative flex gap-3 items-center p-3 h-24 bg-gray-50 border border-dashed border-gray-200 opacity-60 grayscale">
+                                                <div className="w-24 h-full flex-shrink-0 border border-gray-200 overflow-hidden bg-gray-100">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={rem.imageUrl} alt={rem.title} className="w-full h-full object-cover" />
+                                                </div>
+                                                <div className="flex-1 flex flex-col justify-center h-full gap-1 min-w-0 pointer-events-auto">
+                                                    {/* Top row: title + tag */}
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-tight leading-none truncate line-through">
+                                                                {rem.title}
+                                                            </h4>
+                                                            <CategoryTag category={rem.category as any} />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Subtitle / Description */}
+                                                    <div className="text-[10px] text-gray-500 font-medium truncate">{rem.reason}</div>
+
+                                                    {/* Bottom row: Accept/Decline + Time + ALLOC tags */}
+                                                    <div className="flex justify-between items-center mt-auto pt-1.5 border-t border-gray-200">
+                                                        <div className="flex items-center gap-3">
+                                                            {dismissedRemovals.includes(rem.id) ? (
+                                                                <div className="text-[10px] font-bold text-gray-500 flex items-center gap-1">✓ DISMISSED</div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-4">
+                                                                    <button onClick={() => setDismissedRemovals(r => [...r, rem.id])} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-900 hover:text-emerald-600 transition-colors pointer-events-auto"><span>⊕</span> Accept</button>
+                                                                    <button className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-400 transition-colors pointer-events-auto"><span>⊗</span> Decline</button>
+                                                                </div>
+                                                            )}
+                                                            <span className="text-[9px] font-mono text-gray-400 border-l border-gray-200 pl-3">
+                                                                {rem.durationLabel}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-[9px] font-mono text-gray-400">ALLOC:</span>
+                                                            <div className="flex gap-1">
+                                                                {rem.participants.map((p: string) => (
+                                                                    <FamTag key={p} code={p} />
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
@@ -699,6 +871,315 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                     <Check className="w-3.5 h-3.5" />
                     Approve
                 </button>
+            </div>
+
+            {/* ── Technical Change Analysis Modal ──────────────────────────────── */}
+            {whyModal && <TechChangeModal data={whyModal} onClose={() => setWhyModal(null)} />}
+        </div>
+    );
+}
+// ─── Static AI data ──────────────────────────────────────────────────────────
+
+type TechChangeData = {
+    reqId: string;
+    title: string;
+    originalTime: string;
+    originalTitle: string;
+    originalTag: string;
+    newTime: string;
+    newTitle: string;
+    newSubtitle: string;
+    newTags: string[];
+    logicItems: { icon: string; title: string; body: string; highlight?: string }[];
+    costBase: number;
+    costEarlyFee: number;
+    costTotal: number;
+    netImpact: string;
+    netImpactNote: string;
+};
+
+const AI_POI_ADDITIONS = [
+    {
+        id: 'poi-d1-tea',
+        dayDate: 'OCT 12',
+        time: '11:00',
+        title: 'Traditional Tea Ceremony Stop',
+        subtitle: 'Suggested addition due to proximity (5 min walk) and open schedule gap. Authenticated matcha experience.',
+        badge: 'OPTIMAL ROUTE EFFICIENCY',
+        imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80',
+        durationLabel: '1h 30m',
+        category: 'activity',
+        participants: ['FAM A', 'FAM B'],
+    },
+    {
+        id: 'poi-d2-market',
+        dayDate: 'OCT 13',
+        time: '09:30',
+        title: 'Nishiki Market Morning Walk',
+        subtitle: 'AI detected scheduling gap and high satisfaction correlation for similar group profiles.',
+        badge: 'HIGH SATISFACTION SCORE',
+        imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200&q=80',
+        durationLabel: '45m',
+        category: 'activity',
+        participants: ['FAM A', 'FAM B', 'FAM C'],
+    },
+];
+
+const AI_REMOVALS = [
+    {
+        id: 'rem-d1-shrine',
+        dayDate: 'OCT 12',
+        time: '10:00',
+        title: 'Main Shrine Ascent',
+        subtitle: '1h 30m • Activity',
+        reason: 'REMOVED — Replaced by Early Access Route to avoid predicted 45min crowd delays.',
+        badge: '1 ACTIVITY REPLACED',
+        imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=200&q=80',
+        category: 'activity',
+        durationLabel: '1h 30m',
+        participants: ['FAM A', 'FAM B'],
+    },
+];
+
+const AI_POI_WHY_DATA: Record<string, TechChangeData> = {
+    'poi-d1-tea': {
+        reqId: '#TCA-001-V2',
+        title: 'Traditional Tea Ceremony Stop',
+        originalTime: '10:00 AM',
+        originalTitle: 'Unscheduled Gap',
+        originalTag: 'HIGH CROWD',
+        newTime: '11:00 AM',
+        newTitle: 'Traditional Tea Ceremony Stop',
+        newSubtitle: 'Authenticated matcha experience, 5 min walk.',
+        newTags: ['EXCLUSIVE', '-25% WAIT'],
+        logicItems: [
+            { icon: '🌤', title: 'Schedule Optimization', body: 'A 90-minute gap exists between Louvre and lunch. This stop fills the window perfectly with zero added transit.', highlight: '90 mins' },
+            { icon: '📊', title: 'Satisfaction Signal', body: 'Groups with cultural add-ons during gaps report 31% higher trip ratings in our dataset of 4,200+ itineraries.', highlight: '31%' },
+        ],
+        costBase: 850,
+        costEarlyFee: 120,
+        costTotal: 970,
+        netImpact: '+$120',
+        netImpactNote: 'Includes experience fee and private guide surcharge.',
+    },
+    'poi-d2-market': {
+        reqId: '#TCA-002-V1',
+        title: 'Nishiki Market Morning Walk',
+        originalTime: '09:00 AM',
+        originalTitle: 'Transit Buffer',
+        originalTag: 'DEAD TIME',
+        newTime: '09:30 AM',
+        newTitle: 'Nishiki Market Walk',
+        newSubtitle: 'Local market experience, free entry.',
+        newTags: ['FREE', 'LOCAL PICK'],
+        logicItems: [
+            { icon: '🗺', title: 'Route Proximity', body: 'Market is directly on-route between hotel and Day 2 first activity. No extra transit required.', highlight: '0 min extra' },
+            { icon: '💰', title: 'Cost Efficiency', body: 'Free entry market stop adds cultural value without budget impact. Similar groups saved avg ¥3,200 by substituting paid tourist spots.', highlight: '¥3,200' },
+        ],
+        costBase: 0,
+        costEarlyFee: 0,
+        costTotal: 0,
+        netImpact: '$0',
+        netImpactNote: 'No cost impact. Free public market.',
+    },
+};
+
+const AI_REMOVAL_WHY_DATA: Record<string, TechChangeData> = {
+    'rem-d1-shrine': {
+        reqId: '#882-CHANGE-V2',
+        title: 'Main Shrine Ascent → Early Access Route',
+        originalTime: '10:00 AM',
+        originalTitle: 'Main Shrine Ascent',
+        originalTag: 'HIGH CROWD',
+        newTime: '07:30 AM',
+        newTitle: 'Early Access Route',
+        newSubtitle: 'Back-trail entry to avoid congestion.',
+        newTags: ['EXCLUSIVE', '-25% WAIT'],
+        logicItems: [
+            { icon: '🌡', title: 'Micro-climate Adaptation', body: 'Real-time weather data indicates rising humidity at 11:00 AM. Shifting ascent to 07:30 AM ensures optimal hiking temperature vs forecasted 24°C.', highlight: '18°C' },
+            { icon: '🚧', title: 'Transit Efficiency', body: 'Construction on Route 143 detected. Alternate route via Eastern Bypass saves estimated transit time.', highlight: '14 mins' },
+        ],
+        costBase: 850,
+        costEarlyFee: 120,
+        costTotal: 970,
+        netImpact: '+$120',
+        netImpactNote: 'Includes early-access surcharge and private vehicle upgrade.',
+    },
+};
+
+// ─── WhyButton ────────────────────────────────────────────────────────────────
+
+function WhyButton({ onClick }: { onClick: () => void }) {
+    const [hov, setHov] = useState(false);
+    return (
+        <button
+            onClick={onClick}
+            onMouseEnter={() => setHov(true)}
+            onMouseLeave={() => setHov(false)}
+            className="px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-all duration-200"
+            style={{
+                background: hov ? 'var(--gradient-opt)' : 'rgba(197,160,101,0.1)',
+                color: hov ? '#fff' : '#c5a065',
+                border: 'none',
+                cursor: 'pointer',
+                flexShrink: 0,
+            }}
+        >
+            WHY?
+        </button>
+    );
+}
+
+// ─── TechChangeModal ──────────────────────────────────────────────────────────
+
+function TechChangeModal({ data, onClose }: { data: TechChangeData; onClose: () => void }) {
+    const barMax = Math.max(data.costBase, data.costEarlyFee, data.costTotal, 100);
+    return (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(6px)' }}>
+            <div className="bg-white border border-gray-200 shadow-2xl" style={{ width: 900, maxWidth: '95vw', maxHeight: '90vh', overflow: 'auto' }}>
+                {/* Header */}
+                <div className="flex items-start justify-between p-6 border-b border-gray-100">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-[#111] flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-lg font-serif italic tracking-tighter pr-1">V</span>
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-light text-gray-900 leading-tight">Technical Change Analysis</h2>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[10px] font-mono text-gray-400">{data.reqId}</span>
+                                <span className="text-gray-300">›</span>
+                                <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: '#8fa391' }}>OPTIMIZATION COMPLETE</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="text-gray-300 hover:text-gray-900 transition-colors text-xl leading-none p-1">✕</button>
+                </div>
+
+                {/* Two-panel body */}
+                <div className="grid" style={{ gridTemplateColumns: '1fr 320px' }}>
+
+                    {/* LEFT: Schedule comparison + operational logic */}
+                    <div className="p-6 border-r border-gray-100">
+                        {/* Schedule comparison */}
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500">SCHEDULE COMPARISON</span>
+                                <div className="flex items-center gap-3 text-[10px] font-mono">
+                                    <span className="flex items-center gap-1"><span className="w-3 h-3 border border-gray-300 inline-block" /> ORIGINAL</span>
+                                    <span className="flex items-center gap-1"><span className="w-3 h-3 bg-gray-900 inline-block" /> OPTIMIZED</span>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 items-start">
+                                {/* Original card — greyed dashed */}
+                                <div className="border border-dashed border-gray-200 p-4 bg-gray-50 relative">
+                                    <div className="text-sm font-mono text-gray-300 line-through mb-1">{data.originalTime}</div>
+                                    <div className="font-semibold text-gray-300 line-through text-sm">{data.originalTitle}</div>
+                                    <div className="mt-2">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-400 px-2 py-0.5">{data.originalTag}</span>
+                                    </div>
+                                    <div className="absolute top-2 right-2 text-gray-200 text-xs">→</div>
+                                </div>
+                                {/* New card — gradient border */}
+                                <div className="p-4 relative" style={{
+                                    background: '#fffdf9',
+                                    backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), var(--gradient-opt)',
+                                    backgroundOrigin: 'border-box',
+                                    backgroundClip: 'padding-box, border-box',
+                                    border: '1.5px solid transparent',
+                                }}>
+                                    <div className="text-sm font-mono font-bold mb-1" style={{ color: '#c5a065' }}>{data.newTime}</div>
+                                    <div className="font-semibold text-gray-900 text-sm">{data.newTitle}</div>
+                                    <div className="text-[11px] text-gray-500 mt-1">{data.newSubtitle}</div>
+                                    <div className="flex gap-2 mt-2">
+                                        {data.newTags.map(t => (
+                                            <span key={t} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5" style={{ border: '1px solid #8fa391', color: '#8fa391' }}>{t}</span>
+                                        ))}
+                                    </div>
+                                    <div className="absolute top-2 right-2 text-[#c5a065] text-xs">✦</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Operational logic */}
+                        <div>
+                            <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500 block mb-3">OPERATIONAL LOGIC</span>
+                            <div className="space-y-4">
+                                {data.logicItems.map((item, i) => (
+                                    <div key={i} className="flex items-start gap-3">
+                                        <div className="w-8 h-8 bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0 text-base">
+                                            {item.icon}
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold text-sm text-gray-900 mb-1">{item.title}</div>
+                                            <div className="text-[12px] text-gray-500 leading-relaxed">
+                                                {item.body.split(item.highlight ?? '___NONE___').map((part, j, arr) => j < arr.length - 1 ? (
+                                                    <span key={j}>{part}<span className="font-mono font-bold px-1 py-0.5 mx-0.5 rounded text-sm" style={{ background: 'rgba(197,160,101,0.12)', color: '#c5a065' }}>{item.highlight}</span></span>
+                                                ) : <span key={j}>{part}</span>)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* RIGHT: Cost delta + actions */}
+                    <div className="p-6 flex flex-col gap-4">
+                        <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500">COST DELTA ANALYSIS</span>
+
+                        {/* Horizontal Bar chart */}
+                        <div className="space-y-4 mb-2">
+                            {[
+                                { label: 'BASE', value: data.costBase, color: '#d1d5db' },
+                                { label: 'EARLY FEE', value: data.costEarlyFee, color: '#c5a065' },
+                                { label: 'TOTAL', value: data.costTotal, color: '#1a1a1a' },
+                            ].map(bar => (
+                                <div key={bar.label} className="relative">
+                                    {bar.value > 0 && (
+                                        <div className="absolute right-0 -top-5 text-[10px] font-mono text-gray-500">
+                                            ${bar.value.toLocaleString()}
+                                        </div>
+                                    )}
+                                    <div className="h-8 bg-gray-50 border border-gray-100 flex items-center relative w-full">
+                                        <div style={{ width: `${Math.max(2, (bar.value / barMax) * 100)}%`, background: bar.color, height: '100%' }} />
+                                        {bar.label === 'EARLY FEE' && bar.value > 0 && (
+                                            <div className="absolute left-2 text-[10px] font-bold" style={{ color: '#fff' }}>+${bar.value}</div>
+                                        )}
+                                    </div>
+                                    <div className="text-[9px] font-bold tracking-wider text-gray-400 text-center mt-1.5">{bar.label}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Net impact box */}
+                        <div className="border border-gray-200 p-4 bg-gray-50">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[11px] text-gray-600">Net Impact</span>
+                                <span className="font-mono font-bold text-lg" style={{ color: '#c5a065' }}>{data.netImpact}</span>
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-1 leading-snug">{data.netImpactNote}</p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="mt-auto flex flex-col gap-2">
+                            <button
+                                onClick={onClose}
+                                className="w-full flex items-center justify-between px-4 py-3 text-white text-[11px] font-bold tracking-widest uppercase transition-all"
+                                style={{ background: '#1a1a1a', borderBottom: '2px solid #c5a065' }}
+                                onMouseEnter={e => (e.currentTarget.style.background = '#333')}
+                                onMouseLeave={e => (e.currentTarget.style.background = '#1a1a1a')}
+                            >
+                                APPROVE CHANGE <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="w-full px-4 py-3 text-[11px] font-bold tracking-widest uppercase text-gray-600 border border-gray-200 bg-white hover:border-red-300 hover:text-red-500 transition-all"
+                            >
+                                REJECT &amp; REVERT
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
