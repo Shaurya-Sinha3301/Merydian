@@ -61,19 +61,28 @@ export default function TripDetailNavbar({ tripId }: { tripId: string }) {
                 {/* ── Centre: pill-bar ─────────────────────────────────────── */}
                 <div className="flex-1 flex justify-center">
                     {/* Rounded-lg segmented pill bar — group_new.html style */}
-                    <nav className="flex items-center bg-stone-100 p-1 rounded-lg border border-stone-200 gap-0.5 mt-2">
+                    <nav className="flex items-center bg-stone-100 p-1 rounded-lg border border-stone-200 gap-1 mt-2">
                         {TABS.map(({ key, label, suffix }) => (
                             <Link
                                 key={key}
                                 href={`${basePath}${suffix}`}
                                 className={cn(
-                                    'px-5 py-1.5 rounded-md text-sm font-medium transition-all duration-200',
+                                    'px-5 py-1.5 rounded-md text-sm font-medium transition-all duration-200 relative group',
                                     activeTab === key
                                         ? 'bg-white border border-stone-200 text-stone-800 shadow-sm font-semibold'
-                                        : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50',
+                                        : 'text-stone-500',
                                 )}
                             >
-                                {label}
+                                {activeTab !== key && (
+                                    <div className="absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" style={{
+                                        background: 'var(--gradient-opt)',
+                                        padding: '1.5px', // Border width
+                                        WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                                        WebkitMaskComposite: 'xor',
+                                        maskComposite: 'exclude',
+                                    }} />
+                                )}
+                                <span className="relative z-10">{label}</span>
                             </Link>
                         ))}
                     </nav>
