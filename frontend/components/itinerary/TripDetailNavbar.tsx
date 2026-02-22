@@ -67,22 +67,13 @@ export default function TripDetailNavbar({ tripId }: { tripId: string }) {
                                 key={key}
                                 href={`${basePath}${suffix}`}
                                 className={cn(
-                                    'px-5 py-1.5 rounded-md text-sm font-medium transition-all duration-200 relative group',
+                                    'px-5 py-1.5 rounded-md text-sm font-medium transition-all duration-200',
                                     activeTab === key
                                         ? 'bg-white border border-stone-200 text-stone-800 shadow-sm font-semibold'
-                                        : 'text-stone-500',
+                                        : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50',
                                 )}
                             >
-                                {activeTab !== key && (
-                                    <div className="absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" style={{
-                                        background: 'var(--gradient-opt)',
-                                        padding: '1.5px', // Border width
-                                        WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                                        WebkitMaskComposite: 'xor',
-                                        maskComposite: 'exclude',
-                                    }} />
-                                )}
-                                <span className="relative z-10">{label}</span>
+                                {label}
                             </Link>
                         ))}
                     </nav>
