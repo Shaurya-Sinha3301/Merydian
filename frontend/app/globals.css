@@ -693,6 +693,14 @@
   --bp-sage-hover: #7a8f7c;
   --bp-red: #d98d8d;
   --bp-tag-gray: #f3f4f6;
+
+  /* ── Voyageur Signature Gradient ── */
+  /* Used for AI-recommended cards, WHY? button hover, efficiency bars */
+  --gradient-opt: linear-gradient(135deg, #c5a065 0%, #d4c86a 50%, #8fa391 100%);
+  --gradient-opt-rev: linear-gradient(135deg, #8fa391 0%, #d4c86a 50%, #c5a065 100%);
+  --gradient-opt-gold: #c5a065;
+  --gradient-opt-sage: #8fa391;
+  --gradient-opt-mid: #d4c86a;
 }
 
 /* Blueprint card — thin border, white bg, lifts on hover */
