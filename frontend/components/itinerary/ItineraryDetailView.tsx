@@ -608,7 +608,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
 
                                                     {/* Corner Ticks (Visible by default, hidden on hover) */}
                                                     <div className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-0 pointer-events-none">
-                                                        {(['tl', 'tr', 'bl', 'br'] as const).map(c => (
+                                                        {(['tr', 'bl', 'br'] as const).map(c => (
                                                             <div key={c} style={{
                                                                 position: 'absolute', width: 10, height: 10, zIndex: 2,
                                                                 top: c[0] === 't' ? -1 : 'auto', bottom: c[0] === 'b' ? -1 : 'auto',
