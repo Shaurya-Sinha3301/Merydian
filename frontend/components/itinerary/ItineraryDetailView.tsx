@@ -628,43 +628,45 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                                             <img src={poi.imageUrl} alt={poi.title} className="w-full h-full object-cover" />
                                                         </div>
-                                                        {/* Content */}
+                                                        {/* Content matches ActivityCard layout exactly */}
                                                         <div className="flex-1 flex flex-col justify-center h-full gap-1 min-w-0">
-                                                            {/* Top row: title + category */}
+                                                            {/* Top row: title + tag */}
                                                             <div className="flex justify-between items-start">
                                                                 <div className="flex items-center gap-2 min-w-0">
-                                                                    <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-tight leading-none truncate">{poi.title}</h4>
-                                                                    <span className="shrink-0 text-[9px] font-bold border border-amber-300 text-amber-700 px-1.5 py-0.5 bg-amber-50">Activity</span>
+                                                                    <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-tight leading-none truncate">
+                                                                        {poi.title}
+                                                                    </h4>
+                                                                    <CategoryTag category={poi.category as any} />
                                                                 </div>
                                                             </div>
-                                                            {/* Subtitle */}
-                                                            <div className="text-[10px] text-gray-400 truncate leading-snug">{poi.subtitle}</div>
-                                                            {/* Bottom row: duration | ALLOC tags + accept/decline */}
+
+                                                            {/* Subtitle / Description */}
+                                                            <div className="text-[10px] text-gray-500 font-medium truncate">{poi.subtitle}</div>
+
+                                                            {/* Bottom row: status (Accept/Decline + Time) + ALLOC tags */}
                                                             <div className="flex justify-between items-center mt-auto pt-1.5 border-t border-gray-100/70">
                                                                 <div className="flex items-center gap-3">
-                                                                    <span className="flex items-center gap-1 font-bold text-[0.65rem] uppercase tracking-wide leading-none text-emerald-600">
-                                                                        <Check className="w-3 h-3" /> Suggested
+                                                                    {accepted ? (
+                                                                        <div className="text-[10px] font-bold text-emerald-600 flex items-center gap-1"><Check className="w-3 h-3" /> ACCEPTED</div>
+                                                                    ) : (
+                                                                        <div className="flex items-center gap-4">
+                                                                            <button onClick={() => setAcceptedPois(p => [...p, poi.id])} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-900 hover:text-emerald-600 transition-colors"><span>⊕</span> Accept</button>
+                                                                            <button onClick={() => setDismissedPois(p => [...p, poi.id])} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-400 transition-colors"><span>⊗</span> Decline</button>
+                                                                        </div>
+                                                                    )}
+                                                                    <span className="text-[9px] font-mono text-gray-400 border-l border-gray-200 pl-3">
+                                                                        {poi.durationLabel}
                                                                     </span>
-                                                                    <span className="text-[9px] font-mono text-gray-400 border-l border-gray-200 pl-3">{poi.durationLabel}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-1.5">
                                                                     <span className="text-[9px] font-mono text-gray-400">ALLOC:</span>
                                                                     <div className="flex gap-1">
-                                                                        {poi.participants.map((p: { code: string; color: string }) => (
-                                                                            <FamTag key={p.code} code={p.code} />
+                                                                        {poi.participants.map((p: string) => (
+                                                                            <FamTag key={p} code={p} />
                                                                         ))}
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            {/* Accept / Decline */}
-                                                            {accepted ? (
-                                                                <div className="text-[10px] font-bold" style={{ color: '#8fa391' }}>✓ ACCEPTED — Added to itinerary</div>
-                                                            ) : (
-                                                                <div className="flex items-center gap-4">
-                                                                    <button onClick={() => setAcceptedPois(p => [...p, poi.id])} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-900 hover:text-amber-600 transition-colors"><span>⊕</span> Accept</button>
-                                                                    <button onClick={() => setDismissedPois(p => [...p, poi.id])} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-400 transition-colors"><span>⊗</span> Decline</button>
-                                                                </div>
-                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -683,24 +685,57 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                             <div className="absolute right-[-2.25rem] top-1.5 w-1.5 h-1.5 bg-gray-200 border border-gray-300 rounded-full" />
                                         </div>
                                         <div>
-                                            {/* Removal badge */}
-                                            <div className="flex items-center gap-0 mb-[-1px] relative z-10">
+                                            {/* Badge bar */}
+                                            <div className="flex items-center gap-2 mb-[-1px] relative z-10">
                                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-200 text-gray-500 text-[10px] font-bold tracking-widest">
                                                     <span>⊗</span> {rem.badge}
                                                 </div>
                                                 <WhyButton onClick={() => setWhyModal(AI_REMOVAL_WHY_DATA[rem.id])} />
-                                                <button onClick={() => setDismissedRemovals(p => [...p, rem.id])} className="ml-1 px-2 py-1.5 text-[10px] font-bold text-gray-400 hover:text-gray-600 bg-gray-100 border border-gray-200 transition-colors">DISMISS</button>
                                             </div>
-                                            {/* Greyed card */}
-                                            <div className="flex gap-3 items-center p-3 h-24 bg-gray-50 border border-dashed border-gray-200 opacity-60 grayscale">
+                                            {/* Greyed card matches ActivityCard layout exactly */}
+                                            <div className="relative flex gap-3 items-center p-3 h-24 bg-gray-50 border border-dashed border-gray-200 opacity-60 grayscale">
                                                 <div className="w-24 h-full flex-shrink-0 border border-gray-200 overflow-hidden bg-gray-100">
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                                     <img src={rem.imageUrl} alt={rem.title} className="w-full h-full object-cover" />
                                                 </div>
-                                                <div className="flex-1 flex flex-col justify-center h-full gap-1 min-w-0">
-                                                    <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 line-through">{rem.title}</div>
-                                                    <div className="text-[10px] text-gray-400 truncate leading-snug">{rem.subtitle}</div>
-                                                    <div className="text-[9px] text-gray-400 mt-auto font-mono">{rem.reason}</div>
+                                                <div className="flex-1 flex flex-col justify-center h-full gap-1 min-w-0 pointer-events-auto">
+                                                    {/* Top row: title + tag */}
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-tight leading-none truncate line-through">
+                                                                {rem.title}
+                                                            </h4>
+                                                            <CategoryTag category={rem.category as any} />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Subtitle / Description */}
+                                                    <div className="text-[10px] text-gray-500 font-medium truncate">{rem.reason}</div>
+
+                                                    {/* Bottom row: Accept/Decline + Time + ALLOC tags */}
+                                                    <div className="flex justify-between items-center mt-auto pt-1.5 border-t border-gray-200">
+                                                        <div className="flex items-center gap-3">
+                                                            {dismissedRemovals.includes(rem.id) ? (
+                                                                <div className="text-[10px] font-bold text-gray-500 flex items-center gap-1">✓ DISMISSED</div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-4">
+                                                                    <button onClick={() => setDismissedRemovals(r => [...r, rem.id])} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-900 hover:text-emerald-600 transition-colors pointer-events-auto"><span>⊕</span> Accept</button>
+                                                                    <button className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-400 transition-colors pointer-events-auto"><span>⊗</span> Decline</button>
+                                                                </div>
+                                                            )}
+                                                            <span className="text-[9px] font-mono text-gray-400 border-l border-gray-200 pl-3">
+                                                                {rem.durationLabel}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-[9px] font-mono text-gray-400">ALLOC:</span>
+                                                            <div className="flex gap-1">
+                                                                {rem.participants.map((p: string) => (
+                                                                    <FamTag key={p} code={p} />
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -866,10 +901,8 @@ const AI_POI_ADDITIONS = [
         badge: 'OPTIMAL ROUTE EFFICIENCY',
         imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80',
         durationLabel: '1h 30m',
-        participants: [
-            { code: 'FA', color: '#4f86c6' },
-            { code: 'FB', color: '#e07b5a' },
-        ],
+        category: 'activity',
+        participants: ['FAM A', 'FAM B'],
     },
     {
         id: 'poi-d2-market',
@@ -880,11 +913,8 @@ const AI_POI_ADDITIONS = [
         badge: 'HIGH SATISFACTION SCORE',
         imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200&q=80',
         durationLabel: '45m',
-        participants: [
-            { code: 'FA', color: '#4f86c6' },
-            { code: 'FB', color: '#e07b5a' },
-            { code: 'FC', color: '#6bba75' },
-        ],
+        category: 'activity',
+        participants: ['FAM A', 'FAM B', 'FAM C'],
     },
 ];
 
@@ -894,10 +924,13 @@ const AI_REMOVALS = [
         dayDate: 'OCT 12',
         time: '10:00',
         title: 'Main Shrine Ascent',
-        subtitle: 'Standard tourist route via main gates.',
-        reason: 'REMOVED — Replaced by Early Access Route (–25% wait time)',
+        subtitle: '1h 30m • Activity',
+        reason: 'REMOVED — Replaced by Early Access Route to avoid predicted 45min crowd delays.',
         badge: '1 ACTIVITY REPLACED',
-        imageUrl: 'https://images.unsplash.com/photo-1478436127897-769e1b3f0f36?w=200&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=200&q=80',
+        category: 'activity',
+        durationLabel: '1h 30m',
+        participants: ['FAM A', 'FAM B'],
     },
 ];
 
