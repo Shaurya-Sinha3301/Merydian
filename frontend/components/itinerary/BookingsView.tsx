@@ -535,28 +535,19 @@ export default function BookingsView({ tripId }: { tripId: string }) {
 
                 {/* ── Sub-header: Filters & Cost ──────────────────────────────────── */}
                 <div className="border-b border-gray-200 bg-gray-50 px-8 py-3 flex justify-between items-center shrink-0">
-                    {/* Filters — neuromorphic inset tray */}
-                    <div
-                        className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide px-2 py-1.5 rounded-lg"
-                        style={{
-                            background: '#e8e8e8',
-                            boxShadow: 'inset 3px 3px 6px #c8c8c8, inset -3px -3px 6px #ffffff'
-                        }}
-                    >
+                    {/* Filters — GroupsView-style tab tray */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide bg-stone-100/50 p-1 rounded-md border border-stone-100">
                         {FILTERS.map((f, idx) => (
                             <React.Fragment key={f.id}>
-                                {idx === 1 && <div className="h-4 w-px bg-gray-300 mx-0.5" />}
+                                {idx === 1 && <div className="h-4 w-px bg-stone-200 mx-0.5" />}
                                 <button
                                     onClick={() => setActiveFilter(f.id)}
                                     className={cn(
-                                        'px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all',
+                                        'px-3 py-1 text-xs font-semibold flex items-center gap-1.5 transition-colors rounded capitalize',
                                         activeFilter === f.id
-                                            ? 'text-white bg-gray-900'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-white/60'
+                                            ? 'bg-white shadow-sm text-stone-700 border border-stone-200'
+                                            : 'text-stone-500 hover:text-stone-700'
                                     )}
-                                    style={activeFilter === f.id ? {
-                                        boxShadow: '3px 3px 6px #b0b0b0, -2px -2px 5px #ffffff'
-                                    } : {}}
                                 >
                                     <span className="material-symbols-outlined text-[14px]">{f.materialIcon}</span>
                                     {f.label}

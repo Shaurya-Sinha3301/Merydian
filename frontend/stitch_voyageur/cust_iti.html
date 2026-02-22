@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gold Logic Itinerary V1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&amp;family=Source+Sans+3:wght@300;400;600&amp;family=JetBrains+Mono:wght@300;400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --bg-white: #ffffff;
+            --border-gray: #e5e5e5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #717171;
+            --accent-sage: #8fa391;
+            --accent-gold: #c5a065;
+            --status-red: #d98d8d;
+            --status-gray: #f3f4f6;
+            --blueprint-grid: rgba(0, 0, 0, 0.04);
+            --gradient-opt: linear-gradient(135deg, #c5a065 0%, #d4c86a 50%, #8fa391 100%);
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-white);
+            color: var(--text-primary);
+        }
+        .font-source {
+            font-family: 'Source Sans 3', sans-serif;
+        }
+        .font-mono-tech {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .blueprint-grid {
+            background-image:
+                linear-gradient(var(--blueprint-grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--blueprint-grid) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .micro-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+        .ultra-light-heading {
+            font-weight: 200;
+            letter-spacing: -0.02em;
+        }
+        .grayscale-hover {
+            filter: grayscale(100%) contrast(110%);
+            transition: all 0.5s ease;
+        }
+        .grayscale-hover:hover {
+            filter: grayscale(0%) contrast(100%);
+        }
+        .card-precision {
+            border: 1px solid var(--border-gray);
+            background: var(--bg-white);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .card-precision:hover {
+            border-color: #a0a0a0;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+        .card-precision.active-card {
+            border-color: var(--text-primary);
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+            z-index: 20;
+        }
+        .card-elevated {
+            position: relative;
+            background: #fffdf9;
+            box-shadow: 0 15px 35px -10px rgba(197, 160, 101, 0.15);
+            transform: scale(1.02);
+            z-index: 15;
+            border: double 1px transparent;
+            background-image: linear-gradient(white, white), var(--gradient-opt);
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+        }
+        .card-elevated:hover {
+            box-shadow: 0 20px 40px -10px rgba(197, 160, 101, 0.25);
+        }
+        .card-deleted {
+            opacity: 0.6;
+            filter: grayscale(1);
+            background: #f9f9f9;
+        }
+        .nav-active {
+            border-right: 2px solid var(--text-primary);
+            background: rgba(0, 0, 0, 0.02);
+        }
+        .expanded-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .expanded-content.force-expanded {
+            max-height: 800px;
+            border-top: 1px dashed var(--border-gray);
+        }
+        .tech-gallery-img {
+            filter: grayscale(100%) brightness(1.1) contrast(0.9);
+            mix-blend-mode: multiply;
+            transition: all 0.4s ease;
+        }
+        .tech-gallery-img:hover {
+            filter: grayscale(0%) brightness(1) contrast(1);
+            mix-blend-mode: normal;
+            transform: scale(1.02);
+        }
+        .blueprint-indicator {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .active-card .blueprint-indicator, .card-elevated .blueprint-indicator {
+            opacity: 1;
+        }
+        .deleted-row {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .deleted-row:hover {
+            background-color: #f5f5f5;
+        }
+        .deleted-detail {
+            display: none;
+        }
+        input[type=checkbox].toggle-delete:checked ~ .deleted-detail {
+            display: block;
+        }
+        input[type=checkbox].toggle-delete:checked ~ .deleted-row .chevron {
+            transform: rotate(180deg);
+        }.modal-trigger { display: none; }
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            width: 600px;
+            max-width: 90vw;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-gray);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-trigger:checked ~ .modal-overlay {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-trigger:checked ~ .modal-overlay .modal-content {
+            transform: translateY(0);
+        }
+        .gradient-border-text {
+             background: var(--gradient-opt);
+             -webkit-background-clip: text;
+             -webkit-text-fill-color: transparent;
+             font-weight: 700;
+        }
+        .cost-bar-container {
+            height: 4px;
+            background: #f0f0f0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .cost-bar-fill {
+            height: 100%;
+            background: var(--gradient-opt);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+<input class="modal-trigger" id="tech-modal-toggle" type="checkbox"/>
+<div class="modal-overlay">
+<div class="modal-content relative p-8">
+<label class="absolute top-4 right-4 cursor-pointer text-gray-400 hover:text-black" for="tech-modal-toggle">
+<span class="material-symbols-outlined">close</span>
+</label>
+<div class="mb-6">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-[#c5a065]">analytics</span>
+<p class="micro-label text-[#c5a065]">TECHNICAL CHANGE ANALYSIS</p>
+</div>
+<h2 class="text-2xl font-light text-[#1a1a1a]">Optimization Logic</h2>
+</div>
+<div class="space-y-6">
+<div class="border border-[#e5e5e5] p-4 bg-[#fafafa]">
+<div class="flex justify-between items-center mb-2">
+<span class="text-sm font-bold">Route Efficiency</span>
+<span class="gradient-border-text text-sm">+24%</span>
+</div>
+<div class="cost-bar-container">
+<div class="cost-bar-fill" style="width: 74%"></div>
+</div>
+<p class="text-xs text-[#717171] mt-2 font-source">Direct path routing reduces transfer time by 45 mins.</p>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="border border-[#e5e5e5] p-4 bg-white">
+<span class="micro-label text-[#717171] block mb-2">ORIGINAL COST</span>
+<span class="text-lg font-mono-tech line-through text-gray-400">¥45,000</span>
+</div>
+<div class="border border-[#c5a065] p-4 bg-[#fffdf9]">
+<span class="micro-label text-[#c5a065] block mb-2">OPTIMIZED COST</span>
+<span class="text-lg font-mono-tech text-[#1a1a1a]">¥42,500</span>
+</div>
+</div>
+<div class="flex gap-4 mt-8">
+<button class="flex-1 bg-[#1a1a1a] text-white py-3 text-xs font-bold tracking-wider hover:bg-[#333]">
+                    CONFIRM METRICS
+                </button>
+<label class="flex-1 border border-[#e5e5e5] text-[#717171] py-3 text-xs font-bold tracking-wider text-center cursor-pointer hover:border-[#1a1a1a] hover:text-[#1a1a1a]" for="tech-modal-toggle">
+                    CLOSE
+                </label>
+</div>
+</div>
+</div>
+</div>
+<aside class="w-20 border-r border-[#e5e5e5] bg-white flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+<div class="h-20 border-b border-[#e5e5e5] flex items-center justify-center">
+<div class="w-10 h-10 bg-[#1a1a1a] flex items-center justify-center">
+<span class="text-white font-bold text-lg">P</span>
+</div>
+</div>
+<nav class="flex-1 flex flex-col items-center py-8 gap-2">
+<a class="w-full flex flex-col items-center justify-center py-4 text-[#717171] hover:text-[#1a1a1a] hover:bg-gray-50 transition-colors group relative" href="#">
+<span class="material-symbols-outlined text-2xl mb-1">dashboard</span>
+<span class="text-[9px] font-bold tracking-widest opacity-0 group-hover:opacity-100 absolute bottom-1 transition-opacity">HUB</span>
+</a>
+<a class="nav-active w-full flex flex-col items-center justify-center py-4 text-[#1a1a1a] relative" href="#">
+<span class="material-symbols-outlined text-2xl mb-1">map</span>
+<span class="text-[9px] font-bold tracking-widest absolute bottom-1">PLAN</span>
+</a>
+<a class="w-full flex flex-col items-center justify-center py-4 text-[#717171] hover:text-[#1a1a1a] hover:bg-gray-50 transition-colors group relative" href="#">
+<span class="material-symbols-outlined text-2xl mb-1">confirmation_number</span>
+<span class="text-[9px] font-bold tracking-widest opacity-0 group-hover:opacity-100 absolute bottom-1 transition-opacity">DOCS</span>
+</a>
+<a class="w-full flex flex-col items-center justify-center py-4 text-[#717171] hover:text-[#1a1a1a] hover:bg-gray-50 transition-colors group relative" href="#">
+<span class="material-symbols-outlined text-2xl mb-1">diamond</span>
+<span class="text-[9px] font-bold tracking-widest opacity-0 group-hover:opacity-100 absolute bottom-1 transition-opacity">VIP</span>
+</a>
+</nav>
+<div class="h-20 border-t border-[#e5e5e5] flex items-center justify-center">
+<div class="w-8 h-8 rounded-full bg-gray-200 border border-gray-300 overflow-hidden">
+<img alt="User" class="w-full h-full object-cover opacity-80 grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyApLE9aaFrLdaIW7X6pPmj3umNalC9kHgsowQ5RSITCJaFUrJArrNgcxxgmprk5509ZbAs9FLeW4NVEIwXEYWitLiGpGyICzACLpWa2gvM2DIv0fF93XHPOAfU0Z1vo2uiq_Fh62HBZ8DbfYR6PB5STFjbxX9pOW9y4ffzTCQySYWRW7Ck5xuS4VyiMq3XDVwqoOmBdxcdHDH96VpsJPquUywWnvsGcAuXdmqzAaBuquojAXNILneyOndv2tSo9wDUZPsuJoam-bz"/>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col bg-[#fafafa]">
+<header class="bg-white border-b border-[#e5e5e5] px-10 py-6 flex-shrink-0 z-10">
+<div class="flex items-end justify-between">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="w-2 h-2 bg-[#c5a065] rounded-full"></span>
+<p class="micro-label text-[#c5a065]">GOLD LOGIC ITINERARY V1</p>
+</div>
+<h1 class="text-4xl ultra-light-heading text-[#1a1a1a]">Kyoto Expedition</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="text-right">
+<p class="micro-label text-[#717171] mb-1">CURRENT LOCATION</p>
+<p class="text-sm font-medium">Kyoto, Japan (GMT+9)</p>
+</div>
+<div class="h-8 w-px bg-gray-200"></div>
+<div class="text-right">
+<p class="micro-label text-[#717171] mb-1">DATES</p>
+<p class="text-sm font-medium">Mar 15 – Mar 22, 2026</p>
+</div>
+<button class="bg-[#1a1a1a] text-white px-5 py-2.5 text-xs font-bold tracking-wider hover:bg-[#333] transition-colors flex items-center gap-2 border-b-2 border-[#c5a065]">
+<span class="material-symbols-outlined text-base">download</span>
+                    PDF BRIEF
+                </button>
+</div>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden">
+<div class="w-24 bg-white border-r border-[#e5e5e5] flex flex-col items-center py-8 overflow-y-auto hidden-scrollbar flex-shrink-0">
+<div class="flex flex-col gap-6 items-center w-full relative">
+<div class="absolute top-4 bottom-4 left-1/2 w-px bg-[#e5e5e5] -translate-x-1/2 z-0"></div>
+<button class="relative z-10 w-10 h-10 rounded-full bg-white border border-[#e5e5e5] text-[#cecece] text-xs font-medium flex items-center justify-center hover:border-[#c5a065] hover:text-[#c5a065] transition-all">
+                    01
+                </button>
+<button class="relative z-10 w-10 h-10 rounded-full bg-white border border-[#c5a065] text-[#c5a065] text-xs font-bold flex items-center justify-center shadow-lg shadow-[#c5a065]/20 transform scale-110">
+                    02
+                </button>
+<button class="relative z-10 w-10 h-10 rounded-full bg-white border border-[#e5e5e5] text-[#717171] text-xs font-medium flex items-center justify-center hover:border-[#1a1a1a] hover:text-[#1a1a1a] transition-all">
+                    03
+                </button>
+<button class="relative z-10 w-10 h-10 rounded-full bg-white border border-[#e5e5e5] text-[#717171] text-xs font-medium flex items-center justify-center hover:border-[#1a1a1a] hover:text-[#1a1a1a] transition-all">
+                    04
+                </button>
+<button class="relative z-10 w-10 h-10 rounded-full bg-white border border-[#e5e5e5] text-[#717171] text-xs font-medium flex items-center justify-center hover:border-[#1a1a1a] hover:text-[#1a1a1a] transition-all">
+                    05
+                </button>
+</div>
+</div>
+<div class="flex-1 blueprint-grid overflow-y-auto p-12 scroll-smooth">
+<div class="max-w-4xl mx-auto pb-20">
+<div class="flex items-center justify-between mb-10 border-b border-[#e5e5e5] pb-4">
+<div class="flex items-baseline gap-4">
+<h2 class="text-6xl ultra-light-heading text-[#1a1a1a]">Day 02</h2>
+<span class="text-xl font-light text-[#717171]">Tuesday, March 16</span>
+</div>
+<div class="flex gap-2">
+<span class="micro-label px-3 py-1 bg-[#f0f0f0] text-[#717171]">PARTLY CLOUDY 16°C</span>
+<span class="micro-label px-3 py-1 bg-[#c5a065] text-white">ACTIVE DAY</span>
+</div>
+</div>
+<div class="space-y-6 relative">
+<div class="absolute left-[29px] top-8 bottom-8 w-px bg-[#e5e5e5] z-0"></div>
+<div class="relative pl-16">
+<div class="absolute left-[26px] top-3.5 w-1.5 h-1.5 bg-[#e5e5e5] rounded-full z-10"></div>
+<div class="relative group">
+<input class="toggle-delete peer hidden" id="deleted-1" type="checkbox"/>
+<label class="deleted-row flex items-center justify-between p-2 border border-dashed border-[#d98d8d] bg-white rounded-sm mb-0 select-none" for="deleted-1">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#d98d8d] text-sm">remove_circle_outline</span>
+<span class="text-xs font-bold text-[#d98d8d] uppercase tracking-wider">1 Activity Removed</span>
+<label class="cursor-pointer ml-2 px-2 py-0.5 border border-[#c5a065] text-[#c5a065] text-[10px] font-bold rounded-sm hover:bg-[#c5a065] hover:text-white transition-colors" for="tech-modal-toggle" onclick="event.stopPropagation();">WHY?</label>
+<span class="text-xs text-gray-400 font-source italic">– Morning Meditation Session</span>
+</div>
+<span class="material-symbols-outlined text-gray-400 text-sm chevron transition-transform">expand_more</span>
+</label>
+<div class="deleted-detail mt-2">
+<div class="card-precision card-deleted p-6 relative">
+<div class="absolute top-0 right-0 bg-[#f3f4f6] text-[#717171] px-3 py-1 text-[9px] font-bold tracking-widest border-b border-l border-gray-200">
+                                        ARCHIVED
+                                    </div>
+<div class="flex gap-6 items-start opacity-50">
+<div class="w-16 h-16 relative overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+<div class="w-full h-full bg-gray-200 flex items-center justify-center">
+<span class="material-symbols-outlined text-gray-400">self_improvement</span>
+</div>
+</div>
+<div>
+<h3 class="text-lg font-light text-[#1a1a1a] line-through decoration-gray-400">Zen Meditation at Ryōan-ji</h3>
+<p class="text-sm text-[#717171] font-source">Private session with head monk.</p>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-dashed border-gray-300">
+<h4 class="micro-label text-[#c5a065] mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-[#c5a065]">psychology</span>
+                                            VOYAGEUR REASONING
+                                        </h4>
+<p class="text-sm font-source text-[#555] leading-relaxed">
+                                            Removed to accommodate earlier departure for Fushimi Inari to avoid peak crowd times, per client preference for photography conditions.
+                                        </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="relative pl-16">
+<div class="absolute left-[23px] top-8 w-3 h-3 bg-white border-2 border-[#1a1a1a] rounded-full z-10"></div>
+<div class="card-precision active-card">
+<div class="blueprint-indicator absolute top-0 left-0 w-3 h-3 border-l border-t border-[#1a1a1a]"></div>
+<div class="blueprint-indicator absolute top-0 right-0 w-3 h-3 border-r border-t border-[#1a1a1a]"></div>
+<div class="blueprint-indicator absolute bottom-0 left-0 w-3 h-3 border-l border-b border-[#1a1a1a]"></div>
+<div class="blueprint-indicator absolute bottom-0 right-0 w-3 h-3 border-r border-b border-[#1a1a1a]"></div>
+<div class="p-8 cursor-pointer flex gap-8 items-start group">
+<div class="w-32 h-32 relative overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+<img alt="Fushimi Inari" class="w-full h-full object-cover grayscale-hover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDY55YfLX9PcnpJ76DathzIFz5A5oAWfQm71P8KAxW556FW0_8z7MdM0ja_h7xN6W9L3pDdvk3szy0GFdoKQV3M_4vwJPt6Mtxfsl7NBEevD0PwsKfaQ4XY55hMGtyw_W_XvcsZWQ71uUYtSsO2xU14K5me1IhQv4sXccwf92mhiE62pEbeHNWg1GBTVmSpZqUw10kSOXng3geTYai1TUh_paMvlTB0q93_rRafV_NA9njkAOqUI6dRmmJzPnLyhsDvOWGdEGlv5gqR"/>
+<div class="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200 py-1 text-center">
+<span class="font-mono-tech text-[10px] text-[#1a1a1a]">IMG_REF_02A</span>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<span class="font-mono-tech text-sm font-bold bg-black text-white px-2 py-0.5">08:00</span>
+<span class="micro-label text-[#8fa391] border border-[#8fa391] px-1">CONFIRMED</span>
+</div>
+<span class="material-symbols-outlined text-[#1a1a1a] transform rotate-180 transition-transform duration-300">expand_more</span>
+</div>
+<h3 class="text-2xl font-light text-[#1a1a1a] mb-2 group-hover:underline decoration-1 underline-offset-4 decoration-gray-300">Fushimi Inari Taisha Shrine</h3>
+<p class="text-base text-[#717171] font-light mb-4 font-source">Private guided ascent through the Senbon Torii gates before the crowds.</p>
+<div class="flex gap-4">
+<div class="flex items-center gap-1.5 text-xs text-[#555]">
+<span class="material-symbols-outlined text-sm text-[#c5a065]">timer</span>
+<span class="font-mono-tech">3h 30m</span>
+</div>
+<div class="flex items-center gap-1.5 text-xs text-[#555]">
+<span class="material-symbols-outlined text-sm text-[#c5a065]">directions_car</span>
+<span class="font-mono-tech">Transfer Inc.</span>
+</div>
+<div class="flex items-center gap-1.5 text-xs text-[#555]">
+<span class="material-symbols-outlined text-sm text-[#c5a065]">hiking</span>
+<span class="font-mono-tech">Moderate</span>
+</div>
+</div>
+</div>
+</div>
+<div class="expanded-content force-expanded bg-[#fafafa]">
+<div class="flex">
+<div class="w-2/3 p-8 border-r border-[#e5e5e5] bg-white relative">
+<div class="absolute top-0 left-0 px-2 py-1 bg-[#1a1a1a] text-white text-[9px] font-bold tracking-widest border-b-2 border-[#c5a065]">TECHNICAL BRIEFING</div>
+<div class="mt-4 mb-8">
+<h4 class="micro-label text-[#717171] mb-3">OVERVIEW</h4>
+<p class="font-source text-[17px] leading-relaxed text-[#333] mb-4">
+                                                Your guide will rendezvous at the Hotel Lobby at 07:30. We have arranged for an early start to ensure exclusive photography opportunities at the lower torii gates. The route covers the main shrine grounds and the mountain trail (Mt. Inari, 233m).
+                                            </p>
+<p class="font-source text-[17px] leading-relaxed text-[#333]">
+                                                Key waypoints include the Senbon Torii (Thousand Gates), the Okusha Hahai-sho, and the Yotsutsuji intersection which offers a panoramic view of Kyoto.
+                                            </p>
+</div>
+<div class="grid grid-cols-2 gap-8 mb-8">
+<div>
+<h4 class="micro-label text-[#717171] mb-2">PRIMARY GUIDE</h4>
+<div class="border border-[#e5e5e5] p-3 bg-[#fafafa] flex items-center gap-3">
+<div class="w-10 h-10 bg-gray-300 overflow-hidden grayscale">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVtMEfB7jwlcbO_N0MSsB6sUd-xTPVZ_AdRJmW65A_3eJpeB3mLYDJsenUs6TjJRPB7a0v66Q_ejOsC4_cMZbAAATQPbUwedJU4RXvXkNi-W01VQaeVwnJ0CT3hFEldB2doCML7vvYYr77YPbRK5NdJoQVCPrl1rUJukgovz0P0jMaH0oO_ttQdUR63WE1WNRc7eqe4T08k3dAnv3abZWycKty4dIJ_tO_cHaNBtTqdIhkZ6HbtDMkbUw7NDP4nAkdZKRvuLfTetvH"/>
+</div>
+<div>
+<p class="text-sm font-bold text-[#1a1a1a]">Kenji Sato</p>
+<p class="font-mono-tech text-xs text-[#717171]">ID: #GD-8821</p>
+</div>
+<a class="ml-auto text-[#c5a065] hover:bg-white hover:shadow-sm p-1 rounded transition-all" href="#">
+<span class="material-symbols-outlined text-lg">call</span>
+</a>
+</div>
+</div>
+<div>
+<h4 class="micro-label text-[#717171] mb-2">LOGISTICS</h4>
+<ul class="space-y-1">
+<li class="flex justify-between text-sm border-b border-dotted border-gray-300 pb-1">
+<span class="text-[#717171]">Vehicle</span>
+<span class="font-mono-tech text-[#1a1a1a]">Toyota Alphard</span>
+</li>
+<li class="flex justify-between text-sm border-b border-dotted border-gray-300 pb-1">
+<span class="text-[#717171]">Plate</span>
+<span class="font-mono-tech text-[#1a1a1a]">Kyoto 300-Ya 45</span>
+</li>
+<li class="flex justify-between text-sm">
+<span class="text-[#717171]">Entrance</span>
+<span class="font-mono-tech text-[#1a1a1a]">South Gate</span>
+</li>
+</ul>
+</div>
+</div>
+<div>
+<h4 class="micro-label text-[#717171] mb-3">BLUEPRINTS &amp; VISUALS</h4>
+<div class="grid grid-cols-3 gap-3">
+<div class="relative aspect-video group overflow-hidden border border-[#e5e5e5] bg-white">
+<img class="w-full h-full object-cover tech-gallery-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArkEQ2_r2HGZd90OLvCRrkeqDySSXJlplsHmQm5Uf4dCAaN-bjEi0Xb8PZMUUx3H5qHjI2QJXidI5cWtSNv5rvbUZtFpxcBpBlO_Q5cDqcy0a-S305eNTtlR3OU-6jV1on_HbCHGFkVgaXavlGwpdI-Yoikqp-OBD4xSWcxSRWFluXPQMY9U1CNoNf6AP5ZuVxEZmbPt6ggpHWtYukneFSCRFjQ8lX6f1r3HLrn2Tjo31e6ZxAEJUKJX-bLdzjlEoOA6ZzgQPPDNjs"/>
+<div class="absolute bottom-0 left-0 bg-white/80 px-1 py-0.5 text-[8px] font-mono-tech uppercase">Map_Ref_A</div>
+</div>
+<div class="relative aspect-video group overflow-hidden border border-[#e5e5e5] bg-white">
+<img class="w-full h-full object-cover tech-gallery-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqqjA_h1_HpcK4q8kxLs6mEBlT0VUCJnvGCucjrgj0EyAqUMb2mSiRNQAKFCSy4zNQbIaBWFsWeHaEJhSDKUto8smlz9OeLCtg6_EpvOYaeRV5wXG86479jamEYYItlUoVPc9QsiLTs-5WQzPUQAwgPkDlk6m-WZP6bw1hGqcshV_iEHpE-EMt1XUaJuG4CSFrXxeJtb_wq27VGchCG8ba3_Rh5jqvx8_Ygq49EM3rf11F5i6p-B7smIaVnNnpVXuVODmNsf5x-YsW"/>
+<div class="absolute bottom-0 left-0 bg-white/80 px-1 py-0.5 text-[8px] font-mono-tech uppercase">Gate_Detail_01</div>
+</div>
+<div class="relative aspect-video group overflow-hidden border border-[#e5e5e5] bg-white">
+<img class="w-full h-full object-cover tech-gallery-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYlexb5nUpqdi8FNOHdzf7lPK4FDE0gdo7zCd0Xyo4SWszadNenM67O4jItmsxo0AFLew6TttmDkJkQ14yILkIJY2IxDQEXSV7JBQH36uGuV-7w6QuOG0BUN1mV5-sJDsX2r7eaW_NG1CKtzYgA10NEoK3WtcJ7fl8Ekr-rLEaIueDkTjkDdxaq0REgEHBD-WzPRoni4vSaK1bxxp7aWNvj8dT_IzTlYnfqZV4xG9NbCw_WyXxejIPXIDilFhd4PP3bDm4K7PU1LJv"/>
+<div class="absolute bottom-0 left-0 bg-white/80 px-1 py-0.5 text-[8px] font-mono-tech uppercase">Terrain_View</div>
+</div>
+</div>
+</div>
+</div>
+<div class="w-1/3 bg-[#f8f8f8] p-8 flex flex-col justify-between border-l border-[#eee]">
+<div>
+<h4 class="micro-label text-[#717171] mb-4">QUICK ACTIONS</h4>
+<div class="space-y-3">
+<button class="w-full text-left bg-white border border-[#e5e5e5] p-3 hover:border-[#c5a065] transition-colors flex items-center justify-between group">
+<span class="text-xs font-medium text-[#1a1a1a]">Modify Schedule</span>
+<span class="material-symbols-outlined text-sm text-gray-400 group-hover:text-[#c5a065]">edit_calendar</span>
+</button>
+<button class="w-full text-left bg-white border border-[#e5e5e5] p-3 hover:border-[#c5a065] transition-colors flex items-center justify-between group">
+<span class="text-xs font-medium text-[#1a1a1a]">Message Guide</span>
+<span class="material-symbols-outlined text-sm text-gray-400 group-hover:text-[#c5a065]">chat</span>
+</button>
+<button class="w-full text-left bg-white border border-[#e5e5e5] p-3 hover:border-[#c5a065] transition-colors flex items-center justify-between group">
+<span class="text-xs font-medium text-[#1a1a1a]">Get Directions</span>
+<span class="material-symbols-outlined text-sm text-gray-400 group-hover:text-[#c5a065]">near_me</span>
+</button>
+</div>
+</div>
+<div class="mt-8">
+<div class="border-t border-[#e5e5e5] pt-4">
+<p class="micro-label text-[#717171] mb-2">NEXT UP</p>
+<p class="text-xs font-mono-tech text-[#1a1a1a]">12:30 • Lunch at Kikunoi</p>
+<div class="h-1 w-full bg-gray-200 mt-2 rounded-full overflow-hidden">
+<div class="h-full bg-[#c5a065] w-1/4"></div>
+</div>
+<p class="text-[9px] text-right text-gray-400 mt-1">15 min travel time</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="relative pl-16">
+<div class="absolute left-[26px] top-8 w-1.5 h-1.5 bg-[#c5a065] rounded-full z-10 shadow-[0_0_0_4px_rgba(197,160,101,0.2)]"></div>
+<div class="card-precision card-elevated group relative">
+<div class="absolute -top-3 left-6 z-30 flex items-center gap-2">
+<div class="flex items-center gap-2 bg-gradient-to-r from-[#8fa391] to-[#c5a065] text-white pl-2 pr-3 py-1 text-[10px] font-bold tracking-widest shadow-md">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                                    AI RECOMMENDED: OPTIMAL ROUTE EFFICIENCY
+                                </div>
+<label class="cursor-pointer bg-white border border-[#c5a065] text-[#c5a065] px-2 py-1 text-[10px] font-bold tracking-widest shadow-sm hover:bg-[#c5a065] hover:text-white transition-all" for="tech-modal-toggle">WHY?</label>
+</div>
+<div class="blueprint-indicator absolute top-0 left-0 w-3 h-3 border-l border-t border-[#c5a065]"></div>
+<div class="blueprint-indicator absolute top-0 right-0 w-3 h-3 border-r border-t border-[#c5a065]"></div>
+<div class="blueprint-indicator absolute bottom-0 left-0 w-3 h-3 border-l border-b border-[#c5a065]"></div>
+<div class="blueprint-indicator absolute bottom-0 right-0 w-3 h-3 border-r border-b border-[#c5a065]"></div>
+<div class="p-8 cursor-pointer flex gap-8 items-start">
+<div class="w-24 h-24 relative overflow-hidden bg-gray-100 border border-[#c5a065] flex-shrink-0">
+<img alt="Tea Ceremony" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkgB1aaoOG6mBEiOJKnQBT3X3BKU5MQEipPYMoSS9J_D-tSE30-Cj_UG9MsqjxtP3n9rv_5H0HHydBVsTQ32ma2PT-1iq_NErJft0a1sthSX-_l-NsoTBSja0bjvzXMmD2wcjZEm0kq5kKrwsrcAVfZdae8FFD1M0_Td_Jul_SunnW_MEDjx7qhmOfRwnktjv6MT_V7Pg7K8hhwcd6_DwqSfomBleSGXv17fN_Hrka40OooSyho_EeR8k48sihmNHt7sQ5Q9n_ftJY"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-2">
+<span class="font-mono-tech text-sm font-bold bg-[#c5a065] text-white px-2 py-0.5">11:00</span>
+<span class="micro-label text-[#8fa391] border border-[#8fa391] px-1">PENDING APPROVAL</span>
+</div>
+<h3 class="text-xl font-medium text-[#1a1a1a] mb-1">Traditional Tea Ceremony Stop</h3>
+<p class="text-sm text-[#717171] font-source mb-3">Suggested addition due to proximity (5 min walk) and open schedule gap. Authenticated matcha experience.</p>
+<div class="flex items-center gap-4 border-t border-dashed border-[#e5e5e5] pt-3">
+<button class="text-xs font-bold text-[#1a1a1a] hover:text-[#c5a065] flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-sm">check_circle</span> ACCEPT
+                                        </button>
+<button class="text-xs font-bold text-[#717171] hover:text-red-500 flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-sm">cancel</span> DECLINE
+                                        </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="relative pl-16">
+<div class="absolute left-[26px] top-8 w-1.5 h-1.5 bg-[#e5e5e5] rounded-full z-10"></div>
+<div class="card-precision group">
+<div class="p-6 cursor-pointer flex gap-6 items-center">
+<div class="w-20 h-20 relative overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+<img alt="Kaiseki" class="w-full h-full object-cover grayscale-hover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkgB1aaoOG6mBEiOJKnQBT3X3BKU5MQEipPYMoSS9J_D-tSE30-Cj_UG9MsqjxtP3n9rv_5H0HHydBVsTQ32ma2PT-1iq_NErJft0a1sthSX-_l-NsoTBSja0bjvzXMmD2wcjZEm0kq5kKrwsrcAVfZdae8FFD1M0_Td_Jul_SunnW_MEDjx7qhmOfRwnktjv6MT_V7Pg7K8hhwcd6_DwqSfomBleSGXv17fN_Hrka40OooSyho_EeR8k48sihmNHt7sQ5Q9n_ftJY"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-1">
+<span class="font-mono-tech text-xs text-[#717171]">12:30</span>
+<span class="micro-label text-[#8fa391] border border-[#8fa391] px-1">RESERVED</span>
+</div>
+<h3 class="text-lg font-light text-[#1a1a1a]">Kaiseki Lunch at Kikunoi</h3>
+<p class="text-sm text-[#717171] font-source">3-Michelin star traditional multi-course meal.</p>
+</div>
+<span class="material-symbols-outlined text-[#ccc] group-hover:text-[#1a1a1a] transition-colors">expand_more</span>
+</div>
+</div>
+</div>
+<div class="relative pl-16">
+<div class="absolute left-[26px] top-8 w-1.5 h-1.5 bg-[#e5e5e5] rounded-full z-10"></div>
+<div class="card-precision group">
+<div class="p-6 cursor-pointer flex gap-6 items-center">
+<div class="w-20 h-20 relative overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+<img alt="Kinkaku-ji" class="w-full h-full object-cover grayscale-hover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB1r44ur0MS5DL4O4iwKV-9YSG_ePHhFnD3HCl1rvQlhW-K8VrbXdp5zB999IG08zqVITidSYJdHfKDYVpmWScxTRD4qjFTTk5Jwn1KDLPqyPpZLixclfgTIANY5YtvXO5C4Gq9fiePB6Ed0rkfv6EvN7KZ9Dy55y340rd2ddcaJ2Tfykxzce55V8xJaLFWKlBTm-1JbDj2bRPdRbMXWq4SYZLQeWKWLndE1Rx_xZCeVmDYkSKXZn7z7TXBo7t1jZfCwkl7xsJJIXK"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-1">
+<span class="font-mono-tech text-xs text-[#717171]">15:00</span>
+<span class="micro-label text-[#8fa391] border border-[#8fa391] px-1">CONFIRMED</span>
+</div>
+<h3 class="text-lg font-light text-[#1a1a1a]">Golden Pavilion (Kinkaku-ji)</h3>
+<p class="text-sm text-[#717171] font-source">Zen temple tour with private access to tea garden.</p>
+</div>
+<span class="material-symbols-outlined text-[#ccc] group-hover:text-[#1a1a1a] transition-colors">expand_more</span>
+</div>
+</div>
+</div>
+<div class="relative pl-16">
+<div class="absolute left-[26px] top-8 w-1.5 h-1.5 bg-[#e5e5e5] rounded-full z-10"></div>
+<div class="card-precision group">
+<div class="p-6 cursor-pointer flex gap-6 items-center">
+<div class="w-20 h-20 relative overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+<img alt="Gion" class="w-full h-full object-cover grayscale-hover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqHm7cYG1LPFviOfLmByn_xEmcEGTnAQ7w2Pij4RH6pirDbDm61fyN8ap5UU-e13r8sHKznYekX2gozlsPCYNqFuALOGiIoYYaQLjYCTAzZyNvqihe8tWH414iL55_afDcNFhB2G1YnJ99oDdbexUgK7UYcG8avZpwTU28_ar7Q9oNTe4-S0hoiBylyl0KZyv6F3G550OzUk_T95QhnhoqAS9uXMJ0MeLhse_n0d5vHcAJJnBpyJBXMt19scKdBvvxDGh8A5qoGOgJ"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-1">
+<span class="font-mono-tech text-xs text-[#717171]">18:00</span>
+<span class="micro-label text-[#717171] border border-gray-200 px-1">OPTIONAL</span>
+</div>
+<h3 class="text-lg font-light text-[#1a1a1a]">Gion District Walking Tour</h3>
+<p class="text-sm text-[#717171] font-source">Evening exploration of Geisha district.</p>
+</div>
+<span class="material-symbols-outlined text-[#ccc] group-hover:text-[#1a1a1a] transition-colors">expand_more</span>
+</div>
+</div>
+</div>
+<div class="relative pl-16 mt-8">
+<div class="bg-[#f8f8f8] border border-[#e5e5e5] p-6">
+<div class="flex items-start justify-between">
+<div>
+<h4 class="micro-label text-[#1a1a1a] mb-2">NEXT STEP FOR CLIENT</h4>
+<p class="text-sm font-source text-[#555] max-w-md">
+                                        Please review the <strong>AI Recommended</strong> addition to your schedule. Accepting this change will update your transfer logistics automatically.
+                                    </p>
+</div>
+<label class="cursor-pointer bg-[#c5a065] text-white px-6 py-3 text-xs font-bold tracking-wider hover:bg-[#b08d55] transition-colors shadow-lg shadow-[#c5a065]/20 flex items-center justify-center" for="tech-modal-toggle">
+                                    REVIEW CHANGES
+                                </label>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // No JS needed for the delete toggle as it uses checkbox hack, 
+        // but included script tag as per original file structure
+    </script>
+
+</body></html>
