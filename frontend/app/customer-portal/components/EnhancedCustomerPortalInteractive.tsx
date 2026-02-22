@@ -2,359 +2,702 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import FamilyMemberCard from './FamilyMemberCard';
-import EnhancedTripCard from './EnhancedTripCard';
-import PlanTripModal from './PlanTripModal';
-import EnhancedAgentChatModal from './EnhancedAgentChatModal';
 import activeGroupsData from '@/lib/agent-dashboard/data/active_groups.json';
 import upcomingGroupsData from '@/lib/agent-dashboard/data/upcoming_groups.json';
+import itineraryDataFile from '@/lib/agent-dashboard/data/itinerary_data.json';
 
-interface FamilyMember {
-  id: string;
-  name: string;
-  role: string;
-  age: number;
-  gender: string;
-  passport_number: string;
-}
+/* ─────────── helpers ─────────── */
+const formatTime = (iso: string) => {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+};
+const formatDayTitle = (iso: string) => {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+};
+const durationMins = (start: string, end: string) => {
+  const mins = (new Date(end).getTime() - new Date(start).getTime()) / 60000;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return h > 0 ? `${h}h ${m > 0 ? m + 'm' : ''}`.trim() : `${m}m`;
+};
 
-interface Trip {
-  id: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  status: 'active' | 'upcoming';
-  groupName: string;
-  thumbnail: string;
-}
+const EVENT_IMAGES: Record<string, string> = {
+  flight: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80',
+  transport: 'https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=400&q=80',
+  cab: 'https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=400&q=80',
+  accommodation: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80',
+  meal: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=80',
+  activity: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=80',
+};
+const getEventImage = (evt: any) => {
+  if (evt.type === 'transport') {
+    const mode = evt.transport?.mode?.toLowerCase() || '';
+    if (mode === 'flight') return EVENT_IMAGES.flight;
+    return EVENT_IMAGES.cab;
+  }
+  return EVENT_IMAGES[evt.type] || EVENT_IMAGES.activity;
+};
 
+const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
+  confirmed: { bg: '#8fa391', text: '#fff', label: 'CONFIRMED' },
+  modified: { bg: '#c5a065', text: '#fff', label: 'MODIFIED' },
+  delayed: { bg: '#d98d8d', text: '#fff', label: 'DELAYED' },
+  cancelled: { bg: '#d98d8d', text: '#fff', label: 'CANCELLED' },
+  reserved: { bg: '#8fa391', text: '#fff', label: 'RESERVED' },
+};
+const getStatus = (evt: any) => {
+  const s = (evt.status || 'confirmed').toLowerCase();
+  return STATUS_COLORS[s] || { bg: '#8fa391', text: '#fff', label: (s).toUpperCase() };
+};
+
+/* ────────────────────────────────
+   MAIN COMPONENT
+──────────────────────────────── */
 const EnhancedCustomerPortalInteractive = () => {
   const router = useRouter();
-  const [showPlanTripModal, setShowPlanTripModal] = useState(false);
-  const [showAgentChatModal, setShowAgentChatModal] = useState(false);
-  const [showFamilyMembers, setShowFamilyMembers] = useState(false);
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [familyName, setFamilyName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-
-  const handleViewItinerary = (tripId: string) => {
-    router.push(`/customer-itinerary/${tripId}`);
-  };
-
-  const handleViewBooking = (bookingId: string) => {
-    router.push(`/customer-bookings?highlight=${bookingId}`);
-  };
+  const [familyName, setFamilyName] = useState('');
+  const [familyInitial, setFamilyInitial] = useState('F');
+  const [itinerary, setItinerary] = useState<any>(null);
+  const [activeDayIdx, setActiveDayIdx] = useState(0);
+  const [expandedEvt, setExpandedEvt] = useState<string | null>(null);
+  const [navTab, setNavTab] = useState<'plan' | 'docs' | 'hub' | 'vip'>('plan');
 
   useEffect(() => {
     const familyId = sessionStorage.getItem('familyId');
-    
-    if (!familyId) {
-      router.push('/customer-login');
-      return;
-    }
+    if (!familyId) { router.push('/customer-login'); return; }
 
     let foundFamily: any = null;
-    let foundGroups: Trip[] = [];
-    const familyGroupMap: { [key: string]: string } = {};
+    let foundGroupId: string | null = null;
 
-    activeGroupsData.groups.forEach((group: any) => {
-      const family = group.families.find((f: any) => f.id === familyId);
-      if (family) {
-        foundFamily = family;
-        const tripId = group.id;
-        familyGroupMap[tripId] = group.id;
-        foundGroups.push({
-          id: tripId,
-          destination: group.current_location,
-          startDate: group.start_date,
-          endDate: group.end_date,
-          status: 'active' as const,
-          groupName: group.group_name,
-          thumbnail: getThumbnailForDestination(group.current_location)
-        });
+    for (const group of activeGroupsData.groups) {
+      const fam = group.families.find((f: any) => f.id === familyId);
+      if (fam) { foundFamily = fam; foundGroupId = group.id; break; }
+    }
+    if (!foundGroupId) {
+      for (const group of upcomingGroupsData.groups) {
+        const fam = group.families.find((f: any) => f.id === familyId);
+        if (fam) { foundFamily = fam; foundGroupId = group.id; break; }
       }
-    });
-
-    upcomingGroupsData.groups.forEach((group: any) => {
-      const family = group.families.find((f: any) => f.id === familyId);
-      if (family) {
-        if (!foundFamily) foundFamily = family;
-        const tripId = group.id;
-        familyGroupMap[tripId] = group.id;
-        foundGroups.push({
-          id: tripId,
-          destination: group.current_location === 'Not Started' ? group.group_name : group.current_location,
-          startDate: group.start_date,
-          endDate: group.end_date,
-          status: 'upcoming' as const,
-          groupName: group.group_name,
-          thumbnail: getThumbnailForDestination(group.group_name)
-        });
-      }
-    });
-
-    if (!foundFamily) {
-      router.push('/customer-login');
-      return;
     }
 
-    sessionStorage.setItem('familyGroupMap', JSON.stringify(familyGroupMap));
+    if (!foundFamily) { router.push('/customer-login'); return; }
 
-    setFamilyName(foundFamily.family_name);
-    setFamilyMembers(foundFamily.members);
-    setTrips(foundGroups);
+    const itin = itineraryDataFile.itineraries.find((i: any) => i.groupId === foundGroupId);
+    setFamilyName(foundFamily.family_name || 'Family');
+    setFamilyInitial((foundFamily.family_name || 'F')[0].toUpperCase());
+    setItinerary(itin || null);
+    setActiveDayIdx(0);
     setIsLoading(false);
   }, [router]);
-
-  const getThumbnailForDestination = (destination: string): string => {
-    const thumbnails: { [key: string]: string } = {
-      'Goa': 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2',
-      'Manali': 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23',
-      'Kerala': 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944',
-      'Alleppey': 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944',
-      'Rajasthan': 'https://images.unsplash.com/photo-1477587458883-47145ed94245',
-      'Shimla': 'https://images.unsplash.com/photo-1605649487212-47bdab064df7',
-      'Andaman': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19'
-    };
-
-    for (const key in thumbnails) {
-      if (destination.includes(key)) {
-        return thumbnails[key];
-      }
-    }
-    return 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800';
-  };
 
   const handleLogout = () => {
     sessionStorage.removeItem('familyId');
     router.push('/customer-login');
   };
 
-  // Get hero image from active trip or default
-  const getHeroImage = () => {
-    const activeTrip = trips.find(t => t.status === 'active');
-    return activeTrip?.thumbnail || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800';
-  };
-
+  /* ── loading ── */
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 to-blue-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium">Loading your portal...</p>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', fontFamily: "'Outfit', sans-serif" }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ width: 36, height: 36, border: '2px solid #1a1a1a', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+          <p style={{ color: '#717171', fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Loading your itinerary...</p>
         </div>
       </div>
     );
   }
 
+  const days = itinerary?.days || [];
+  const activeDay = days[activeDayIdx];
+  const events = activeDay?.timelineEvents || [];
+
   return (
-    <>
-      {/* HERO HEADER - Full Width Destination Image */}
-      <div className="relative h-[400px] overflow-hidden">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${getHeroImage()})` }}
-        >
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/80"></div>
+    <div style={{
+      height: '100vh',
+      display: 'flex',
+      overflow: 'hidden',
+      fontFamily: "'Outfit', sans-serif",
+      background: '#fafafa',
+      color: '#1a1a1a',
+    }}>
+
+      {/* ════ LEFT ICON SIDEBAR ════ */}
+      <aside style={{
+        width: 80,
+        borderRight: '1px solid #e5e5e5',
+        background: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        zIndex: 20,
+        boxShadow: '4px 0 24px rgba(0,0,0,0.02)',
+      }}>
+        {/* Logo */}
+        <div style={{ height: 80, borderBottom: '1px solid #e5e5e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 40, height: 40, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>{familyInitial}</span>
+          </div>
         </div>
 
-        {/* Floating Glass Navigation */}
-        <div className="relative z-10 h-full flex flex-col">
-          {/* Top Bar */}
-          <div className="p-6">
-            <div className="max-w-7xl mx-auto flex items-center justify-end gap-3">
+        {/* Nav */}
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 32, paddingBottom: 32, gap: 4 }}>
+          {[
+            { id: 'hub', icon: '⊞', label: 'HUB' },
+            { id: 'plan', icon: '◈', label: 'PLAN' },
+            { id: 'docs', icon: '⬛', label: 'DOCS' },
+            { id: 'vip', icon: '◆', label: 'VIP' },
+          ].map(({ id, icon, label }) => (
+            <button
+              key={id}
+              onClick={() => setNavTab(id as any)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingTop: 16,
+                paddingBottom: 16,
+                cursor: 'pointer',
+                background: navTab === id ? 'rgba(0,0,0,0.02)' : 'transparent',
+                border: 'none',
+                borderRight: navTab === id ? '2px solid #1a1a1a' : '2px solid transparent',
+                color: navTab === id ? '#1a1a1a' : '#717171',
+                transition: 'all 0.2s',
+                gap: 4,
+              }}
+            >
+              <span style={{ fontSize: 20 }}>{icon}</span>
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.15em' }}>{label}</span>
+            </button>
+          ))}
+        </nav>
+
+        {/* User avatar */}
+        <div style={{ height: 80, borderTop: '1px solid #e5e5e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button
+            onClick={handleLogout}
+            title="Logout"
+            style={{
+              width: 36, height: 36, borderRadius: '50%',
+              background: '#1a1a1a',
+              border: '1px solid #333',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: '#fff', fontSize: 14, fontWeight: 700,
+            }}
+          >
+            {familyInitial}
+          </button>
+        </div>
+      </aside>
+
+      {/* ════ MAIN AREA ════ */}
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fafafa', overflow: 'hidden' }}>
+
+        {/* ── Header ── */}
+        <header style={{
+          background: '#fff',
+          borderBottom: '1px solid #e5e5e5',
+          padding: '24px 40px',
+          flexShrink: 0,
+          zIndex: 10,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ width: 8, height: 8, background: '#c5a065', borderRadius: '50%', display: 'inline-block' }} />
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#c5a065', margin: 0 }}>
+                  {itinerary?.itineraryName || `${familyName} Itinerary`}
+                </p>
+              </div>
+              <h1 style={{ fontSize: 36, fontWeight: 200, letterSpacing: '-0.02em', margin: 0, color: '#1a1a1a' }}>
+                {familyName}
+              </h1>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#717171', margin: '0 0 4px' }}>DESTINATION</p>
+                <p style={{ fontSize: 13, fontWeight: 500, margin: 0 }}>
+                  {activeDay?.title || 'Your Journey'}
+                </p>
+              </div>
+              <div style={{ width: 1, height: 32, background: '#e5e5e5' }} />
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#717171', margin: '0 0 4px' }}>DATES</p>
+                <p style={{ fontSize: 13, fontWeight: 500, margin: 0 }}>
+                  {itinerary ? `${new Date(itinerary.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${new Date(itinerary.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : '—'}
+                </p>
+              </div>
               <button
                 onClick={() => router.push('/customer-bookings')}
-                className="px-4 py-2 bg-white/95 backdrop-blur-sm text-gray-900 rounded-xl font-medium hover:bg-white transition-all flex items-center gap-2 shadow-lg"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  background: '#1a1a1a', color: '#fff',
+                  border: 'none', borderBottom: '2px solid #c5a065',
+                  padding: '10px 20px',
+                  fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                  cursor: 'pointer', transition: 'background 0.2s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#333')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#1a1a1a')}
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
-                  <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-                </svg>
-                <span>My Bookings</span>
-              </button>
-              <button
-                onClick={() => setShowAgentChatModal(true)}
-                className="px-4 py-2 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 transition-all flex items-center gap-2 shadow-lg hover:shadow-teal-500/50"
-              >
-                <div className="relative">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                  </svg>
-                  {/* AI Pulse Indicator */}
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                </div>
-                <span>AI Assistant</span>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium hover:bg-white/30 transition-all flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span>Logout</span>
+                ↓ MY BOOKINGS
               </button>
             </div>
           </div>
+        </header>
 
-          {/* Hero Content */}
-          <div className="flex-1 flex items-end pb-12">
-            <div className="max-w-7xl mx-auto px-6 w-full">
-              <div className="text-white">
-                <h1 className="text-5xl font-bold mb-3 drop-shadow-lg">{familyName}</h1>
-                <p className="text-xl text-white/90 mb-6 drop-shadow">Your personalized travel experience</p>
-                
-                {/* Quick Stats - Floating Glass Cards */}
-                <div className="flex gap-4 flex-wrap">
-                  <div className="bg-white/10 backdrop-blur-md rounded-2xl px-6 py-3 border border-white/20">
-                    <div className="text-3xl font-bold">{trips.length}</div>
-                    <div className="text-sm text-white/80">Active Trips</div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-md rounded-2xl px-6 py-3 border border-white/20">
-                    <div className="text-3xl font-bold">{familyMembers.length}</div>
-                    <div className="text-sm text-white/80">Travelers</div>
-                  </div>
+        {/* ── Body: Day Sidebar + Content ── */}
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+
+          {/* Day Selector Sidebar */}
+          <div style={{
+            width: 96,
+            background: '#fff',
+            borderRight: '1px solid #e5e5e5',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            paddingTop: 32, paddingBottom: 32,
+            overflowY: 'auto',
+            flexShrink: 0,
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24, alignItems: 'center', width: '100%', position: 'relative' }}>
+              {/* Vertical line */}
+              <div style={{
+                position: 'absolute',
+                top: 20, bottom: 20,
+                left: '50%', transform: 'translateX(-50%)',
+                width: 1,
+                background: '#e5e5e5',
+                zIndex: 0,
+              }} />
+              {days.map((_: any, i: number) => {
+                const isActive = i === activeDayIdx;
+                return (
                   <button
-                    onClick={() => setShowPlanTripModal(true)}
-                    className="bg-teal-500 hover:bg-teal-600 rounded-2xl px-6 py-3 font-semibold transition-all flex items-center gap-2 shadow-lg hover:shadow-teal-500/50"
+                    key={i}
+                    onClick={() => { setActiveDayIdx(i); setExpandedEvt(null); }}
+                    style={{
+                      position: 'relative', zIndex: 1,
+                      width: 40, height: 40,
+                      borderRadius: '50%',
+                      background: isActive ? 'white' : 'white',
+                      border: isActive ? '2px solid #c5a065' : '1px solid #e5e5e5',
+                      color: isActive ? '#c5a065' : '#717171',
+                      fontSize: 12,
+                      fontWeight: isActive ? 700 : 400,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: isActive ? '0 0 0 4px rgba(197,160,101,0.15)' : 'none',
+                      transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                    }}
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Plan New Trip</span>
+                    {String(i + 1).padStart(2, '0')}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Blueprint Grid Content */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '48px',
+              backgroundImage: 'linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)',
+              backgroundSize: '40px 40px',
+            }}
+          >
+            <div style={{ maxWidth: 900, margin: '0 auto', paddingBottom: 80 }}>
+
+              {/* Day Header */}
+              {activeDay ? (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40, borderBottom: '1px solid #e5e5e5', paddingBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
+                      <h2 style={{ fontSize: 60, fontWeight: 200, letterSpacing: '-0.02em', margin: 0, color: '#1a1a1a', lineHeight: 1 }}>
+                        Day {String(activeDayIdx + 1).padStart(2, '0')}
+                      </h2>
+                      <span style={{ fontSize: 20, fontWeight: 300, color: '#717171' }}>
+                        {formatDayTitle(activeDay.date)}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+                        padding: '4px 12px', background: '#f0f0f0', color: '#717171',
+                      }}>
+                        {events.length} EVENTS
+                      </span>
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+                        padding: '4px 12px', background: '#c5a065', color: '#fff',
+                      }}>
+                        ACTIVE DAY
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Events Timeline */}
+                  <div style={{ position: 'relative' }}>
+                    {/* Vertical line */}
+                    <div style={{
+                      position: 'absolute',
+                      left: 29, top: 32, bottom: 32,
+                      width: 1, background: '#e5e5e5',
+                      zIndex: 0,
+                    }} />
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                      {events.map((evt: any, idx: number) => {
+                        const isExpanded = expandedEvt === evt.id;
+                        const status = getStatus(evt);
+                        const isCancelled = evt.status === 'cancelled';
+
+                        return (
+                          <div key={evt.id} style={{ position: 'relative', paddingLeft: 64 }}>
+                            {/* Timeline dot */}
+                            <div style={{
+                              position: 'absolute',
+                              left: idx === 0 ? 23 : 26,
+                              top: 32,
+                              width: idx === 0 ? 14 : 8,
+                              height: idx === 0 ? 14 : 8,
+                              borderRadius: '50%',
+                              background: idx === 0 ? '#fff' : '#e5e5e5',
+                              border: idx === 0 ? '2px solid #1a1a1a' : 'none',
+                              zIndex: 1,
+                            }} />
+
+                            {/* Disruption Banner */}
+                            {evt.disruption && (
+                              <div style={{
+                                display: 'flex', alignItems: 'center', gap: 12,
+                                padding: '8px 16px',
+                                border: '1px dashed #d98d8d',
+                                background: '#fff',
+                                marginBottom: 8,
+                              }}>
+                                <span style={{ color: '#d98d8d', fontSize: 13 }}>⊗</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: '#d98d8d', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                                  {isCancelled ? '1 Activity Cancelled' : 'Disruption'}
+                                </span>
+                                <span style={{ fontSize: 11, color: '#999', fontStyle: 'italic' }}>
+                                  — {evt.title}
+                                </span>
+                                <span style={{
+                                  marginLeft: 8,
+                                  padding: '2px 8px',
+                                  border: '1px solid #c5a065',
+                                  color: '#c5a065',
+                                  fontSize: 9, fontWeight: 700, letterSpacing: '0.1em',
+                                  cursor: 'pointer',
+                                }}
+                                  onClick={() => setExpandedEvt(isExpanded ? null : evt.id)}
+                                >
+                                  WHY?
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Event Card */}
+                            <div
+                              style={{
+                                background: isCancelled ? '#f9f9f9' : '#fff',
+                                border: '1px solid #e5e5e5',
+                                opacity: isCancelled ? 0.6 : 1,
+                                filter: isCancelled ? 'grayscale(1)' : 'none',
+                                transition: 'border-color 0.2s',
+                                cursor: 'pointer',
+                                position: 'relative',
+                              }}
+                              onClick={() => setExpandedEvt(isExpanded ? null : evt.id)}
+                              onMouseEnter={e => { if (!isCancelled) (e.currentTarget as HTMLDivElement).style.borderColor = '#a0a0a0'; }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e5e5e5'; }}
+                            >
+                              {/* Blueprint corner indicators */}
+                              {!isCancelled && isExpanded && (
+                                <>
+                                  <div style={{ position: 'absolute', top: 0, left: 0, width: 12, height: 12, borderLeft: '1px solid #1a1a1a', borderTop: '1px solid #1a1a1a' }} />
+                                  <div style={{ position: 'absolute', top: 0, right: 0, width: 12, height: 12, borderRight: '1px solid #1a1a1a', borderTop: '1px solid #1a1a1a' }} />
+                                  <div style={{ position: 'absolute', bottom: 0, left: 0, width: 12, height: 12, borderLeft: '1px solid #1a1a1a', borderBottom: '1px solid #1a1a1a' }} />
+                                  <div style={{ position: 'absolute', bottom: 0, right: 0, width: 12, height: 12, borderRight: '1px solid #1a1a1a', borderBottom: '1px solid #1a1a1a' }} />
+                                </>
+                              )}
+
+                              {/* Card Summary Row */}
+                              <div style={{ padding: 24, display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+                                {/* Thumbnail */}
+                                <div style={{
+                                  width: 96, height: 96,
+                                  overflow: 'hidden',
+                                  border: '1px solid #e5e5e5',
+                                  flexShrink: 0,
+                                  position: 'relative',
+                                  background: '#f0f0f0',
+                                  filter: isCancelled ? 'grayscale(1)' : 'none',
+                                }}>
+                                  <img
+                                    src={getEventImage(evt)}
+                                    alt={evt.title}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(100%) brightness(1.1) contrast(0.9)', transition: 'filter 0.3s' }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.filter = 'none'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(100%) brightness(1.1) contrast(0.9)'; }}
+                                  />
+                                  <div style={{
+                                    position: 'absolute', bottom: 0, left: 0, right: 0,
+                                    background: 'rgba(255,255,255,0.9)', borderTop: '1px solid #e5e5e5',
+                                    padding: '2px 4px', textAlign: 'center',
+                                    fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
+                                  }}>
+                                    {evt.type.toUpperCase()}_REF
+                                  </div>
+                                </div>
+
+                                {/* Content */}
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                      <span style={{
+                                        fontFamily: "'JetBrains Mono', monospace",
+                                        fontSize: 13, fontWeight: 700,
+                                        background: '#1a1a1a', color: '#fff',
+                                        padding: '2px 8px',
+                                      }}>
+                                        {formatTime(evt.startTime)}
+                                      </span>
+                                      <span style={{
+                                        fontSize: 10, fontWeight: 700, letterSpacing: '0.12em',
+                                        padding: '2px 6px',
+                                        border: `1px solid ${status.bg}`,
+                                        color: status.bg,
+                                      }}>
+                                        {status.label}
+                                      </span>
+                                    </div>
+                                    <span style={{ color: '#ccc', fontSize: 20, transition: 'transform 0.3s', transform: isExpanded ? 'rotate(180deg)' : 'none' }}>
+                                      ⌄
+                                    </span>
+                                  </div>
+                                  <h3 style={{ fontSize: 22, fontWeight: 300, color: '#1a1a1a', margin: '0 0 8px', lineHeight: 1.2 }}>
+                                    {evt.title}
+                                  </h3>
+                                  <p style={{ fontSize: 14, color: '#717171', fontWeight: 300, margin: '0 0 16px', lineHeight: 1.5 }}>
+                                    {evt.description}
+                                  </p>
+                                  <div style={{ display: 'flex', gap: 16 }}>
+                                    <EventMeta icon="⏱" label={durationMins(evt.startTime, evt.endTime)} />
+                                    <EventMeta icon="📍" label={evt.transport?.mode || evt.accommodation?.hotelName || evt.meal?.restaurantName || evt.activity?.activityType || evt.type} />
+                                    {evt.transport?.mode && <EventMeta icon="🚗" label={evt.transport.providerName || evt.transport.mode} />}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Expanded Details */}
+                              {isExpanded && (
+                                <div style={{ borderTop: '1px dashed #e5e5e5', display: 'flex', background: '#fafafa' }}>
+                                  {/* Left: Details */}
+                                  <div style={{ flex: 2, padding: 32, borderRight: '1px solid #e5e5e5', background: '#fff', position: 'relative' }}>
+                                    <div style={{
+                                      position: 'absolute', top: 0, left: 0,
+                                      background: '#1a1a1a', color: '#fff',
+                                      padding: '4px 10px',
+                                      fontSize: 9, fontWeight: 700, letterSpacing: '0.15em',
+                                      borderBottom: '2px solid #c5a065',
+                                    }}>
+                                      DETAILS
+                                    </div>
+                                    <div style={{ marginTop: 24 }}>
+                                      {evt.disruption && (
+                                        <div style={{ marginBottom: 20, padding: 16, background: '#fff9f9', border: '1px solid #d98d8d' }}>
+                                          <p style={{ fontSize: 10, fontWeight: 700, color: '#d98d8d', margin: '0 0 8px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                                            ⚠ {evt.disruption.title}
+                                          </p>
+                                          <p style={{ fontSize: 13, color: '#555', margin: '0 0 6px', lineHeight: 1.6 }}>{evt.disruption.description}</p>
+                                          <p style={{ fontSize: 12, color: '#8fa391', margin: 0, fontStyle: 'italic' }}>💡 {evt.disruption.suggestedAction}</p>
+                                        </div>
+                                      )}
+
+                                      <h4 style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 12px' }}>OVERVIEW</h4>
+                                      <p style={{ fontSize: 15, color: '#333', lineHeight: 1.7, margin: '0 0 24px' }}>
+                                        {evt.description}
+                                        {evt.activity?.description && <> {evt.activity.description}</>}
+                                        {evt.transport?.pickupLocation && (
+                                          <> From <strong>{evt.transport.pickupLocation.name}</strong> to <strong>{evt.transport.dropLocation?.name}</strong>.</>
+                                        )}
+                                        {evt.accommodation?.roomType && (
+                                          <> Room type: <strong>{evt.accommodation.roomType}</strong>.</>
+                                        )}
+                                      </p>
+
+                                      {/* Logistics table */}
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+                                        {/* Provider / Guide */}
+                                        {(evt.transport?.providerName || evt.activity?.guideDetails?.name || evt.transport?.flightNumber) && (
+                                          <div>
+                                            <h4 style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 10px' }}>
+                                              {evt.transport ? 'PROVIDER' : 'GUIDE'}
+                                            </h4>
+                                            <div style={{ border: '1px solid #e5e5e5', padding: 12, background: '#fafafa', display: 'flex', alignItems: 'center', gap: 12 }}>
+                                              <div style={{ width: 36, height: 36, background: '#e5e5e5', borderRadius: '2px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
+                                                {evt.transport?.mode === 'Flight' ? '✈' : evt.type === 'accommodation' ? '🏨' : evt.type === 'meal' ? '🍽' : '👤'}
+                                              </div>
+                                              <div>
+                                                <p style={{ fontSize: 13, fontWeight: 700, margin: '0 0 2px' }}>
+                                                  {evt.transport?.providerName || evt.activity?.guideDetails?.name || evt.transport?.flightNumber || evt.meal?.restaurantName}
+                                                </p>
+                                                <p style={{ fontSize: 11, color: '#717171', margin: 0, fontFamily: "'JetBrains Mono', monospace" }}>
+                                                  {evt.transport?.flightNumber || evt.transport?.driverDetails?.vehicleModel || evt.activity?.guideDetails?.experience || evt.meal?.cuisine || ''}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {/* Booking Ref */}
+                                        <div>
+                                          <h4 style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 10px' }}>BOOKING DETAILS</h4>
+                                          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                                            {[
+                                              { k: 'Reference', v: evt.transport?.ticketStatus?.bookingReference || evt.accommodation?.bookingReference || evt.meal?.bookingReference || evt.activity?.ticketReference?.bookingId || 'N/A' },
+                                              { k: 'Status', v: (evt.status || 'confirmed').toUpperCase() },
+                                              { k: 'Time', v: `${formatTime(evt.startTime)} – ${formatTime(evt.endTime)}` },
+                                            ].map(({ k, v }) => (
+                                              <li key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, borderBottom: '1px dotted #ddd', paddingBottom: 6, marginBottom: 6 }}>
+                                                <span style={{ color: '#717171' }}>{k}</span>
+                                                <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#1a1a1a', fontWeight: 600 }}>{v}</span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Right: Quick actions */}
+                                  <div style={{ flex: 1, padding: 32, background: '#f8f8f8', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderLeft: '1px solid #eee' }}>
+                                    <div>
+                                      <h4 style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 16px' }}>QUICK ACTIONS</h4>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                        {['View Tickets', 'Contact Provider', 'Get Directions', 'Report Issue'].map((action) => (
+                                          <button key={action} style={{
+                                            width: '100%', textAlign: 'left',
+                                            background: '#fff', border: '1px solid #e5e5e5',
+                                            padding: '12px 14px',
+                                            fontSize: 12, fontWeight: 500,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            cursor: 'pointer', transition: 'border-color 0.2s',
+                                            color: '#1a1a1a',
+                                          }}
+                                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#c5a065'; (e.currentTarget as HTMLButtonElement).style.color = '#c5a065'; }}
+                                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e5e5'; (e.currentTarget as HTMLButtonElement).style.color = '#1a1a1a'; }}
+                                          >
+                                            {action}
+                                            <span style={{ fontSize: 16 }}>→</span>
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    {/* Next up */}
+                                    <div style={{ borderTop: '1px solid #e5e5e5', paddingTop: 16, marginTop: 24 }}>
+                                      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 8px' }}>NEXT UP</p>
+                                      {events[idx + 1] ? (
+                                        <>
+                                          <p style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#1a1a1a', margin: '0 0 8px' }}>
+                                            {formatTime(events[idx + 1].startTime)} • {events[idx + 1].title}
+                                          </p>
+                                          <div style={{ height: 4, background: '#f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', background: '#c5a065', width: `${Math.min(100, (idx / events.length) * 100 + 10)}%` }} />
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <p style={{ fontSize: 12, color: '#999', margin: 0 }}>End of day</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Day Summary Box */}
+                  <div style={{ marginTop: 40, paddingLeft: 64 }}>
+                    <div style={{ border: '1px solid #e5e5e5', padding: 24, background: '#f8f8f8', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <h4 style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1a1a1a', margin: '0 0 8px' }}>DAY SUMMARY</h4>
+                        <p style={{ fontSize: 13, color: '#555', margin: 0 }}>
+                          {events.length} events · {activeDay.title}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: 12 }}>
+                        {activeDayIdx > 0 && (
+                          <button
+                            onClick={() => { setActiveDayIdx(activeDayIdx - 1); setExpandedEvt(null); }}
+                            style={{ padding: '10px 20px', border: '1px solid #e5e5e5', background: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', cursor: 'pointer', color: '#717171', textTransform: 'uppercase' }}
+                            onMouseEnter={e => (e.currentTarget.style.borderColor = '#1a1a1a')}
+                            onMouseLeave={e => (e.currentTarget.style.borderColor = '#e5e5e5')}
+                          >
+                            ← PREV DAY
+                          </button>
+                        )}
+                        {activeDayIdx < days.length - 1 && (
+                          <button
+                            onClick={() => { setActiveDayIdx(activeDayIdx + 1); setExpandedEvt(null); }}
+                            style={{ padding: '10px 20px', background: '#1a1a1a', border: '2px solid transparent', borderBottom: '2px solid #c5a065', color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', cursor: 'pointer', textTransform: 'uppercase' }}
+                            onMouseEnter={e => (e.currentTarget.style.background = '#333')}
+                            onMouseLeave={e => (e.currentTarget.style.background = '#1a1a1a')}
+                          >
+                            NEXT DAY →
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '80px 0' }}>
+                  <p style={{ color: '#717171', fontSize: 14 }}>No itinerary available yet.</p>
+                  <button
+                    onClick={() => router.push('/customer-login')}
+                    style={{ marginTop: 16, padding: '12px 32px', background: '#1a1a1a', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}
+                  >
+                    ← BACK
                   </button>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* CONTENT SECTION */}
-      <div className="bg-gradient-to-br from-gray-50 to-teal-50/30 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Family Members Section */}
-          <section className="mb-12">
-            <button
-              onClick={() => setShowFamilyMembers(!showFamilyMembers)}
-              className="flex items-center gap-3 px-6 py-4 bg-white rounded-2xl hover:shadow-lg transition-all group border-2 border-transparent hover:border-teal-500"
-            >
-              <svg 
-                className={`w-6 h-6 text-teal-500 transition-transform ${showFamilyMembers ? 'rotate-180' : ''}`} 
-                fill="currentColor" 
-                viewBox="0 0 20 20"
-              >
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
-              </svg>
-              <span className="text-xl font-bold text-gray-900">
-                {showFamilyMembers ? 'Family Members' : 'View Family Members'}
-              </span>
-              <span className="px-3 py-1 bg-teal-100 text-teal-700 text-sm font-bold rounded-full">
-                {familyMembers.length}
-              </span>
-            </button>
-            
-            {showFamilyMembers && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6 animate-fade-in">
-                {familyMembers.map((member) => (
-                  <FamilyMemberCard key={member.id} member={member} />
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Trips Section */}
-          <section>
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold text-gray-900">Your Journeys</h2>
-            </div>
-
-            {trips.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-3xl shadow-lg">
-                <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-10 h-10 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">No trips yet</h3>
-                <p className="text-gray-600 mb-6">Start planning your next adventure!</p>
-                <button
-                  onClick={() => setShowPlanTripModal(true)}
-                  className="px-6 py-3 bg-teal-500 text-white rounded-xl font-semibold hover:bg-teal-600 transition-all inline-flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span>Plan Your First Trip</span>
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* Active Trips */}
-                {trips.filter((trip) => trip.status === 'active').length > 0 && (
-                  <div className="mb-10">
-                    <div className="flex items-center gap-2 mb-6">
-                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                      <h3 className="text-xl font-bold text-gray-900">Active Adventures</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {trips
-                        .filter((trip) => trip.status === 'active')
-                        .map((trip) => (
-                          <EnhancedTripCard
-                            key={trip.id}
-                            trip={trip}
-                            onViewItinerary={() => handleViewItinerary(trip.id)}
-                            onViewBooking={handleViewBooking}
-                          />
-                        ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Upcoming Trips */}
-                {trips.filter((trip) => trip.status === 'upcoming').length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-6">
-                      <svg className="w-6 h-6 text-teal-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
-                      </svg>
-                      <h3 className="text-xl font-bold text-gray-900">Upcoming Journeys</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {trips
-                        .filter((trip) => trip.status === 'upcoming')
-                        .map((trip) => (
-                          <EnhancedTripCard
-                            key={trip.id}
-                            trip={trip}
-                            onViewItinerary={() => handleViewItinerary(trip.id)}
-                            onViewBooking={handleViewBooking}
-                          />
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </section>
-        </div>
-      </div>
-
-      {/* Modals */}
-      {showPlanTripModal && (
-        <PlanTripModal onClose={() => setShowPlanTripModal(false)} />
-      )}
-
-      {showAgentChatModal && (
-        <EnhancedAgentChatModal onClose={() => setShowAgentChatModal(false)} />
-      )}
-    </>
+      {/* CSS keyframes for spin */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400&display=swap');
+        @keyframes spin { to { transform: rotate(360deg); } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+      `}</style>
+    </div>
   );
 };
+
+/* Small helper component */
+const EventMeta = ({ icon, label }: { icon: string; label: string }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#555' }}>
+    <span style={{ fontSize: 14, color: '#c5a065' }}>{icon}</span>
+    <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{label}</span>
+  </div>
+);
 
 export default EnhancedCustomerPortalInteractive;
