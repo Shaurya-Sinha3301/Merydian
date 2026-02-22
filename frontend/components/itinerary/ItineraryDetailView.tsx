@@ -601,28 +601,35 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                     </div>
                                                     <WhyButton onClick={() => setWhyModal(AI_POI_WHY_DATA[poi.id])} />
                                                 </div>
-                                                {/* Card with gradient double-border */}
-                                                <div className="relative" style={{
-                                                    background: '#fffdf9',
-                                                    backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), var(--gradient-opt)',
-                                                    backgroundOrigin: 'border-box',
-                                                    backgroundClip: 'content-box, border-box',
-                                                    border: '2px solid transparent',
-                                                    boxShadow: '0 10px 30px -10px rgba(197,160,101,0.2)',
-                                                }}>
-                                                    {/* corner ticks */}
-                                                    {(['tl', 'tr', 'bl', 'br'] as const).map(c => (
-                                                        <div key={c} style={{
-                                                            position: 'absolute', width: 10, height: 10, zIndex: 2,
-                                                            top: c[0] === 't' ? 0 : 'auto', bottom: c[0] === 'b' ? 0 : 'auto',
-                                                            left: c[1] === 'l' ? 0 : 'auto', right: c[1] === 'r' ? 0 : 'auto',
-                                                            borderTop: c[0] === 't' ? '1.5px solid #c5a065' : 'none',
-                                                            borderBottom: c[0] === 'b' ? '1.5px solid #c5a065' : 'none',
-                                                            borderLeft: c[1] === 'l' ? '1.5px solid #c5a065' : 'none',
-                                                            borderRight: c[1] === 'r' ? '1.5px solid #c5a065' : 'none',
-                                                        }} />
-                                                    ))}
-                                                    <div className="flex gap-3 items-center p-3 h-24">
+                                                {/* Card with hover gradient border */}
+                                                <div className="relative group cursor-default transition-all duration-300" style={{ boxShadow: '0 10px 30px -10px rgba(197,160,101,0.1)' }}>
+                                                    {/* Default Background */}
+                                                    <div className="absolute inset-0 bg-white border border-gray-200 transition-opacity duration-300 group-hover:opacity-0" />
+
+                                                    {/* Corner Ticks (Visible by default, hidden on hover) */}
+                                                    <div className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-0 pointer-events-none">
+                                                        {(['tl', 'tr', 'bl', 'br'] as const).map(c => (
+                                                            <div key={c} style={{
+                                                                position: 'absolute', width: 10, height: 10, zIndex: 2,
+                                                                top: c[0] === 't' ? -1 : 'auto', bottom: c[0] === 'b' ? -1 : 'auto',
+                                                                left: c[1] === 'l' ? -1 : 'auto', right: c[1] === 'r' ? -1 : 'auto',
+                                                                borderTop: c[0] === 't' ? '1.5px solid #c5a065' : 'none',
+                                                                borderBottom: c[0] === 'b' ? '1.5px solid #c5a065' : 'none',
+                                                                borderLeft: c[1] === 'l' ? '1.5px solid #c5a065' : 'none',
+                                                                borderRight: c[1] === 'r' ? '1.5px solid #c5a065' : 'none',
+                                                            }} />
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Hover Gradient Border */}
+                                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{
+                                                        background: '#fffdf9',
+                                                        backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), var(--gradient-opt)',
+                                                        backgroundOrigin: 'border-box',
+                                                        backgroundClip: 'padding-box, border-box',
+                                                        border: '2px solid transparent',
+                                                    }} />
+                                                    <div className="relative z-10 flex gap-3 items-center p-3 h-24">
                                                         {/* Image */}
                                                         <div className="w-24 h-full flex-shrink-0 border overflow-hidden bg-amber-50" style={{ borderColor: '#c5a065' }}>
                                                             {/* eslint-disable-next-line @next/next/no-img-element */}
