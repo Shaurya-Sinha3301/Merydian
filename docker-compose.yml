@@ -1,0 +1,184 @@
+version: '3.9'
+
+# ─── Shared environment — all credentials hardcoded from .env ───────────────
+x-backend-env:
+  # ── Database (Supabase hosted PostgreSQL — no local db container needed) ───
+  &backend-env
+  SQLALCHEMY_DATABASE_URI: "postgresql://postgres.tihzqsfxaqaxieafdyyb:bawanateam910@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres"
+
+  # ── Security ────────────────────────────────────────────────────────────────
+  SECRET_KEY: "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+  ALGORITHM: "HS256"
+  ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"
+
+  # ── CORS ────────────────────────────────────────────────────────────────────
+  BACKEND_CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000"]'
+
+  # ── AI Agents ───────────────────────────────────────────────────────────────
+  GROQ_API_KEY: "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"
+  GEMINI_API_KEY: "AIzaSyDPXjmYN4t9Qn0TaDMgnV_0LchU_XgJlio"
+  GROQ_MODEL: "llama-3.1-8b-instant"
+
+  # ── TBO Hotel API (Staging) ──────────────────────────────────────────────────
+  TBO_API_URL: "http://api.tbotechnology.in/TBOHolidays_HotelAPI"
+  TBO_USERNAME: "hackathontest"
+  TBO_PASSWORD: "Hac@98147521"
+
+  # ── TBO Web Login ─────────────────────────────────────────────────────────────
+  TBO_WEB_URL: "https://api.tbotechnology.in/"
+  TBO_WEB_USERNAME: "hackathontest"
+  TBO_WEB_PASSWORD: "Hackathon@12345"
+
+  # ── TBO Dummy / Agency Account ────────────────────────────────────────────────
+  TBO_DUMMY_URL: "https://prep.tboholidays.com"
+  TBO_DUMMY_USERNAME: "tbohackathonnew"
+  TBO_DUMMY_PASSWORD: "Tboagency@123"
+
+  # ── TBO Air API (add when available) ────────────────────────────────────────
+  TBO_AIR_BOOKING_URL: ""
+  TBO_AIR_SEARCH_URL: ""
+  TBO_AIR_USERNAME: ""
+  TBO_AIR_PASSWORD: ""
+
+  # ── Redis / Celery ───────────────────────────────────────────────────────────
+  CELERY_BROKER_URL: "redis://redis:6379/0"
+  CELERY_RESULT_BACKEND: "redis://redis:6379/1"
+  REDIS_URL: "redis://redis:6379/0"
+
+  # ── ML Optimizer paths (inside container) ───────────────────────────────────
+  ML_OPTIMIZER_BASE_DATA: "/app/ml_or/data"
+  TRIP_SESSION_STORAGE: "/app/backend/trip_sessions"
+  OPTIMIZER_OUTPUT_DIR: "/app/backend/optimizer_outputs"
+
+  # ── Logging & performance ────────────────────────────────────────────────────
+  LOG_LEVEL: "info"
+  UVICORN_WORKERS: "2"
+  CELERY_CONCURRENCY: "4"
+
+# ─── Shared volume mounts ─────────────────────────────────────────────────────
+x-backend-volumes: &backend-volumes
+  - ./backend:/app/backend
+  - ./agents:/app/agents
+  - ./ml_or:/app/ml_or
+  - trip_sessions:/app/backend/trip_sessions
+  - optimizer_outputs:/app/backend/optimizer_outputs
+
+# ─── Shared build config ──────────────────────────────────────────────────────
+x-backend-build: &backend-build
+  context: .
+  dockerfile: Dockerfile
+
+services:
+
+  # ── 1. Redis (broker + result backend + cache) ──────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: meiliai_redis
+    restart: unless-stopped
+    command: >
+      redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── 2. DB Migration (runs Alembic, then exits) ──────────────────────────────
+  migrate:
+    build: *backend-build
+    container_name: meiliai_migrate
+    command: [ "migrate" ]
+    environment: *backend-env
+    volumes: *backend-volumes
+    restart: "no"
+
+  # ── 3. FastAPI Application ──────────────────────────────────────────────────
+  api:
+    build: *backend-build
+    container_name: meiliai_api
+    restart: unless-stopped
+    command: [ "api" ]
+    environment: *backend-env
+    volumes: *backend-volumes
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── 4. Celery Worker (booking jobs + agent tasks + events) ──────────────────
+  celery_worker:
+    build: *backend-build
+    container_name: meiliai_celery_worker
+    restart: unless-stopped
+    command: [ "worker" ]
+    environment: *backend-env
+    volumes: *backend-volumes
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+  # ── 5. Celery Beat (periodic scheduler) ────────────────────────────────────
+  celery_beat:
+    build: *backend-build
+    container_name: meiliai_celery_beat
+    restart: unless-stopped
+    command: [ "beat" ]
+    environment: *backend-env
+    volumes: *backend-volumes
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # ── 6. Flower (Celery monitoring UI — admin/admin) ──────────────────────────
+  flower:
+    build: *backend-build
+    container_name: meiliai_flower
+    restart: unless-stopped
+    command: [ "flower" ]
+    environment:
+      <<: *backend-env
+      FLOWER_USER: "admin"
+      FLOWER_PASSWORD: "admin"
+    volumes: *backend-volumes
+    ports:
+      - "5555:5555"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  redis_data:
+    driver: local
+  trip_sessions:
+    driver: local
+  optimizer_outputs:
+    driver: local
+
+networks:
+  default:
+    name: meiliai_network
+    driver: bridge

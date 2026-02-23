@@ -57,23 +57,29 @@ class AgentService:
         # Try to use OptimizerService with agents
         try:
             from app.services.optimizer_service import OptimizerService
-            
-            # Get or create trip session for this family
+            from app.services.trip_service import TripService
+
+            # Get the real active trip for this family from the DB
             family_id = str(event.family_id) if event.family_id else "unknown"
-            trip_id = f"trip_{family_id}"  # TODO: Get actual trip_id from context
-            
-            # Check if trip session exists, if not create one
-            trip_session = OptimizerService.get_trip_session(trip_id)
+            trip_session = TripService.get_active_trip_for_family(family_id)
+
             if not trip_session:
-                logger.info(f"Creating new trip session for {trip_id}")
-                # TODO: Get baseline itinerary path from configuration
-                baseline_path = "ml_or/data/delhi_3day_skeleton.json"
+                logger.warning(
+                    f"No active trip found for family {family_id}. "
+                    "Creating a fallback session — ensure a trip is initialized via "
+                    "POST /trips/initialize-with-optimization first."
+                )
+                # Fallback: create a minimal session so processing can continue
+                baseline_path = "ml_or/data/base_itinerary_final.json"
+                trip_id = f"auto_{family_id}"
                 OptimizerService.create_trip_session(
                     trip_id=trip_id,
                     family_ids=[family_id],
                     baseline_itinerary_path=baseline_path,
-                    trip_name=f"Trip for {family_id}"
+                    trip_name=f"Auto-session for {family_id}"
                 )
+            else:
+                trip_id = trip_session.trip_id
             
             # Process through agent pipeline
             result = OptimizerService.process_feedback_with_agents(

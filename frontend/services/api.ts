@@ -37,6 +37,51 @@ export interface Itinerary {
     }>;
 }
 
+export interface InitializeTripWithOptimizationRequest {
+    trip_name: string;
+    destination: string;
+    start_date: string;
+    end_date: string;
+    family_ids: string[];
+    num_travellers?: number;
+}
+
+export interface TripWithOptimizationResponse {
+    success: boolean;
+    trip_id: string;
+    trip_session_id: string;
+    option_id: string;
+    event_id: string;
+    optimizer_ran: boolean;
+    message: string;
+    summary: {
+        families_registered: number;
+        total_members: number;
+        total_children: number;
+        trip_duration_days: number;
+        baseline_itinerary: string;
+        estimated_cost: number;
+        predicted_satisfaction: number;
+    };
+}
+
+export interface ItineraryOption {
+    option_id: string;
+    summary: string;
+    cost: number;
+    satisfaction: number;
+    status: string;
+    details: Record<string, any>;
+}
+
+export interface FamilyPreferences {
+    id: string;
+    family_code: string;
+    family_name: string;
+    preferences: Record<string, any>;
+    members: any[];
+}
+
 export interface LoginResponse {
     access_token: string;
     token_type: string;
@@ -235,13 +280,104 @@ export class APIClient {
     }
 
     /**
-     * Initialize a new trip
+     * Initialize a new trip (manual family preferences)
      */
     async initializeTrip(data: any): Promise<any> {
         return this.request('/trips/initialize', {
             method: 'POST',
             body: JSON.stringify(data),
         });
+    }
+
+    /**
+     * Initialize a trip with automatic ML optimization (auto-fetches family prefs from DB)
+     */
+    async initializeTripWithOptimization(
+        data: InitializeTripWithOptimizationRequest
+    ): Promise<TripWithOptimizationResponse> {
+        return this.request<TripWithOptimizationResponse>('/trips/initialize-with-optimization', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    /**
+     * Get itinerary options for an event (agent dashboard)
+     */
+    async getAgentItineraryOptions(eventId: string): Promise<{ options: ItineraryOption[] }> {
+        return this.request<{ options: ItineraryOption[] }>(
+            `/agent/itinerary/options?event_id=${encodeURIComponent(eventId)}`
+        );
+    }
+
+    /**
+     * Approve an itinerary option (agent action)
+     */
+    async approveOption(optionId: string): Promise<{
+        message: string;
+        option_id: string;
+        tools_agent_triggered: boolean;
+        communication_agent_triggered: boolean;
+    }> {
+        return this.request('/agent/itinerary/approve', {
+            method: 'POST',
+            body: JSON.stringify({ option_id: optionId }),
+        });
+    }
+
+    /**
+     * Get current family details and preferences
+     */
+    async getFamilyPreferences(): Promise<FamilyPreferences> {
+        return this.request<FamilyPreferences>('/families/me');
+    }
+
+    /**
+     * Update family preferences (patch the family record)
+     */
+    async updateFamilyPreferences(data: Partial<Record<string, any>>): Promise<FamilyPreferences> {
+        return this.request<FamilyPreferences>('/families/me', {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        });
+    }
+
+    /**
+     * List all trips (agent view)
+     */
+    async getAgentTrips(params?: { limit?: number; skip?: number; status?: string }): Promise<any> {
+        const query = new URLSearchParams();
+        if (params?.limit) query.set('limit', String(params.limit));
+        if (params?.skip) query.set('skip', String(params.skip));
+        if (params?.status) query.set('trip_status', params.status);
+        const qs = query.toString();
+        return this.request(`/trips/${qs ? '?' + qs : ''}`);
+    }
+
+    /**
+     * Get a structured diff between two itinerary versions
+     */
+    async getItineraryDiff(versionA: number, versionB: number): Promise<any> {
+        return this.request(`/itinerary/diff?version_a=${versionA}&version_b=${versionB}`);
+    }
+
+    /**
+     * Submit a natural-language feedback message through the agent pipeline.
+     * Used by SuggestChangeModal — replaces localStorage suggestion storage.
+     */
+    async submitFeedbackMessage(message: string): Promise<AgentFeedbackResponse> {
+        return this.request<AgentFeedbackResponse>('/itinerary/feedback/agent', {
+            method: 'POST',
+            body: JSON.stringify({ message }),
+        });
+    }
+
+    /**
+     * List events for a family (agent auth required).
+     * Used by CustomerSuggestionsPanel to display customer feedback from DB.
+     */
+    async getFamilyEvents(familyId: string, limit = 50): Promise<any[]> {
+        return this.request<any[]>(`/events/?family_id=${encodeURIComponent(familyId)}&limit=${limit}`);
     }
 }
 

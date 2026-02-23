@@ -1,0 +1,49 @@
+# ── Python ───────────────────────────────────────────────────────────────────
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/*.egg-info
+**/.eggs
+**/dist
+**/build
+
+# ── Virtual environments ─────────────────────────────────────────────────────
+.venv
+venv
+env
+
+# ── Node / Frontend ──────────────────────────────────────────────────────────
+frontend/
+frontend/node_modules
+frontend/.next
+
+# ── Git & IDE ────────────────────────────────────────────────────────────────
+.git
+.gitignore
+.vscode
+.idea
+
+# ── Secrets & local config ───────────────────────────────────────────────────
+# Keep .env so it's COPY'd into the image at build time
+# (only for dev; in prod pass secrets via orchestrator env vars)
+# .env  <-- intentionally NOT excluded
+
+# ── Test outputs ─────────────────────────────────────────────────────────────
+backend/test
+backend/tests
+backend/test_output.txt
+agents/tests
+
+# ── Large data / outputs that are volume-mounted ─────────────────────────────
+backend/trip_sessions
+backend/optimizer_outputs
+
+# ── Docs ─────────────────────────────────────────────────────────────────────
+backend/Documentation
+agents/Documentation
+README.md
+*.md

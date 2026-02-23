@@ -126,26 +126,35 @@ async def approve_itinerary_option(
             agent_id=agent_uuid,
         )
 
-        # 1b. If this is a base itinerary approval, publish to customer tables
+        # 1b. Publish itinerary to customer tables for any option type that
+        #     carries itinerary data (base_itinerary OR re-optimization results).
         option_details = approved_option.details or {}
-        if option_details.get("type") == "base_itinerary":
+        itinerary_data = option_details.get("itinerary", {})
+        option_type = option_details.get("type", "")
+
+        if itinerary_data:
             try:
                 from app.services.itinerary_service import ItineraryService
                 family_ids = option_details.get("family_ids", [])
-                itinerary_data = option_details.get("itinerary", {})
+
+                reason_prefix = (
+                    "Base itinerary approved by agent"
+                    if option_type == "base_itinerary"
+                    else "Re-optimized itinerary approved by agent"
+                )
 
                 ItineraryService.publish_base_itinerary(
                     trip_id=approved_option.trip_id,
                     family_ids=family_ids,
                     itinerary_data=itinerary_data,
-                    created_reason=f"Base itinerary approved by agent (option {approve_request.option_id})",
+                    created_reason=f"{reason_prefix} (option {approve_request.option_id})",
                 )
                 logger.info(
-                    f"Published base itinerary for trip {approved_option.trip_id}"
+                    f"Published itinerary (type='{option_type}') for trip {approved_option.trip_id}"
                 )
             except Exception as e:
                 logger.error(
-                    f"Failed to publish base itinerary (non-blocking): {e}",
+                    f"Failed to publish itinerary (non-blocking): {e}",
                     exc_info=True,
                 )
 
