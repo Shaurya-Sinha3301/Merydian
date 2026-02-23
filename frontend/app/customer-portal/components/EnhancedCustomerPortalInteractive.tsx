@@ -659,6 +659,7 @@ const EnhancedCustomerPortalInteractive = () => {
                       })}
 
                       {/* ── AI-Recommended POI Additions ── */}
+                      {/* ── AI-Recommended POI Additions ── */}
                       {(AI_POIS[activeDayIdx] || []).filter(p => !declinedPois.includes(p.id)).map((poi) => {
                         const accepted = acceptedPois.includes(poi.id);
                         return (
@@ -666,73 +667,112 @@ const EnhancedCustomerPortalInteractive = () => {
                             {/* Gold dot */}
                             <div style={{ position: 'absolute', left: 24, top: 28, width: 10, height: 10, borderRadius: '50%', background: '#c5a065', boxShadow: '0 0 0 4px rgba(197,160,101,0.2)', zIndex: 1 }} />
 
-                            {/* AI Badge Bar */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: -1, position: 'relative', zIndex: 2 }}>
-                              <div style={{
-                                display: 'flex', alignItems: 'center', gap: 8,
-                                background: 'linear-gradient(135deg, #8fa391 0%, #d4c86a 50%, #c5a065 100%)',
-                                color: '#fff', padding: '5px 14px',
-                                fontSize: 10, fontWeight: 700, letterSpacing: '0.12em',
-                              }}>
-                                <span style={{ fontSize: 12 }}>✦</span> AI RECOMMENDED: {poi.badge}
-                              </div>
-                              <WhyButton onClick={() => setWhyModal({ title: poi.title, reason: poi.badge, originalCost: poi.originalCost, newCost: poi.newCost, efficiency: poi.efficiency, whyText: poi.whyText })} />
-                            </div>
-
                             {/* Gradient-border card */}
-                            <div style={{
-                              background: '#fffdf9',
-                              backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), linear-gradient(135deg,#c5a065 0%,#d4c86a 50%,#8fa391 100%)',
-                              backgroundOrigin: 'border-box',
-                              backgroundClip: 'content-box, border-box',
-                              border: '2px solid transparent',
-                              boxShadow: '0 15px 35px -10px rgba(197,160,101,0.15)',
-                              transform: accepted ? 'none' : 'scale(1.01)',
-                              transition: 'all 0.3s',
-                              position: 'relative',
-                            }}>
-                              {/* Corner indicators – gold */}
-                              {['tl', 'tr', 'bl', 'br'].map(c => (
-                                <div key={c} style={{
-                                  position: 'absolute', width: 12, height: 12,
-                                  top: c.startsWith('t') ? 0 : 'auto', bottom: c.startsWith('b') ? 0 : 'auto',
-                                  left: c.endsWith('l') ? 0 : 'auto', right: c.endsWith('r') ? 0 : 'auto',
-                                  borderTop: c.startsWith('t') ? '1px solid #c5a065' : 'none',
-                                  borderBottom: c.startsWith('b') ? '1px solid #c5a065' : 'none',
-                                  borderLeft: c.endsWith('l') ? '1px solid #c5a065' : 'none',
-                                  borderRight: c.endsWith('r') ? '1px solid #c5a065' : 'none',
-                                }} />
-                              ))}
-
-                              <div style={{ padding: 24, display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-                                <div style={{ width: 80, height: 80, overflow: 'hidden', border: '1px solid #c5a065', flexShrink: 0, background: '#f0ede8' }}>
-                                  <img src={poi.image} alt={poi.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <div>
+                              {/* Badge bar */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -1, position: 'relative', zIndex: 10 }}>
+                                <div style={{
+                                  display: 'flex', alignItems: 'center', gap: 8,
+                                  background: 'linear-gradient(135deg, #8fa391 0%, #d4c86a 50%, #c5a065 100%)',
+                                  color: '#fff', padding: '6px 12px',
+                                  fontSize: 10, fontWeight: 700, letterSpacing: '0.12em',
+                                }}>
+                                  <span style={{ fontSize: 12 }}>✦</span> AGENT RECOMMENDED: {poi.badge}
                                 </div>
-                                <div style={{ flex: 1 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 13, fontWeight: 700, background: '#c5a065', color: '#fff', padding: '2px 8px' }}>{poi.time}</span>
-                                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', border: '1px solid #8fa391', color: '#8fa391', padding: '1px 6px' }}>PENDING APPROVAL</span>
+                                <WhyButton onClick={() => setWhyModal({ title: poi.title, reason: poi.badge, originalCost: poi.originalCost, newCost: poi.newCost, efficiency: poi.efficiency, whyText: poi.whyText })} />
+                              </div>
+
+                              {/* Card with hover gradient border */}
+                              <div
+                                style={{
+                                  position: 'relative',
+                                  transition: 'all 0.3s',
+                                  boxShadow: '0 10px 30px -10px rgba(197,160,101,0.1)',
+                                  cursor: 'default',
+                                }}
+                                onMouseEnter={e => {
+                                  const el = e.currentTarget;
+                                  const borderEl = el.querySelector('.hover-border') as HTMLElement;
+                                  const bgEl = el.querySelector('.default-bg') as HTMLElement;
+                                  const ticksEl = el.querySelector('.corner-ticks') as HTMLElement;
+                                  if (borderEl) borderEl.style.opacity = '1';
+                                  if (bgEl) bgEl.style.opacity = '0';
+                                  if (ticksEl) ticksEl.style.opacity = '0';
+                                }}
+                                onMouseLeave={e => {
+                                  const el = e.currentTarget;
+                                  const borderEl = el.querySelector('.hover-border') as HTMLElement;
+                                  const bgEl = el.querySelector('.default-bg') as HTMLElement;
+                                  const ticksEl = el.querySelector('.corner-ticks') as HTMLElement;
+                                  if (borderEl) borderEl.style.opacity = '0';
+                                  if (bgEl) bgEl.style.opacity = '1';
+                                  if (ticksEl) ticksEl.style.opacity = '1';
+                                }}
+                              >
+                                {/* Default Background */}
+                                <div className="default-bg" style={{ position: 'absolute', inset: 0, background: '#fff', border: '1px solid #e5e5e5', transition: 'opacity 0.3s', opacity: 1 }} />
+
+                                {/* Corner Ticks (Visible by default, hidden on hover) */}
+                                <div className="corner-ticks" style={{ position: 'absolute', inset: 0, transition: 'opacity 0.3s', opacity: 1, pointerEvents: 'none' }}>
+                                  {['t-l', 't-r', 'b-l', 'b-r'].map(c => {
+                                    const isT = c.startsWith('t');
+                                    const isB = c.startsWith('b');
+                                    const isL = c.endsWith('l');
+                                    const isR = c.endsWith('r');
+                                    return (
+                                      <div key={c} style={{
+                                        position: 'absolute', width: 10, height: 10, zIndex: 2,
+                                        top: isT ? -1 : 'auto', bottom: isB ? -1 : 'auto',
+                                        left: isL ? -1 : 'auto', right: isR ? -1 : 'auto',
+                                        borderTop: isT ? '1.5px solid #c5a065' : 'none',
+                                        borderBottom: isB ? '1.5px solid #c5a065' : 'none',
+                                        borderLeft: isL ? '1.5px solid #c5a065' : 'none',
+                                        borderRight: isR ? '1.5px solid #c5a065' : 'none',
+                                      }} />
+                                    );
+                                  })}
+                                </div>
+
+                                {/* Hover Gradient Border */}
+                                <div className="hover-border" style={{
+                                  position: 'absolute', inset: 0, opacity: 0, transition: 'opacity 0.3s', pointerEvents: 'none',
+                                  background: '#fffdf9',
+                                  backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), linear-gradient(135deg,#8fa391 0%,#d4c86a 50%,#c5a065 100%)',
+                                  backgroundOrigin: 'border-box',
+                                  backgroundClip: 'padding-box, border-box',
+                                  border: '2px solid transparent',
+                                }} />
+
+                                <div style={{ position: 'relative', zIndex: 10, padding: 24, display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+                                  <div style={{ width: 80, height: 80, overflow: 'hidden', border: '1px solid #c5a065', flexShrink: 0, background: '#f0ede8' }}>
+                                    <img src={poi.image} alt={poi.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                   </div>
-                                  <h3 style={{ fontSize: 20, fontWeight: 500, color: '#1a1a1a', margin: '0 0 6px' }}>{poi.title}</h3>
-                                  <p style={{ fontSize: 13, color: '#717171', margin: '0 0 14px', lineHeight: 1.5 }}>{poi.subtitle}</p>
-                                  {accepted ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px dashed #e5e5e5', paddingTop: 12 }}>
-                                      <span style={{ fontSize: 12, color: '#8fa391', fontWeight: 700 }}>✓ ACCEPTED — Added to your itinerary</span>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                                      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 13, fontWeight: 700, background: '#c5a065', color: '#fff', padding: '2px 8px' }}>{poi.time}</span>
+                                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', border: '1px solid #8fa391', color: '#8fa391', padding: '1px 6px' }}>PENDING APPROVAL</span>
                                     </div>
-                                  ) : (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 20, borderTop: '1px dashed #e5e5e5', paddingTop: 12 }}>
-                                      <button onClick={() => setAcceptedPois(p => [...p, poi.id])} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.05em', padding: 0 }}
-                                        onMouseEnter={e => (e.currentTarget.style.color = '#c5a065')}
-                                        onMouseLeave={e => (e.currentTarget.style.color = '#1a1a1a')}>
-                                        <span>⊕</span> ACCEPT
-                                      </button>
-                                      <button onClick={() => setDeclinedPois(p => [...p, poi.id])} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#717171', letterSpacing: '0.05em', padding: 0 }}
-                                        onMouseEnter={e => (e.currentTarget.style.color = '#d98d8d')}
-                                        onMouseLeave={e => (e.currentTarget.style.color = '#717171')}>
-                                        <span>⊗</span> DECLINE
-                                      </button>
-                                    </div>
-                                  )}
+                                    <h3 style={{ fontSize: 20, fontWeight: 500, color: '#1a1a1a', margin: '0 0 6px' }}>{poi.title}</h3>
+                                    <p style={{ fontSize: 13, color: '#717171', margin: '0 0 14px', lineHeight: 1.5 }}>{poi.subtitle}</p>
+                                    {accepted ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px dashed #e5e5e5', paddingTop: 12 }}>
+                                        <span style={{ fontSize: 12, color: '#8fa391', fontWeight: 700 }}>✓ ACCEPTED — Added to your itinerary</span>
+                                      </div>
+                                    ) : (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 20, borderTop: '1px dashed #e5e5e5', paddingTop: 12 }}>
+                                        <button onClick={() => setAcceptedPois(p => [...p, poi.id])} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.05em', padding: 0 }}
+                                          onMouseEnter={e => (e.currentTarget.style.color = '#c5a065')}
+                                          onMouseLeave={e => (e.currentTarget.style.color = '#1a1a1a')}>
+                                          <span>⊕</span> ACCEPT
+                                        </button>
+                                        <button onClick={() => setDeclinedPois(p => [...p, poi.id])} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#717171', letterSpacing: '0.05em', padding: 0 }}
+                                          onMouseEnter={e => (e.currentTarget.style.color = '#d98d8d')}
+                                          onMouseLeave={e => (e.currentTarget.style.color = '#717171')}>
+                                          <span>⊗</span> DECLINE
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -878,17 +918,20 @@ const WhyButton = ({ onClick }: { onClick: () => void }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        marginLeft: 2,
+        marginLeft: 0,
         padding: '5px 12px',
         fontSize: 10, fontWeight: 700, letterSpacing: '0.12em',
         cursor: 'pointer',
         border: 'none',
         background: hovered
           ? 'linear-gradient(135deg, #8fa391 0%, #d4c86a 50%, #c5a065 100%)'
-          : 'rgba(197,160,101,0.12)',
+          : 'rgba(197,160,101,0.1)',
         color: hovered ? '#fff' : '#c5a065',
         transition: 'all 0.25s ease',
         flexShrink: 0,
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
       }}
     >
       WHY?
