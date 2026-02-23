@@ -693,6 +693,14 @@
   --bp-sage-hover: #7a8f7c;
   --bp-red: #d98d8d;
   --bp-tag-gray: #f3f4f6;
+
+  /* ── Voyageur Signature Gradient ── */
+  /* Used for AI-recommended cards, WHY? button hover, efficiency bars */
+  --gradient-opt: linear-gradient(135deg, #c5a065 0%, #d4c86a 50%, #8fa391 100%);
+  --gradient-opt-rev: linear-gradient(135deg, #8fa391 0%, #d4c86a 50%, #c5a065 100%);
+  --gradient-opt-gold: #c5a065;
+  --gradient-opt-sage: #8fa391;
+  --gradient-opt-mid: #d4c86a;
 }
 
 /* Blueprint card — thin border, white bg, lifts on hover */
@@ -767,3 +775,60 @@
 .bp-card:hover .bp-img {
   filter: grayscale(0%) contrast(100%);
 }
+
+/* 3D Landing Page Styles */
+.brand-gold {
+  color: #d4af37;
+}
+
+.bg-brand-gold {
+  background-color: #d4af37;
+}
+
+.border-brand-gold {
+  border-color: #d4af37;
+}
+
+.hover\:bg-brand-gold:hover {
+  background-color: #d4af37;
+}
+
+.hover\:text-brand-gold:hover {
+  color: #d4af37;
+}
+
+.hover\:shadow-brand-gold\/20:hover {
+  box-shadow: 0 10px 40px rgba(212, 175, 55, 0.2);
+}
+
+/* Smooth scrolling for the landing page */
+html.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Glass Panel Effects */
+.glass-panel {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-gradient-gold {
+  background: linear-gradient(to right, #D4AF37, #FF6B35);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Radial Gradient for Hero Vignette */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+

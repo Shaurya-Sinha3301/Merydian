@@ -61,7 +61,7 @@ export default function TripDetailNavbar({ tripId }: { tripId: string }) {
                 {/* ── Centre: pill-bar ─────────────────────────────────────── */}
                 <div className="flex-1 flex justify-center">
                     {/* Rounded-lg segmented pill bar — group_new.html style */}
-                    <nav className="flex items-center bg-stone-100 p-1 rounded-lg border border-stone-200 gap-0.5 mt-2">
+                    <nav className="flex items-center bg-stone-100 p-1 rounded-lg border border-stone-200 gap-1 mt-2">
                         {TABS.map(({ key, label, suffix }) => (
                             <Link
                                 key={key}

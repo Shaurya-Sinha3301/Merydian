@@ -1,32 +1,131 @@
+'use client';
+
+import { motion, useScroll, useTransform } from 'motion/react';
+import { useRef } from 'react';
+
 export default function PricingSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.2], [0.95, 1]);
+
   return (
-    <section id="pricing" className="py-32 bg-white">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="bg-neutral-900 text-white rounded-[80px] p-16 md:p-32 text-center space-y-12 relative overflow-hidden">
-          <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-white/5 blur-[150px] rounded-full"></div>
-          <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-white/5 blur-[150px] rounded-full"></div>
-          
-          <div className="space-y-4 relative z-10">
-            <h4 className="text-xs font-black uppercase tracking-[0.3em] opacity-60">Ready to transform your agency?</h4>
-            <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif leading-[1.1]">
-              Start managing smarter, <span className="italic text-neutral-400">not harder.</span>
-            </h2>
+    <section ref={sectionRef} id="pricing" className="relative py-40 bg-white overflow-hidden">
+      {/* Gold decorative line */}
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent opacity-50" />
+      
+      <motion.div style={{ opacity, scale }} className="max-w-[1400px] mx-auto px-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
+          className="relative"
+        >
+          <div className="bg-black text-white p-20 md:p-32 text-center space-y-16 relative overflow-hidden border-2 border-black">
+            {/* Gold corner decorations */}
+            <div className="absolute top-0 left-0 w-24 h-24 border-t-4 border-l-4 border-[#D4AF37]" />
+            <div className="absolute top-0 right-0 w-24 h-24 border-t-4 border-r-4 border-[#D4AF37]" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 border-b-4 border-l-4 border-[#D4AF37]" />
+            <div className="absolute bottom-0 right-0 w-24 h-24 border-b-4 border-r-4 border-[#D4AF37]" />
+            
+            {/* Gold accent lines */}
+            <motion.div 
+              initial={{ width: 0 }}
+              whileInView={{ width: "200px" }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2, delay: 0.3 }}
+              className="absolute top-1/2 left-0 h-px bg-gradient-to-r from-[#D4AF37] to-transparent"
+            />
+            <motion.div 
+              initial={{ width: 0 }}
+              whileInView={{ width: "200px" }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2, delay: 0.3 }}
+              className="absolute top-1/2 right-0 h-px bg-gradient-to-l from-[#D4AF37] to-transparent"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="space-y-6 relative z-10"
+            >
+              <motion.div 
+                initial={{ width: 0 }}
+                whileInView={{ width: "100px" }}
+                viewport={{ once: true }}
+                transition={{ duration: 1, delay: 0.4 }}
+                className="h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto"
+              />
+              
+              <h4 className="text-xs uppercase tracking-[0.3em] text-white/60 font-light">
+                Ready to transform your agency?
+              </h4>
+              
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif leading-[1.1] tracking-tight">
+                Start managing smarter, <span className="italic text-white/60">not harder.</span>
+              </h2>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="flex flex-col lg:flex-row items-center justify-center gap-12 relative z-10"
+            >
+              <div className="text-left space-y-4 border-l-4 border-[#D4AF37] pl-12">
+                <p className="text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-light">
+                  Professional Plan
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-7xl font-serif text-white">$199</p>
+                  <span className="text-lg text-white/40 uppercase tracking-wider font-light">/month</span>
+                </div>
+                <p className="text-sm text-white/60 font-light tracking-wide">
+                  Up to 50 active groups
+                </p>
+              </div>
+              
+              <motion.button 
+                whileHover={{ scale: 1.05, backgroundColor: "#D4AF37" }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white text-black px-16 py-6 font-light uppercase tracking-[0.3em] text-sm hover:text-black transition-all shadow-2xl border-2 border-white"
+              >
+                Request Demo
+              </motion.button>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="relative z-10"
+            >
+              <motion.div 
+                initial={{ width: 0 }}
+                whileInView={{ width: "100px" }}
+                viewport={{ once: true }}
+                transition={{ duration: 1, delay: 0.8 }}
+                className="h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto mb-6"
+              />
+              
+              <p className="text-white/50 text-sm font-light tracking-wide">
+                14-day free trial • No credit card required • Cancel anytime
+              </p>
+            </motion.div>
           </div>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 relative z-10">
-            <div className="text-left space-y-2 border-l-4 border-white pl-8">
-              <p className="text-sm font-black uppercase tracking-widest text-neutral-400">Professional Plan</p>
-              <p className="text-6xl font-bold">$199 <span className="text-lg opacity-40 uppercase tracking-normal">/month</span></p>
-              <p className="text-sm text-neutral-400">Up to 50 active groups</p>
-            </div>
-            <button className="bg-white text-neutral-900 px-12 py-6 rounded-full font-black uppercase tracking-[0.15em] text-sm hover:bg-neutral-200 hover:text-neutral-900 transition-all shadow-2xl">
-              Request Demo
-            </button>
-          </div>
-          
-          <p className="text-neutral-400 text-sm relative z-10">14-day free trial • No credit card required • Cancel anytime</p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
