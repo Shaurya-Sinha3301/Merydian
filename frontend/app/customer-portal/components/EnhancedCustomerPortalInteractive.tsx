@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Clock, MapPin, Car, Plane } from 'lucide-react';
 import activeGroupsData from '@/lib/agent-dashboard/data/active_groups.json';
 import upcomingGroupsData from '@/lib/agent-dashboard/data/upcoming_groups.json';
 import itineraryDataFile from '@/lib/agent-dashboard/data/itinerary_data.json';
@@ -520,9 +521,9 @@ const EnhancedCustomerPortalInteractive = () => {
                                     {evt.description}
                                   </p>
                                   <div style={{ display: 'flex', gap: 16 }}>
-                                    <EventMeta icon="⏱" label={durationMins(evt.startTime, evt.endTime)} />
-                                    <EventMeta icon="📍" label={evt.transport?.mode || evt.accommodation?.hotelName || evt.meal?.restaurantName || evt.activity?.activityType || evt.type} />
-                                    {evt.transport?.mode && <EventMeta icon="🚗" label={evt.transport.providerName || evt.transport.mode} />}
+                                    <EventMeta icon={<Clock size={14} />} label={durationMins(evt.startTime, evt.endTime)} />
+                                    <EventMeta icon={<MapPin size={14} />} label={evt.transport?.mode || evt.accommodation?.hotelName || evt.meal?.restaurantName || evt.activity?.activityType || evt.type} />
+                                    {evt.transport?.mode && <EventMeta icon={evt.transport?.mode?.toLowerCase() === 'flight' ? <Plane size={14} /> : <Car size={14} />} label={evt.transport.providerName || evt.transport.mode} />}
                                   </div>
                                 </div>
                               </div>
@@ -896,9 +897,9 @@ const WhyButton = ({ onClick }: { onClick: () => void }) => {
 };
 
 /* Small helper component */
-const EventMeta = ({ icon, label }: { icon: string; label: string }) => (
+const EventMeta = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#555' }}>
-    <span style={{ fontSize: 14, color: '#c5a065' }}>{icon}</span>
+    <span style={{ display: 'flex', alignItems: 'center', color: '#c5a065' }}>{icon}</span>
     <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{label}</span>
   </div>
 );
