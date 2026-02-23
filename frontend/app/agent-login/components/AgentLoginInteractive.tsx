@@ -33,7 +33,7 @@ const AgentLoginInteractive = () => {
     };
 
     return (
-        <div className="w-full h-full flex items-center justify-center p-6">
+        <div className="w-full min-h-screen flex items-center justify-center">
             <div className="w-full max-w-[440px] bg-white border border-[var(--bp-border)] p-12 shadow-sm flex flex-col relative overflow-hidden">
 
                 {/* Decorative Top Line */}
@@ -57,19 +57,23 @@ const AgentLoginInteractive = () => {
                 </div>
 
                 {/* Title */}
-                <div className="text-center mb-10">
-                    <h1 className="text-xl font-light tracking-widest text-[#111111] leading-relaxed uppercase">
-                        Agent Portal<br />
-                        Login with your credentials
+                <div className="text-center mb-10 flex flex-col gap-2">
+                    <h1 className="text-xl font-light tracking-[0.15em] text-[#111111] leading-relaxed uppercase">
+                        Agent Portal
                     </h1>
+                    <p className="text-sm font-medium tracking-[0.1em] text-[var(--bp-muted)] uppercase">
+                        Login with your credentials
+                    </p>
                 </div>
 
                 {/* Login Form */}
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div className="group">
-                        <label className="bp-label mb-2 block">
-                            USERNAME / EMAIL
-                        </label>
+                        <div className="flex justify-between items-end mb-2">
+                            <label className="bp-label mb-0 block">
+                                USERNAME / EMAIL
+                            </label>
+                        </div>
                         <input
                             type="text"
                             value={email}
@@ -84,7 +88,7 @@ const AgentLoginInteractive = () => {
                             <label className="bp-label mb-0 block">
                                 PASSWORD
                             </label>
-                            <a href="#" className="text-[9px] font-mono text-[var(--bp-muted)] hover:text-black transition-colors uppercase tracking-widest">
+                            <a href="#" className="text-[9px] font-mono text-[var(--bp-muted)] hover:text-black transition-colors uppercase tracking-widest block pt-0.5">
                                 FORGOT PASSWORD?
                             </a>
                         </div>

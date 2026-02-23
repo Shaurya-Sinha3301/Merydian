@@ -39,7 +39,7 @@ const CustomerLoginInteractive = () => {
   };
 
   return (
-    <div className="w-full h-full flex items-center justify-center p-6">
+    <div className="w-full min-h-screen flex items-center justify-center">
       <div className="w-full max-w-[440px] bg-white border border-[var(--bp-border)] p-12 shadow-sm flex flex-col relative overflow-hidden">
 
         {/* Decorative Top Line */}
@@ -65,11 +65,13 @@ const CustomerLoginInteractive = () => {
         </div>
 
         {/* Title */}
-        <div className="text-center mb-10">
-          <h1 className="text-xl font-light tracking-widest text-[#111111] leading-relaxed uppercase">
-            Customer Portal<br />
-            Login with your Family ID
+        <div className="text-center mb-10 flex flex-col gap-2">
+          <h1 className="text-xl font-light tracking-[0.15em] text-[#111111] leading-relaxed uppercase">
+            Customer Portal
           </h1>
+          <p className="text-sm font-medium tracking-[0.1em] text-[var(--bp-muted)] uppercase">
+            Login with your Family ID
+          </p>
         </div>
 
         {/* Login Form */}
@@ -147,24 +149,6 @@ const CustomerLoginInteractive = () => {
           </div>
         </div>
 
-        {/* Demo IDs mapping cleanly */}
-        <div className="mt-6 pt-4 border-t border-[var(--bp-border)] border-dashed">
-          <p className="text-[9px] font-bold tracking-widest text-[var(--bp-muted)] uppercase mb-3">Allowed Demo IDs</p>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-[10px] font-mono">
-              <span className="text-black font-semibold">FAM001</span>
-              <span className="text-[var(--bp-muted)]">Sharma (Goa)</span>
-            </div>
-            <div className="flex justify-between items-center text-[10px] font-mono">
-              <span className="text-black font-semibold">FAM007</span>
-              <span className="text-[var(--bp-muted)]">Khan (Manali)</span>
-            </div>
-            <div className="flex justify-between items-center text-[10px] font-mono">
-              <span className="text-black font-semibold">FAM012</span>
-              <span className="text-[var(--bp-muted)]">Nair (Kerala)</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
