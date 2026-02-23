@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CustomerLoginPage() {
   return (
-    <div className="min-h-screen bg-[#FDFDFF]">
+    <div className="min-h-screen bp-grid-bg bg-white">
       <CustomerLoginInteractive />
     </div>
   );

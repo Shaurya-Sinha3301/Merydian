@@ -33,93 +33,110 @@ const AgentLoginInteractive = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-[#FDFDFF]">
-            <div className="max-w-md w-full bg-[#FDFDFF] rounded-3xl p-8 shadow-[16px_16px_32px_rgba(0,0,0,0.1),-16px_-16px_32px_rgba(255,255,255,0.9)]">
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#212121] shadow-[8px_8px_16px_rgba(0,0,0,0.2),-8px_-8px_16px_rgba(255,255,255,0.7)] flex items-center justify-center">
-                        <svg className="w-10 h-10 text-[#FDFDFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                            <circle cx="12" cy="10" r="3" />
-                        </svg>
+        <div className="w-full h-full flex items-center justify-center p-6">
+            <div className="w-full max-w-[440px] bg-white border border-[var(--bp-border)] p-12 shadow-sm flex flex-col relative overflow-hidden">
+
+                {/* Decorative Top Line */}
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--bp-border)] to-transparent opacity-50"></div>
+
+                {/* Status Indicator */}
+                <div className="absolute top-6 right-6 flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-[var(--bp-sage)] rounded-full animate-pulse"></div>
+                    <span className="text-[8px] font-bold text-[var(--bp-muted)] tracking-[0.2em] uppercase">SYSTEM READY</span>
+                </div>
+
+                {/* Logo Section */}
+                <div className="flex flex-col items-center mt-2 mb-10">
+                    <div className="w-12 h-12 bg-black flex items-center justify-center mb-4 border border-[var(--bp-border)]">
+                        <span className="text-white text-xl font-light tracking-widest">V</span>
                     </div>
-                    <h1 className="text-3xl font-bold text-[#212121] mb-2">Agent Portal</h1>
-                    <p className="text-[#212121]/60">Login with your credentials</p>
+                    <div className="text-center flex flex-col gap-0.5">
+                        <span className="text-[9px] font-bold tracking-[0.3em] text-black">VOYAGEUR</span>
+                        <span className="text-[8px] font-medium tracking-[0.2em] text-[var(--bp-muted)]">PORTAL</span>
+                    </div>
+                </div>
+
+                {/* Title */}
+                <div className="text-center mb-10">
+                    <h1 className="text-xl font-light tracking-widest text-[#111111] leading-relaxed uppercase">
+                        Agent Portal<br />
+                        Login with your credentials
+                    </h1>
                 </div>
 
                 {/* Login Form */}
                 <form onSubmit={handleLogin} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-semibold text-[#212121] mb-2">
-                            Username / Email
+                    <div className="group">
+                        <label className="bp-label mb-2 block">
+                            USERNAME / EMAIL
                         </label>
                         <input
                             type="text"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="agent_username"
-                            className="w-full px-4 py-3 bg-[#EDEDED] text-[#212121] rounded-xl shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)] focus:outline-none placeholder:text-[#212121]/40"
+                            className="w-full py-2 bg-transparent text-black text-sm border-b border-[var(--bp-border)] focus:border-black outline-none transition-colors placeholder:text-gray-300 placeholder:tracking-widest uppercase tracking-wide"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-[#212121] mb-2">
-                            Password
-                        </label>
+                    <div className="group">
+                        <div className="flex justify-between items-end mb-2">
+                            <label className="bp-label mb-0 block">
+                                PASSWORD
+                            </label>
+                            <a href="#" className="text-[9px] font-mono text-[var(--bp-muted)] hover:text-black transition-colors uppercase tracking-widest">
+                                FORGOT PASSWORD?
+                            </a>
+                        </div>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter password"
-                            className="w-full px-4 py-3 bg-[#EDEDED] text-[#212121] rounded-xl shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)] focus:outline-none placeholder:text-[#212121]/40"
+                            placeholder="••••••••"
+                            className="w-full py-2 bg-transparent text-black text-lg font-mono tracking-widest border-b border-[var(--bp-border)] focus:border-black outline-none transition-colors placeholder:text-gray-300"
                         />
                     </div>
 
-                    <div className="flex items-center justify-between">
-                        <label className="flex items-center cursor-pointer">
-                            <input type="checkbox" className="rounded border-[#EDEDED] text-[#212121] focus:ring-[#212121]" />
-                            <span className="ml-2 text-sm text-[#212121]/70">Remember me</span>
-                        </label>
-                        <a href="#" className="text-sm font-semibold text-[#212121] hover:text-[#212121]/70 transition-colors">
-                            Forgot password?
-                        </a>
-                    </div>
-
                     {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-                            <p className="text-sm text-red-600">{error}</p>
+                        <div className="py-2 border-l-2 border-[var(--bp-red)] pl-3">
+                            <p className="text-[10px] font-bold text-[var(--bp-red)] tracking-wider uppercase">{error}</p>
                         </div>
                     )}
 
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full py-3 bg-[#212121] text-[#FDFDFF] rounded-xl font-semibold hover:bg-[#212121]/90 transition-all shadow-[8px_8px_16px_rgba(0,0,0,0.2),-8px_-8px_16px_rgba(255,255,255,0.7)] disabled:opacity-50"
-                    >
-                        {isLoading ? 'Logging in...' : 'Login to Dashboard'}
-                    </button>
+                    <div className="pt-4">
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full py-4 bg-black text-white text-[10px] tracking-[0.2em] font-bold hover:bg-[var(--bp-sage)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    <span>LOGGING IN...</span>
+                                </>
+                            ) : (
+                                'LOGIN TO DASHBOARD'
+                            )}
+                        </button>
+                    </div>
                 </form>
 
-                <div className="mt-8 text-center">
-                    <p className="text-sm text-[#212121]/70">
-                        Don't have an agent account?{' '}
-                        <Link href="/signup" className="text-[#212121] font-semibold hover:text-[#212121]/70 transition-colors">
-                            Apply now
-                        </Link>
+                {/* Footer metadata */}
+                <div className="mt-12 pt-6 border-t border-[var(--bp-border)]/50 text-center flex flex-col gap-4">
+                    <p className="text-[8px] font-mono tracking-[0.1em] text-[var(--bp-muted)] uppercase">
+                        Don't have an agent account? <Link href="/signup" className="text-black hover:underline">Apply now</Link>
                     </p>
-                </div>
-
-                {/* Return Text */}
-                <div className="mt-6 text-center">
-                    <Link
-                        href="/"
-                        className="text-sm text-[#212121]/70 hover:text-[#212121] flex items-center justify-center gap-2 transition-colors"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        Back to Home
-                    </Link>
+                    <div className="flex justify-center">
+                        <Link
+                            href="/"
+                            className="text-[9px] font-bold text-[var(--bp-muted)] hover:text-black transition-colors flex items-center gap-1.5 tracking-widest uppercase"
+                        >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Return to Hub
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>

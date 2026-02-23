@@ -39,86 +39,130 @@ const CustomerLoginInteractive = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-[#FDFDFF] rounded-3xl p-8 shadow-[16px_16px_32px_rgba(0,0,0,0.1),-16px_-16px_32px_rgba(255,255,255,0.9)]">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#212121] shadow-[8px_8px_16px_rgba(0,0,0,0.2),-8px_-8px_16px_rgba(255,255,255,0.7)] flex items-center justify-center">
-            <svg className="w-10 h-10 text-[#FDFDFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    <div className="w-full h-full flex items-center justify-center p-6">
+      <div className="w-full max-w-[440px] bg-white border border-[var(--bp-border)] p-12 shadow-sm flex flex-col relative overflow-hidden">
+
+        {/* Decorative Top Line */}
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--bp-border)] to-transparent opacity-50"></div>
+
+        {/* Status Indicator */}
+        <div className="absolute top-6 right-6 flex items-center gap-2">
+          <div className="w-1.5 h-1.5 bg-[var(--bp-sage)] rounded-full animate-pulse" />
+          <span className="text-[8px] font-bold text-[var(--bp-muted)] tracking-[0.2em] uppercase">SYSTEM READY</span>
+        </div>
+
+        {/* Logo Section */}
+        <div className="flex flex-col items-center mt-2 mb-10">
+          <div className="w-12 h-12 bg-black flex items-center justify-center mb-4 border border-[var(--bp-border)]">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-[#212121] mb-2">Customer Portal</h1>
-          <p className="text-[#212121]/60">Login with your Family ID</p>
+          <div className="text-center flex flex-col gap-0.5">
+            <span className="text-[9px] font-bold tracking-[0.3em] text-black">VOYAGEUR</span>
+            <span className="text-[8px] font-medium tracking-[0.2em] text-[var(--bp-muted)]">STUDIOS</span>
+          </div>
+        </div>
+
+        {/* Title */}
+        <div className="text-center mb-10">
+          <h1 className="text-xl font-light tracking-widest text-[#111111] leading-relaxed uppercase">
+            Customer Portal<br />
+            Login with your Family ID
+          </h1>
         </div>
 
         {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-semibold text-[#212121] mb-2">
-              Family ID
-            </label>
+          <div className="group">
+            <div className="flex justify-between items-end mb-2">
+              <label className="bp-label mb-0 block">
+                FAMILY ID
+              </label>
+              <span className="text-[9px] font-mono text-[var(--bp-muted)] uppercase tracking-widest block pt-0.5">
+                EX: FAM001
+              </span>
+            </div>
             <input
               type="text"
               value={familyId}
               onChange={(e) => setFamilyId(e.target.value)}
-              placeholder="FAM001"
-              className="w-full px-4 py-3 bg-[#EDEDED] text-[#212121] rounded-xl shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)] focus:outline-none placeholder:text-[#212121]/40"
+              placeholder="ENTER ID"
+              className="w-full py-2 bg-transparent text-black text-sm border-b border-[var(--bp-border)] focus:border-black outline-none transition-colors placeholder:text-gray-300 placeholder:tracking-widest uppercase tracking-wide"
             />
-            <p className="text-xs text-[#212121]/40 mt-2">Format: FAM001, FAM002, etc.</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-[#212121] mb-2">
-              Password
+          <div className="group">
+            <label className="bp-label mb-2 block">
+              PASSWORD
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              className="w-full px-4 py-3 bg-[#EDEDED] text-[#212121] rounded-xl shadow-[inset_4px_4px_8px_rgba(0,0,0,0.1),inset_-4px_-4px_8px_rgba(255,255,255,0.9)] focus:outline-none placeholder:text-[#212121]/40"
+              placeholder="••••••••"
+              className="w-full py-2 bg-transparent text-black text-lg font-mono tracking-widest border-b border-[var(--bp-border)] focus:border-black outline-none transition-colors placeholder:text-gray-300"
             />
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="py-2 border-l-2 border-[var(--bp-red)] pl-3">
+              <p className="text-[10px] font-bold text-[var(--bp-red)] tracking-wider uppercase">{error}</p>
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-[#212121] text-[#FDFDFF] rounded-xl font-semibold hover:bg-[#212121]/90 transition-all shadow-[8px_8px_16px_rgba(0,0,0,0.2),-8px_-8px_16px_rgba(255,255,255,0.7)] disabled:opacity-50"
-          >
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-4 bg-black text-white text-[10px] tracking-[0.2em] font-bold hover:bg-[var(--bp-sage)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>LOGGING IN...</span>
+                </>
+              ) : (
+                'LOGIN'
+              )}
+            </button>
+          </div>
         </form>
 
-        {/* Help Text */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-[#212121]/60 mb-4">
-            Don't know your Family ID? Contact your travel agent.
+        {/* Footer metadata */}
+        <div className="mt-12 pt-6 border-t border-[var(--bp-border)]/50 text-center flex flex-col gap-4">
+          <p className="text-[8px] font-mono tracking-[0.1em] text-[var(--bp-muted)] uppercase">
+            Don't know your Family ID? <a href="#" className="text-black hover:underline">Contact your travel agent.</a>
           </p>
-          <Link
-            href="/"
-            className="text-sm text-[#212121]/70 hover:text-[#212121] flex items-center justify-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-            </svg>
-            Back to Home
-          </Link>
+          <div className="flex justify-center">
+            <Link
+              href="/"
+              className="text-[9px] font-bold text-[var(--bp-muted)] hover:text-black transition-colors flex items-center gap-1.5 tracking-widest uppercase"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Return to Hub
+            </Link>
+          </div>
         </div>
 
-        {/* Demo IDs */}
-        <div className="mt-6 p-4 bg-[#EDEDED] rounded-xl">
-          <p className="text-xs font-semibold text-[#212121] mb-2">Demo Family IDs:</p>
-          <div className="space-y-1">
-            <p className="text-xs text-[#212121]/60">• FAM001 - Sharma Family (Goa)</p>
-            <p className="text-xs text-[#212121]/60">• FAM007 - Khan Family (Manali)</p>
-            <p className="text-xs text-[#212121]/60">• FAM012 - Nair Family (Kerala)</p>
+        {/* Demo IDs mapping cleanly */}
+        <div className="mt-6 pt-4 border-t border-[var(--bp-border)] border-dashed">
+          <p className="text-[9px] font-bold tracking-widest text-[var(--bp-muted)] uppercase mb-3">Allowed Demo IDs</p>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex justify-between items-center text-[10px] font-mono">
+              <span className="text-black font-semibold">FAM001</span>
+              <span className="text-[var(--bp-muted)]">Sharma (Goa)</span>
+            </div>
+            <div className="flex justify-between items-center text-[10px] font-mono">
+              <span className="text-black font-semibold">FAM007</span>
+              <span className="text-[var(--bp-muted)]">Khan (Manali)</span>
+            </div>
+            <div className="flex justify-between items-center text-[10px] font-mono">
+              <span className="text-black font-semibold">FAM012</span>
+              <span className="text-[var(--bp-muted)]">Nair (Kerala)</span>
+            </div>
           </div>
         </div>
       </div>
