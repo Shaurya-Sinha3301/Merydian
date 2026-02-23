@@ -19,6 +19,8 @@ class HotelBookingStatus(str, Enum):
     SEARCHED = "searched"
     PREBOOKED = "prebooked"
     CONFIRMED = "confirmed"
+    CANCELLED = "cancelled"
+    CANCEL_FAILED = "cancel_failed"
     FAILED = "failed"
 
 
@@ -63,6 +65,12 @@ class HotelBooking(SQLModel, table=True):
 
     # Full TBO API response (for debugging / audit)
     tbo_response: dict = Field(default={}, sa_column=Column(JSONB))
+
+    # Cancellation tracking
+    cancelled_at: Optional[datetime] = Field(default=None)
+    refund_amount: Optional[float] = Field(default=None)
+    cancellation_charges: Optional[float] = Field(default=None)
+    tbo_cancel_response: dict = Field(default={}, sa_column=Column(JSONB))
 
     # Error tracking
     error_message: Optional[str] = Field(default=None, max_length=2000)

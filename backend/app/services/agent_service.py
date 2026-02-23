@@ -337,22 +337,38 @@ class AgentService:
         logger.info(f"Triggering Communication Agent for option={option_id}, event={event_id}")
 
         try:
-            # 1. Get family ID from trip
-            trip = TripService.get_trip(UUID(trip_id))
+            # 1. Get trip session
+            trip = TripService.get_trip(trip_id)
             if not trip:
                 logger.error(f"Trip {trip_id} not found for communication trigger")
                 return False
-                
-            family_id = trip.family_id
-            
-            # 2. Get all family members to notify
-            members = FamilyService.get_family_members(family_id)
-            user_ids = [str(m.id) for m in members]
-            
+
+            # TripSession uses family_ids (list of family codes e.g. ['FAM_A'])
+            family_ids_list = trip.family_ids or []
+
+            if not family_ids_list:
+                logger.warning(f"No family IDs on trip {trip_id}")
+                return True  # Not a failure
+
+            # 2. Collect all user IDs across all families on this trip
+            user_ids = []
+            for fam_code in family_ids_list:
+                try:
+                    from uuid import UUID as _UUID
+                    # Try direct UUID lookup first
+                    fam_uuid = _UUID(str(fam_code))
+                    members = FamilyService.get_family_members(fam_uuid)
+                except (ValueError, AttributeError):
+                    # fam_code is a string code like 'FAM_A' — look up by code
+                    fam = FamilyService.get_family_by_code(str(fam_code))
+                    members = FamilyService.get_family_members(fam.id) if fam else []
+
+                user_ids.extend(str(m.id) for m in members)
+
             if not user_ids:
-                logger.warning(f"No family members found for family {family_id}")
-                return True # Not a failure, just no one to notify
-                
+                logger.warning(f"No family members found for families {family_ids_list}")
+                return True  # Not a failure, just no one to notify
+
             # 3. Dispatch notification task
             payload = {
                 "title": "Itinerary Update Approved!",
@@ -360,14 +376,14 @@ class AgentService:
                 "action_link": f"/trips/{trip_id}/itinerary",
                 "option_id": option_id
             }
-            
+
             process_notification_task.delay(
                 notification_type="itinerary_approved",
                 payload=payload,
                 target_users=user_ids
             )
-            
-            logger.info(f"Communication Agent notified {len(user_ids)} members of family {family_id}")
+
+            logger.info(f"Communication Agent notified {len(user_ids)} members across families {family_ids_list}")
             return True
 
         except Exception as e:

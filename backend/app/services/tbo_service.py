@@ -107,6 +107,11 @@ class TBOHotelClient:
         children: int = 0,
         children_ages: Optional[List[int]] = None,
         nationality: str = "IN",
+        refundable: Optional[bool] = None,
+        meal_type: Optional[int] = None,
+        star_rating: Optional[int] = None,
+        hotel_name: Optional[str] = None,
+        order_by: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         POST /Search → Full search response with HotelResult and TraceId.
@@ -120,10 +125,28 @@ class TBOHotelClient:
             children: Children per room
             children_ages: Ages of children (if any)
             nationality: ISO 2-letter country code
+            refundable: Filter for refundable rooms only (None = all)
+            meal_type: Filter by meal type (0=all)
+            star_rating: Filter by star rating (1-5)
+            hotel_name: Filter by hotel name
+            order_by: Sort order (0=default)
 
         Returns:
             Full API response with Status, TraceId, HotelResult[]
         """
+        # Build filters — use user-provided values or sensible defaults
+        filters = {
+            "Refundable": refundable if refundable is not None else False,
+            "NoOfRooms": 0,
+            "MealType": meal_type if meal_type is not None else 0,
+        }
+        if star_rating is not None:
+            filters["StarRating"] = star_rating
+        if hotel_name is not None:
+            filters["HotelName"] = hotel_name
+        if order_by is not None:
+            filters["OrderBy"] = order_by
+
         payload = {
             "CheckIn": checkin,
             "CheckOut": checkout,
@@ -139,7 +162,7 @@ class TBOHotelClient:
             ],
             "ResponseTime": 23.0,
             "IsDetailedResponse": True,
-            "Filters": {"Refundable": False, "NoOfRooms": 0, "MealType": 0},
+            "Filters": filters,
             "HotelCodes": ",".join(hotel_codes),
         }
         return self._post("Search", payload)
@@ -197,6 +220,46 @@ class TBOHotelClient:
     def get_booking_detail(self, booking_id: str) -> Dict[str, Any]:
         """POST /BookingDetail → Retrieve confirmed booking details."""
         return self._post("BookingDetail", {"BookingId": booking_id})
+
+    # ------------------------------------------------------------------ #
+    #  Cancellation
+    # ------------------------------------------------------------------ #
+
+    def cancel(self, confirmation_number: str) -> Dict[str, Any]:
+        """
+        POST /Cancel → Cancel a confirmed hotel booking.
+
+        Args:
+            confirmation_number: The ConfirmationNo from a confirmed booking.
+
+        Returns:
+            Full cancellation response with:
+            CancelResult containing BookingStatus, CancellationCharges, RefundAmount, etc.
+        """
+        return self._post("Cancel", {"ConfirmationNumber": confirmation_number})
+
+    # ------------------------------------------------------------------ #
+    #  Booking History
+    # ------------------------------------------------------------------ #
+
+    def get_bookings_by_date(
+        self, from_date: str, to_date: str
+    ) -> Dict[str, Any]:
+        """
+        POST /BookingDetailsBasedOnDate → Retrieve all bookings in a date range.
+
+        Args:
+            from_date: Start date in YYYY-MM-DD format
+            to_date: End date in YYYY-MM-DD format
+
+        Returns:
+            Full response with BookingDetails array containing all bookings
+            in the specified date range.
+        """
+        return self._post(
+            "BookingDetailsBasedOnDate",
+            {"FromDate": from_date, "ToDate": to_date},
+        )
 
 
 # Module-level singleton

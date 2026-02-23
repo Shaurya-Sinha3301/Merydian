@@ -1,7 +1,7 @@
 """
-Celery Worker — Hotel Booking Task
+Celery Worker — Hotel & Flight Booking Tasks
 
-Processes hotel bookings asynchronously via the TBO API.
+Processes bookings asynchronously via TBO Hotel and Air APIs.
 Sends real-time notifications to agents via Redis pub/sub → WebSocket.
 
 Run: celery -A app.worker worker -Q booking_queue -l info
@@ -10,16 +10,18 @@ Run: celery -A app.worker worker -Q booking_queue -l info
 import json
 import logging
 from datetime import datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import redis
 
 from app.core.celery_app import celery_app
 from app.core.config import settings
 from app.services.tbo_service import TBOHotelClient
+from app.services.tbo_air_service import TBOAirClient
 from app.services.booking_service import BookingService
 from app.models.booking_job import JobStatus
 from app.models.hotel_booking import HotelBookingStatus
+from app.models.flight_booking import FlightBooking, FlightBookingStatus
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +115,26 @@ def process_hotel_booking(
                 "type": "booking_step",
                 "job_id": job_id,
                 "step": "hotel",
+                "status": "failed",
+                "error": str(e),
+            })
+
+    # Process flight bookings
+    if "flight" in items:
+        flight_params = search_params.get("flight_params", {})
+        try:
+            flight_result = _process_single_flight(
+                job_uuid, agent_id, job_id, flight_params, search_params
+            )
+            results["flight"] = flight_result
+        except Exception as e:
+            logger.error("Flight booking failed: %s", e)
+            has_failure = True
+            results["flight"] = {"status": "failed", "error": str(e)}
+            notify_agent(agent_id, {
+                "type": "booking_step",
+                "job_id": job_id,
+                "step": "flight",
                 "status": "failed",
                 "error": str(e),
             })
@@ -365,7 +387,7 @@ def _process_single_hotel(
     }
 
 
-@celery_app.task(name="app.worker.process_event_task", bind=True, max_retries=3)
+def _process_single_flight(\r\n    job_uuid: UUID,\r\n    agent_id: str,\r\n    job_id: str,\r\n    flight_params: dict,\r\n    search_params: dict,\r\n) -> dict:\r\n    """\r\n    Process a single flight booking through TBO Air API pipeline.\r\n\r\n    Pipeline: Search → FareQuote → Book\r\n    Returns dict with flight booking result details.\r\n    """\r\n    tbo_air = TBOAirClient()\r\n\r\n    origin = flight_params.get("origin")\r\n    destination = flight_params.get("destination")\r\n    departure_date = flight_params.get("departure_date")\r\n    return_date = flight_params.get("return_date")\r\n    adults = search_params.get("adults", 1)\r\n    children = search_params.get("children", 0)\r\n    cabin_class = flight_params.get("cabin_class", 1)\r\n    preferred_airlines = flight_params.get("preferred_airlines")\r\n    direct_flight = flight_params.get("direct_only", False)\r\n    guest_details = search_params.get("guest_details", [])\r\n\r\n    if not origin or not destination or not departure_date:\r\n        raise ValueError("origin, destination, and departure_date are required for flight booking")\r\n\r\n    # --- Step 1: Create flight booking record ---\r\n    from sqlmodel import Session\r\n    from app.core.db import engine\r\n\r\n    flight_booking = FlightBooking(\r\n        job_id=job_uuid,\r\n        origin=origin,\r\n        destination=destination,\r\n        status=FlightBookingStatus.SEARCHING.value,\r\n        journey_type="return" if return_date else "oneway",\r\n        cabin_class=str(cabin_class),\r\n        passenger_details={"passengers": guest_details},\r\n    )\r\n    with Session(engine) as session:\r\n        session.add(flight_booking)\r\n        session.commit()\r\n        session.refresh(flight_booking)\r\n    booking_id = flight_booking.id\r\n\r\n    # --- Step 2: Search flights ---\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "flight_search",\r\n        "status": "in_progress",\r\n        "message": f"Searching flights {origin} → {destination} ({departure_date})...",\r\n    })\r\n\r\n    search_data = tbo_air.search_flights(\r\n        origin=origin,\r\n        destination=destination,\r\n        departure_date=departure_date,\r\n        return_date=return_date,\r\n        adults=adults,\r\n        children=children,\r\n        cabin_class=cabin_class,\r\n        preferred_airlines=preferred_airlines,\r\n        direct_flight=direct_flight,\r\n    )\r\n\r\n    response = search_data.get("Response", {})\r\n    trace_id = response.get("TraceId")\r\n    results_array = response.get("Results", [[]])\r\n\r\n    # Flatten results\r\n    all_flights = []\r\n    for group in results_array:\r\n        if isinstance(group, list):\r\n            all_flights.extend(group)\r\n\r\n    if not all_flights:\r\n        with Session(engine) as session:\r\n            fb = session.get(FlightBooking, booking_id)\r\n            fb.status = FlightBookingStatus.FAILED.value\r\n            fb.error_message = "No flights found"\r\n            fb.search_response = search_data\r\n            session.add(fb)\r\n            session.commit()\r\n        raise ValueError("No flights found")\r\n\r\n    # Pick best (cheapest) flight\r\n    selected = min(all_flights, key=lambda r: (r.get("Fare", {}).get("PublishedFare") or 999999))\r\n    result_index = selected.get("ResultIndex", "")\r\n    fare_info = selected.get("Fare", {})\r\n    airline = selected.get("ValidatingAirline", "")\r\n    is_lcc = selected.get("IsLCC", False)\r\n\r\n    with Session(engine) as session:\r\n        fb = session.get(FlightBooking, booking_id)\r\n        fb.trace_id = trace_id\r\n        fb.result_index = result_index\r\n        fb.airline = airline\r\n        fb.is_lcc = is_lcc\r\n        fb.total_fare = fare_info.get("PublishedFare")\r\n        fb.currency = fare_info.get("Currency", "USD")\r\n        fb.search_response = search_data\r\n        session.add(fb)\r\n        session.commit()\r\n\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "flight_search",\r\n        "status": "completed",\r\n        "message": f"Found flight: {airline} | Fare: {fare_info.get('PublishedFare')} {fare_info.get('Currency', 'USD')}",\r\n        "airline": airline,\r\n        "total_fare": fare_info.get("PublishedFare"),\r\n    })\r\n\r\n    # --- Step 3: Fare Quote ---\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "fare_quote",\r\n        "status": "in_progress",\r\n        "message": "Getting exact fare quote...",\r\n    })\r\n\r\n    fq_data = tbo_air.get_fare_quote(trace_id=trace_id, result_index=result_index)\r\n    fq_response = fq_data.get("Response", {})\r\n    fq_results = fq_response.get("Results", {})\r\n\r\n    with Session(engine) as session:\r\n        fb = session.get(FlightBooking, booking_id)\r\n        fb.status = FlightBookingStatus.FARE_QUOTED.value\r\n        fb.fare_quote_response = fq_data\r\n        session.add(fb)\r\n        session.commit()\r\n\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "fare_quote",\r\n        "status": "completed",\r\n        "message": "Fare quote confirmed",\r\n    })\r\n\r\n    # --- Step 4: Book flight ---\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "flight_book",\r\n        "status": "in_progress",\r\n        "message": "Creating flight booking (PNR)...",\r\n    })\r\n\r\n    # Build passenger list for TBO\r\n    tbo_passengers = []\r\n    for i, g in enumerate(guest_details):\r\n        tbo_passengers.append({\r\n            "PaxId": i,\r\n            "Title": g.get("Title", "Mr"),\r\n            "FirstName": g.get("FirstName", "Test"),\r\n            "LastName": g.get("LastName", "User"),\r\n            "DateOfBirth": g.get("DateOfBirth", "1990-01-01"),\r\n            "Gender": g.get("Gender", 1),\r\n            "ContactNo": g.get("Phoneno", "9999999999"),\r\n            "Email": g.get("Email", "test@meili.ai"),\r\n            "Nationality": g.get("Nationality", "IN"),\r\n            "Country": g.get("Country", "IN"),\r\n            "City": g.get("City", ""),\r\n            "Address1": g.get("Address", ""),\r\n            "PaxType": 1,\r\n            "LeadPassenger": i == 0,\r\n            "Fare_BE": fq_results.get("Fare", {}),\r\n            "IdDetails": None,\r\n        })\r\n\r\n    if not tbo_passengers:\r\n        tbo_passengers = [{\r\n            "PaxId": 0,\r\n            "Title": "Mr", "FirstName": "Test", "LastName": "User",\r\n            "DateOfBirth": "1990-01-01", "Gender": 1,\r\n            "ContactNo": "9999999999", "Email": "test@meili.ai",\r\n            "Nationality": "IN", "Country": "IN", "City": "", "Address1": "",\r\n            "PaxType": 1, "LeadPassenger": True,\r\n            "Fare_BE": fq_results.get("Fare", {}),\r\n            "IdDetails": None,\r\n        }]\r\n\r\n    book_data = tbo_air.book_flight(\r\n        result_index=result_index,\r\n        trace_id=trace_id,\r\n        passengers=tbo_passengers,\r\n        segments_be=fq_results.get("Segments", []),\r\n        fare_rules=fq_results.get("FareRules", []),\r\n        fare=fq_results.get("Fare", {}),\r\n        mini_fare_rules=fq_results.get("MiniFareRules"),\r\n        fare_classification=fq_results.get("FareClassification"),\r\n        is_lcc=is_lcc,\r\n    )\r\n\r\n    book_response = book_data.get("Response", book_data)\r\n    pnr = book_response.get("PNR", "")\r\n    tbo_booking_id = str(book_response.get("BookingId", ""))\r\n\r\n    final_status = FlightBookingStatus.BOOKED if pnr else FlightBookingStatus.FAILED\r\n\r\n    with Session(engine) as session:\r\n        fb = session.get(FlightBooking, booking_id)\r\n        fb.pnr = pnr\r\n        fb.booking_id = tbo_booking_id\r\n        fb.status = final_status.value\r\n        fb.booking_response = book_data\r\n        fb.updated_at = datetime.utcnow()\r\n        session.add(fb)\r\n        session.commit()\r\n\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "flight_book",\r\n        "status": "completed" if pnr else "failed",\r\n        "message": f"Flight booking {final_status.value} | PNR: {pnr}" if pnr else "Flight booking failed",\r\n        "pnr": pnr,\r\n        "booking_id": tbo_booking_id,\r\n    })\r\n\r\n    return {\r\n        "status": final_status.value,\r\n        "origin": origin,\r\n        "destination": destination,\r\n        "airline": airline,\r\n        "pnr": pnr,\r\n        "booking_id": tbo_booking_id,\r\n        "total_fare": fare_info.get("PublishedFare"),\r\n        "currency": fare_info.get("Currency", "USD"),\r\n    }\r\n\r\n\r\n@celery_app.task(name="app.worker.process_event_task", bind=True, max_retries=3)
 def process_event_task(self, event_id: str):
     """
     Async task to process a system event (e.g., feedback, POI request).
@@ -394,12 +416,7 @@ def process_event_task(self, event_id: str):
         elif event.event_type == EventType.POI_REQUEST:
             AgentService.process_poi_request_event(event_id)
         elif event.event_type == EventType.INCIDENT:
-            # Placeholder for incident processing
-            EventService.update_event_status(
-                UUID(event_id), 
-                EventStatus.COMPLETED, 
-                {"message": "Incident logged (no action taken)"}
-            )
+            AgentService.process_incident_event(UUID(event_id))
         else:
             logger.warning(f"Unknown event type {event.event_type} for event {event_id}")
 
