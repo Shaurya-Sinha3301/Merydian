@@ -493,19 +493,6 @@ class ItineraryOptimizer:
         # All nodes = START + POIs + END
         all_nodes = [START_NODE] + candidate_pois + [END_NODE]
         
-        # STEP 16 DEBUG:
-        if day_index == 1: # Day 2 (0-indexed)
-             print(f"DEBUG_DAY2: Visited History Keys: {list(visited_history.keys()) if visited_history else 'None'}")
-             if visited_history:
-                 for f, h in visited_history.items():
-                     print(f"DEBUG_DAY2: History for {f}: {h}")
-             print(f"DEBUG_DAY2: Skeleton POIs: {skeleton_pois}")
-             print(f"DEBUG_DAY2: Candidate POIs (first 10): {candidate_pois[:10]}")
-             if 'LOC_010' in candidate_pois:
-                 print("DEBUG_DAY2: LOC_010 IS in candidate_pois")
-             else:
-                 print("DEBUG_DAY2: LOC_010 is NOT in candidate_pois")
-
         # Decision variables
         # x[i] = 1 if POI i is visited
         x = {}
