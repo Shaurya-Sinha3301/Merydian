@@ -127,7 +127,8 @@ export function AreaChartInteractive() {
   return (
     <ChartContainer
       config={chartConfig}
-      className="aspect-auto h-[220px] w-full"
+      className="w-full"
+      style={{ height: '220px', minHeight: '220px' }}
     >
       <AreaChart data={filteredData}>
         <defs>

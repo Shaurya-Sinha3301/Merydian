@@ -57,7 +57,8 @@ export function PieChartInteractive() {
     <ChartContainer
       id={id}
       config={chartConfig}
-      className="mx-auto aspect-square w-full max-w-[200px]"
+      className="mx-auto w-full"
+      style={{ aspectRatio: '1', maxWidth: '200px', minHeight: '200px' }}
     >
       <PieChart>
         <ChartTooltip 
