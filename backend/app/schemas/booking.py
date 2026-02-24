@@ -75,6 +75,15 @@ class BookingExecuteRequest(BaseModel):
     # Guest details
     guests: List[GuestDetail] = Field(default=[], description="Guest details for booking")
 
+    # Flight search parameters (optional — used when items contains "flight")
+    flight_origin: Optional[str] = Field(default=None, description="Origin airport code (e.g. DEL)")
+    flight_destination: Optional[str] = Field(default=None, description="Destination airport code (e.g. BOM)")
+    flight_departure_date: Optional[str] = Field(default=None, description="YYYY-MM-DDTHH:MM:SS")
+    flight_return_date: Optional[str] = Field(default=None, description="For round-trip (optional)")
+    flight_cabin_class: int = Field(default=1, description="1=Economy, 2=PremEcon, 3=Business, 4=First")
+    flight_preferred_airlines: Optional[List[str]] = Field(default=None)
+    flight_direct_only: bool = Field(default=False)
+
 
 class BookingExecuteResponse(BaseModel):
     """Response after initiating a booking."""
@@ -134,6 +143,13 @@ class HotelSearchRequest(BaseModel):
     nationality: str = Field(default="IN", max_length=2)
     max_hotels: int = Field(default=50, ge=1, le=200, description="Max hotel codes to search")
 
+    # Search filters (P2 — all optional)
+    refundable: Optional[bool] = Field(default=None, description="Filter refundable-only rooms")
+    meal_type: Optional[int] = Field(default=None, description="0=All, 1=Room Only, 2=B&B, etc.")
+    star_rating: Optional[int] = Field(default=None, ge=1, le=5, description="Filter by star rating")
+    hotel_name: Optional[str] = Field(default=None, description="Filter by hotel name")
+    order_by: Optional[int] = Field(default=None, description="Sort order: 0=default")
+
 
 class HotelResult(BaseModel):
     """Single hotel in search results."""
@@ -148,3 +164,55 @@ class HotelSearchResponse(BaseModel):
     trace_id: Optional[str] = None
     hotels_found: int = 0
     results: List[HotelResult] = []
+
+
+# ------------------------------------------------------------------ #
+#  Cancel Booking
+# ------------------------------------------------------------------ #
+
+class CancelBookingRequest(BaseModel):
+    """Request to cancel a confirmed hotel booking."""
+    booking_id: str = Field(..., description="UUID of the hotel booking to cancel")
+    reason: Optional[str] = Field(default=None, description="Cancellation reason")
+
+
+class CancelBookingResponse(BaseModel):
+    """Response after cancelling a hotel booking."""
+    booking_id: str
+    status: str
+    confirmation_no: Optional[str] = None
+    cancellation_charges: Optional[float] = None
+    refund_amount: Optional[float] = None
+    message: str
+
+
+# ------------------------------------------------------------------ #
+#  Bookings by Date Range
+# ------------------------------------------------------------------ #
+
+class BookingsByDateRequest(BaseModel):
+    """Request to get all TBO bookings in a date range."""
+    from_date: str = Field(..., description="Start date YYYY-MM-DD")
+    to_date: str = Field(..., description="End date YYYY-MM-DD")
+
+
+class TBOBookingSummary(BaseModel):
+    """Summary of a TBO booking from date-range query."""
+    confirmation_no: Optional[str] = None
+    booking_id: Optional[str] = None
+    hotel_name: Optional[str] = None
+    status: Optional[str] = None
+    checkin: Optional[str] = None
+    checkout: Optional[str] = None
+    total_fare: Optional[float] = None
+    currency: Optional[str] = None
+    raw_data: Dict[str, Any] = {}
+
+
+class BookingsByDateResponse(BaseModel):
+    """Response from date-range booking retrieval."""
+    status: str
+    from_date: str
+    to_date: str
+    total_bookings: int = 0
+    bookings: List[TBOBookingSummary] = []

@@ -53,6 +53,11 @@ class EventService:
         """Get an event by ID."""
         with Session(engine) as session:
             return session.get(Event, event_id)
+
+    @staticmethod
+    def get_event_by_id(event_id: UUID) -> Optional[Event]:
+        """Alias for get_event — used by Celery worker tasks."""
+        return EventService.get_event(event_id)
     
     @staticmethod
     def update_event_status(

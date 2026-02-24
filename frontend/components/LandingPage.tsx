@@ -11,19 +11,30 @@ import Footer from './landing/Footer';
 
 export default function LandingPage() {
   return (
-    <div className="bg-[#0c0c0c] text-white font-sans antialiased selection:bg-white selection:text-black">
-      <Header />
-      
-      <main>
-        <HeroSection />
-        <FeaturesSection />
-        <AnalyticsSection />
-        <AISupportSection />
-        <TestimonialSection />
-        <PricingSection />
-      </main>
+    <>
+      <style>{`
+        ::-webkit-scrollbar {
+          display: none;
+        }
+        html, body {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+      <div className="bg-[#0c0c0c] text-white font-sans antialiased selection:bg-white selection:text-black">
+        <Header />
 
-      <Footer />
-    </div>
+        <main>
+          <HeroSection />
+          <FeaturesSection />
+          <AnalyticsSection />
+          <AISupportSection />
+          <TestimonialSection />
+          <PricingSection />
+        </main>
+
+        <Footer />
+      </div>
+    </>
   );
 }

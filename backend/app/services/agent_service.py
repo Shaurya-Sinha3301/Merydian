@@ -57,23 +57,29 @@ class AgentService:
         # Try to use OptimizerService with agents
         try:
             from app.services.optimizer_service import OptimizerService
-            
-            # Get or create trip session for this family
+            from app.services.trip_service import TripService
+
+            # Get the real active trip for this family from the DB
             family_id = str(event.family_id) if event.family_id else "unknown"
-            trip_id = f"trip_{family_id}"  # TODO: Get actual trip_id from context
-            
-            # Check if trip session exists, if not create one
-            trip_session = OptimizerService.get_trip_session(trip_id)
+            trip_session = TripService.get_active_trip_for_family(family_id)
+
             if not trip_session:
-                logger.info(f"Creating new trip session for {trip_id}")
-                # TODO: Get baseline itinerary path from configuration
-                baseline_path = "ml_or/data/delhi_3day_skeleton.json"
+                logger.warning(
+                    f"No active trip found for family {family_id}. "
+                    "Creating a fallback session — ensure a trip is initialized via "
+                    "POST /trips/initialize-with-optimization first."
+                )
+                # Fallback: create a minimal session so processing can continue
+                baseline_path = "ml_or/data/base_itinerary_final.json"
+                trip_id = f"auto_{family_id}"
                 OptimizerService.create_trip_session(
                     trip_id=trip_id,
                     family_ids=[family_id],
                     baseline_itinerary_path=baseline_path,
-                    trip_name=f"Trip for {family_id}"
+                    trip_name=f"Auto-session for {family_id}"
                 )
+            else:
+                trip_id = trip_session.trip_id
             
             # Process through agent pipeline
             result = OptimizerService.process_feedback_with_agents(
@@ -337,22 +343,38 @@ class AgentService:
         logger.info(f"Triggering Communication Agent for option={option_id}, event={event_id}")
 
         try:
-            # 1. Get family ID from trip
-            trip = TripService.get_trip(UUID(trip_id))
+            # 1. Get trip session
+            trip = TripService.get_trip(trip_id)
             if not trip:
                 logger.error(f"Trip {trip_id} not found for communication trigger")
                 return False
-                
-            family_id = trip.family_id
-            
-            # 2. Get all family members to notify
-            members = FamilyService.get_family_members(family_id)
-            user_ids = [str(m.id) for m in members]
-            
+
+            # TripSession uses family_ids (list of family codes e.g. ['FAM_A'])
+            family_ids_list = trip.family_ids or []
+
+            if not family_ids_list:
+                logger.warning(f"No family IDs on trip {trip_id}")
+                return True  # Not a failure
+
+            # 2. Collect all user IDs across all families on this trip
+            user_ids = []
+            for fam_code in family_ids_list:
+                try:
+                    from uuid import UUID as _UUID
+                    # Try direct UUID lookup first
+                    fam_uuid = _UUID(str(fam_code))
+                    members = FamilyService.get_family_members(fam_uuid)
+                except (ValueError, AttributeError):
+                    # fam_code is a string code like 'FAM_A' — look up by code
+                    fam = FamilyService.get_family_by_code(str(fam_code))
+                    members = FamilyService.get_family_members(fam.id) if fam else []
+
+                user_ids.extend(str(m.id) for m in members)
+
             if not user_ids:
-                logger.warning(f"No family members found for family {family_id}")
-                return True # Not a failure, just no one to notify
-                
+                logger.warning(f"No family members found for families {family_ids_list}")
+                return True  # Not a failure, just no one to notify
+
             # 3. Dispatch notification task
             payload = {
                 "title": "Itinerary Update Approved!",
@@ -360,14 +382,14 @@ class AgentService:
                 "action_link": f"/trips/{trip_id}/itinerary",
                 "option_id": option_id
             }
-            
+
             process_notification_task.delay(
                 notification_type="itinerary_approved",
                 payload=payload,
                 target_users=user_ids
             )
-            
-            logger.info(f"Communication Agent notified {len(user_ids)} members of family {family_id}")
+
+            logger.info(f"Communication Agent notified {len(user_ids)} members across families {family_ids_list}")
             return True
 
         except Exception as e:

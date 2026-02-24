@@ -5,12 +5,15 @@ Provides endpoints for:
 - Executing bookings (async via Celery)
 - Checking booking status (from DB)
 - Searching hotels directly (sync via TBO API)
+- Cancelling hotel bookings
+- Retrieving bookings by date range
 
 All mock code has been removed — this is fully production-ready.
 """
 
 import logging
 from typing import Any, List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.dependencies import get_current_agent
@@ -24,6 +27,11 @@ from app.schemas.booking import (
     HotelSearchRequest,
     HotelSearchResponse,
     HotelResult,
+    CancelBookingRequest,
+    CancelBookingResponse,
+    BookingsByDateRequest,
+    BookingsByDateResponse,
+    TBOBookingSummary,
 )
 from app.services.booking_service import BookingService
 from app.services.tbo_service import TBOHotelClient
@@ -67,6 +75,15 @@ async def execute_booking(
             "children": request.children,
             "nationality": request.nationality,
             "guest_details": [g.model_dump() for g in request.guests] if request.guests else [],
+            "flight_params": {
+                "origin": request.flight_origin,
+                "destination": request.flight_destination,
+                "departure_date": request.flight_departure_date,
+                "return_date": request.flight_return_date,
+                "cabin_class": request.flight_cabin_class,
+                "preferred_airlines": request.flight_preferred_airlines,
+                "direct_only": request.flight_direct_only,
+            },
         }
 
         # 3. Dispatch Celery task
@@ -128,7 +145,6 @@ async def get_booking_status(
         raise HTTPException(status_code=403, detail="Access denied to this booking job")
 
     # Fetch associated hotel bookings
-    from uuid import UUID
     hotel_bookings = BookingService.get_hotel_bookings_for_job(UUID(job_id))
 
     hotel_details = [
@@ -174,6 +190,8 @@ async def search_hotels(
 
     Returns available hotels with room details and pricing.
     Use the returned TraceId and BookingCode to initiate a booking.
+
+    Supports optional filters: refundable, meal_type, star_rating, hotel_name, order_by.
     """
     try:
         tbo = TBOHotelClient()
@@ -189,7 +207,7 @@ async def search_hotels(
 
         hotel_codes = [h["HotelCode"] for h in hotels_list[: request.max_hotels]]
 
-        # 2. Search for availability
+        # 2. Search for availability with optional filters
         search_data = tbo.search_hotels(
             hotel_codes=hotel_codes,
             checkin=request.checkin,
@@ -199,6 +217,11 @@ async def search_hotels(
             children=request.children,
             children_ages=request.children_ages,
             nationality=request.nationality,
+            refundable=request.refundable,
+            meal_type=request.meal_type,
+            star_rating=request.star_rating,
+            hotel_name=request.hotel_name,
+            order_by=request.order_by,
         )
 
         status_code = search_data.get("Status", {}).get("Code")
@@ -229,4 +252,155 @@ async def search_hotels(
         raise HTTPException(
             status_code=500,
             detail=f"Hotel search failed: {str(e)}",
+        )
+
+
+# ------------------------------------------------------------------ #
+#  P0: Cancel Booking
+# ------------------------------------------------------------------ #
+
+@router.post("/cancel", response_model=CancelBookingResponse)
+async def cancel_booking(
+    request: CancelBookingRequest,
+    current_agent: TokenPayload = Depends(get_current_agent),
+) -> Any:
+    """
+    Cancel a confirmed hotel booking via TBO API.
+
+    Looks up the booking in the database, calls TBO Cancel API,
+    and updates the booking record with cancellation details.
+    """
+    try:
+        # 1. Look up booking in DB
+        booking = BookingService.get_hotel_booking(UUID(request.booking_id))
+        if not booking:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Hotel booking '{request.booking_id}' not found",
+            )
+
+        # 2. Verify the booking has a confirmation number
+        if not booking.confirmation_no:
+            raise HTTPException(
+                status_code=400,
+                detail="Booking has no confirmation number — cannot cancel an unconfirmed booking",
+            )
+
+        # 3. Check booking isn't already cancelled
+        if booking.status == "cancelled":
+            return CancelBookingResponse(
+                booking_id=request.booking_id,
+                status="already_cancelled",
+                confirmation_no=booking.confirmation_no,
+                cancellation_charges=booking.cancellation_charges,
+                refund_amount=booking.refund_amount,
+                message="This booking was already cancelled.",
+            )
+
+        # 4. Call TBO Cancel API
+        tbo = TBOHotelClient()
+        cancel_response = tbo.cancel(booking.confirmation_no)
+
+        # 5. Extract cancellation details from response
+        cancel_result = cancel_response.get("CancelResult", {})
+        booking_status = cancel_result.get("BookingStatus", "")
+        cancellation_charges = cancel_result.get("CancellationCharges", 0.0)
+        refund_amount = cancel_result.get("RefundAmount", 0.0)
+
+        if booking_status.lower() in ("cancelled", "success", "vouchercancelled"):
+            # 6a. Successful cancellation — update DB
+            BookingService.cancel_hotel_booking(
+                booking_id=booking.id,
+                refund_amount=refund_amount,
+                cancellation_charges=cancellation_charges,
+                cancel_response=cancel_response,
+            )
+
+            logger.info("Hotel booking %s cancelled. Refund: %.2f, Charges: %.2f",
+                        request.booking_id, refund_amount, cancellation_charges)
+
+            return CancelBookingResponse(
+                booking_id=request.booking_id,
+                status="cancelled",
+                confirmation_no=booking.confirmation_no,
+                cancellation_charges=cancellation_charges,
+                refund_amount=refund_amount,
+                message=f"Booking cancelled successfully. Refund: {refund_amount}, Charges: {cancellation_charges}",
+            )
+        else:
+            # 6b. Cancellation failed or unexpected status
+            BookingService.cancel_hotel_booking(
+                booking_id=booking.id,
+                cancel_response=cancel_response,
+                error_message=f"TBO Cancel returned status: {booking_status}",
+            )
+
+            return CancelBookingResponse(
+                booking_id=request.booking_id,
+                status="cancel_failed",
+                confirmation_no=booking.confirmation_no,
+                message=f"Cancellation returned unexpected status: {booking_status}",
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to cancel booking %s: %s", request.booking_id, e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to cancel booking: {str(e)}",
+        )
+
+
+# ------------------------------------------------------------------ #
+#  P0: Bookings by Date Range
+# ------------------------------------------------------------------ #
+
+@router.post("/by-date", response_model=BookingsByDateResponse)
+async def get_bookings_by_date(
+    request: BookingsByDateRequest,
+    current_agent: TokenPayload = Depends(get_current_agent),
+) -> Any:
+    """
+    Retrieve all TBO bookings in a date range.
+
+    Calls the TBO BookingDetailsBasedOnDate API and returns
+    a summary of each booking found within the specified dates.
+    """
+    try:
+        tbo = TBOHotelClient()
+        response = tbo.get_bookings_by_date(request.from_date, request.to_date)
+
+        booking_details = response.get("BookingDetails", [])
+        if not isinstance(booking_details, list):
+            booking_details = []
+
+        bookings = [
+            TBOBookingSummary(
+                confirmation_no=bd.get("ConfirmationNo") or bd.get("ConfirmationNumber"),
+                booking_id=str(bd.get("BookingId", "")),
+                hotel_name=bd.get("HotelName", ""),
+                status=bd.get("BookingStatus", ""),
+                checkin=bd.get("CheckIn", ""),
+                checkout=bd.get("CheckOut", ""),
+                total_fare=bd.get("TotalFare"),
+                currency=bd.get("Currency", ""),
+                raw_data=bd,
+            )
+            for bd in booking_details
+        ]
+
+        return BookingsByDateResponse(
+            status="success",
+            from_date=request.from_date,
+            to_date=request.to_date,
+            total_bookings=len(bookings),
+            bookings=bookings,
+        )
+
+    except Exception as e:
+        logger.error("Failed to retrieve bookings by date: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve bookings: {str(e)}",
         )

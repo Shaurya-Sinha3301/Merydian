@@ -68,6 +68,9 @@ app.include_router(agent_dashboard.router, prefix=f"{settings.API_V1_STR}/agent"
 from app.api import bookings
 app.include_router(bookings.router, prefix=f"{settings.API_V1_STR}/bookings", tags=["bookings"])
 
+from app.api import flights
+app.include_router(flights.router, prefix=f"{settings.API_V1_STR}/flights", tags=["flights"])
+
 from app.api import policy
 app.include_router(policy.router, prefix=f"{settings.API_V1_STR}/agent", tags=["agent-policy"])
 

@@ -784,6 +784,44 @@ class TripService:
             return results, total
 
     @staticmethod
+    def get_trip(trip_id) -> Optional[TripSession]:
+        """
+        Look up a TripSession by its trip_id string or UUID primary key.
+
+        Used by AgentService to retrieve trip context for notifications.
+        Accepts both the human-readable `trip_id` string (e.g. 'delhi_20260315_1234')
+        and the UUID primary key.
+
+        Returns:
+            TripSession if found, None otherwise.
+        """
+        from sqlmodel import select
+
+        trip_id_str = str(trip_id)
+
+        with get_db_session() as session:
+            # Try matching the string trip_id field first (most common case)
+            stmt = select(TripSession).where(TripSession.trip_id == trip_id_str)
+            trip = session.exec(stmt).first()
+
+            if not trip:
+                # Fall back to UUID primary key match
+                try:
+                    import uuid
+                    pk = uuid.UUID(trip_id_str)
+                    trip = session.get(TripSession, pk)
+                except (ValueError, AttributeError):
+                    pass
+
+            if trip:
+                # Force-load JSONB fields before the session closes
+                _ = trip.family_ids
+                _ = trip.current_preferences
+
+            return trip
+
+
+    @staticmethod
     def delete_trip(trip_id: str) -> Dict[str, Any]:
         """
         Soft-delete a trip by setting its status to 'archived'.

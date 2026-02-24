@@ -190,3 +190,58 @@ class BookingService:
         """Get a single hotel booking by ID."""
         with Session(engine) as session:
             return session.get(HotelBooking, booking_id)
+
+    @staticmethod
+    def get_hotel_booking_by_confirmation(confirmation_no: str) -> Optional[HotelBooking]:
+        """Get a hotel booking by its TBO confirmation number."""
+        with Session(engine) as session:
+            stmt = select(HotelBooking).where(
+                HotelBooking.confirmation_no == confirmation_no
+            )
+            return session.exec(stmt).first()
+
+    @staticmethod
+    def cancel_hotel_booking(
+        booking_id: UUID,
+        refund_amount: Optional[float] = None,
+        cancellation_charges: Optional[float] = None,
+        cancel_response: Optional[dict] = None,
+        error_message: Optional[str] = None,
+    ) -> Optional[HotelBooking]:
+        """
+        Mark a hotel booking as cancelled with refund/charge details.
+
+        Args:
+            booking_id: UUID of the hotel booking
+            refund_amount: Refund amount from TBO
+            cancellation_charges: Charges applied by TBO
+            cancel_response: Full TBO Cancel API response
+            error_message: Error message if cancellation failed
+        """
+        with Session(engine) as session:
+            booking = session.get(HotelBooking, booking_id)
+            if not booking:
+                logger.warning("Hotel booking %s not found for cancellation", booking_id)
+                return None
+
+            if error_message:
+                booking.status = HotelBookingStatus.CANCEL_FAILED.value
+                booking.error_message = error_message
+            else:
+                booking.status = HotelBookingStatus.CANCELLED.value
+                booking.cancelled_at = datetime.utcnow()
+
+            if refund_amount is not None:
+                booking.refund_amount = refund_amount
+            if cancellation_charges is not None:
+                booking.cancellation_charges = cancellation_charges
+            if cancel_response:
+                booking.tbo_cancel_response = cancel_response
+
+            booking.updated_at = datetime.utcnow()
+            session.add(booking)
+            session.commit()
+            session.refresh(booking)
+            logger.info("Hotel booking %s cancelled (refund=%.2f, charges=%.2f)",
+                        booking_id, refund_amount or 0, cancellation_charges or 0)
+            return booking

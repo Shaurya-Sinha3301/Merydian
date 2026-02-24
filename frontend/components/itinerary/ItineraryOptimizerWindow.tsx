@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Search,
@@ -17,7 +17,7 @@ import {
     XCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { TRIPS, Trip, TripStatus } from '@/lib/trips';
+import { TRIPS as MOCK_TRIPS, Trip, TripStatus } from '@/lib/trips';
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -228,9 +228,57 @@ export default function ItineraryOptimizerWindow() {
     const [search, setSearch] = useState('');
     const [activeFilter, setActiveFilter] = useState<TripStatus | 'ALL'>('ALL');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [trips, setTrips] = useState<Trip[]>(MOCK_TRIPS);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Map backend TripSession status to the UI TripStatus enum
+    function mapStatus(backendStatus?: string): TripStatus {
+        if (!backendStatus) return 'DRAFT';
+        const s = backendStatus.toLowerCase();
+        if (s === 'archived' || s === 'cancelled') return 'CANCELLED';
+        if (s === 'approved') return 'APPROVED';
+        if (s === 'in_review' || s === 'review') return 'IN REVIEW';
+        return 'DRAFT';
+    }
+
+    useEffect(() => {
+        async function loadTrips() {
+            try {
+                const { apiClient } = await import('@/services/api');
+                const data = await apiClient.getAgentTrips({ limit: 20 });
+                const items: any[] = data?.items ?? [];
+
+                if (items.length > 0) {
+                    const mapped: Trip[] = items.map((t: any) => ({
+                        id: t.trip_id,
+                        title: t.trip_name ?? t.trip_id,
+                        client: (t.families ?? []).join(', ') || 'Unknown',
+                        status: mapStatus(t.status),
+                        dateRange: [
+                            t.start_date ? new Date(t.start_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase() : '',
+                            t.end_date ? new Date(t.end_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase() : '',
+                        ].filter(Boolean).join(' – '),
+                        budget: t.summary?.estimated_cost
+                            ? `$${Number(t.summary.estimated_cost).toLocaleString()} EST`
+                            : 'N/A',
+                        members: [],
+                    }));
+                    setTrips(mapped);
+                }
+                // If empty, keep mock data so UI isn't blank
+            } catch (err) {
+                console.warn('[ItineraryOptimizerWindow] Could not fetch trips from backend, using mock data:', err);
+                // Keep MOCK_TRIPS as fallback
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        loadTrips();
+    }, []);
 
     const filtered = useMemo(() => {
-        return TRIPS.filter((t) => {
+        return trips.filter((t: Trip) => {
             const matchesSearch =
                 t.title.toLowerCase().includes(search.toLowerCase()) ||
                 t.client.toLowerCase().includes(search.toLowerCase()) ||
@@ -238,7 +286,7 @@ export default function ItineraryOptimizerWindow() {
             const matchesFilter = activeFilter === 'ALL' || t.status === activeFilter;
             return matchesSearch && matchesFilter;
         });
-    }, [search, activeFilter]);
+    }, [trips, search, activeFilter]);
 
     return (
         <div className="flex flex-col h-full bp-grid-bg bg-white overflow-hidden">
@@ -318,7 +366,7 @@ export default function ItineraryOptimizerWindow() {
                 <div className="px-6 md:px-8 py-20 max-w-7xl mx-auto min-h-full flex flex-col justify-center">
                     {filtered.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-12">
-                            {filtered.map((trip) => (
+                            {filtered.map((trip: Trip) => (
                                 <div key={trip.id} className="snap-center h-full">
                                     <TripCard
                                         trip={trip}

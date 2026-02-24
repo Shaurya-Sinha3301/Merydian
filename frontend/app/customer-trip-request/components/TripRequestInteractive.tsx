@@ -45,9 +45,12 @@ const TripRequestContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isHydrated, setIsHydrated] = useState(false);
-  // const [currentStep, setCurrentStep] = useState(1); // Deleted
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
+
+  // Family code fetched from the backend DB (not localStorage)
+  const [familyCode, setFamilyCode] = useState<string | null>(null);
+  const [isFetchingFamily, setIsFetchingFamily] = useState(false);
 
   // Check for pre-selected itinerary
   const selectedItinerary = searchParams.get('itinerary');
@@ -73,6 +76,23 @@ const TripRequestContent = () => {
 
   useEffect(() => {
     setIsHydrated(true);
+
+    // Fetch the authenticated user's family code from the DB
+    async function fetchFamily() {
+      try {
+        setIsFetchingFamily(true);
+        const { apiClient } = await import('@/services/api');
+        const family = await apiClient.getFamilyPreferences();
+        setFamilyCode(family.family_code);
+      } catch (err) {
+        console.warn('[TripRequest] Could not fetch family from DB:', err);
+        // Leave familyCode null — handleSubmit will surface a clear error
+      } finally {
+        setIsFetchingFamily(false);
+      }
+    }
+
+    fetchFamily();
 
     // Auto-fill if itinerary param exists
     if (selectedItinerary === 'delhi_grand_tour') {
@@ -195,54 +215,43 @@ const TripRequestContent = () => {
   };
 
   const handleSubmit = async () => {
-    // Simplified submit for demo flow
+    if (!validateForm()) return;
+
+    if (!familyCode) {
+      alert('Your family profile could not be loaded from the server. Please log in again.');
+      return;
+    }
+
     try {
+      const { apiClient } = await import('@/services/api');
+
+      const numTravellers = formData.adults + formData.children + formData.seniors;
+
       const payload = {
-        trip_name: selectedItinerary ? "Delhi Grand Tour" : `Trip to ${formData.destination}`,
+        trip_name: selectedItinerary
+          ? 'Delhi Grand Tour'
+          : `Trip to ${formData.destination}`,
         destination: formData.destination,
         start_date: formData.startDate,
         end_date: formData.endDate,
-        baseline_itinerary: "delhi_3day_skeleton",
-        families: [
-          {
-            family_id: "placeholder_will_be_replaced_by_backend",
-            family_name: "My Family",
-            members: formData.adults + formData.children + formData.seniors,
-            children: formData.children,
-            budget_sensitivity: 0.5,
-            energy_level: 0.5,
-            pace_preference: "moderate",
-            interest_vector: {
-              history: 0.8,
-              food: 0.8,
-              culture: 0.8,
-              nature: 0.5,
-              shopping: 0.5,
-              adventure: 0.5,
-              religious: 0.5,
-              nightlife: 0.5,
-              architecture: 0.5
-            },
-            must_visit_locations: formData.mustVisit,
-            never_visit_locations: formData.placesToAvoid,
-            dietary_restrictions: [],
-            accessibility_needs: []
-          }
-        ]
+        family_ids: [familyCode],
+        num_travellers: numTravellers,
       };
 
-      // TEMPORARILY DISABLED: Backend connection bypassed for testing
-      // const { apiClient } = await import('@/services/api');
-      // await apiClient.initializeTrip(payload);
-      console.log("TEMPORARY BYPASS: Backend call skipped", payload);
+      const result = await apiClient.initializeTripWithOptimization(payload);
 
       setShowSubmitConfirmation(true);
       setTimeout(() => {
-        router.push('/customer-portal');
+        // Pass trip context via URL params — no localStorage
+        const params = new URLSearchParams({
+          trip_id: result.trip_id,
+          event_id: result.event_id,
+        });
+        router.push(`/customer-portal?${params.toString()}`);
       }, 2000);
-    } catch (error) {
-      console.error("Failed to initialize trip:", error);
-      alert("Trip creation failed. Please try again.");
+    } catch (error: any) {
+      console.error('Failed to initialize trip:', error);
+      alert(`Trip creation failed: ${error?.message || 'Please try again.'}`);
     }
   };
 
