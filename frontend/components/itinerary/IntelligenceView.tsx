@@ -1,15 +1,11 @@
 'use client';
 
-import { LayoutGrid, TrendingUp, Grid3x3, Radar, LineChart, Sparkles, ChevronRight } from 'lucide-react';
+import { Sparkles, ChevronRight } from 'lucide-react';
+import { CostPerFamilyRadarChart } from '@/components/charts/CostPerFamilyRadarChart';
+import { TransportUtilizationChart } from '@/components/charts/TransportUtilizationChart';
 
 // ─── IntelligenceView ─────────────────────────────────────────────────────────
-// Redesigned for readability: right-panel cards now collapse analytical detail
-// behind a <details> accordion, matching inteli.html / inteli.png reference.
-
-// Technical label style matching inteli.html `.technical-label`
-const techLabel = 'text-[14px] font-semibold capitalize text-gray-900 tracking-tight flex items-center gap-1.5 mb-0';
-// Muted mono tag (e.g. Q3-2024, HM-01)
-const monoTag = 'text-[10px] font-mono text-gray-400';
+// Intelligence dashboard with analytical charts and strategic insights
 
 export default function IntelligenceView() {
     return (
@@ -18,182 +14,21 @@ export default function IntelligenceView() {
             {/* ══ LEFT — Analysis Section ════════════════════════════════════ */}
             <div className="flex-1 overflow-y-auto scrollbar-hide px-6 md:px-8 py-6 min-w-0">
 
-                {/* Section label — Inter, small uppercase tracking, matches inteli.html */}
+                {/* Section label */}
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400 mb-5 flex items-center gap-2">
                     · Analysis
                 </p>
 
-                {/* ── Row 1 ─── Treemap  +  Area chart ─────────────────────── */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
-                    {/* Portfolio Expenditure Allocation */}
-                    <div className="bp-card p-5">
-                        <div className="flex justify-between items-center mb-5">
-                            <span className={techLabel}>
-                                <LayoutGrid className="w-4 h-4 shrink-0" />
-                                Portfolio Expenditure Allocation
-                            </span>
-                            <span className={monoTag}>Q3-2024</span>
-                        </div>
-                        {/* Treemap */}
-                        <div className="grid gap-0.5 border border-black"
-                            style={{ gridTemplateColumns: '2fr 1fr', gridTemplateRows: '1fr 1fr', height: '160px', background: '#000', padding: '2px' }}>
-                            <div className="bg-white p-2 flex flex-col justify-between hover:bg-gray-50 transition-colors" style={{ gridRow: 'span 2' }}>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-900">Aviation Logistics</span>
-                                <div className="text-right">
-                                    <span className="block text-xl font-mono font-bold text-gray-900">45%</span>
-                                    <span className="text-[9px] text-gray-400">$45.2k</span>
-                                </div>
-                            </div>
-                            <div className="bg-white p-1.5 flex flex-col justify-between hover:bg-gray-50 transition-colors">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-gray-600">Premium Stay</span>
-                                <div className="text-right">
-                                    <span className="block text-sm font-mono font-bold text-gray-900">30%</span>
-                                    <span className="text-[8px] text-gray-400">$30.1k</span>
-                                </div>
-                            </div>
-                            <div className="bg-white p-1.5 flex flex-col justify-between hover:bg-gray-50 transition-colors">
-                                <div className="flex justify-between w-full">
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-gray-500">Curated</span>
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-gray-500">Ancillary</span>
-                                </div>
-                                <div className="flex justify-between w-full items-end mt-1">
-                                    <span className="text-xs font-mono font-bold text-gray-900">15%</span>
-                                    <span className="text-xs font-mono font-bold text-gray-900 border-l border-gray-200 pl-2">10%</span>
-                                </div>
-                            </div>
-                        </div>
+                {/* Charts Grid */}
+                <div className="space-y-6">
+                    {/* Cost Per Family Radar Chart */}
+                    <div className="max-w-2xl mx-auto">
+                        <CostPerFamilyRadarChart />
                     </div>
 
-                    {/* Real-Time Revenue Performance */}
-                    <div className="bp-card p-5">
-                        <div className="flex justify-between items-center mb-5">
-                            <span className={techLabel}>
-                                <LineChart className="w-4 h-4 shrink-0" />
-                                Real-Time Revenue Performance
-                            </span>
-                            <div className="flex gap-1.5">
-                                <span className="text-[9px] font-mono px-1.5 border border-black bg-black text-white">D</span>
-                                <span className="text-[9px] font-mono px-1.5 border border-gray-200 text-gray-400">W</span>
-                                <span className="text-[9px] font-mono px-1.5 border border-gray-200 text-gray-400">M</span>
-                            </div>
-                        </div>
-                        <div className="h-[160px] w-full relative border-b border-l border-black">
-                            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                                {[0, 1, 2, 3].map(i => <div key={i} className="w-full border-t border-dashed border-gray-200" />)}
-                            </div>
-                            <svg className="w-full h-full absolute inset-0 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
-                                <path d="M0,80 Q10,75 20,60 T40,55 T60,40 T80,45 T100,20 V100 H0 Z" fill="rgba(0,0,0,0.05)" stroke="black" strokeWidth="1.5" />
-                                <circle cx="20" cy="60" r="1.5" fill="black" />
-                                <circle cx="60" cy="40" r="1.5" fill="black" />
-                                <circle cx="100" cy="20" r="2" fill="red" stroke="white" strokeWidth="0.5" />
-                            </svg>
-                            <div className="absolute -bottom-5 w-full flex justify-between text-[9px] font-mono text-gray-400">
-                                <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── Row 2 ─── Heatmap  +  Velocity  +  Radar ─────────────── */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                    {/* Regional Yield Efficiency */}
-                    <div className="bp-card p-5 flex flex-col">
-                        <div className="flex justify-between items-center mb-5">
-                            <span className={techLabel}>
-                                <Grid3x3 className="w-4 h-4 shrink-0" />
-                                Regional Yield Efficiency
-                            </span>
-                            <span className="text-[9px] font-mono text-gray-400 border border-gray-200 px-1">HM-01</span>
-                        </div>
-                        <div className="flex-1 flex flex-col justify-center">
-                            <div className="grid grid-cols-4 gap-px border border-black" style={{ background: '#eee' }}>
-                                {[
-                                    { code: 'JP', opacity: 0.9 }, { code: 'UK', opacity: 0.8 }, { code: 'US', opacity: 0.4 }, { code: 'IT', opacity: 0.2 },
-                                    { code: 'FR', opacity: 0.7 }, { code: 'DE', opacity: 0.95 }, { code: 'ES', opacity: 0.3 }, { code: 'PT', opacity: 0.1 },
-                                    { code: 'CN', opacity: 0.5 }, { code: 'SG', opacity: 0.6 }, { code: 'TH', opacity: 0.2 }, { code: 'VN', opacity: 0.05 },
-                                    { code: 'AU', opacity: 0.85 }, { code: 'NZ', opacity: 0.75 }, { code: 'CA', opacity: 0.15 }, { code: 'MX', opacity: 0 },
-                                ].map(({ code, opacity }) => (
-                                    <div key={code} className="aspect-square flex items-center justify-center font-mono text-[10px] hover:opacity-80 transition-opacity"
-                                        style={{ background: opacity === 0 ? 'white' : `rgba(0,0,0,${opacity})`, color: opacity > 0.4 ? 'white' : 'black' }}>
-                                        {code}
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-wider mt-2">
-                                <span>Base Yield</span>
-                                <div className="h-1 w-16 bg-gradient-to-r from-white via-gray-400 to-black border border-gray-200" />
-                                <span>Optimal Yield</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Acquisition Velocity */}
-                    <div className="bp-card p-5 flex flex-col">
-                        <div className="flex justify-between items-center mb-5">
-                            <span className={techLabel}>
-                                <TrendingUp className="w-4 h-4 shrink-0" />
-                                Acquisition Velocity
-                            </span>
-                            <span className="text-[9px] font-mono text-green-600">+12.4%</span>
-                        </div>
-                        <div className="flex-1 relative border border-gray-200 bg-gray-50/50 min-h-[120px]">
-                            <div className="absolute inset-0 grid grid-cols-6 grid-rows-4">
-                                {[...Array(3)].map((_, i) => <div key={i} className="border-r border-gray-200/50" />)}
-                                <div className="border-r border-gray-200/50" /><div className="border-r border-gray-200/50" /><div />
-                                {[...Array(3)].map((_, i) => <div key={i} className="col-span-6 border-b border-gray-200/50" />)}
-                            </div>
-                            <svg className="w-full h-full absolute inset-0 p-2 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
-                                <polyline fill="none" points="0,70 20,65 40,60 60,62 80,55 100,50" stroke="#ccc" strokeDasharray="2,2" strokeWidth="1.5" />
-                                <polyline fill="none" points="0,80 20,70 40,55 60,40 80,35 100,20" stroke="black" strokeWidth="2" />
-                                {[[20, 70], [40, 55], [60, 40], [80, 35]].map(([cx, cy]) => (
-                                    <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="1.5" fill="black" />
-                                ))}
-                                <circle cx="100" cy="20" r="2.5" fill="black" stroke="white" strokeWidth="1" />
-                            </svg>
-                        </div>
-                        <div className="flex justify-between mt-2 text-[9px] font-mono text-gray-400">
-                            <span>PRIOR</span><span>CURRENT</span>
-                        </div>
-                        <div className="mt-1.5 text-[9px] font-mono text-gray-500 border-t border-gray-100 pt-2">
-                            <span className="text-black font-bold">AVG:</span> 42/hr <span className="mx-1">|</span> <span className="text-black font-bold">PEAK:</span> 15:00
-                        </div>
-                    </div>
-
-                    {/* Client Sentiment Index */}
-                    <div className="bp-card p-5 flex flex-col">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className={techLabel}>
-                                <Radar className="w-4 h-4 shrink-0" />
-                                Client Sentiment Index
-                            </span>
-                        </div>
-                        <div className="flex-1 relative flex items-center justify-center py-3">
-                            <div className="relative w-36 h-36">
-                                <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100">
-                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#f0f0f0" />
-                                    <circle cx="50" cy="50" r="30" fill="none" stroke="#f0f0f0" />
-                                    <circle cx="50" cy="50" r="15" fill="none" stroke="#f0f0f0" />
-                                    <line x1="50" y1="5" x2="50" y2="95" stroke="#e5e5e5" strokeDasharray="2,2" />
-                                    <line x1="5" y1="50" x2="95" y2="50" stroke="#e5e5e5" strokeDasharray="2,2" />
-                                    <line x1="18" y1="18" x2="82" y2="82" stroke="#e5e5e5" strokeDasharray="2,2" />
-                                    <line x1="18" y1="82" x2="82" y2="18" stroke="#e5e5e5" strokeDasharray="2,2" />
-                                    <polygon points="50,15 80,40 70,80 30,80 20,40" fill="rgba(0,0,0,0.1)" stroke="black" strokeWidth="1.5" />
-                                    {[[50, 15], [80, 40], [70, 80], [30, 80], [20, 40]].map(([cx, cy]) => (
-                                        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="1.5" fill="black" />
-                                    ))}
-                                </svg>
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-1 text-[8px] font-mono bg-white px-1">TRUST</div>
-                                <div className="absolute top-[30%] right-0 -mr-2 text-[8px] font-mono bg-white px-1">VALUE</div>
-                                <div className="absolute bottom-[20%] right-[10%] text-[8px] font-mono bg-white px-1">EASE</div>
-                                <div className="absolute bottom-[20%] left-[10%] text-[8px] font-mono bg-white px-1">SAFETY</div>
-                                <div className="absolute top-[30%] left-0 -ml-3 text-[8px] font-mono bg-white px-1">SUPPORT</div>
-                            </div>
-                        </div>
-                        <div className="mt-2 text-center text-[9px] font-mono text-gray-500">
-                            BENCHMARK SCORE: <span className="text-black font-bold">8.4</span>
-                        </div>
+                    {/* Transport Utilization Chart */}
+                    <div className="max-w-4xl mx-auto">
+                        <TransportUtilizationChart />
                     </div>
                 </div>
             </div>
