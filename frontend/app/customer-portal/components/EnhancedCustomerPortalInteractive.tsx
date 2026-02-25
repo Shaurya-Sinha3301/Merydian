@@ -239,16 +239,36 @@ const EnhancedCustomerPortalInteractive = () => {
           zIndex: 10,
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ width: 8, height: 8, background: '#c5a065', borderRadius: '50%', display: 'inline-block' }} />
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#c5a065', margin: 0 }}>
-                  {itinerary?.itineraryName || `${familyName} Itinerary`}
-                </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+              <button
+                onClick={() => router.back()}
+                style={{
+                  width: 40, height: 40,
+                  background: '#fff',
+                  border: '1px solid #e5e5e5',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.2s',
+                  flexShrink: 0
+                }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = '#1a1a1a')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = '#e5e5e5')}
+              >
+                <svg style={{ width: 20, height: 20, color: '#1a1a1a' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{ width: 8, height: 8, background: '#c5a065', borderRadius: '50%', display: 'inline-block' }} />
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#c5a065', margin: 0 }}>
+                    {itinerary?.itineraryName || `${familyName} Itinerary`}
+                  </p>
+                </div>
+                <h1 style={{ fontSize: 36, fontWeight: 200, letterSpacing: '-0.02em', margin: 0, color: '#1a1a1a' }}>
+                  {familyName}
+                </h1>
               </div>
-              <h1 style={{ fontSize: 36, fontWeight: 200, letterSpacing: '-0.02em', margin: 0, color: '#1a1a1a' }}>
-                {familyName}
-              </h1>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               <div style={{ textAlign: 'right' }}>
@@ -833,68 +853,70 @@ const EnhancedCustomerPortalInteractive = () => {
       </main>
 
       {/* WHY? Optimization Modal */}
-      {whyModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', width: 560, maxWidth: '90vw', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', border: '1px solid #e5e5e5', padding: 32, position: 'relative' }}>
-            <button onClick={() => setWhyModal(null)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', fontSize: 20, lineHeight: 1 }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#1a1a1a')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#aaa')}>✕</button>
+      {
+        whyModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: '#fff', width: 560, maxWidth: '90vw', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', border: '1px solid #e5e5e5', padding: 32, position: 'relative' }}>
+              <button onClick={() => setWhyModal(null)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', fontSize: 20, lineHeight: 1 }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#1a1a1a')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#aaa')}>✕</button>
 
-            {/* Header */}
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 16, color: '#c5a065' }}>📊</span>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#c5a065', margin: 0 }}>TECHNICAL CHANGE ANALYSIS</p>
+              {/* Header */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontSize: 16, color: '#c5a065' }}>📊</span>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#c5a065', margin: 0 }}>TECHNICAL CHANGE ANALYSIS</p>
+                </div>
+                <h2 style={{ fontSize: 26, fontWeight: 300, color: '#1a1a1a', margin: '0 0 4px' }}>Optimization Logic</h2>
+                <p style={{ fontSize: 13, color: '#717171', margin: 0 }}>{whyModal.title}</p>
               </div>
-              <h2 style={{ fontSize: 26, fontWeight: 300, color: '#1a1a1a', margin: '0 0 4px' }}>Optimization Logic</h2>
-              <p style={{ fontSize: 13, color: '#717171', margin: 0 }}>{whyModal.title}</p>
-            </div>
 
-            {/* Persuasive text */}
-            <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', padding: 16, marginBottom: 20 }}>
-              <p style={{ fontSize: 14, color: '#333', lineHeight: 1.7, margin: 0 }}>{whyModal.whyText}</p>
-            </div>
+              {/* Persuasive text */}
+              <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', padding: 16, marginBottom: 20 }}>
+                <p style={{ fontSize: 14, color: '#333', lineHeight: 1.7, margin: 0 }}>{whyModal.whyText}</p>
+              </div>
 
-            {/* Route efficiency bar */}
-            <div style={{ border: '1px solid #e5e5e5', padding: 16, background: '#fafafa', marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 700 }}>Route Efficiency</span>
-                <span style={{ fontSize: 13, fontWeight: 700, background: 'linear-gradient(135deg,#c5a065,#d4c86a,#8fa391)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>+{whyModal.efficiency}%</span>
+              {/* Route efficiency bar */}
+              <div style={{ border: '1px solid #e5e5e5', padding: 16, background: '#fafafa', marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>Route Efficiency</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, background: 'linear-gradient(135deg,#c5a065,#d4c86a,#8fa391)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>+{whyModal.efficiency}%</span>
+                </div>
+                <div style={{ height: 4, background: '#f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${whyModal.efficiency}%`, background: 'linear-gradient(90deg,#c5a065,#d4c86a,#8fa391)', transition: 'width 0.8s ease' }} />
+                </div>
+                <p style={{ fontSize: 12, color: '#717171', margin: '8px 0 0', fontStyle: 'italic' }}>{whyModal.reason}</p>
               </div>
-              <div style={{ height: 4, background: '#f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${whyModal.efficiency}%`, background: 'linear-gradient(90deg,#c5a065,#d4c86a,#8fa391)', transition: 'width 0.8s ease' }} />
-              </div>
-              <p style={{ fontSize: 12, color: '#717171', margin: '8px 0 0', fontStyle: 'italic' }}>{whyModal.reason}</p>
-            </div>
 
-            {/* Cost comparison */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-              <div style={{ border: '1px solid #e5e5e5', padding: 16, background: '#fff' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 8px' }}>ORIGINAL COST</p>
-                <p style={{ fontSize: 18, fontFamily: "'JetBrains Mono',monospace", color: '#aaa', textDecoration: 'line-through', margin: 0 }}>{whyModal.originalCost}</p>
+              {/* Cost comparison */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+                <div style={{ border: '1px solid #e5e5e5', padding: 16, background: '#fff' }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 8px' }}>ORIGINAL COST</p>
+                  <p style={{ fontSize: 18, fontFamily: "'JetBrains Mono',monospace", color: '#aaa', textDecoration: 'line-through', margin: 0 }}>{whyModal.originalCost}</p>
+                </div>
+                <div style={{ border: '1px solid #c5a065', padding: 16, background: '#fffdf9' }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c5a065', margin: '0 0 8px' }}>OPTIMIZED COST</p>
+                  <p style={{ fontSize: 18, fontFamily: "'JetBrains Mono',monospace", color: '#1a1a1a', fontWeight: 700, margin: 0 }}>{whyModal.newCost}</p>
+                </div>
               </div>
-              <div style={{ border: '1px solid #c5a065', padding: 16, background: '#fffdf9' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c5a065', margin: '0 0 8px' }}>OPTIMIZED COST</p>
-                <p style={{ fontSize: 18, fontFamily: "'JetBrains Mono',monospace", color: '#1a1a1a', fontWeight: 700, margin: 0 }}>{whyModal.newCost}</p>
-              </div>
-            </div>
 
-            {/* Actions */}
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setWhyModal(null)} style={{ flex: 1, background: '#1a1a1a', color: '#fff', border: 'none', borderBottom: '2px solid #c5a065', padding: '12px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', cursor: 'pointer', textTransform: 'uppercase' }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#333')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#1a1a1a')}>
-                CONFIRM METRICS
-              </button>
-              <button onClick={() => setWhyModal(null)} style={{ flex: 1, background: '#fff', border: '1px solid #e5e5e5', padding: '12px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', cursor: 'pointer', textTransform: 'uppercase', color: '#717171' }}
-                onMouseEnter={e => { (e.currentTarget.style.borderColor = '#1a1a1a'); (e.currentTarget.style.color = '#1a1a1a'); }}
-                onMouseLeave={e => { (e.currentTarget.style.borderColor = '#e5e5e5'); (e.currentTarget.style.color = '#717171'); }}>
-                CLOSE
-              </button>
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setWhyModal(null)} style={{ flex: 1, background: '#1a1a1a', color: '#fff', border: 'none', borderBottom: '2px solid #c5a065', padding: '12px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', cursor: 'pointer', textTransform: 'uppercase' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#333')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#1a1a1a')}>
+                  CONFIRM METRICS
+                </button>
+                <button onClick={() => setWhyModal(null)} style={{ flex: 1, background: '#fff', border: '1px solid #e5e5e5', padding: '12px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', cursor: 'pointer', textTransform: 'uppercase', color: '#717171' }}
+                  onMouseEnter={e => { (e.currentTarget.style.borderColor = '#1a1a1a'); (e.currentTarget.style.color = '#1a1a1a'); }}
+                  onMouseLeave={e => { (e.currentTarget.style.borderColor = '#e5e5e5'); (e.currentTarget.style.color = '#717171'); }}>
+                  CLOSE
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* CSS keyframes for spin */}
       <style>{`
@@ -905,7 +927,7 @@ const EnhancedCustomerPortalInteractive = () => {
         ::-webkit-scrollbar-thumb { background: #d1d5db; }
         ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
       `}</style>
-    </div>
+    </div >
   );
 };
 
