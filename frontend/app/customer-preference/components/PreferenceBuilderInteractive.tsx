@@ -91,7 +91,7 @@ const PreferenceBuilderInteractive = () => {
     const handleSave = () => {
         if (selected.length === MAX_SELECT) {
             sessionStorage.setItem('preferenceVectors', JSON.stringify(selected));
-            router.push('/customer-portal');
+            router.push('/customer-dashboard');
         }
     };
 
