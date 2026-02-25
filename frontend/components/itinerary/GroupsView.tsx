@@ -212,10 +212,10 @@ export default function GroupsView({ tripId }: { tripId: string }) {
             {/* ── LEFT SIDEBAR: Families ──────────────────────────────────────── */}
             <aside className="w-[300px] shrink-0 flex flex-col gap-3 p-4 overflow-hidden">
                 {/* Header panel */}
-                <div className="bg-[#faf9f6] border border-stone-200/80 shadow-sm rounded-lg p-4 flex flex-col gap-3">
+                <div className="bg-[#faf9f6] border border-stone-200/80 shadow-sm p-4 flex flex-col gap-3">
                     <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                         <h2 className="text-sm font-bold text-stone-900 tracking-wide uppercase">Family Groups</h2>
-                        <span className="bg-stone-200/50 border border-stone-200 text-stone-700 text-xs font-semibold px-2 py-1 rounded-full">
+                        <span className="bg-stone-200/50 border border-stone-200 text-stone-700 text-xs font-semibold px-2 py-1">
                             Active: {FAMILIES.length}
                         </span>
                     </div>
@@ -226,7 +226,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Search family or booking ID..."
-                            className="w-full bg-stone-50 border border-stone-200 rounded-lg py-2 pl-10 pr-3 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300"
+                            className="w-full bg-stone-50 border border-stone-200 py-2 pl-10 pr-3 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300"
                         />
                     </div>
                     {/* Filter pills */}
@@ -236,7 +236,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                 key={f}
                                 onClick={() => setFamilyFilter(f)}
                                 className={cn(
-                                    'flex-1 py-1.5 border rounded-md text-xs font-semibold capitalize transition-all duration-150',
+                                    'flex-1 py-1.5 border text-xs font-semibold capitalize transition-all duration-150',
                                     familyFilter === f
                                         ? 'bg-stone-800 border-stone-800 text-white shadow-sm ring-2 ring-stone-400/30'
                                         : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50 hover:text-stone-700'
@@ -256,7 +256,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                 key={family.id}
                                 onClick={() => setActiveFamilyId(family.id)}
                                 className={cn(
-                                    'w-full text-left rounded-lg border p-4 transition-all cursor-pointer',
+                                    'w-full text-left border p-4 transition-all cursor-pointer',
                                     isActive
                                         ? 'bg-stone-200/50 border-stone-300'
                                         : isWarning
@@ -286,7 +286,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                     </div>
                                 </div>
                                 {family.lastMessage && (
-                                    <div className="mt-2 text-xs text-stone-600 bg-stone-100/50 p-2 rounded border border-stone-100 italic">
+                                    <div className="mt-2 text-xs text-stone-600 bg-stone-100/50 p-2 border border-stone-100 italic">
                                         {family.lastMessage}
                                     </div>
                                 )}
@@ -294,7 +294,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                     <div className="flex gap-2 mt-3 pt-3 border-t border-stone-100 flex-wrap">
                                         {family.tags.map((tag, i) => (
                                             <span key={i} className={cn(
-                                                'text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 border',
+                                                'text-[10px] font-bold px-2 py-1 uppercase tracking-wider flex items-center gap-1 border',
                                                 tag.variant === 'warning'
                                                     ? 'bg-[#8e5a4e]/10 text-[#8e5a4e] border-[#8e5a4e]/20'
                                                     : 'bg-stone-100 text-stone-700 border-stone-200'
@@ -315,22 +315,22 @@ export default function GroupsView({ tripId }: { tripId: string }) {
             <main className="flex-1 flex flex-col gap-4 p-4 min-w-0 overflow-hidden">
 
                 {/* Activity Timeline */}
-                <div className={cn('min-h-0 bg-[#faf9f6] border border-stone-200 rounded-xl shadow-sm flex flex-col overflow-hidden transition-all duration-300', timelineOpen ? 'flex-[1.2]' : 'flex-[0_0_auto]')}>
+                <div className={cn('min-h-0 bg-[#faf9f6] border border-stone-200 shadow-sm flex flex-col overflow-hidden transition-all duration-300', timelineOpen ? 'flex-[1.2]' : 'flex-[0_0_auto]')}>
                     <div className="flex justify-between items-center px-5 py-3.5 border-b border-stone-100 bg-[#faf9f6] shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="p-1.5 bg-stone-100 rounded text-stone-600">
+                            <div className="p-1.5 bg-stone-100 text-stone-600">
                                 <FileText className="w-4 h-4" />
                             </div>
                             <h2 className="text-sm font-bold text-stone-800 tracking-wide uppercase">Activity Timeline</h2>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="flex gap-1.5 bg-stone-100/50 p-1 rounded-md border border-stone-100 mr-2">
+                            <div className="flex gap-1.5 bg-stone-100/50 p-1 border border-stone-100 mr-2">
                                 {(['all', 'requests', 'reviews'] as LogFilter[]).map(f => (
                                     <button
                                         key={f}
                                         onClick={() => setLogFilter(f)}
                                         className={cn(
-                                            'px-3 py-1 text-xs font-semibold capitalize transition-colors rounded',
+                                            'px-3 py-1 text-xs font-semibold capitalize transition-colors',
                                             logFilter === f
                                                 ? 'bg-white shadow-sm text-stone-700 border border-stone-200'
                                                 : 'text-stone-500 hover:text-stone-700'
@@ -342,7 +342,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                             </div>
                             <button
                                 onClick={toggleTimeline}
-                                className="p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                                className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
                                 title={timelineOpen ? 'Minimise timeline' : 'Expand timeline'}
                             >
                                 {timelineOpen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -355,22 +355,22 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                             {filteredLog.map(item => {
                                 const Icon = activityIcons[item.id] ?? Clock;
                                 return (
-                                    <div key={item.id} className="group bg-white border border-stone-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden">
+                                    <div key={item.id} className="group bg-white border border-stone-200 p-4 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden">
                                         {/* Left accent bar */}
                                         <div className={cn('absolute left-0 top-0 bottom-0 w-1', item.accentColor)} />
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-start gap-4">
-                                                <div className="mt-0.5 bg-stone-50 text-stone-500 p-2 rounded-lg shrink-0">
+                                                <div className="mt-0.5 bg-stone-50 text-stone-500 p-2 shrink-0">
                                                     <Icon className="w-4 h-4" />
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <h3 className="text-sm font-bold text-stone-800">{item.title}</h3>
-                                                        <span className="bg-stone-100 text-stone-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-stone-200">{item.badge}</span>
+                                                        <span className="bg-stone-100 text-stone-600 text-[10px] font-bold px-2 py-0.5 border border-stone-200">{item.badge}</span>
                                                     </div>
                                                     <p className="text-xs text-stone-500 font-medium">{item.time}</p>
                                                     {item.body && (
-                                                        <p className="text-sm text-stone-600 bg-stone-50 p-2.5 rounded-lg border border-stone-100 mt-2 italic">
+                                                        <p className="text-sm text-stone-600 bg-stone-50 p-2.5 border border-stone-100 mt-2 italic">
                                                             {item.body}
                                                         </p>
                                                     )}
@@ -379,10 +379,10 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                             {/* Hover actions */}
                                             {item.actionable && (
                                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                                    <button className="px-3 py-1.5 bg-[#4f5d4e] text-white text-xs font-semibold rounded-md hover:bg-[#3d4a3c] transition-colors flex items-center gap-1">
+                                                    <button className="px-3 py-1.5 bg-[#4f5d4e] text-white text-xs font-semibold hover:bg-[#3d4a3c] transition-colors flex items-center gap-1">
                                                         <CheckCircle className="w-3 h-3" /> Approve
                                                     </button>
-                                                    <button className="px-3 py-1.5 border border-stone-200 bg-white text-stone-600 text-xs font-semibold rounded-md hover:bg-stone-50 transition-colors flex items-center gap-1">
+                                                    <button className="px-3 py-1.5 border border-stone-200 bg-white text-stone-600 text-xs font-semibold hover:bg-stone-50 transition-colors flex items-center gap-1">
                                                         <XCircle className="w-3 h-3" /> Reject
                                                     </button>
                                                 </div>
@@ -396,7 +396,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                 </div>
 
                 {/* Live Chat Panel */}
-                <div className={cn('min-h-0 bg-[#faf9f6] border border-stone-200 rounded-xl shadow-lg flex flex-col overflow-hidden transition-all duration-300', chatOpen ? 'flex-1' : 'flex-[0_0_auto]')}>
+                <div className={cn('min-h-0 bg-[#faf9f6] border border-stone-200 shadow-lg flex flex-col overflow-hidden transition-all duration-300', chatOpen ? 'flex-1' : 'flex-[0_0_auto]')}>
                     {/* Chat header */}
                     <div className="px-5 py-3 border-b border-stone-100 bg-[#faf9f6] flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-3">
@@ -409,12 +409,12 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] bg-stone-100 text-stone-500 px-2 py-1 rounded font-bold uppercase tracking-widest">
+                            <span className="text-[10px] bg-stone-100 text-stone-500 px-2 py-1 font-bold uppercase tracking-widest">
                                 Secure Channel
                             </span>
                             <button
                                 onClick={toggleChat}
-                                className="p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                                className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
                                 title={chatOpen ? 'Minimise chat' : 'Expand chat'}
                             >
                                 {chatOpen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -427,7 +427,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                         <>
                             <div className="flex-1 overflow-y-auto scrollbar-hide p-5 space-y-4 bg-stone-50/50">
                                 <div className="flex justify-center mb-1">
-                                    <span className="text-[10px] font-bold text-stone-400 bg-stone-200/40 px-3 py-1 rounded-full uppercase tracking-widest">Today</span>
+                                    <span className="text-[10px] font-bold text-stone-400 bg-stone-200/40 px-3 py-1 uppercase tracking-widest">Today</span>
                                 </div>
                                 {chatMessages.map((msg, i) => (
                                     <div key={i} className={cn('flex', msg.role === 'agent' ? 'justify-end' : 'justify-start')}>
@@ -439,10 +439,10 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                                 {msg.initials}
                                             </div>
                                             <div className={cn(
-                                                'px-4 py-3 text-sm rounded-2xl shadow-sm',
+                                                'px-4 py-3 text-sm shadow-sm',
                                                 msg.role === 'guest'
-                                                    ? 'bg-white border border-stone-200 text-stone-700 rounded-tl-none'
-                                                    : 'bg-[#353b48] text-white rounded-tr-none'
+                                                    ? 'bg-white border border-stone-200 text-stone-700'
+                                                    : 'bg-[#353b48] text-white'
                                             )}>
                                                 {msg.text}
                                             </div>
@@ -456,7 +456,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                             <div className="p-4 bg-white border-t border-stone-100 shrink-0">
                                 <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-hide">
                                     {['Send Itinerary', 'Suggest Activity', 'Room Service'].map(label => (
-                                        <button key={label} className="whitespace-nowrap text-xs font-bold border border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100 px-3 py-1.5 rounded-full transition-colors uppercase tracking-wider flex items-center gap-1">
+                                        <button key={label} className="whitespace-nowrap text-xs font-bold border border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100 px-3 py-1.5 transition-colors uppercase tracking-wider flex items-center gap-1">
                                             <Calendar className="w-3 h-3" /> {label}
                                         </button>
                                     ))}
@@ -468,12 +468,12 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                         onChange={e => setChatInput(e.target.value)}
                                         onKeyDown={e => { if (e.key === 'Enter') sendChat(); }}
                                         placeholder="Type your message..."
-                                        className="flex-1 bg-stone-50 border border-stone-200 rounded-lg py-2.5 px-4 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300 transition-all"
+                                        className="flex-1 bg-stone-50 border border-stone-200 py-2.5 px-4 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300 transition-all"
                                     />
                                     <button
                                         onClick={sendChat}
                                         disabled={!chatInput.trim()}
-                                        className="w-10 bg-[#4a647c] text-white rounded-lg flex items-center justify-center hover:bg-[#3d5368] transition-colors disabled:opacity-40"
+                                        className="w-10 bg-[#4a647c] text-white flex items-center justify-center hover:bg-[#3d5368] transition-colors disabled:opacity-40"
                                     >
                                         <Send className="w-4 h-4" />
                                     </button>
@@ -488,16 +488,16 @@ export default function GroupsView({ tripId }: { tripId: string }) {
             <aside className="w-[260px] shrink-0 flex flex-col gap-4 p-4 overflow-y-auto scrollbar-hide">
 
                 {/* Map */}
-                <div className="bg-[#faf9f6] border border-stone-200 rounded-xl shadow-sm overflow-hidden h-[180px] relative group">
+                <div className="bg-[#faf9f6] border border-stone-200 shadow-sm overflow-hidden h-[180px] relative group">
                     {/* Label badge */}
-                    <div className="absolute top-2.5 left-2.5 z-10 bg-white/90 backdrop-blur text-stone-700 text-[10px] font-bold px-2 py-1 rounded-md shadow-sm border border-stone-200 flex items-center gap-1.5 uppercase tracking-wider">
+                    <div className="absolute top-2.5 left-2.5 z-10 bg-white/90 backdrop-blur text-stone-700 text-[10px] font-bold px-2 py-1 shadow-sm border border-stone-200 flex items-center gap-1.5 uppercase tracking-wider">
                         <span className="w-1.5 h-1.5 bg-[#4a647c] rounded-full" />
                         Pool Sector 04
                     </div>
                     {/* Maximize button */}
                     <button
                         onClick={() => setMapExpanded(true)}
-                        className="absolute top-2.5 right-2.5 z-10 w-7 h-7 bg-white/90 backdrop-blur border border-stone-200 rounded-md shadow-sm flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
+                        className="absolute top-2.5 right-2.5 z-10 w-7 h-7 bg-white/90 backdrop-blur border border-stone-200 shadow-sm flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
                         title="Expand map"
                     >
                         <Maximize2 className="w-3.5 h-3.5" />
@@ -521,7 +521,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                         onClick={() => setMapExpanded(false)}
                     >
                         <div
-                            className="relative bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-stone-200"
+                            className="relative bg-white shadow-2xl flex flex-col overflow-hidden border border-stone-200"
                             style={{ width: '70vw', height: '65vh' }}
                             onClick={e => e.stopPropagation()}
                         >
@@ -533,7 +533,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                 </div>
                                 <button
                                     onClick={() => setMapExpanded(false)}
-                                    className="w-7 h-7 flex items-center justify-center rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 transition-colors"
+                                    className="w-7 h-7 flex items-center justify-center bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 transition-colors"
                                 >
                                     <Minimize2 className="w-3.5 h-3.5" />
                                 </button>
@@ -556,7 +556,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                 )}
 
                 {/* Manifest Details */}
-                <div className="bg-[#faf9f6] border border-stone-200/80 shadow-sm rounded-lg p-4 flex-1 flex flex-col">
+                <div className="bg-[#faf9f6] border border-stone-200/80 shadow-sm p-4 flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-4 border-b border-stone-100 pb-2">
                         <FileText className="w-4 h-4 text-stone-400" />
                         <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest">Manifest Details</h3>
@@ -564,14 +564,14 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                     <div className="space-y-3">
                         {[
                             { label: 'Dates', value: trip.dateRange },
-                            { label: 'Guests', valueNode: <div className="flex gap-1"><span className="text-stone-800 font-bold bg-stone-100 px-1.5 py-0.5 rounded text-xs border border-stone-200">2 ADT</span><span className="text-stone-800 font-bold bg-stone-100 px-1.5 py-0.5 rounded text-xs border border-stone-200">2 CHD</span></div> },
+                            { label: 'Guests', valueNode: <div className="flex gap-1"><span className="text-stone-800 font-bold bg-stone-100 px-1.5 py-0.5 text-xs border border-stone-200">2 ADT</span><span className="text-stone-800 font-bold bg-stone-100 px-1.5 py-0.5 text-xs border border-stone-200">2 CHD</span></div> },
                             { label: 'Package', value: 'PREMIUM ALL-INC', mono: true },
                         ].map(({ label, value, valueNode, mono }) => (
                             <div key={label} className="flex justify-between items-center text-sm">
                                 <span className="text-stone-500 font-medium text-xs">{label}</span>
                                 {valueNode ?? (
                                     <span className={cn(
-                                        'text-stone-800 font-bold bg-stone-100 px-2 py-0.5 rounded border border-stone-200 text-xs',
+                                        'text-stone-800 font-bold bg-stone-100 px-2 py-0.5 border border-stone-200 text-xs',
                                         mono && 'uppercase tracking-wider text-[10px]'
                                     )}>{value}</span>
                                 )}
@@ -579,7 +579,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                         ))}
                     </div>
                     <div className="mt-auto pt-4 border-t border-stone-100 border-dashed">
-                        <button className="w-full py-2.5 bg-stone-100/50 border border-stone-200 text-stone-700 hover:bg-white hover:border-stone-300 hover:shadow-sm transition-all text-[10px] font-bold rounded-lg flex items-center justify-center gap-2 uppercase tracking-widest">
+                        <button className="w-full py-2.5 bg-stone-100/50 border border-stone-200 text-stone-700 hover:bg-white hover:border-stone-300 hover:shadow-sm transition-all text-[10px] font-bold flex items-center justify-center gap-2 uppercase tracking-widest">
                             <FileText className="w-3.5 h-3.5 text-stone-400" />
                             Open Contract PDF
                         </button>
