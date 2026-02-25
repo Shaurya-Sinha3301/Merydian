@@ -6,11 +6,11 @@ import activeGroupsData from '@/lib/agent-dashboard/data/active_groups.json';
 import upcomingGroupsData from '@/lib/agent-dashboard/data/upcoming_groups.json';
 
 /* ── Design tokens ── */
-const GOLD = '#c5a065';
-const DARK = '#1a1a1a';
-const MID = '#717171';
-const LIGHT = '#e5e5e5';
-const GREEN = '#8fa391';
+const GOLD = 'var(--gradient-opt-gold)';
+const DARK = 'var(--bp-text)';
+const MID = 'var(--bp-muted)';
+const LIGHT = 'var(--bp-border)';
+const GREEN = 'var(--bp-sage)';
 const FF_BODY = "'Outfit', sans-serif";
 const FF_MONO = "'JetBrains Mono', monospace";
 
@@ -56,8 +56,8 @@ function HoverCard({ children, style, revised = false }: { children: React.React
 function SectionLabel({ children }: { children: React.ReactNode }) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 3, height: 14, background: GOLD, flexShrink: 0 }} />
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', color: DARK, fontFamily: FF_MONO }}>{children}</span>
+            <div style={{ width: 3, height: 16, background: GOLD, flexShrink: 0 }} />
+            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.15em', color: DARK, fontFamily: FF_MONO }}>{children}</span>
         </div>
     );
 }
@@ -232,9 +232,9 @@ export default function CustomerDashboardInteractive() {
                         <div style={{ padding: '24px 28px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                                 <SectionLabel>UPCOMING TIMELINE</SectionLabel>
-                                <button onClick={() => router.push('/customer-portal')} className="btn-outline"
-                                    style={{ background: 'none', border: `1px solid ${LIGHT}`, padding: '6px 14px', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: MID, cursor: 'pointer', fontFamily: FF_BODY }}>
-                                    Full view →
+                                <button onClick={() => router.push('/customer-portal')} className="btn-gradient-hover"
+                                    style={{ border: `1px solid ${LIGHT}`, borderRadius: '4px', padding: '6px 14px', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: FF_BODY }}>
+                                    Full Itinerary →
                                 </button>
                             </div>
 
@@ -458,6 +458,10 @@ export default function CustomerDashboardInteractive() {
         /* View full btn */
         .btn-outline { border: 1px solid ${LIGHT}; transition: color 0.2s, border-color 0.2s; }
         .btn-outline:hover { color: ${DARK} !important; border-color: ${DARK}; border-bottom-color: ${GOLD}; }
+
+        /* Full view btn timeline */
+        .btn-gradient-hover { background: transparent; color: ${DARK}; transition: all 0.2s; }
+        .btn-gradient-hover:hover { background: var(--gradient-opt); color: #fff !important; border-color: transparent !important; box-shadow: 0 2px 8px rgba(197,160,101,0.25); }
 
         /* Agent contact icons */
         .agent-btn  { border: 1px solid ${LIGHT}; color: ${MID}; transition: border-color 0.2s, color 0.2s; }
