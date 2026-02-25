@@ -381,9 +381,9 @@ export default function CustomerDashboardInteractive() {
                                     </div>
                                 ))}
                             </div>
-                            <button onClick={() => router.push('/customer-portal')} className="btn-outline"
+                            <button onClick={() => router.push('/customer-bookings')} className="btn-outline"
                                 style={{ marginTop: 12, width: '100%', background: 'none', padding: '9px 0', fontSize: 12, fontWeight: 600, color: MID, cursor: 'pointer', fontFamily: FF_BODY }}>
-                                View Full Itinerary →
+                                All Bookings →
                             </button>
                         </div>
 
