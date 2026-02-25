@@ -33,7 +33,7 @@ export default function CustomerBookingsPage() {
     // Check for highlight parameter
     const params = new URLSearchParams(window.location.search);
     const highlightId = params.get('highlight');
-    
+
     if (highlightId && bookings.length > 0) {
       const booking = bookings.find(b => b.id === highlightId);
       if (booking) {
@@ -44,7 +44,7 @@ export default function CustomerBookingsPage() {
 
   useEffect(() => {
     const familyId = sessionStorage.getItem('familyId');
-    
+
     if (!familyId) {
       router.push('/customer-login');
       return;
@@ -56,7 +56,7 @@ export default function CustomerBookingsPage() {
 
     // Find all trips for this family
     const familyTrips: string[] = [];
-    
+
     [...activeGroupsData.groups, ...upcomingGroupsData.groups].forEach((group: any) => {
       const family = group.families.find((f: any) => f.id === familyId);
       if (family) {
@@ -73,18 +73,18 @@ export default function CustomerBookingsPage() {
             if (event.type === 'transport' && event.transport?.ticketStatus) {
               const mode = event.transport.mode.toLowerCase();
               const ticketStatus = event.transport.ticketStatus;
-              
+
               // Safely extract booking reference
               let bookingRef = 'N/A';
               let ticketUrl = undefined;
-              
+
               if (typeof ticketStatus === 'string') {
                 bookingRef = ticketStatus;
               } else if (typeof ticketStatus === 'object' && ticketStatus !== null) {
                 bookingRef = ticketStatus.bookingReference || ticketStatus.bookingId || 'N/A';
                 ticketUrl = ticketStatus.ticketUrl;
               }
-              
+
               extractedBookings.push({
                 id: event.id,
                 type: mode === 'flight' ? 'flight' : mode === 'train' ? 'train' : 'cab',
@@ -103,13 +103,13 @@ export default function CustomerBookingsPage() {
               // Safely extract booking reference
               let bookingRef = 'N/A';
               const accBookingRef = event.accommodation.bookingReference;
-              
+
               if (typeof accBookingRef === 'string') {
                 bookingRef = accBookingRef;
               } else if (typeof accBookingRef === 'object' && accBookingRef !== null) {
                 bookingRef = accBookingRef.bookingReference || accBookingRef.bookingId || 'N/A';
               }
-              
+
               extractedBookings.push({
                 id: event.id,
                 type: 'hotel',
@@ -128,13 +128,13 @@ export default function CustomerBookingsPage() {
               // Safely extract booking reference
               let bookingRef = 'N/A';
               const actTicketRef = event.activity.ticketReference;
-              
+
               if (typeof actTicketRef === 'string') {
                 bookingRef = actTicketRef;
               } else if (typeof actTicketRef === 'object' && actTicketRef !== null) {
                 bookingRef = actTicketRef.bookingReference || actTicketRef.bookingId || 'N/A';
               }
-              
+
               extractedBookings.push({
                 id: event.id,
                 type: 'activity',
@@ -213,7 +213,7 @@ export default function CustomerBookingsPage() {
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               <button
-                onClick={() => router.push('/customer-portal')}
+                onClick={() => router.back()}
                 style={{
                   width: 40, height: 40,
                   background: '#fff',
@@ -350,7 +350,7 @@ export default function CustomerBookingsPage() {
           <div style={{ background: '#fff', border: '1px solid #e5e5e5', padding: 80, textAlign: 'center' }}>
             <div style={{ width: 64, height: 64, background: '#f0f0f0', border: '1px solid #e5e5e5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
               <svg style={{ width: 32, height: 32, color: '#717171' }} fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd"/>
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
               </svg>
             </div>
             <h3 style={{ fontSize: 20, fontWeight: 300, color: '#1a1a1a', marginBottom: 12 }}>No Bookings Found</h3>
