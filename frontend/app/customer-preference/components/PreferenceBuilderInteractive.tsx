@@ -52,6 +52,7 @@ const PreferenceBuilderInteractive = () => {
     const [destMeta, setDestMeta] = useState(DESTINATION_META.DEFAULT);
     const [itineraryName, setItineraryName] = useState('');
     const [saveHovered, setSaveHovered] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const familyId = sessionStorage.getItem('familyId');
@@ -281,22 +282,63 @@ const PreferenceBuilderInteractive = () => {
                     </div>
                 )}
 
+                {/* ── Search Bar ── */}
+                <div style={{ padding: '16px 48px 0' }}>
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        background: '#fff', border: '1px solid #e5e5e5',
+                        padding: '0 14px', height: 38,
+                        transition: 'border-color 0.2s',
+                    }}
+                        onFocus={() => { }}
+                    >
+                        {/* Search icon */}
+                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                            <circle cx="6.5" cy="6.5" r="5" stroke="#aaa" strokeWidth="1.5" />
+                            <path d="M10.5 10.5L14 14" stroke="#aaa" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                        <input
+                            type="text"
+                            placeholder="Search experiences..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            style={{
+                                flex: 1, border: 'none', outline: 'none',
+                                fontSize: 11, fontFamily: "'Outfit', sans-serif",
+                                letterSpacing: '0.05em', color: '#1a1a1a',
+                                background: 'transparent',
+                            }}
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#aaa', fontSize: 14, lineHeight: 1, padding: 0 }}
+                            >×</button>
+                        )}
+                    </div>
+                </div>
+
                 {/* ── Experience Cards Grid (scrollable) ── */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: '28px 48px 64px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                        {EXPERIENCES.map((exp) => {
-                            const isSelected = selected.includes(exp.id);
-                            const isMaxed = selected.length >= MAX_SELECT && !isSelected;
-                            return (
-                                <ExperienceCard
-                                    key={exp.id}
-                                    exp={exp}
-                                    isSelected={isSelected}
-                                    isMaxed={isMaxed}
-                                    onToggle={() => toggle(exp.id)}
-                                />
-                            );
-                        })}
+                        {EXPERIENCES
+                            .filter(exp =>
+                                exp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                exp.category.toLowerCase().includes(searchQuery.toLowerCase())
+                            )
+                            .map((exp) => {
+                                const isSelected = selected.includes(exp.id);
+                                const isMaxed = selected.length >= MAX_SELECT && !isSelected;
+                                return (
+                                    <ExperienceCard
+                                        key={exp.id}
+                                        exp={exp}
+                                        isSelected={isSelected}
+                                        isMaxed={isMaxed}
+                                        onToggle={() => toggle(exp.id)}
+                                    />
+                                );
+                            })}
                     </div>
                 </div>
             </main>
