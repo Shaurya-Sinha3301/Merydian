@@ -6,6 +6,7 @@ import { Clock, MapPin, Car, Plane } from 'lucide-react';
 import activeGroupsData from '@/lib/agent-dashboard/data/active_groups.json';
 import upcomingGroupsData from '@/lib/agent-dashboard/data/upcoming_groups.json';
 import itineraryDataFile from '@/lib/agent-dashboard/data/itinerary_data.json';
+import { CustomerSidebar } from '@/app/components/CustomerSidebar';
 
 /* ─────────── helpers ─────────── */
 const formatTime = (iso: string) => {
@@ -59,11 +60,9 @@ const EnhancedCustomerPortalInteractive = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [familyName, setFamilyName] = useState('');
-  const [familyInitial, setFamilyInitial] = useState('F');
   const [itinerary, setItinerary] = useState<any>(null);
   const [activeDayIdx, setActiveDayIdx] = useState(0);
   const [expandedEvt, setExpandedEvt] = useState<string | null>(null);
-  const [navTab, setNavTab] = useState<'plan' | 'docs' | 'hub' | 'vip'>('plan');
   const [whyModal, setWhyModal] = useState<{ title: string; reason: string; originalCost: string; newCost: string; efficiency: number; whyText: string } | null>(null);
   const [acceptedPois, setAcceptedPois] = useState<string[]>([]);
   const [declinedPois, setDeclinedPois] = useState<string[]>([]);
@@ -121,16 +120,10 @@ const EnhancedCustomerPortalInteractive = () => {
 
     const itin = itineraryDataFile.itineraries.find((i: any) => i.groupId === foundGroupId);
     setFamilyName(foundFamily.family_name || 'Family');
-    setFamilyInitial((foundFamily.family_name || 'F')[0].toUpperCase());
     setItinerary(itin || null);
     setActiveDayIdx(0);
     setIsLoading(false);
   }, [router]);
-
-  const handleLogout = () => {
-    sessionStorage.removeItem('familyId');
-    router.push('/customer-login');
-  };
 
   /* ── loading ── */
   if (isLoading) {
@@ -159,73 +152,7 @@ const EnhancedCustomerPortalInteractive = () => {
     }}>
 
       {/* ════ LEFT ICON SIDEBAR ════ */}
-      <aside style={{
-        width: 80,
-        borderRight: '1px solid #e5e5e5',
-        background: '#fff',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 20,
-        boxShadow: '4px 0 24px rgba(0,0,0,0.02)',
-      }}>
-        {/* Logo */}
-        <div style={{ height: 80, borderBottom: '1px solid #e5e5e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: 40, height: 40, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>{familyInitial}</span>
-          </div>
-        </div>
-
-        {/* Nav */}
-        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 32, paddingBottom: 32, gap: 4 }}>
-          {[
-            { id: 'hub', icon: '⊞', label: 'HUB' },
-            { id: 'plan', icon: '◈', label: 'PLAN' },
-            { id: 'docs', icon: '⬛', label: 'DOCS' },
-            { id: 'vip', icon: '◆', label: 'VIP' },
-          ].map(({ id, icon, label }) => (
-            <button
-              key={id}
-              onClick={() => setNavTab(id as any)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingTop: 16,
-                paddingBottom: 16,
-                cursor: 'pointer',
-                background: navTab === id ? 'rgba(0,0,0,0.02)' : 'transparent',
-                border: 'none',
-                borderRight: navTab === id ? '2px solid #1a1a1a' : '2px solid transparent',
-                color: navTab === id ? '#1a1a1a' : '#717171',
-                transition: 'all 0.2s',
-                gap: 4,
-              }}
-            >
-              <span style={{ fontSize: 20 }}>{icon}</span>
-              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.15em' }}>{label}</span>
-            </button>
-          ))}
-        </nav>
-
-        {/* User avatar */}
-        <div style={{ height: 80, borderTop: '1px solid #e5e5e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            style={{
-              width: 36, height: 36, borderRadius: '50%',
-              background: '#1a1a1a',
-              border: '1px solid #333',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#fff', fontSize: 14, fontWeight: 700,
-            }}
-          >
-            {familyInitial}
-          </button>
-        </div>
-      </aside>
+      <CustomerSidebar activeTab="portal" />
 
       {/* ════ MAIN AREA ════ */}
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fafafa', overflow: 'hidden' }}>

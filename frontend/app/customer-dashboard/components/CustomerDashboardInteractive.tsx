@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import activeGroupsData from '@/lib/agent-dashboard/data/active_groups.json';
 import upcomingGroupsData from '@/lib/agent-dashboard/data/upcoming_groups.json';
+import { CustomerSidebar } from '@/app/components/CustomerSidebar';
 
 /* ── Design tokens ── */
 const GOLD = 'var(--gradient-opt-gold)';
@@ -110,9 +111,7 @@ const DEST: Record<string, { city: string; country: string; lat: string; lng: st
 export default function CustomerDashboardInteractive() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
-    const [familyInitial, setFamilyInitial] = useState('F');
     const [destMeta, setDestMeta] = useState(DEST.DEFAULT);
-    const [navTab, setNavTab] = useState<'hub' | 'plan' | 'docs' | 'vip'>('hub');
     const [messages, setMessages] = useState(INITIAL_MESSAGES);
     const [chatInput, setChatInput] = useState('');
     const [dismissed, setDismissed] = useState<string[]>([]);
@@ -127,14 +126,11 @@ export default function CustomerDashboardInteractive() {
             if (f) { found = f; gid = g.id; break; }
         }
         if (!found) { router.push('/customer-login'); return; }
-        setFamilyInitial((found.family_name || 'F')[0].toUpperCase());
         setDestMeta(DEST[gid ?? 'DEFAULT'] ?? DEST.DEFAULT);
         setIsLoading(false);
     }, [router]);
 
     useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-
-    const logout = () => { sessionStorage.removeItem('familyId'); router.push('/customer-login'); };
 
     const send = () => {
         const txt = chatInput.trim();
@@ -160,27 +156,7 @@ export default function CustomerDashboardInteractive() {
         <div style={{ display: 'flex', height: '100vh', fontFamily: FF_BODY, background: '#f5f5f5', color: DARK, overflow: 'hidden' }}>
 
             {/* ══ SIDEBAR ══ */}
-            <aside style={{ width: 72, borderRight: `1px solid ${LIGHT}`, background: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                <div style={{ height: 72, borderBottom: `1px solid ${LIGHT}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ width: 38, height: 38, background: DARK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ color: '#fff', fontWeight: 700, fontSize: 17 }}>{familyInitial}</span>
-                    </div>
-                </div>
-                <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 28, gap: 2 }}>
-                    {([{ id: 'hub', icon: '⊞', label: 'HUB' }, { id: 'plan', icon: '◈', label: 'PLAN' }, { id: 'docs', icon: '⬛', label: 'DOCS' }, { id: 'vip', icon: '◆', label: 'VIP' }] as const).map(({ id, icon, label }) => (
-                        <button key={id} onClick={() => setNavTab(id)}
-                            style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '14px 0', cursor: 'pointer', background: navTab === id ? 'rgba(0,0,0,0.03)' : 'transparent', border: 'none', borderRight: navTab === id ? `2px solid ${DARK}` : '2px solid transparent', color: navTab === id ? DARK : '#aaa', transition: 'all 0.2s', gap: 3 }}>
-                            <span style={{ fontSize: 18 }}>{icon}</span>
-                            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em' }}>{label}</span>
-                        </button>
-                    ))}
-                </nav>
-                <div style={{ height: 72, borderTop: `1px solid ${LIGHT}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <button onClick={logout} style={{ width: 34, height: 34, borderRadius: '50%', background: DARK, border: 'none', cursor: 'pointer', color: '#fff', fontSize: 13, fontWeight: 700 }}>
-                        {familyInitial}
-                    </button>
-                </div>
-            </aside>
+            <CustomerSidebar activeTab="dashboard" />
 
             {/* ══ MAIN ══ */}
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
