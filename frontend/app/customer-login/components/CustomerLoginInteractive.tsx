@@ -34,7 +34,7 @@ const CustomerLoginInteractive = () => {
     // Store family ID in session storage and redirect
     setTimeout(() => {
       sessionStorage.setItem('familyId', familyId.toUpperCase());
-      router.push('/customer-portal');
+      router.push('/customer-preference');
     }, 1000);
   };
 
