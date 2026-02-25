@@ -205,8 +205,12 @@ export default function CustomerDashboardInteractive() {
                         </div>
 
                         {/* Timeline */}
-                        <div style={{ padding: '24px 28px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                        <div style={{ paddingBottom: 24 }}>
+                            <div style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                padding: '24px 28px 20px 28px',
+                                position: 'sticky', top: 220, background: '#fff', zIndex: 10
+                            }}>
                                 <SectionLabel>UPCOMING TIMELINE</SectionLabel>
                                 <button onClick={() => router.push('/customer-portal')} className="btn-gradient-hover"
                                     style={{ border: `1px solid ${LIGHT}`, borderRadius: '2px', padding: '6px 14px', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: FF_BODY }}>
@@ -214,72 +218,74 @@ export default function CustomerDashboardInteractive() {
                                 </button>
                             </div>
 
-                            {/* Notification banners */}
-                            {activeNotifs.length > 0 && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 22 }}>
-                                    {activeNotifs.map(n => {
-                                        const warn = n.severity === 'warning';
+                            <div style={{ padding: '0 28px' }}>
+                                {/* Notification banners */}
+                                {activeNotifs.length > 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 22 }}>
+                                        {activeNotifs.map(n => {
+                                            const warn = n.severity === 'warning';
+                                            return (
+                                                <HoverCard key={n.id} revised={warn} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '11px 14px' }}>
+                                                    <div style={{ width: 3, alignSelf: 'stretch', background: warn ? GOLD : GREEN, flexShrink: 0 }} />
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ fontSize: 15, fontWeight: 600, color: DARK, marginBottom: 3 }}>{n.title}</div>
+                                                        <div style={{ fontSize: 13, color: MID, lineHeight: 1.5 }}>{n.detail}</div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', flexShrink: 0 }}>
+                                                        <button onClick={() => router.push('/customer-portal')} className="btn-gold-outline"
+                                                            style={{ fontSize: 11, fontWeight: 700, color: GOLD, background: 'none', border: `1px solid ${GOLD}`, padding: '3px 8px', cursor: 'pointer', fontFamily: FF_BODY }}>
+                                                            View
+                                                        </button>
+                                                        <button onClick={() => setDismissed(d => [...d, n.id])}
+                                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#bbb', fontSize: 16, lineHeight: 1, padding: 0 }}>×</button>
+                                                    </div>
+                                                </HoverCard>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* Timeline events: [time 68px] [dot-track 24px] [card flex] */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    {TIMELINE_EVENTS.map((evt, idx) => {
+                                        const rev = evt.status === 'REVISED';
+                                        const first = idx === 0;
                                         return (
-                                            <HoverCard key={n.id} revised={warn} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '11px 14px' }}>
-                                                <div style={{ width: 3, alignSelf: 'stretch', background: warn ? GOLD : GREEN, flexShrink: 0 }} />
-                                                <div style={{ flex: 1 }}>
-                                                    <div style={{ fontSize: 15, fontWeight: 600, color: DARK, marginBottom: 3 }}>{n.title}</div>
-                                                    <div style={{ fontSize: 13, color: MID, lineHeight: 1.5 }}>{n.detail}</div>
+                                            <div key={evt.id} style={{ display: 'flex', alignItems: 'stretch' }}>
+                                                {/* Time */}
+                                                <div style={{ width: 68, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingTop: 10, paddingRight: 8 }}>
+                                                    <div style={{ fontSize: 14, fontWeight: 700, color: rev ? GOLD : DARK, fontFamily: FF_MONO, lineHeight: 1 }}>{evt.time}</div>
+                                                    {evt.tminus && <div style={{ fontSize: 9, color: rev ? GOLD : MID, fontFamily: FF_MONO, marginTop: 3, letterSpacing: '0.08em' }}>{evt.tminus}</div>}
                                                 </div>
-                                                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', flexShrink: 0 }}>
-                                                    <button onClick={() => router.push('/customer-portal')} className="btn-gold-outline"
-                                                        style={{ fontSize: 11, fontWeight: 700, color: GOLD, background: 'none', border: `1px solid ${GOLD}`, padding: '3px 8px', cursor: 'pointer', fontFamily: FF_BODY }}>
-                                                        View
-                                                    </button>
-                                                    <button onClick={() => setDismissed(d => [...d, n.id])}
-                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#bbb', fontSize: 16, lineHeight: 1, padding: 0 }}>×</button>
+                                                {/* Dot + line track */}
+                                                <div style={{ width: 24, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                                                    <div style={{ position: 'absolute', top: 0, bottom: 0, width: 1, background: LIGHT, left: '50%', transform: 'translateX(-50%)' }} />
+                                                    <div style={{
+                                                        marginTop: 12, width: first ? 11 : 8, height: first ? 11 : 8, borderRadius: '50%', flexShrink: 0, zIndex: 1,
+                                                        background: rev ? GOLD : (first ? '#fff' : '#ccc'),
+                                                        border: first ? `2px solid ${DARK}` : rev ? `2px solid ${GOLD}` : `1px solid #ccc`,
+                                                        boxShadow: rev ? `0 0 0 3px rgba(197,160,101,0.18)` : 'none',
+                                                    }} />
                                                 </div>
-                                            </HoverCard>
+                                                {/* Card */}
+                                                <div style={{ flex: 1, paddingLeft: 10, paddingBottom: 4 }}>
+                                                    <HoverCard revised={rev} style={{ padding: '12px 16px' }}>
+                                                        {evt.status && <span style={{ position: 'absolute', top: 10, right: 10, fontSize: 9, fontWeight: 700, color: GOLD, border: `1px solid ${GOLD}`, padding: '1px 6px', fontFamily: FF_MONO, letterSpacing: '0.1em' }}>{evt.status}</span>}
+                                                        <div style={{ fontSize: 17, fontWeight: 500, color: DARK, marginBottom: 5, paddingRight: evt.status ? 66 : 0, lineHeight: 1.3 }}>{evt.title}</div>
+                                                        <div style={{ fontSize: 14, color: MID }}>{evt.subtitle}</div>
+                                                        {evt.hasWhy && (
+                                                            <button onClick={() => router.push('/customer-portal')} className="link-gold"
+                                                                style={{ marginTop: 8, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: GOLD, fontWeight: 600, padding: 0, display: 'flex', alignItems: 'center', gap: 5, fontFamily: FF_BODY }}>
+                                                                <span style={{ width: 5, height: 5, borderRadius: '50%', background: GOLD, display: 'inline-block' }} />
+                                                                View 'Why' Analysis
+                                                            </button>
+                                                        )}
+                                                    </HoverCard>
+                                                </div>
+                                            </div>
                                         );
                                     })}
                                 </div>
-                            )}
-
-                            {/* Timeline events: [time 68px] [dot-track 24px] [card flex] */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                {TIMELINE_EVENTS.map((evt, idx) => {
-                                    const rev = evt.status === 'REVISED';
-                                    const first = idx === 0;
-                                    return (
-                                        <div key={evt.id} style={{ display: 'flex', alignItems: 'stretch' }}>
-                                            {/* Time */}
-                                            <div style={{ width: 68, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingTop: 10, paddingRight: 8 }}>
-                                                <div style={{ fontSize: 14, fontWeight: 700, color: rev ? GOLD : DARK, fontFamily: FF_MONO, lineHeight: 1 }}>{evt.time}</div>
-                                                {evt.tminus && <div style={{ fontSize: 9, color: rev ? GOLD : MID, fontFamily: FF_MONO, marginTop: 3, letterSpacing: '0.08em' }}>{evt.tminus}</div>}
-                                            </div>
-                                            {/* Dot + line track */}
-                                            <div style={{ width: 24, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-                                                <div style={{ position: 'absolute', top: 0, bottom: 0, width: 1, background: LIGHT, left: '50%', transform: 'translateX(-50%)' }} />
-                                                <div style={{
-                                                    marginTop: 12, width: first ? 11 : 8, height: first ? 11 : 8, borderRadius: '50%', flexShrink: 0, zIndex: 1,
-                                                    background: rev ? GOLD : (first ? '#fff' : '#ccc'),
-                                                    border: first ? `2px solid ${DARK}` : rev ? `2px solid ${GOLD}` : `1px solid #ccc`,
-                                                    boxShadow: rev ? `0 0 0 3px rgba(197,160,101,0.18)` : 'none',
-                                                }} />
-                                            </div>
-                                            {/* Card */}
-                                            <div style={{ flex: 1, paddingLeft: 10, paddingBottom: 4 }}>
-                                                <HoverCard revised={rev} style={{ padding: '12px 16px' }}>
-                                                    {evt.status && <span style={{ position: 'absolute', top: 10, right: 10, fontSize: 9, fontWeight: 700, color: GOLD, border: `1px solid ${GOLD}`, padding: '1px 6px', fontFamily: FF_MONO, letterSpacing: '0.1em' }}>{evt.status}</span>}
-                                                    <div style={{ fontSize: 17, fontWeight: 500, color: DARK, marginBottom: 5, paddingRight: evt.status ? 66 : 0, lineHeight: 1.3 }}>{evt.title}</div>
-                                                    <div style={{ fontSize: 14, color: MID }}>{evt.subtitle}</div>
-                                                    {evt.hasWhy && (
-                                                        <button onClick={() => router.push('/customer-portal')} className="link-gold"
-                                                            style={{ marginTop: 8, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: GOLD, fontWeight: 600, padding: 0, display: 'flex', alignItems: 'center', gap: 5, fontFamily: FF_BODY }}>
-                                                            <span style={{ width: 5, height: 5, borderRadius: '50%', background: GOLD, display: 'inline-block' }} />
-                                                            View 'Why' Analysis
-                                                        </button>
-                                                    )}
-                                                </HoverCard>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
                             </div>
                         </div>
                     </div>
