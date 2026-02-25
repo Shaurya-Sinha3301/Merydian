@@ -109,19 +109,20 @@ const PreferenceBuilderInteractive = () => {
     const canSave = selected.length === MAX_SELECT;
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Outfit', sans-serif", background: '#fafafa', color: '#1a1a1a' }}>
+        <div style={{ display: 'flex', height: '100vh', fontFamily: "'Outfit', sans-serif", background: '#fafafa', color: '#1a1a1a', overflow: 'hidden' }}>
 
             {/* ════ LEFT DARK PANEL ════ */}
             <aside style={{
                 width: 280,
-                minHeight: '100vh',
+                height: '100vh',
                 background: '#111',
                 color: '#fff',
                 display: 'flex',
                 flexDirection: 'column',
                 padding: '40px 32px',
                 flexShrink: 0,
-                position: 'relative',
+                position: 'sticky',
+                top: 0,
                 overflow: 'hidden',
             }}>
 
@@ -191,42 +192,10 @@ const PreferenceBuilderInteractive = () => {
 
             {/* ════ RIGHT MAIN AREA ════ */}
             <main style={{
-                flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto',
+                flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden',
                 backgroundImage: 'linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)',
                 backgroundSize: '40px 40px',
             }}>
-
-                {/* ── Step Progress Bar ── */}
-                <div style={{ background: '#fff', borderBottom: '1px solid #e5e5e5', padding: '20px 48px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
-                    {STEPS.map((step, i) => (
-                        <div key={step.label} style={{ display: 'flex', alignItems: 'center' }}>
-                            {/* Connecting line before */}
-                            {i > 0 && <div style={{ width: 80, height: 1, background: '#e5e5e5' }} />}
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                                <div style={{
-                                    width: step.active ? 36 : 20,
-                                    height: step.active ? 36 : 20,
-                                    borderRadius: '50%',
-                                    border: step.active ? '2px solid #c5a065' : '1px solid #d0d0d0',
-                                    background: step.active ? '#fff' : 'transparent',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    boxShadow: step.active ? '0 0 0 4px rgba(197,160,101,0.12)' : 'none',
-                                    transition: 'all 0.2s',
-                                }}>
-                                    {step.active
-                                        ? <span style={{ fontSize: 8, fontWeight: 700, color: '#c5a065', letterSpacing: '0.05em' }}>HUB</span>
-                                        : <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#d0d0d0' }} />
-                                    }
-                                </div>
-                                {step.active && (
-                                    <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.15em', color: '#c5a065', fontFamily: "'JetBrains Mono',monospace" }}>
-                                        {step.label}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
 
                 {/* ── Header Row ── */}
                 <div style={{ padding: '36px 48px 0', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
@@ -312,21 +281,23 @@ const PreferenceBuilderInteractive = () => {
                     </div>
                 )}
 
-                {/* ── Experience Cards Grid ── */}
-                <div style={{ padding: '28px 48px 64px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                    {EXPERIENCES.map((exp) => {
-                        const isSelected = selected.includes(exp.id);
-                        const isMaxed = selected.length >= MAX_SELECT && !isSelected;
-                        return (
-                            <ExperienceCard
-                                key={exp.id}
-                                exp={exp}
-                                isSelected={isSelected}
-                                isMaxed={isMaxed}
-                                onToggle={() => toggle(exp.id)}
-                            />
-                        );
-                    })}
+                {/* ── Experience Cards Grid (scrollable) ── */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '28px 48px 64px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                        {EXPERIENCES.map((exp) => {
+                            const isSelected = selected.includes(exp.id);
+                            const isMaxed = selected.length >= MAX_SELECT && !isSelected;
+                            return (
+                                <ExperienceCard
+                                    key={exp.id}
+                                    exp={exp}
+                                    isSelected={isSelected}
+                                    isMaxed={isMaxed}
+                                    onToggle={() => toggle(exp.id)}
+                                />
+                            );
+                        })}
+                    </div>
                 </div>
             </main>
 
@@ -365,6 +336,8 @@ const ExperienceCard = ({
                 border: isSelected ? '1.5px solid #c5a065' : '1px solid #e5e5e5',
                 display: 'flex',
                 gap: 0,
+                height: 96,
+                overflow: 'hidden',
                 cursor: isMaxed ? 'not-allowed' : 'pointer',
                 transition: 'border-color 0.2s, box-shadow 0.2s',
                 opacity: isMaxed ? 0.45 : 1,
