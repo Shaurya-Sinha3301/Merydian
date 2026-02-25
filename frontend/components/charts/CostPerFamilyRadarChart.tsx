@@ -116,11 +116,11 @@ export function CostPerFamilyRadarChart() {
       </div>
 
       {/* Chart Content */}
-      <div className="px-5 py-6">
-        <div className="w-full h-[400px] relative">
+      <div className="px-5 py-4">
+        <div className="w-full h-[280px] relative">
           <RadarChart 
-            width={600} 
-            height={400} 
+            width={500} 
+            height={280} 
             data={chartData}
             className="mx-auto"
           >

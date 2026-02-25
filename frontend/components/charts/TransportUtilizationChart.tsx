@@ -141,13 +141,13 @@ export function TransportUtilizationChart() {
       </div>
 
       {/* Chart Content */}
-      <div className="px-5 py-6">
-        <div className="w-full h-[350px]">
+      <div className="px-5 py-4">
+        <div className="w-full h-[250px]">
           <BarChart 
             width={700} 
-            height={350} 
+            height={250} 
             data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            margin={{ top: 10, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid 
               strokeDasharray="2 2" 
