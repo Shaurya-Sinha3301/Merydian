@@ -32,9 +32,9 @@ class Settings(BaseSettings):
     TBO_USERNAME: str
     TBO_PASSWORD: str
 
-    # TBO AIR API
-    TBO_AIR_BOOKING_URL: str = ""
-    TBO_AIR_SEARCH_URL: str = ""
+    # TBO AIR API  (test base URLs — override in .env for production)
+    TBO_AIR_BOOKING_URL: str = "http://api.tbotechnology.in/TBOHolidays_BookingEngineAPI"
+    TBO_AIR_SEARCH_URL: str = "http://api.tbotechnology.in/TBOHolidays_AirService"
     TBO_AIR_USERNAME: str = ""
     TBO_AIR_PASSWORD: str = ""
 

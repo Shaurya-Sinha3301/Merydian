@@ -9,12 +9,16 @@ RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install python dependencies (from backend/)
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Copy backend application code
+COPY backend/ .
+
+# Copy ml_or ML optimizer (needed for FeedbackProcessor / agent pipeline)
+COPY ml_or/ /app/ml_or/
 
 # Expose port
 EXPOSE 8000

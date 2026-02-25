@@ -251,74 +251,105 @@ class AgentService:
     ) -> bool:
         """
         Trigger the Tools Agent to execute actions for an approved option.
-        
-        This currently launches hotel booking jobs via Celery.
+
+        Dispatches:
+        - Hotel booking Celery task (always, for applicable option types)
+        - Flight booking Celery task (if flight params present in details)
         """
         from app.services.booking_service import BookingService
+        from app.services.city_code_cache import CityCodeCache
         from app.worker import process_hotel_booking
-        
+        from datetime import datetime, timedelta
+
         logger.info(f"Triggering Tools Agent for option={option_id}, event={event_id}")
 
         try:
-            # Determine if this is a hotel booking trigger
             is_hotel_booking = not details or details.get("type") in ("hotel", "base_itinerary", None)
 
             if is_hotel_booking:
-                # Extract real search params from approved option's itinerary details
-                itinerary = details.get("itinerary", {}) if details else {}
+                # --- Extract params from approved option details ---
                 start_date = details.get("start_date") if details else None
                 end_date = details.get("end_date") if details else None
                 num_travellers = details.get("num_travellers", 2) if details else 2
                 destination = details.get("destination", "delhi") if details else "delhi"
 
-                # Map destination to TBO city code (extend as needed)
-                city_code_map = {
-                    "delhi": "418069",
-                    "mumbai": "128014",
-                    "goa": "119068",
-                }
-                dest_key = destination.lower().split(",")[0].strip()
-                city_code = city_code_map.get(dest_key, "418069")  # Default: Delhi NCR
+                # Dynamic city code resolution (seed dict + TBO CityList API)
+                city_code = CityCodeCache.get_city_code(destination)
 
-                # Use real trip dates if available, fall back to near-future
-                from datetime import datetime, timedelta
+                # Fallback dates: trip check-in 30 days from now
                 if not start_date:
                     start_date = (datetime.utcnow() + timedelta(days=30)).strftime("%Y-%m-%d")
                 if not end_date:
                     end_date = (datetime.utcnow() + timedelta(days=34)).strftime("%Y-%m-%d")
 
-                # Create a booking job in DB
-                job = BookingService.create_job(
-                    itinerary_id=option_id,  # Link to approved option
-                    agent_id="tools_agent",  # System agent
-                    items=["hotel"]
-                )
-
-                search_params = details.get("search_params", {
-                    "city_code": city_code,
-                    "checkin": start_date,
-                    "checkout": end_date,
-                    "rooms": max(1, (num_travellers + 1) // 2),
-                    "adults": num_travellers,
-                    "guest_details": []
-                }) if details else {
-                    "city_code": city_code,
-                    "checkin": start_date,
-                    "checkout": end_date,
-                    "rooms": 1,
-                    "adults": 2,
-                    "guest_details": []
-                }
-
-                process_hotel_booking.delay(
-                    job_id=str(job.id),
+                # --- Hotel booking job ---
+                hotel_job = BookingService.create_job(
                     itinerary_id=option_id,
                     agent_id="tools_agent",
                     items=["hotel"],
-                    search_params=search_params
                 )
 
-                logger.info(f"Tools Agent dispatched booking job {job.id} for {destination} ({start_date} - {end_date})")
+                hotel_search_params = details.get("search_params") if details else None
+                if not hotel_search_params:
+                    hotel_search_params = {
+                        "city_code": city_code,
+                        "checkin": start_date,
+                        "checkout": end_date,
+                        "rooms": max(1, (num_travellers + 1) // 2),
+                        "adults": num_travellers,
+                        "guest_details": [],
+                    }
+
+                process_hotel_booking.delay(
+                    job_id=str(hotel_job.id),
+                    itinerary_id=option_id,
+                    agent_id="tools_agent",
+                    items=["hotel"],
+                    search_params=hotel_search_params,
+                )
+                logger.info(
+                    f"Tools Agent dispatched hotel job {hotel_job.id} for "
+                    f"{destination} (city_code={city_code}) [{start_date} → {end_date}]"
+                )
+
+                # --- Flight booking job (if flight params present in details) ---
+                flight_origin = (details or {}).get("flight_origin")
+                flight_destination = (details or {}).get("flight_destination")
+                flight_departure_date = (details or {}).get("flight_departure_date", start_date)
+
+                if flight_origin and flight_destination:
+                    flight_job = BookingService.create_job(
+                        itinerary_id=option_id,
+                        agent_id="tools_agent",
+                        items=["flight"],
+                    )
+
+                    flight_search_params = {
+                        "flight_params": {
+                            "origin": flight_origin,
+                            "destination": flight_destination,
+                            "departure_date": flight_departure_date,
+                            "return_date": (details or {}).get("flight_return_date"),
+                            "cabin_class": (details or {}).get("flight_cabin_class", 1),
+                            "preferred_airlines": (details or {}).get("flight_preferred_airlines"),
+                            "direct_only": (details or {}).get("flight_direct_only", False),
+                        },
+                        "adults": num_travellers,
+                        "children": 0,
+                        "guest_details": (details or {}).get("guest_details", []),
+                    }
+
+                    process_hotel_booking.delay(
+                        job_id=str(flight_job.id),
+                        itinerary_id=option_id,
+                        agent_id="tools_agent",
+                        items=["flight"],
+                        search_params=flight_search_params,
+                    )
+                    logger.info(
+                        f"Tools Agent dispatched flight job {flight_job.id}: "
+                        f"{flight_origin} → {flight_destination} on {flight_departure_date}"
+                    )
 
             return True
 
