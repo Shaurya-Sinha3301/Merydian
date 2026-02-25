@@ -206,10 +206,6 @@ export default function CustomerDashboardInteractive() {
                                 <div style={{ height: '100%', width: `${destMeta.progress}%`, background: GOLD }} />
                             </div>
                         </div>
-                        <button onClick={() => router.push('/customer-portal')} className="btn-dark"
-                            style={{ background: DARK, color: '#fff', border: 'none', borderBottom: `2px solid ${GOLD}`, padding: '10px 22px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: FF_BODY }}>
-                            VIEW FULL ITINERARY →
-                        </button>
                     </div>
                 </header>
 
@@ -236,8 +232,8 @@ export default function CustomerDashboardInteractive() {
                         <div style={{ padding: '24px 28px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                                 <SectionLabel>UPCOMING TIMELINE</SectionLabel>
-                                <button onClick={() => router.push('/customer-portal')} className="link-gold"
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: MID, fontFamily: FF_BODY }}>
+                                <button onClick={() => router.push('/customer-portal')} className="btn-outline"
+                                    style={{ background: 'none', border: `1px solid ${LIGHT}`, padding: '6px 14px', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: MID, cursor: 'pointer', fontFamily: FF_BODY }}>
                                     Full view →
                                 </button>
                             </div>
