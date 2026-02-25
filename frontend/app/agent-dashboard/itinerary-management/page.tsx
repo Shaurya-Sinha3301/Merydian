@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Sidebar } from '@/components/ui/Sidebar';
 import NavigationBreadcrumbs from '@/components/common/NavigationBreadcrumbs';
 import ItineraryOptimizerWindow from '@/components/itinerary/ItineraryOptimizerWindow';
 
@@ -11,7 +10,6 @@ export const metadata: Metadata = {
 export default function ItineraryManagementPage() {
     return (
         <div className="flex bg-white h-screen overflow-hidden">
-            <Sidebar />
             <main className="flex-1 overflow-hidden flex flex-col">
                 <NavigationBreadcrumbs />
                 <ItineraryOptimizerWindow />

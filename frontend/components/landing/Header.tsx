@@ -47,9 +47,9 @@ export default function Header() {
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
             <circle cx="12" cy="10" r="3"/>
           </motion.svg>
-          <span className="text-xl font-black tracking-tight text-white">Meili AI</span>
+          <span className="text-xl font-serif tracking-tight text-white">Meili AI</span>
         </Link>
-        <nav className="hidden md:flex items-center gap-8 text-xs font-black uppercase tracking-widest text-white/70">
+        <nav className="hidden md:flex items-center gap-8 text-xs font-light uppercase tracking-[0.2em] text-white/70">
           {navItems.map((item, idx) => (
             <motion.a
               key={item.name}
@@ -68,13 +68,13 @@ export default function Header() {
       <div className="flex gap-4">
         <Link
           href="/customer-login"
-          className="bg-white/10 backdrop-blur-md text-white px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-300"
+          className="bg-white/10 backdrop-blur-md text-white px-6 py-2 rounded-full text-xs font-light uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-300"
         >
           Login as Customer
         </Link>
         <Link
           href="/agent-login"
-          className="bg-white text-black px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:bg-amber-400 hover:scale-105 transition-all duration-300"
+          className="bg-white text-black px-6 py-2 rounded-full text-xs font-light uppercase tracking-[0.2em] hover:bg-amber-400 hover:scale-105 transition-all duration-300"
         >
           Login as Agent
         </Link>

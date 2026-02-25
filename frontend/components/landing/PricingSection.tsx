@@ -27,12 +27,20 @@ export default function PricingSection() {
           transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1.0] }}
           className="relative"
         >
-          <div className="bg-black text-white p-20 md:p-32 text-center space-y-16 relative overflow-hidden border-2 border-black">
-            {/* Gold corner decorations */}
-            <div className="absolute top-0 left-0 w-24 h-24 border-t-4 border-l-4 border-[#D4AF37]" />
-            <div className="absolute top-0 right-0 w-24 h-24 border-t-4 border-r-4 border-[#D4AF37]" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 border-b-4 border-l-4 border-[#D4AF37]" />
-            <div className="absolute bottom-0 right-0 w-24 h-24 border-b-4 border-r-4 border-[#D4AF37]" />
+          <div className="bg-black text-white p-20 md:p-32 text-center space-y-16 relative overflow-hidden shadow-2xl">
+            {/* Gold corner decorations - positioned at exact corners */}
+            <div className="absolute top-0 left-0 w-32 h-32">
+              <div className="absolute top-0 left-0 w-full h-full border-t-[3px] border-l-[3px] border-[#D4AF37]" />
+            </div>
+            <div className="absolute top-0 right-0 w-32 h-32">
+              <div className="absolute top-0 right-0 w-full h-full border-t-[3px] border-r-[3px] border-[#D4AF37]" />
+            </div>
+            <div className="absolute bottom-0 left-0 w-32 h-32">
+              <div className="absolute bottom-0 left-0 w-full h-full border-b-[3px] border-l-[3px] border-[#D4AF37]" />
+            </div>
+            <div className="absolute bottom-0 right-0 w-32 h-32">
+              <div className="absolute bottom-0 right-0 w-full h-full border-b-[3px] border-r-[3px] border-[#D4AF37]" />
+            </div>
             
             {/* Gold accent lines */}
             <motion.div 
@@ -81,7 +89,7 @@ export default function PricingSection() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="flex flex-col lg:flex-row items-center justify-center gap-12 relative z-10"
             >
-              <div className="text-left space-y-4 border-l-4 border-[#D4AF37] pl-12">
+              <div className="text-left space-y-4 border-l-[3px] border-[#D4AF37] pl-12">
                 <p className="text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-light">
                   Professional Plan
                 </p>
@@ -95,12 +103,14 @@ export default function PricingSection() {
               </div>
               
               <motion.button 
-                whileHover={{ scale: 1.05, backgroundColor: "#D4AF37" }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white text-black px-16 py-6 font-light uppercase tracking-[0.3em] text-sm hover:text-black transition-all shadow-2xl border-2 border-white"
+                className="relative group px-16 py-6 font-light uppercase tracking-[0.3em] text-sm transition-all shadow-2xl overflow-hidden"
               >
-                Request Demo
+                <span className="relative z-10 text-black group-hover:text-white transition-colors duration-300">Request Demo</span>
+                <div className="absolute inset-0 bg-white group-hover:bg-transparent transition-all duration-300" />
+                <div className="absolute inset-0 bg-[#D4AF37] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                <div className="absolute inset-0 border-2 border-white" />
               </motion.button>
             </motion.div>
             

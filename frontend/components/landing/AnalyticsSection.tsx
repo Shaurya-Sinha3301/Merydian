@@ -2,7 +2,9 @@
 
 import { motion, useScroll, useTransform } from 'motion/react';
 import { useEffect, useRef } from 'react';
-import { MiniChart } from '@/components/ui/mini-chart';
+import { AreaChartInteractive } from '@/components/ui/area-chart-interactive';
+import { PieChartInteractive } from '@/components/ui/pie-chart-interactive';
+import { RadialChartStacked } from '@/components/ui/radial-chart-stacked';
 
 export default function AnalyticsSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -175,8 +177,37 @@ export default function AnalyticsSection() {
                   </motion.div>
                 </div>
                 
-                <div className="flex justify-center py-8">
-                  <TravelAnalyticsChart />
+                <div className="py-4">
+                  <AreaChartInteractive />
+                </div>
+                
+                {/* Bottom Charts Grid */}
+                <div className="grid grid-cols-2 gap-6 pt-4 border-t border-black/10">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.8 }}
+                    className="space-y-4"
+                  >
+                    <h4 className="text-sm uppercase tracking-[0.2em] text-black/60 font-light text-center">
+                      Monthly Distribution
+                    </h4>
+                    <PieChartInteractive />
+                  </motion.div>
+                  
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.9 }}
+                    className="space-y-4"
+                  >
+                    <h4 className="text-sm uppercase tracking-[0.2em] text-black/60 font-light text-center">
+                      Performance Score
+                    </h4>
+                    <RadialChartStacked />
+                  </motion.div>
                 </div>
                 
                 {/* Additional metrics */}
@@ -205,14 +236,5 @@ export default function AnalyticsSection() {
         </div>
       </motion.div>
     </section>
-  );
-}
-
-// Custom Travel Analytics Chart Component
-function TravelAnalyticsChart() {
-  return (
-    <div className="w-full max-w-md">
-      <MiniChart />
-    </div>
   );
 }
