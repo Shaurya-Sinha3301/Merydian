@@ -319,13 +319,12 @@ class OptimizerService:
             from app.services.explanation_service import ExplanationService
             from uuid import UUID
 
-            # --- Load old and new itinerary versions from DB ---
+            # --- 1. Load latest itinerary ---
             # Resolve family UUID (trip_session stores family IDs as strings)
             family_uuid: Optional[UUID] = None
             try:
                 family_uuid = UUID(family_id)
             except (ValueError, AttributeError):
-                # family_id might be a family_code string — look up by code
                 from sqlmodel import Session, select
                 from app.models.family import Family
                 from app.core.db import engine
@@ -338,25 +337,77 @@ class OptimizerService:
 
             old_itinerary: Dict = {}
             new_itinerary: Dict = {}
-            new_itinerary_id: Optional[UUID] = None
             prev_itinerary_id: Optional[UUID] = None
+            new_itinerary_id: Optional[UUID] = None
 
             if family_uuid:
-                history = ItineraryService.get_itinerary_history(family_uuid, limit=2)
-                if len(history) >= 2:
-                    new_itin = history[0]   # latest
-                    old_itin = history[1]   # second-latest
-                    new_itinerary = new_itin.data or {}
+                history = ItineraryService.get_itinerary_history(family_uuid, limit=1)
+                if history:
+                    old_itin = history[0]
                     old_itinerary = old_itin.data or {}
-                    new_itinerary_id = new_itin.id
                     prev_itinerary_id = old_itin.id
-                elif len(history) == 1:
-                    new_itin = history[0]
-                    new_itinerary = new_itin.data or {}
-                    new_itinerary_id = new_itin.id
 
-            # --- Run explainability pipeline ---
             processor = FeedbackProcessor()
+
+            # --- 2. Parse natural language to constraints ---
+            from pathlib import Path
+            import json
+            import os
+            import tempfile
+            from app.services.preference_service import PreferenceService
+            from app.models.preference import PreferenceType
+            
+            locations_path = Path(__file__).parent.parent.parent / "ml_or" / "data" / "locations.json"
+            available_pois = []
+            if locations_path.exists():
+                with open(locations_path, "r") as f:
+                    locs_data = json.load(f)
+                    available_pois = [(loc.get("location_id"), loc.get("name")) for loc in locs_data if "location_id" in loc]
+            
+            parsed_constraints = processor.parse_user_feedback(message, available_pois)
+
+            # --- 3. Update Preferences in DB ---
+            if family_uuid and (parsed_constraints.get("add") or parsed_constraints.get("remove")):
+                for poi_id in parsed_constraints.get("add", []):
+                    name = next((n for lid, n in available_pois if lid == poi_id), poi_id)
+                    PreferenceService.add_preference(family_uuid, poi_id, name, PreferenceType.MUST_VISIT, reason=message)
+                for poi_id in parsed_constraints.get("remove", []):
+                    name = next((n for lid, n in available_pois if lid == poi_id), poi_id)
+                    PreferenceService.add_preference(family_uuid, poi_id, name, PreferenceType.NEVER_VISIT, reason=message)
+
+            # --- 4. Run Optimizer with Temp Files ---
+            optimization_ran = False
+            if family_uuid and old_itinerary:
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    base_path = os.path.join(temp_dir, "base_itinerary.json")
+                    prefs_path = os.path.join(temp_dir, "family_prefs.json")
+                    
+                    with open(base_path, "w") as f:
+                        json.dump(old_itinerary, f)
+                        
+                    family_prefs = [{
+                        "family_id": family_id,
+                        "members": 2, # Defaults if full profile not loaded here
+                        "must_visit_locations": PreferenceService.get_must_visit_pois(family_uuid),
+                        "never_visit_locations": PreferenceService.get_never_visit_pois(family_uuid)
+                    }]
+                    with open(prefs_path, "w") as f:
+                        json.dump(family_prefs, f)
+                    
+                    opt_result = processor.run_optimizer(base_path, prefs_path, temp_dir)
+                    if opt_result.get("optimizer_ran") and opt_result.get("optimized_itinerary"):
+                        new_itinerary = opt_result["optimized_itinerary"]
+                        optimization_ran = True
+
+            # --- 5. Save New Itinerary to DB ---
+            if optimization_ran and new_itinerary:
+                new_itin_record = ItineraryService.create_version(family_uuid, new_itinerary)
+                new_itinerary_id = new_itin_record.id
+                trip_session.iteration_count += 1
+            else:
+                new_itinerary = old_itinerary # No change
+
+            # --- 6. Run explainability pipeline ---
             result = processor.process_feedback(
                 trip_id=trip_id,
                 family_id=family_id,
@@ -368,7 +419,7 @@ class OptimizerService:
             explanations_list = result.get("explanations", [])
             llm_sentences = [e.get("llm_explanation", "") for e in explanations_list if e.get("llm_explanation")]
 
-            # --- Save explanations to DB ---
+            # --- 7. Save Explanations to DB ---
             if explanations_list and family_uuid and new_itinerary_id:
                 ExplanationService.save_explanations(
                     trip_id=trip_id,
@@ -379,9 +430,9 @@ class OptimizerService:
                     trigger_message=message,
                 )
 
-            itinerary_updated = bool(result.get("diffs"))
+            itinerary_updated = optimization_ran and bool(result.get("diffs"))
 
-            # --- Update trip session feedback history ---
+            # --- 8. Update trip session feedback history ---
             trip_session.feedback_history.append({
                 "iteration": trip_session.iteration_count,
                 "timestamp": datetime.utcnow().isoformat(),

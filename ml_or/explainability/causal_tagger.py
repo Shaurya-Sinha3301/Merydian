@@ -16,7 +16,7 @@ class CausalTagger:
         
         for fid, day_diffs in diffs.items():
             for day_num, changes in day_diffs.items():
-                day_idx = day_num - 1
+                day_idx = int(day_num) - 1
                 trace = decision_traces.get(day_idx)
                 
                 if not trace:

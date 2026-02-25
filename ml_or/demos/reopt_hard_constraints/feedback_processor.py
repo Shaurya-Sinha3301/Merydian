@@ -163,6 +163,9 @@ class FeedbackProcessor:
     Usage (as called by optimizer_service.py):
         processor = FeedbackProcessor()
 
+        # Parse user text to POI IDs for constraints
+        parsed = processor.parse_user_feedback("Add Akshardham", [("AKSHARDHAM", "Akshardham Temple")])
+
         # Initial optimization (file-based)
         result = processor.run_optimizer(
             baseline_path="...", preferences_path="...", output_dir="..."
@@ -174,6 +177,59 @@ class FeedbackProcessor:
             user_message, locations_map
         )
     """
+
+    def parse_user_feedback(self, user_message: str, available_pois: List[tuple]) -> Dict[str, List[str]]:
+        """
+        Use LLM to determine which POIs the user wants to add or remove.
+        available_pois is a list of tuples: (location_id, name).
+        Returns: {"add": ["LOC_001"], "remove": ["LOC_002"]}
+        """
+        if not user_message or not available_pois:
+            return {"add": [], "remove": []}
+
+        poi_list_str = "\n".join([f"- {lid}: {name}" for lid, name in available_pois])
+        
+        prompt = (
+            "You are a routing assistant. A user wants to modify their travel itinerary.\n"
+            f"User message: \"{user_message}\"\n\n"
+            "Below is the list of available points of interest (POIs) with their IDs:\n"
+            f"{poi_list_str}\n\n"
+            "Analyze the user message and identify which POI IDs they want to add and which they want to remove.\n"
+            "Return ONLY a raw JSON object with two keys: 'add' and 'remove', containing the corresponding location_ids as lists of strings.\n"
+            "Example: {\"add\": [\"AKSHARDHAM\"], \"remove\": []}"
+        )
+        try:
+            resp_text = _call_llm(prompt)
+            # Find JSON block in text
+            import re
+            match = re.search(r'\{.*\}', resp_text, re.DOTALL)
+            if match:
+                parsed = json.loads(match.group(0))
+                
+                # Make sure we got valid IDs, even if the LLM returned names
+                def map_to_id(items: List[str]) -> List[str]:
+                    valid_ids = []
+                    for item in items:
+                        item_up = item.upper()
+                        # direct match
+                        if any(lid == item for lid, _ in available_pois):
+                            valid_ids.append(item)
+                        else:
+                            # Try to match by name
+                            for lid, name in available_pois:
+                                if item_up in name.upper() or name.upper() in item_up:
+                                    valid_ids.append(lid)
+                                    break
+                    return valid_ids
+
+                return {
+                    "add": map_to_id(parsed.get("add", [])),
+                    "remove": map_to_id(parsed.get("remove", []))
+                }
+        except Exception as e:
+            logger.warning("FeedbackProcessor.parse_user_feedback failed: %s", e)
+        
+        return {"add": [], "remove": []}
 
     def run_optimizer(
         self,
@@ -267,6 +323,26 @@ class FeedbackProcessor:
         if not locations_map:
             locations_map = _build_locations_map(old_itinerary)
             locations_map.update(_build_locations_map(new_itinerary))
+
+        # Fallback: load master locations.json so POI names are always available
+        try:
+            master_path = Path(__file__).parent.parent.parent / "data" / "locations.json"
+            if master_path.exists():
+                with open(master_path, "r") as f:
+                    master_locs = json.load(f)
+                for loc in master_locs:
+                    lid = loc.get("location_id")
+                    if lid:
+                        existing = locations_map.get(lid, {})
+                        existing_name = existing.get("name", "")
+                        # Overwrite if missing or if name is just the raw ID
+                        if not existing or existing_name == lid or existing_name.startswith("LOC_"):
+                            locations_map[lid] = {
+                                "name": loc.get("name", lid),
+                                "cost": float(loc.get("cost", 0)),
+                            }
+        except Exception as e:
+            logger.warning("Could not load master locations.json: %s", e)
 
         # --- Step 1: Diff ---
         diff_engine = ItineraryDiffEngine()
