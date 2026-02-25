@@ -189,10 +189,10 @@ export default function CustomerDashboardInteractive() {
                 <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 430px 280px', overflow: 'hidden' }}>
 
                     {/* ── LEFT: Hero + Timeline ── */}
-                    <div style={{ borderRight: `1px solid ${LIGHT}`, overflowY: 'auto', background: '#fff' }}>
+                    <div style={{ borderRight: `1px solid ${LIGHT}`, overflowY: 'auto', background: '#fff', position: 'relative' }}>
 
                         {/* Hero */}
-                        <div style={{ position: 'relative', height: 220, overflow: 'hidden', flexShrink: 0 }}>
+                        <div style={{ position: 'sticky', top: 0, zIndex: 10, height: 220, overflow: 'hidden', flexShrink: 0 }}>
                             <img src={HERO_IMG} alt={destMeta.city} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(20%) brightness(0.88)', display: 'block' }} />
                             <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.68)', color: '#fff', fontSize: 10, fontFamily: FF_MONO, padding: '4px 10px', borderLeft: `2px solid ${GOLD}`, letterSpacing: '0.07em' }}>
                                 {destMeta.lat}, {destMeta.lng}
