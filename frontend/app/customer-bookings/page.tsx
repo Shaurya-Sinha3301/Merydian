@@ -237,7 +237,7 @@ export default function CustomerBookingsPage() {
                   </p>
                 </div>
                 <h1 style={{ fontSize: 36, fontWeight: 200, letterSpacing: '-0.02em', margin: 0, color: '#1a1a1a' }}>
-                  My Bookings
+                  Booking Details
                 </h1>
               </div>
             </div>

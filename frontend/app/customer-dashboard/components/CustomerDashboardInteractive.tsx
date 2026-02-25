@@ -186,13 +186,13 @@ export default function CustomerDashboardInteractive() {
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
                 {/* HEADER */}
-                <header style={{ background: '#fff', borderBottom: `1px solid ${LIGHT}`, padding: '16px 36px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <header style={{ background: '#fff', borderBottom: `1px solid ${LIGHT}`, padding: '24px 40px', flexShrink: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-                            <span style={{ width: 7, height: 7, background: GREEN, borderRadius: '50%', display: 'inline-block' }} />
-                            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', color: GREEN, fontFamily: FF_MONO }}>ON ROUTE · LIVE TRACKING</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <span style={{ width: 8, height: 8, background: GREEN, borderRadius: '50%', display: 'inline-block' }} />
+                            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: GREEN, fontFamily: FF_MONO }}>ON ROUTE · LIVE TRACKING</span>
                         </div>
-                        <h1 style={{ fontSize: 30, fontWeight: 200, margin: 0 }}>
+                        <h1 style={{ fontSize: 36, fontWeight: 200, letterSpacing: '-0.02em', margin: 0, color: DARK }}>
                             Current Expedition: <strong style={{ fontWeight: 600 }}>{destMeta.city}, {destMeta.country}</strong>
                         </h1>
                     </div>
@@ -233,7 +233,7 @@ export default function CustomerDashboardInteractive() {
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                                 <SectionLabel>UPCOMING TIMELINE</SectionLabel>
                                 <button onClick={() => router.push('/customer-portal')} className="btn-gradient-hover"
-                                    style={{ border: `1px solid ${LIGHT}`, borderRadius: '4px', padding: '6px 14px', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: FF_BODY }}>
+                                    style={{ border: `1px solid ${LIGHT}`, borderRadius: '2px', padding: '6px 14px', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: FF_BODY }}>
                                     Full Itinerary →
                                 </button>
                             </div>
