@@ -158,7 +158,7 @@ export default function CustomerDashboardInteractive() {
                 </header>
 
                 {/* BODY: 3 columns */}
-                <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 360px 280px', overflow: 'hidden' }}>
+                <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 430px 280px', overflow: 'hidden' }}>
 
                     {/* ── LEFT: Hero + Timeline ── */}
                     <div style={{ borderRight: `1px solid ${LIGHT}`, overflowY: 'auto', background: '#fff' }}>
