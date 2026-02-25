@@ -327,24 +327,13 @@ const ExperienceCard = ({
     const [cardHovered, setCardHovered] = useState(false);
 
     return (
+        /* Wrapper: position:relative, no overflow — corner ticks live here and are never clipped */
         <div
-            onClick={!isMaxed ? onToggle : undefined}
+            style={{ position: 'relative' }}
             onMouseEnter={() => setCardHovered(true)}
             onMouseLeave={() => setCardHovered(false)}
-            style={{
-                background: '#fff',
-                border: isSelected ? '1.5px solid #c5a065' : '1px solid #e5e5e5',
-                display: 'flex',
-                gap: 0,
-                height: 96,
-                cursor: isMaxed ? 'not-allowed' : 'pointer',
-                transition: 'border-color 0.2s, box-shadow 0.2s',
-                opacity: isMaxed ? 0.45 : 1,
-                position: 'relative',
-                boxShadow: isSelected ? '0 0 0 3px rgba(197,160,101,0.12)' : 'none',
-            }}
         >
-            {/* Hover corner ticks — shown only on hover, not when selected */}
+            {/* Corner ticks on HOVER only — on wrapper so they're never clipped */}
             {cardHovered && !isSelected && !isMaxed && (
                 <>
                     {([['top', 'left'], ['top', 'right'], ['bottom', 'left'], ['bottom', 'right']] as [string, string][]).map(([v, h]) => (
@@ -354,7 +343,7 @@ const ExperienceCard = ({
                             bottom: v === 'bottom' ? -1 : undefined,
                             left: h === 'left' ? -1 : undefined,
                             right: h === 'right' ? -1 : undefined,
-                            width: 10, height: 10, zIndex: 3,
+                            width: 10, height: 10, zIndex: 4, pointerEvents: 'none',
                             borderTop: v === 'top' ? '2px solid #c5a065' : 'none',
                             borderBottom: v === 'bottom' ? '2px solid #c5a065' : 'none',
                             borderLeft: h === 'left' ? '2px solid #c5a065' : 'none',
@@ -364,75 +353,94 @@ const ExperienceCard = ({
                 </>
             )}
 
-            {/* Thumbnail */}
+            {/* Inner card: overflow:hidden keeps image perfectly flush with border */}
             <div
-                style={{ width: 96, height: 96, flexShrink: 0, overflow: 'hidden', background: '#f0f0f0', position: 'relative' }}
-                onMouseEnter={() => setImgHovered(true)}
-                onMouseLeave={() => setImgHovered(false)}
+                onClick={!isMaxed ? onToggle : undefined}
+                style={{
+                    background: '#fff',
+                    border: isSelected ? '1.5px solid #c5a065' : '1px solid #e5e5e5',
+                    display: 'flex',
+                    gap: 0,
+                    height: 96,
+                    overflow: 'hidden',
+                    cursor: isMaxed ? 'not-allowed' : 'pointer',
+                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                    opacity: isMaxed ? 0.45 : 1,
+                    position: 'relative',
+                    boxShadow: isSelected ? '0 0 0 3px rgba(197,160,101,0.12)' : 'none',
+                }}
             >
-                {/* ID badge */}
-                <div style={{
-                    position: 'absolute', top: 0, left: 0,
-                    background: isSelected ? '#c5a065' : '#1a1a1a',
-                    color: '#fff', fontSize: 8, fontWeight: 700,
-                    padding: '2px 6px', zIndex: 2,
-                    fontFamily: "'JetBrains Mono', monospace",
-                    letterSpacing: '0.05em',
-                    transition: 'background 0.2s',
-                }}>
-                    {exp.id}
-                </div>
-                <img
-                    src={exp.img}
-                    alt={exp.title}
-                    style={{
-                        width: '100%', height: '100%', objectFit: 'cover',
-                        filter: imgHovered || isSelected ? 'none' : 'grayscale(80%) brightness(1.1)',
-                        transition: 'filter 0.3s',
-                    }}
-                />
-            </div>
 
-            {/* Content */}
-            <div style={{ flex: 1, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                    <h3 style={{
-                        fontSize: 15, fontWeight: isSelected ? 600 : 500,
-                        color: isSelected ? '#1a1a1a' : '#1a1a1a',
-                        margin: '0 0 4px', lineHeight: 1.2,
-                    }}>
-                        {exp.title}
-                    </h3>
-                    <p style={{ fontSize: 12, color: '#717171', margin: 0, lineHeight: 1.5, fontWeight: 300 }}>
-                        {exp.desc}
-                    </p>
-                </div>
-
-                {/* Category + checkmark */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
-                    <span style={{
-                        fontSize: 8, fontWeight: 700, letterSpacing: '0.15em',
-                        color: isSelected ? '#c5a065' : '#aaa',
-                        fontFamily: "'JetBrains Mono', monospace",
-                        transition: 'color 0.2s',
-                    }}>
-                        {exp.category}
-                    </span>
-
-                    {/* Checkmark circle */}
+                {/* Thumbnail */}
+                <div
+                    style={{ width: 96, height: 96, flexShrink: 0, overflow: 'hidden', background: '#f0f0f0', position: 'relative' }}
+                    onMouseEnter={() => setImgHovered(true)}
+                    onMouseLeave={() => setImgHovered(false)}
+                >
+                    {/* ID badge */}
                     <div style={{
-                        width: 20, height: 20, borderRadius: '50%',
-                        border: isSelected ? '2px solid #c5a065' : '1.5px solid #d0d0d0',
-                        background: isSelected ? '#c5a065' : 'transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'all 0.2s',
-                        flexShrink: 0,
+                        position: 'absolute', top: 0, left: 0,
+                        background: isSelected ? '#c5a065' : '#1a1a1a',
+                        color: '#fff', fontSize: 8, fontWeight: 700,
+                        padding: '2px 6px', zIndex: 2,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        letterSpacing: '0.05em',
+                        transition: 'background 0.2s',
                     }}>
-                        {isSelected && (
-                            <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                                <path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        )}
+                        {exp.id}
+                    </div>
+                    <img
+                        src={exp.img}
+                        alt={exp.title}
+                        style={{
+                            width: '100%', height: '100%', objectFit: 'cover',
+                            filter: imgHovered || isSelected ? 'none' : 'grayscale(80%) brightness(1.1)',
+                            transition: 'filter 0.3s',
+                        }}
+                    />
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                        <h3 style={{
+                            fontSize: 15, fontWeight: isSelected ? 600 : 500,
+                            color: isSelected ? '#1a1a1a' : '#1a1a1a',
+                            margin: '0 0 4px', lineHeight: 1.2,
+                        }}>
+                            {exp.title}
+                        </h3>
+                        <p style={{ fontSize: 12, color: '#717171', margin: 0, lineHeight: 1.5, fontWeight: 300 }}>
+                            {exp.desc}
+                        </p>
+                    </div>
+
+                    {/* Category + checkmark */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
+                        <span style={{
+                            fontSize: 8, fontWeight: 700, letterSpacing: '0.15em',
+                            color: isSelected ? '#c5a065' : '#aaa',
+                            fontFamily: "'JetBrains Mono', monospace",
+                            transition: 'color 0.2s',
+                        }}>
+                            {exp.category}
+                        </span>
+
+                        {/* Checkmark circle */}
+                        <div style={{
+                            width: 20, height: 20, borderRadius: '50%',
+                            border: isSelected ? '2px solid #c5a065' : '1.5px solid #d0d0d0',
+                            background: isSelected ? '#c5a065' : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transition: 'all 0.2s',
+                            flexShrink: 0,
+                        }}>
+                            {isSelected && (
+                                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                                    <path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
