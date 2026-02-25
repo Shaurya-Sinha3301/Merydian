@@ -337,21 +337,23 @@ const ExperienceCard = ({
                 display: 'flex',
                 gap: 0,
                 height: 96,
-                overflow: 'hidden',
                 cursor: isMaxed ? 'not-allowed' : 'pointer',
                 transition: 'border-color 0.2s, box-shadow 0.2s',
                 opacity: isMaxed ? 0.45 : 1,
                 position: 'relative',
-                boxShadow: isSelected ? '0 0 0 3px rgba(197,160,101,0.12)' : cardHovered && !isMaxed ? '0 2px 12px rgba(0,0,0,0.06)' : 'none',
+                boxShadow: isSelected ? '0 0 0 3px rgba(197,160,101,0.12)' : 'none',
             }}
         >
-            {/* Selected gold corner ticks */}
-            {isSelected && (
+            {/* Hover corner ticks — shown only on hover, not when selected */}
+            {cardHovered && !isSelected && !isMaxed && (
                 <>
-                    {[['top', 'left'], ['top', 'right'], ['bottom', 'left'], ['bottom', 'right']].map(([v, h]) => (
+                    {([['top', 'left'], ['top', 'right'], ['bottom', 'left'], ['bottom', 'right']] as [string, string][]).map(([v, h]) => (
                         <div key={`${v}-${h}`} style={{
                             position: 'absolute',
-                            [v]: -1, [h]: -1,
+                            top: v === 'top' ? -1 : undefined,
+                            bottom: v === 'bottom' ? -1 : undefined,
+                            left: h === 'left' ? -1 : undefined,
+                            right: h === 'right' ? -1 : undefined,
                             width: 10, height: 10, zIndex: 3,
                             borderTop: v === 'top' ? '2px solid #c5a065' : 'none',
                             borderBottom: v === 'bottom' ? '2px solid #c5a065' : 'none',
