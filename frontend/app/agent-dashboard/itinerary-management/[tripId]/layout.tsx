@@ -12,7 +12,6 @@ export default async function TripDetailLayout({ children, params }: LayoutProps
 
     return (
         <div className="flex bg-background h-screen overflow-hidden">
-            <Sidebar collapsed />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <NavigationBreadcrumbs />
                 <TripDetailNavbar tripId={tripId} />
