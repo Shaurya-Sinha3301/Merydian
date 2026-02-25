@@ -65,19 +65,20 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
   };
 
   const getStatusBadge = () => {
+    const style = { padding: '6px 12px', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const };
     switch (booking.status) {
       case 'confirmed':
-        return <span className="px-4 py-2 text-sm font-bold bg-green-100 text-green-800 rounded-lg">✓ Confirmed</span>;
+        return <span style={{ ...style, background: '#8fa391', color: '#fff' }}>✓ CONFIRMED</span>;
       case 'pending':
-        return <span className="px-4 py-2 text-sm font-bold bg-yellow-100 text-yellow-800 rounded-lg">⏳ Pending</span>;
+        return <span style={{ ...style, background: '#f3f4f6', color: '#717171', border: '1px solid #e5e5e5' }}>⏳ PENDING</span>;
       case 'cancelled':
-        return <span className="px-4 py-2 text-sm font-bold bg-red-100 text-red-800 rounded-lg">✕ Cancelled</span>;
+        return <span style={{ ...style, background: '#d98d8d', color: '#fff' }}>✕ CANCELLED</span>;
       case 'delayed':
-        return <span className="px-4 py-2 text-sm font-bold bg-orange-100 text-orange-800 rounded-lg">⚠ Delayed</span>;
+        return <span style={{ ...style, background: '#d98d8d', color: '#fff' }}>⚠ DELAYED</span>;
       case 'modified':
-        return <span className="px-4 py-2 text-sm font-bold bg-blue-100 text-blue-800 rounded-lg">↻ Modified</span>;
+        return <span style={{ ...style, background: '#c5a065', color: '#fff' }}>↻ MODIFIED</span>;
       default:
-        return <span className="px-4 py-2 text-sm font-bold bg-gray-100 text-gray-800 rounded-lg">Unknown</span>;
+        return <span style={{ ...style, background: '#f3f4f6', color: '#717171' }}>UNKNOWN</span>;
     }
   };
 
@@ -102,39 +103,39 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
     if (!transport) return null;
 
     return (
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Route */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-[#F5F5F5] rounded-xl p-4">
-            <p className="text-xs text-[#212121]/60 uppercase font-bold mb-2">From</p>
-            <p className="font-bold text-[#212121] text-lg mb-1">{transport.pickupLocation?.name}</p>
-            <p className="text-sm text-[#212121]/60">{transport.pickupLocation?.address}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', padding: 16 }}>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 12px' }}>FROM</p>
+            <p style={{ fontSize: 16, fontWeight: 600, color: '#1a1a1a', margin: '0 0 6px' }}>{transport.pickupLocation?.name}</p>
+            <p style={{ fontSize: 12, color: '#717171', margin: 0 }}>{transport.pickupLocation?.address}</p>
           </div>
-          <div className="bg-[#F5F5F5] rounded-xl p-4">
-            <p className="text-xs text-[#212121]/60 uppercase font-bold mb-2">To</p>
-            <p className="font-bold text-[#212121] text-lg mb-1">{transport.dropLocation?.name}</p>
-            <p className="text-sm text-[#212121]/60">{transport.dropLocation?.address}</p>
+          <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', padding: 16 }}>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 12px' }}>TO</p>
+            <p style={{ fontSize: 16, fontWeight: 600, color: '#1a1a1a', margin: '0 0 6px' }}>{transport.dropLocation?.name}</p>
+            <p style={{ fontSize: 12, color: '#717171', margin: 0 }}>{transport.dropLocation?.address}</p>
           </div>
         </div>
 
         {/* Provider Info */}
-        <div className="bg-[#F5F5F5] rounded-xl p-4">
-          <p className="text-xs text-[#212121]/60 uppercase font-bold mb-3">Provider Details</p>
-          <div className="grid grid-cols-2 gap-4">
+        <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', padding: 16 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 16px' }}>PROVIDER DETAILS</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div>
-              <p className="text-xs text-[#212121]/60 mb-1">Provider</p>
-              <p className="font-bold text-[#212121]">{transport.providerName}</p>
+              <p style={{ fontSize: 10, color: '#717171', margin: '0 0 6px' }}>Provider</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a', margin: 0 }}>{transport.providerName}</p>
             </div>
             {transport.flightNumber && (
               <div>
-                <p className="text-xs text-[#212121]/60 mb-1">Flight Number</p>
-                <p className="font-bold text-[#212121]">{transport.flightNumber}</p>
+                <p style={{ fontSize: 10, color: '#717171', margin: '0 0 6px' }}>Flight Number</p>
+                <p style={{ fontSize: 14, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: '#1a1a1a', margin: 0 }}>{transport.flightNumber}</p>
               </div>
             )}
             {transport.trainNumber && (
               <div>
-                <p className="text-xs text-[#212121]/60 mb-1">Train Number</p>
-                <p className="font-bold text-[#212121]">{transport.trainNumber}</p>
+                <p style={{ fontSize: 10, color: '#717171', margin: '0 0 6px' }}>Train Number</p>
+                <p style={{ fontSize: 14, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: '#1a1a1a', margin: 0 }}>{transport.trainNumber}</p>
               </div>
             )}
           </div>
@@ -142,17 +143,17 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
 
         {/* Ticket Info */}
         {transport.ticketStatus && (
-          <div className="bg-[#F5F5F5] rounded-xl p-4">
-            <p className="text-xs text-[#212121]/60 uppercase font-bold mb-3">Ticket Information</p>
-            <div className="grid grid-cols-2 gap-4">
+          <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', padding: 16 }}>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 16px' }}>TICKET INFORMATION</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div>
-                <p className="text-xs text-[#212121]/60 mb-1">PNR</p>
-                <p className="font-mono font-bold text-[#212121]">{transport.ticketStatus.pnr || 'N/A'}</p>
+                <p style={{ fontSize: 10, color: '#717171', margin: '0 0 6px' }}>PNR</p>
+                <p style={{ fontSize: 14, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: '#1a1a1a', margin: 0 }}>{transport.ticketStatus.pnr || 'N/A'}</p>
               </div>
               {transport.ticketStatus.seatNumbers && (
                 <div>
-                  <p className="text-xs text-[#212121]/60 mb-1">Seats</p>
-                  <p className="font-bold text-[#212121]">{transport.ticketStatus.seatNumbers.join(', ')}</p>
+                  <p style={{ fontSize: 10, color: '#717171', margin: '0 0 6px' }}>Seats</p>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a', margin: 0 }}>{transport.ticketStatus.seatNumbers.join(', ')}</p>
                 </div>
               )}
             </div>
@@ -161,24 +162,24 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
 
         {/* Driver Details (for cabs) */}
         {transport.driverDetails && (
-          <div className="bg-[#F5F5F5] rounded-xl p-4">
-            <p className="text-xs text-[#212121]/60 uppercase font-bold mb-3">Driver Information</p>
-            <div className="grid grid-cols-2 gap-4">
+          <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', padding: 16 }}>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 16px' }}>DRIVER INFORMATION</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div>
-                <p className="text-xs text-[#212121]/60 mb-1">Name</p>
-                <p className="font-bold text-[#212121]">{transport.driverDetails.name}</p>
+                <p style={{ fontSize: 10, color: '#717171', margin: '0 0 6px' }}>Name</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a', margin: 0 }}>{transport.driverDetails.name}</p>
               </div>
               <div>
-                <p className="text-xs text-[#212121]/60 mb-1">Contact</p>
-                <p className="font-bold text-[#212121]">{transport.driverDetails.contact}</p>
+                <p style={{ fontSize: 10, color: '#717171', margin: '0 0 6px' }}>Contact</p>
+                <p style={{ fontSize: 14, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: '#1a1a1a', margin: 0 }}>{transport.driverDetails.contact}</p>
               </div>
               <div>
-                <p className="text-xs text-[#212121]/60 mb-1">Vehicle</p>
-                <p className="font-bold text-[#212121]">{transport.driverDetails.vehicleModel}</p>
+                <p style={{ fontSize: 10, color: '#717171', margin: '0 0 6px' }}>Vehicle</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a', margin: 0 }}>{transport.driverDetails.vehicleModel}</p>
               </div>
               <div>
-                <p className="text-xs text-[#212121]/60 mb-1">Number</p>
-                <p className="font-mono font-bold text-[#212121]">{transport.driverDetails.vehicleNumber}</p>
+                <p style={{ fontSize: 10, color: '#717171', margin: '0 0 6px' }}>Number</p>
+                <p style={{ fontSize: 14, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: '#1a1a1a', margin: 0 }}>{transport.driverDetails.vehicleNumber}</p>
               </div>
             </div>
           </div>
@@ -344,55 +345,70 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
 
   return (
     <>
-      <div className="fixed inset-0 bg-[#212121]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-        <div className="bg-[#FDFDFF] rounded-2xl max-w-3xl w-full my-8 animate-fade-in">
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto', fontFamily: "'Outfit', sans-serif" }}>
+        <div style={{ background: '#fff', width: '100%', maxWidth: 800, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', border: '1px solid #e5e5e5', margin: '32px 0' }}>
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-[#212121]/10">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white">
-                {getTypeIcon()}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 32, borderBottom: '1px solid #e5e5e5' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <div style={{ width: 48, height: 48, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  {getTypeIcon()}
+                </div>
+                <div>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#c5a065', margin: '0 0 4px' }}>
+                    {booking.type}
+                  </p>
+                  <h2 style={{ fontSize: 24, fontWeight: 300, color: '#1a1a1a', margin: 0 }}>{booking.title}</h2>
+                </div>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-[#212121]">{booking.title}</h2>
-                <p className="text-sm text-[#212121]/60 mt-1 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
-                  </svg>
-                  {booking.tripName}
-                </p>
-              </div>
+              <p style={{ fontSize: 12, color: '#717171', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <svg style={{ width: 14, height: 14 }} fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+                </svg>
+                {booking.tripName}
+              </p>
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-[#EDEDED] hover:bg-[#E0E0E0] transition-all flex items-center justify-center"
+              style={{
+                width: 36, height: 36,
+                background: '#fff',
+                border: '1px solid #e5e5e5',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                color: '#717171'
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#1a1a1a'; (e.currentTarget as HTMLButtonElement).style.color = '#1a1a1a'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e5e5'; (e.currentTarget as HTMLButtonElement).style.color = '#717171'; }}
             >
-              <svg className="w-5 h-5 text-[#212121]" fill="currentColor" viewBox="0 0 20 20">
+              <svg style={{ width: 20, height: 20 }} fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
               </svg>
             </button>
           </div>
 
           {/* Content */}
-          <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
-            {/* Status & Date */}
-            <div className="flex items-center justify-between flex-wrap gap-4">
+          <div style={{ padding: 32, maxHeight: '70vh', overflowY: 'auto' }}>
+            {/* Status & Reference */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
               {getStatusBadge()}
-              <div className="text-right">
-                <p className="text-sm text-[#212121]/60 mb-1">Booking Reference</p>
-                <p className="font-mono font-bold text-[#212121] text-lg">{booking.bookingReference}</p>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 6px' }}>BOOKING REFERENCE</p>
+                <p style={{ fontSize: 16, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: '#1a1a1a', margin: 0 }}>{booking.bookingReference}</p>
               </div>
             </div>
 
             {/* Date & Time */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-              <div className="flex items-center justify-between">
+            <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', padding: 20, marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>
-                  <p className="text-xs text-blue-700 uppercase font-bold mb-1">Date</p>
-                  <p className="font-bold text-blue-900 text-lg">{dateTime.date}</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 8px' }}>DATE</p>
+                  <p style={{ fontSize: 16, fontWeight: 600, color: '#1a1a1a', margin: 0 }}>{dateTime.date}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-blue-700 uppercase font-bold mb-1">Time</p>
-                  <p className="font-bold text-blue-900 text-lg">{dateTime.time}</p>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#717171', margin: '0 0 8px' }}>TIME</p>
+                  <p style={{ fontSize: 16, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: '#1a1a1a', margin: 0 }}>{dateTime.time}</p>
                 </div>
               </div>
             </div>
@@ -404,16 +420,19 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
 
             {/* Disruption Alert */}
             {booking.details.disruption && (
-              <div className={`border-l-4 rounded-xl p-4 ${
-                booking.details.disruption.severity === 'critical' ? 'border-red-600 bg-red-50' :
-                booking.details.disruption.severity === 'high' ? 'border-orange-600 bg-orange-50' :
-                booking.details.disruption.severity === 'medium' ? 'border-yellow-600 bg-yellow-50' :
-                'border-blue-600 bg-blue-50'
-              }`}>
-                <p className="font-bold text-[#212121] mb-2">⚠️ {booking.details.disruption.title}</p>
-                <p className="text-sm text-[#212121]/80 mb-2">{booking.details.disruption.description}</p>
+              <div style={{
+                borderLeft: booking.details.disruption.severity === 'critical' || booking.details.disruption.severity === 'high' ? '2px solid #d98d8d' : '2px solid #c5a065',
+                background: '#fafafa',
+                border: '1px solid #e5e5e5',
+                padding: 16,
+                marginTop: 24
+              }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#d98d8d', margin: '0 0 8px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                  ⚠ {booking.details.disruption.title}
+                </p>
+                <p style={{ fontSize: 13, color: '#555', margin: '0 0 8px', lineHeight: 1.6 }}>{booking.details.disruption.description}</p>
                 {booking.details.disruption.suggestedAction && (
-                  <p className="text-xs text-[#212121]/70 bg-white/70 p-2 rounded">
+                  <p style={{ fontSize: 12, color: '#8fa391', margin: 0, fontStyle: 'italic', background: '#fff', padding: 8, border: '1px solid #e5e5e5' }}>
                     💡 {booking.details.disruption.suggestedAction}
                   </p>
                 )}
@@ -422,13 +441,32 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-[#212121]/10 flex gap-3">
+          <div style={{ padding: 32, borderTop: '1px solid #e5e5e5', display: 'flex', gap: 12 }}>
             {booking.ticketUrl && (
               <button
                 onClick={() => setShowTicket(true)}
-                className="flex-1 px-6 py-3 bg-[#212121] text-[#FDFDFF] rounded-xl font-semibold hover:bg-[#212121]/90 transition-all flex items-center justify-center gap-2"
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  background: '#1a1a1a',
+                  color: '#fff',
+                  border: 'none',
+                  borderBottom: '2px solid #c5a065',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#333')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#1a1a1a')}
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg style={{ width: 16, height: 16 }} fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
                   <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
                 </svg>
@@ -437,7 +475,21 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
             )}
             <button
               onClick={onClose}
-              className="flex-1 px-6 py-3 bg-[#EDEDED] text-[#212121] rounded-xl font-semibold hover:bg-[#E0E0E0] transition-all"
+              style={{
+                flex: 1,
+                padding: '12px 24px',
+                background: '#fff',
+                color: '#717171',
+                border: '1px solid #e5e5e5',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#1a1a1a'; (e.currentTarget as HTMLButtonElement).style.color = '#1a1a1a'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e5e5'; (e.currentTarget as HTMLButtonElement).style.color = '#717171'; }}
             >
               Close
             </button>
@@ -453,6 +505,11 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
           event={booking.details}
         />
       )}
+
+      {/* CSS */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400&display=swap');
+      `}</style>
     </>
   );
 }

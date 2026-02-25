@@ -3,6 +3,7 @@
 import { Sparkles, ChevronRight } from 'lucide-react';
 import { CostPerFamilyRadarChart } from '@/components/charts/CostPerFamilyRadarChart';
 import { TransportUtilizationChart } from '@/components/charts/TransportUtilizationChart';
+import { PersonalizationProfitChart } from '@/components/charts/PersonalizationProfitChart';
 
 // ─── IntelligenceView ─────────────────────────────────────────────────────────
 // Intelligence dashboard with analytical charts and strategic insights
@@ -19,17 +20,18 @@ export default function IntelligenceView() {
                     · Analysis
                 </p>
 
-                {/* Charts Grid */}
-                <div className="space-y-6">
+                {/* Personalization vs Profit - Full Width at Top */}
+                <div className="mb-6">
+                    <PersonalizationProfitChart />
+                </div>
+
+                {/* Charts Grid - 2 columns */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Cost Per Family Radar Chart */}
-                    <div className="max-w-2xl mx-auto">
-                        <CostPerFamilyRadarChart />
-                    </div>
+                    <CostPerFamilyRadarChart />
 
                     {/* Transport Utilization Chart */}
-                    <div className="max-w-4xl mx-auto">
-                        <TransportUtilizationChart />
-                    </div>
+                    <TransportUtilizationChart />
                 </div>
             </div>
 

@@ -126,6 +126,7 @@ export function AreaChartInteractive() {
 
   return (
     <ChartContainer
+      id="area-chart-landing"
       config={chartConfig}
       className="w-full"
       style={{ height: '220px', minHeight: '220px' }}

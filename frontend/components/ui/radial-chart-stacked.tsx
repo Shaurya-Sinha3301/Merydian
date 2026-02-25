@@ -26,6 +26,7 @@ export function RadialChartStacked() {
 
   return (
     <ChartContainer
+      id="radial-chart-landing"
       config={chartConfig}
       className="mx-auto w-full"
       style={{ aspectRatio: '1', maxWidth: '200px', minHeight: '200px' }}
