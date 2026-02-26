@@ -100,8 +100,8 @@ const metricScaling = [
   },
   {
     name: "Cost/POI",
-    description: "Efficiency score (inverted scale)",
-    formula: "100 - Scaled(Cost/POIs)",
+    description: "Total cost spent of that family divided by total POIs visited by that family",
+    formula: "Cost / POIs",
     range: "Higher score = Cheaper"
   },
 ]

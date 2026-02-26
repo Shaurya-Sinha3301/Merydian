@@ -60,17 +60,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function DisruptionImpactChart() {
-    const [activePointIndex, setActivePointIndex] = useState(0)
-
-    // Auto-progress the animation across the timeline to show "how far" the itinerary is
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setActivePointIndex((prev) => (prev < chartData.length - 1 ? prev + 1 : 0))
-        }, 2500)
-        return () => clearInterval(interval)
-    }, [])
-
-    const currentPoint = chartData[activePointIndex]
+    // Always set to show the current disrupted state, static
+    const currentPoint = chartData.find(d => d.time === "Day 3 (PM)") || chartData[3]
 
     return (
         <div className="border border-gray-200 bg-white shadow-sm">
@@ -115,10 +106,10 @@ export function DisruptionImpactChart() {
             <div className="px-5 py-6">
                 <div className="w-full h-[240px] min-w-[200px] relative">
 
-                    {/* Animated Timeline Progress Indicator Label overlay */}
-                    <div className="absolute top-0 right-0 flex items-center gap-2 bg-black text-white px-2 py-1 rounded text-[9px] font-mono shadow-md z-10 animate-pulse">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                        Current State: {currentPoint.time}
+                    {/* Static Timeline Progress Indicator Label overlay */}
+                    <div className="absolute top-0 right-0 flex items-center gap-2 bg-black text-white px-2 py-1 rounded text-[9px] font-mono shadow-md z-10">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                        Disruption Point: {currentPoint.time}
                     </div>
 
                     <ResponsiveContainer width="100%" height="100%">
@@ -194,16 +185,15 @@ export function DisruptionImpactChart() {
                                 activeDot={{ r: 6, fill: '#111827', strokeWidth: 0 }}
                             />
 
-                            {/* Animated pulsating dot on the current active state */}
+                            {/* Static dot on the disrupted state */}
                             <ReferenceDot
                                 x={currentPoint.time}
                                 y={currentPoint.optimized}
-                                r={7}
-                                fill="#22c55e"
+                                r={6}
+                                fill="#ef4444"
                                 stroke="#fff"
                                 strokeWidth={2}
-                                className="animate-ping shadow-lg"
-                                style={{ animationDuration: '2s' }}
+                                className="shadow-lg"
                             />
                             <ReferenceDot
                                 x={currentPoint.time}

@@ -26,7 +26,7 @@ export default function HeroSection() {
     const handleResize = () => {
       const st = ScrollTrigger.getById('hero-scroll');
       if (st) {
-        drawFrame(st.progress * 277);
+        drawFrame(st.progress * 383);
       }
     };
     window.addEventListener('resize', handleResize);
@@ -39,44 +39,44 @@ export default function HeroSection() {
         end: 'bottom bottom',
         scrub: 0,
         onUpdate: (self) => {
-          const frameIndex = Math.floor(self.progress * 277);
+          const frameIndex = Math.floor(self.progress * 383);
           drawFrame(frameIndex);
         },
       },
     });
 
-    // Scene 1: AI-POWERED TRAVEL (0% - 25%)
+    // Scene 1: AI-POWERED TRAVEL (0% - 20%) — 1st sequence exterior chalet
     tl.fromTo(
       textRef1.current,
       { opacity: 0, scale: 0.9, y: 50 },
-      { opacity: 1, scale: 1, y: 0, ease: 'power2.out', duration: 0.1 },
+      { opacity: 1, scale: 1, y: 0, ease: 'power2.out', duration: 0.08 },
       0
     );
     tl.to(
       textRef1.current,
       { opacity: 0, scale: 1.1, y: -50, ease: 'power2.in', duration: 0.05 },
-      0.2
+      0.15
     );
 
-    // Scene 2: ELEVATED TRAVEL MANAGEMENT (30% - 60%)
+    // Scene 2: ELEVATED TRAVEL MANAGEMENT (25% - 48%) — 1st sequence zoom in
     tl.fromTo(
       textRef2.current,
       { opacity: 0, x: -50 },
-      { opacity: 1, x: 0, ease: 'power2.out', duration: 0.1 },
-      0.3
+      { opacity: 1, x: 0, ease: 'power2.out', duration: 0.08 },
+      0.25
     );
     tl.to(
       textRef2.current,
       { opacity: 0, x: -50, ease: 'power2.in', duration: 0.05 },
-      0.55
+      0.45
     );
 
-    // Scene 3: WHERE LUXURY MEETS INTELLIGENCE (65% - 100%)
+    // Scene 3: WHERE LUXURY MEETS INTELLIGENCE (55% - 100%) — 2nd sequence nightscape
     tl.fromTo(
       textRef3.current,
       { opacity: 0, scale: 0.9, y: 50 },
       { opacity: 1, scale: 1, y: 0, ease: 'power2.out', duration: 0.1 },
-      0.65
+      0.55
     );
 
     return () => {
@@ -141,7 +141,7 @@ export default function HeroSection() {
             {/* Text 2: Bottom Left - Value Proposition */}
             <div className="absolute inset-0 flex items-end justify-start pb-24 pl-10 md:pl-20">
               <div ref={textRef2} className="opacity-0 max-w-2xl">
-                <motion.div 
+                <motion.div
                   className="h-px w-16 bg-white/30 mb-8"
                 />
                 <h1 className="font-serif text-[clamp(3rem,7vw,6rem)] text-white leading-[1.1] tracking-tight drop-shadow-2xl mb-6">
@@ -157,7 +157,7 @@ export default function HeroSection() {
                     <span className="flex items-center gap-3">
                       Begin Your Journey
                       <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
                     </span>
                   </button>
@@ -173,7 +173,7 @@ export default function HeroSection() {
                   <br />
                   Meets <span className="italic text-white/70">Intelligence</span>
                 </h1>
-                <motion.div 
+                <motion.div
                   className="h-px w-32 bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto"
                 />
                 <p className="text-sm uppercase tracking-[0.3em] text-white/50 font-light">
