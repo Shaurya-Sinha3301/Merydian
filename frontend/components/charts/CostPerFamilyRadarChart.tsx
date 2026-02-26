@@ -9,49 +9,28 @@ export const description = "Cost Per Family Radar Chart with Multi-Family Compar
 
 // Analytical metrics for multiple families - ALL SCALED TO 0-100
 const chartData = [
-  { 
+  {
     metric: "Total Cost",
     family1: 74,  // Scaled from ₹186k (max ₹250k)
     family2: 88,  // Scaled from ₹220k
     family3: 66,  // Scaled from ₹165k
     family4: 78,  // Scaled from ₹195k
   },
-  { 
+  {
     metric: "Transport %",
     family1: 75,  // Already 0-100
     family2: 68,
     family3: 82,
     family4: 71,
   },
-  { 
-    metric: "Satisfaction",
-    family1: 85,  // Already 0-100
-    family2: 78,
-    family3: 92,
-    family4: 88,
-  },
-  { 
+  {
     metric: "Value/₹",
     family1: 68,  // Already 0-100 (satisfaction points per ₹1000)
     family2: 82,
     family3: 75,
     family4: 79,
   },
-  { 
-    metric: "POIs",
-    family1: 92,  // Already 0-100 (% of planned POIs covered)
-    family2: 85,
-    family3: 88,
-    family4: 90,
-  },
-  { 
-    metric: "Alignment",
-    family1: 78,  // Already 0-100 (% preference match)
-    family2: 88,
-    family3: 72,
-    family4: 85,
-  },
-  { 
+  {
     metric: "Margin",
     family1: 65,  // Already 0-100 (% margin)
     family2: 72,
@@ -62,54 +41,33 @@ const chartData = [
 
 // Scaling information for metrics
 const metricScaling = [
-  { 
-    name: "Total Cost", 
-    description: "Trip cost normalized to 0-100",
-    formula: "(Actual Cost / Max Budget) × 100",
-    example: "₹186k / ₹250k = 74",
+  {
+    name: "Total Cost",
+    description: "Trip cost 0-100",
+    formula: "Cost / Max",
+    example: "74",
     range: "Lower is better"
   },
-  { 
-    name: "Transport %", 
-    description: "Transport cost as % of total",
-    formula: "(Transport Cost / Total Cost) × 100",
-    example: "Direct percentage",
-    range: "Optimal: 30-40%"
+  {
+    name: "Transport %",
+    description: "Transport % of total",
+    formula: "Transport / Total",
+    example: "Percentage",
+    range: "30-40%"
   },
-  { 
-    name: "Satisfaction", 
-    description: "Aggregate satisfaction score",
-    formula: "Average of all family ratings",
-    example: "Direct score 0-100",
+  {
+    name: "Value/₹",
+    description: "Points per ₹1k",
+    formula: "Score / ₹1k",
+    example: "68",
     range: "Higher is better"
   },
-  { 
-    name: "Value/₹", 
-    description: "Satisfaction per ₹1000 spent",
-    formula: "(Satisfaction Score / Cost in ₹1000s)",
-    example: "85 / 1.86 = 46 → scaled to 68",
-    range: "Higher is better"
-  },
-  { 
-    name: "POIs", 
-    description: "Points of interest coverage",
-    formula: "(Visited POIs / Planned POIs) × 100",
-    example: "23 / 25 = 92%",
-    range: "Higher is better"
-  },
-  { 
-    name: "Alignment", 
-    description: "Preference match percentage",
-    formula: "(Matched Preferences / Total) × 100",
-    example: "Direct percentage",
-    range: "Higher is better"
-  },
-  { 
-    name: "Margin", 
-    description: "Contribution margin",
-    formula: "(Revenue - Cost) / Revenue × 100",
-    example: "Direct percentage",
-    range: "Target: 60-75%"
+  {
+    name: "Margin",
+    description: "Net Margin",
+    formula: "Profit / Rev",
+    example: "Percentage",
+    range: "60-75%"
   },
 ]
 
@@ -198,7 +156,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <div className="space-y-1">
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center gap-2">
-              <div 
+              <div
                 className="w-2 h-2 rounded-sm"
                 style={{ backgroundColor: entry.color }}
               />
@@ -231,19 +189,16 @@ export function CostPerFamilyRadarChart() {
   return (
     <div className="border border-gray-200 bg-white">
       {/* Header matching dashboard style */}
-      <div className="border-b border-gray-200 px-5 py-4">
-        <div className="flex justify-between items-center mb-1">
+      <div className="border-b border-gray-200 px-5 py-3">
+        <div className="flex justify-between items-center mb-0">
           <span className="text-[14px] font-semibold capitalize text-gray-900 tracking-tight flex items-center gap-1.5">
             <RadarIcon className="w-4 h-4 shrink-0" />
-            Cost Per Family Analysis
+            Cost Analysis
           </span>
           <span className="text-[10px] font-mono text-gray-400 border border-gray-200 px-1.5 py-0.5">
             MULTI-FAMILY
           </span>
         </div>
-        <p className="text-[11px] text-gray-500 tracking-tight">
-          Comparative metrics across 7 key dimensions
-        </p>
       </div>
 
       {/* Chart Content */}
@@ -266,27 +221,27 @@ export function CostPerFamilyRadarChart() {
             </div>
           </div>
         </div>
-        
+
         <div className="w-full h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart 
+            <RadarChart
               data={chartData}
             >
-              <PolarGrid 
-                stroke="#e5e5e5" 
+              <PolarGrid
+                stroke="#e5e5e5"
                 strokeDasharray="2 2"
               />
-              <PolarAngleAxis 
+              <PolarAngleAxis
                 dataKey="metric"
-                tick={{ 
-                  fill: '#6b7280', 
-                  fontSize: 11,
+                tick={{
+                  fill: '#6b7280',
+                  fontSize: 13,
                   fontFamily: 'ui-monospace, monospace'
                 }}
               />
-              
+
               <Tooltip content={<CustomTooltip />} />
-              
+
               {/* Radar for each family */}
               {families.map((family, index) => (
                 <Radar
@@ -299,11 +254,11 @@ export function CostPerFamilyRadarChart() {
                   strokeWidth={1.5}
                 />
               ))}
-              
-              <Legend 
+
+              <Legend
                 wrapperStyle={{
                   paddingTop: '20px',
-                  fontSize: '11px',
+                  fontSize: '13px',
                   fontFamily: 'ui-sans-serif, system-ui'
                 }}
               />
@@ -348,8 +303,8 @@ export function CostPerFamilyRadarChart() {
                     onMouseLeave={onPieLeave}
                   >
                     {costBreakdownData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
+                      <Cell
+                        key={`cell-${index}`}
                         fill={entry.color}
                       />
                     ))}
@@ -367,7 +322,7 @@ export function CostPerFamilyRadarChart() {
               {costBreakdownData.map((item, index) => (
                 <div key={index} className="flex items-center justify-between gap-2 p-1.5 hover:bg-gray-50 transition-colors rounded">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div 
+                    <div
                       className="w-2.5 h-2.5 rounded-sm shrink-0"
                       style={{ backgroundColor: item.color }}
                     />
@@ -398,11 +353,8 @@ export function CostPerFamilyRadarChart() {
           </summary>
           <div className="mt-2 bg-gray-50/50 border border-gray-100 p-2.5">
             <div className="mb-2 pb-2 border-b border-gray-200">
-              <p className="text-[8px] font-bold text-gray-900 uppercase tracking-wider mb-1">
-                All metrics scaled to 0-100 for easy comparison
-              </p>
-              <p className="text-[7px] text-gray-500 leading-relaxed">
-                This allows you to spot anomalies at a glance. Values far from the center indicate potential issues or exceptional performance.
+              <p className="text-[9px] font-bold text-gray-900 uppercase tracking-wider mb-1">
+                Metrics scaled 0-100
               </p>
             </div>
             <div className="space-y-2 font-mono text-[8px] text-gray-600">

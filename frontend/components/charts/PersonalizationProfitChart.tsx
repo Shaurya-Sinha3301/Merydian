@@ -35,15 +35,15 @@ const timeSeriesData = [
 
 // Derived metrics
 const derivedMetrics = [
-  { 
-    label: "Personalization Index", 
-    value: "72%", 
+  {
+    label: "Personalization Index",
+    value: "72%",
     formula: "(Preference Alignment + Must-Visit Adherence) / Total Constraints",
     description: "Measures how well the itinerary matches family preferences"
   },
-  { 
-    label: "Profit Protection Index", 
-    value: "68%", 
+  {
+    label: "Profit Protection Index",
+    value: "68%",
     formula: "(Actual Margin / Maximum Feasible Margin) × 100",
     description: "Shows margin efficiency vs theoretical maximum"
   },
@@ -103,90 +103,84 @@ export function PersonalizationProfitChart() {
   return (
     <div className="border border-gray-200 bg-white">
       {/* Header */}
-      <div className="border-b border-gray-200 px-5 py-4">
-        <div className="flex justify-between items-center mb-1">
+      <div className="border-b border-gray-200 px-5 py-3">
+        <div className="flex justify-between items-center mb-0">
           <span className="text-[14px] font-semibold capitalize text-gray-900 tracking-tight flex items-center gap-1.5">
             <Target className="w-4 h-4 shrink-0" />
-            Personalization vs Profit Tradeoff
+            Tradeoff Frontier
           </span>
           <span className="text-[10px] font-mono text-gray-400 border border-gray-200 px-1.5 py-0.5">
-            EFFICIENCY FRONTIER
+            EFFICIENCY
           </span>
         </div>
-        <p className="text-[11px] text-gray-500 tracking-tight">
-          Optimal balance between customer satisfaction and business margin
-        </p>
       </div>
 
       {/* Main Content - Two Column Layout */}
       <div className="grid grid-cols-2 gap-4 p-5">
-        
+
         {/* Left: Frontier Curve */}
         <div>
           <div className="mb-3">
-            <h4 className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-1">
-              Efficiency Frontier
+            <h4 className="text-[11px] font-bold uppercase text-gray-400 tracking-wider mb-0">
+              Frontier
             </h4>
-            <p className="text-[8px] text-gray-500 leading-relaxed">
-              Each point represents a possible itinerary solution. The curve shows optimal tradeoffs.
-            </p>
           </div>
-          
+
           <div className="w-full h-[200px] border border-gray-100 bg-gray-50/30 p-2">
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart margin={{ top: 10, right: 10, bottom: 20, left: 20 }}>
                 <CartesianGrid strokeDasharray="2 2" stroke="#e5e5e5" />
-                <XAxis 
-                  type="number" 
-                  dataKey="personalization" 
+                <XAxis
+                  type="number"
+                  dataKey="personalization"
                   name="Personalization"
                   domain={[40, 95]}
-                  tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'ui-monospace, monospace' }}
+                  tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'ui-monospace, monospace' }}
                   tickLine={false}
                   axisLine={{ stroke: '#e5e5e5' }}
                 >
-                  <Label 
-                    value="Personalization Score (%)" 
-                    position="bottom" 
-                    style={{ fontSize: 9, fill: '#9ca3af', fontFamily: 'ui-monospace, monospace' }}
+                  <Label
+                    value="Personalization Score (%)"
+                    position="bottom"
+                    style={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'ui-monospace, monospace' }}
                     offset={5}
                   />
                 </XAxis>
-                <YAxis 
-                  type="number" 
-                  dataKey="margin" 
+                <YAxis
+                  type="number"
+                  dataKey="margin"
                   name="Margin"
                   domain={[40, 80]}
-                  tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'ui-monospace, monospace' }}
+                  tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'ui-monospace, monospace' }}
                   tickLine={false}
                   axisLine={{ stroke: '#e5e5e5' }}
                 >
-                  <Label 
-                    value="Margin (%)" 
-                    angle={-90} 
-                    position="left" 
-                    style={{ fontSize: 9, fill: '#9ca3af', fontFamily: 'ui-monospace, monospace' }}
+                  <Label
+                    value="Margin (%)"
+                    angle={-90}
+                    position="left"
+                    style={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'ui-monospace, monospace' }}
                     offset={5}
                   />
                 </YAxis>
                 <Tooltip content={<CustomScatterTooltip />} />
-                
+
                 {/* Frontier line */}
-                <Scatter 
-                  data={frontierData} 
-                  fill="#7B8FA3" 
+                <Scatter
+                  data={frontierData}
+                  fill="#7B8FA3"
                   line={{ stroke: '#7B8FA3', strokeWidth: 2 }}
                   shape="circle"
                 />
-                
+
                 {/* Solution points */}
-                <Scatter 
-                  data={solutionPoints.filter(p => p.type === 'chosen')} 
+                <Scatter
+                  data={solutionPoints.filter(p => p.type === 'chosen')}
                   fill="#6B8E7F"
                   shape="circle"
                 />
-                <Scatter 
-                  data={solutionPoints.filter(p => p.type === 'suboptimal')} 
+                <Scatter
+                  data={solutionPoints.filter(p => p.type === 'suboptimal')}
                   fill="#C17767"
                   shape="circle"
                 />
@@ -232,51 +226,48 @@ export function PersonalizationProfitChart() {
         {/* Right: Time Series & Metrics */}
         <div>
           <div className="mb-3">
-            <h4 className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-1">
-              Derived Metrics Over Time
+            <h4 className="text-[11px] font-bold uppercase text-gray-400 tracking-wider mb-0">
+              Metrics Over Time
             </h4>
-            <p className="text-[8px] text-gray-500 leading-relaxed">
-              Track how personalization and profit protection evolve throughout the trip.
-            </p>
           </div>
 
           <div className="w-full h-[200px] border border-gray-100 bg-gray-50/30 p-2">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={timeSeriesData} margin={{ top: 10, right: 10, bottom: 20, left: 20 }}>
                 <CartesianGrid strokeDasharray="2 2" stroke="#e5e5e5" vertical={false} />
-                <XAxis 
+                <XAxis
                   dataKey="day"
-                  tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'ui-monospace, monospace' }}
+                  tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'ui-monospace, monospace' }}
                   tickLine={false}
                   axisLine={{ stroke: '#e5e5e5' }}
                 />
                 <YAxis
                   domain={[60, 75]}
-                  tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'ui-monospace, monospace' }}
+                  tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'ui-monospace, monospace' }}
                   tickLine={false}
                   axisLine={{ stroke: '#e5e5e5' }}
                 >
-                  <Label 
-                    value="Index (%)" 
-                    angle={-90} 
-                    position="left" 
-                    style={{ fontSize: 9, fill: '#9ca3af', fontFamily: 'ui-monospace, monospace' }}
+                  <Label
+                    value="Index (%)"
+                    angle={-90}
+                    position="left"
+                    style={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'ui-monospace, monospace' }}
                     offset={5}
                   />
                 </YAxis>
                 <Tooltip content={<CustomTimeTooltip />} />
-                <Line 
-                  type="monotone" 
-                  dataKey="personalizationIndex" 
-                  stroke="#8B7355" 
+                <Line
+                  type="monotone"
+                  dataKey="personalizationIndex"
+                  stroke="#8B7355"
                   strokeWidth={2}
                   dot={{ fill: '#8B7355', r: 3 }}
                   name="Personalization"
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="profitProtectionIndex" 
-                  stroke="#6B8E7F" 
+                <Line
+                  type="monotone"
+                  dataKey="profitProtectionIndex"
+                  stroke="#6B8E7F"
                   strokeWidth={2}
                   dot={{ fill: '#6B8E7F', r: 3 }}
                   name="Profit Protection"
@@ -310,7 +301,7 @@ export function PersonalizationProfitChart() {
         <div className="flex items-start gap-2">
           <TrendingUp className="w-3.5 h-3.5 text-green-600 shrink-0 mt-0.5" />
           <div className="text-[9px] text-gray-600 leading-relaxed">
-            <span className="font-bold text-gray-900">Current Position:</span> Your solution sits on the efficiency frontier at 72% personalization and 68% margin, 
+            <span className="font-bold text-gray-900">Current Position:</span> Your solution sits on the efficiency frontier at 72% personalization and 68% margin,
             representing an optimal balance. Moving further right would sacrifice 4-6% margin for each 10% personalization gain.
           </div>
         </div>

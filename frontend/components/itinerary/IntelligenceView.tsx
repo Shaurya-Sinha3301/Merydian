@@ -20,18 +20,18 @@ export default function IntelligenceView() {
                     · Analysis
                 </p>
 
-                {/* Personalization vs Profit - Full Width at Top */}
-                <div className="mb-6">
-                    <PersonalizationProfitChart />
-                </div>
-
-                {/* Charts Grid - 2 columns */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Charts Grid - 2 columns at Top */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     {/* Cost Per Family Radar Chart */}
                     <CostPerFamilyRadarChart />
 
                     {/* Transport Utilization Chart */}
                     <TransportUtilizationChart />
+                </div>
+
+                {/* Personalization vs Profit - Full Width Below */}
+                <div className="mb-6">
+                    <PersonalizationProfitChart />
                 </div>
             </div>
 

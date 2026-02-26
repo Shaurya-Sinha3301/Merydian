@@ -7,35 +7,35 @@ export const description = "Transport Utilization Efficiency Score with Multi-Fa
 
 // Transport utilization data for multiple families across different modes
 const chartData = [
-  { 
+  {
     mode: "Metro",
     kumar: 85,
     sharma: 78,
     patel: 92,
     gupta: 88,
   },
-  { 
+  {
     mode: "Cab",
     kumar: 65,
     sharma: 72,
     patel: 58,
     gupta: 70,
   },
-  { 
+  {
     mode: "Bus",
     kumar: 75,
     sharma: 82,
     patel: 79,
     gupta: 76,
   },
-  { 
+  {
     mode: "Train",
     kumar: 90,
     sharma: 85,
     patel: 88,
     gupta: 92,
   },
-  { 
+  {
     mode: "Flight",
     kumar: 70,
     sharma: 68,
@@ -80,7 +80,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <div className="space-y-1">
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center gap-2">
-              <div 
+              <div
                 className="w-2 h-2 rounded-sm"
                 style={{ backgroundColor: entry.color }}
               />
@@ -103,8 +103,8 @@ export function TransportUtilizationChart() {
   return (
     <div className="border border-gray-200 bg-white">
       {/* Header matching dashboard style */}
-      <div className="border-b border-gray-200 px-5 py-4">
-        <div className="flex justify-between items-center mb-1">
+      <div className="border-b border-gray-200 px-5 py-3">
+        <div className="flex justify-between items-center mb-0">
           <span className="text-[14px] font-semibold capitalize text-gray-900 tracking-tight flex items-center gap-1.5">
             <TrendingUp className="w-4 h-4 shrink-0" />
             Transport Utilization Efficiency Score
@@ -113,16 +113,13 @@ export function TransportUtilizationChart() {
             MULTI-MODE
           </span>
         </div>
-        <p className="text-[11px] text-gray-500 tracking-tight">
-          Efficiency analysis across transport modes and families
-        </p>
       </div>
 
       {/* Key Metrics Grid */}
       <div className="px-5 pt-4 pb-3 border-b border-gray-100">
         <div className="grid grid-cols-2 gap-2">
           {keyMetrics.map((metric, index) => (
-            <div 
+            <div
               key={index}
               className="p-2 border border-gray-100 bg-gray-50/30"
             >
@@ -144,53 +141,53 @@ export function TransportUtilizationChart() {
       <div className="px-5 py-4">
         <div className="w-full h-[180px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart 
+            <BarChart
               data={chartData}
               margin={{ top: 10, right: 30, left: 20, bottom: 5 }}
             >
-              <CartesianGrid 
-                strokeDasharray="2 2" 
+              <CartesianGrid
+                strokeDasharray="2 2"
                 stroke="#e5e5e5"
                 vertical={false}
               />
-              <XAxis 
+              <XAxis
                 dataKey="mode"
-                tick={{ 
-                  fill: '#6b7280', 
-                  fontSize: 11,
+                tick={{
+                  fill: '#6b7280',
+                  fontSize: 13,
                   fontFamily: 'ui-monospace, monospace'
                 }}
                 axisLine={{ stroke: '#e5e5e5' }}
                 tickLine={false}
               />
               <YAxis
-                tick={{ 
-                  fill: '#6b7280', 
-                  fontSize: 10,
+                tick={{
+                  fill: '#6b7280',
+                  fontSize: 12,
                   fontFamily: 'ui-monospace, monospace'
                 }}
                 axisLine={{ stroke: '#e5e5e5' }}
                 tickLine={false}
-                label={{ 
-                  value: 'Efficiency %', 
-                  angle: -90, 
+                label={{
+                  value: 'Efficiency %',
+                  angle: -90,
                   position: 'insideLeft',
-                  style: { 
-                    fontSize: 10, 
+                  style: {
+                    fontSize: 12,
                     fill: '#9ca3af',
                     fontFamily: 'ui-monospace, monospace'
                   }
                 }}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend 
+              <Legend
                 wrapperStyle={{
                   paddingTop: '10px',
-                  fontSize: '11px',
+                  fontSize: '13px',
                   fontFamily: 'ui-sans-serif, system-ui'
                 }}
               />
-              
+
               {/* Bar for each family */}
               {families.map((family) => (
                 <Bar
@@ -208,38 +205,37 @@ export function TransportUtilizationChart() {
         {/* Mode Dependency Risk Index */}
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+            <AlertTriangle className="w-4 h-4 text-gray-400" />
+            <span className="text-[11px] font-bold uppercase text-gray-400 tracking-wider">
               Mode Dependency Risk
             </span>
           </div>
-          
+
           <div className="space-y-2">
             {dependencyRisk.map((item, index) => (
               <div key={index} className="flex items-center gap-2">
-                <div className="w-16 text-[9px] font-mono text-gray-600">
+                <div className="w-16 text-[10px] font-mono text-gray-600">
                   {item.mode}
                 </div>
-                <div className="flex-1 relative h-5 bg-gray-100 border border-gray-200">
-                  <div 
+                <div className="flex-1 relative h-6 bg-gray-100 border border-gray-200">
+                  <div
                     className="absolute left-0 top-0 h-full transition-all"
-                    style={{ 
+                    style={{
                       width: `${item.score}%`,
                       backgroundColor: item.color,
                       opacity: 0.6
                     }}
                   />
                   <div className="absolute inset-0 flex items-center justify-end pr-1.5">
-                    <span className="text-[8px] font-mono font-bold text-gray-900">
+                    <span className="text-[10px] font-mono font-bold text-gray-900">
                       {item.score}
                     </span>
                   </div>
                 </div>
-                <div className={`w-12 text-[8px] font-bold uppercase tracking-wider text-right ${
-                  item.risk === 'Low' ? 'text-green-600' : 
-                  item.risk === 'High' ? 'text-red-600' : 
-                  'text-orange-600'
-                }`}>
+                <div className={`w-12 text-[10px] font-bold uppercase tracking-wider text-right ${item.risk === 'Low' ? 'text-green-600' :
+                    item.risk === 'High' ? 'text-red-600' :
+                      'text-orange-600'
+                  }`}>
                   {item.risk}
                 </div>
               </div>
@@ -271,7 +267,7 @@ export function TransportUtilizationChart() {
                     High Efficiency
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-1.5 text-[9px] font-mono flex-wrap">
                   <div className="px-1.5 py-0.5 bg-red-100 text-red-800 border border-red-200">
                     Strike
@@ -287,7 +283,7 @@ export function TransportUtilizationChart() {
                 </div>
 
                 <div className="mt-2 pt-2 border-t border-gray-200 text-[8px] text-gray-600 leading-relaxed">
-                  <span className="font-bold text-gray-900">Analysis:</span> Metro dependency creates vulnerability. 
+                  <span className="font-bold text-gray-900">Analysis:</span> Metro dependency creates vulnerability.
                   Cost increases 3.2x when unavailable.
                 </div>
               </div>

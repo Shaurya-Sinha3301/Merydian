@@ -9,7 +9,7 @@ interface UseCanvasAnimationReturn {
 }
 
 export function useCanvasAnimation(
-  canvasRef: RefObject<HTMLCanvasElement>
+  canvasRef: RefObject<HTMLCanvasElement | null>
 ): UseCanvasAnimationReturn {
   const [images, setImages] = useState<HTMLImageElement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
