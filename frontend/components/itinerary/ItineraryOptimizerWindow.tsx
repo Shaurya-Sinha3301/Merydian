@@ -248,8 +248,9 @@ export default function ItineraryOptimizerWindow() {
                 const data = await apiClient.getAgentTrips({ limit: 20 });
                 const items: any[] = data?.items ?? [];
 
+                let mapped: Trip[] = [];
                 if (items.length > 0) {
-                    const mapped: Trip[] = items.map((t: any) => ({
+                    mapped = items.map((t: any) => ({
                         id: t.trip_id,
                         title: t.trip_name ?? t.trip_id,
                         client: (t.families ?? []).join(', ') || 'Unknown',
@@ -263,12 +264,33 @@ export default function ItineraryOptimizerWindow() {
                             : 'N/A',
                         members: [],
                     }));
-                    setTrips(mapped);
+                } else {
+                    mapped = [...MOCK_TRIPS];
                 }
-                // If empty, keep mock data so UI isn't blank
+
+                // Load local mocked built trips
+                try {
+                    const builtTripsStr = sessionStorage.getItem('builtTrips');
+                    if (builtTripsStr) {
+                        const builtTrips = JSON.parse(builtTripsStr);
+                        mapped = [...builtTrips, ...mapped];
+                    }
+                } catch (e) {
+                    console.warn('Failed to load built trips', e);
+                }
+
+                setTrips(mapped);
             } catch (err) {
                 console.warn('[ItineraryOptimizerWindow] Could not fetch trips from backend, using mock data:', err);
-                // Keep MOCK_TRIPS as fallback
+                let fallback = [...MOCK_TRIPS];
+                try {
+                    const builtTripsStr = sessionStorage.getItem('builtTrips');
+                    if (builtTripsStr) {
+                        const builtTrips = JSON.parse(builtTripsStr);
+                        fallback = [...builtTrips, ...fallback];
+                    }
+                } catch (e) { }
+                setTrips(fallback);
             } finally {
                 setIsLoading(false);
             }
@@ -353,7 +375,10 @@ export default function ItineraryOptimizerWindow() {
                             </div>
 
                             {/* Add button — square black */}
-                            <button className="w-8 h-8 bg-black text-white flex items-center justify-center hover:bg-[var(--bp-sage)] transition-colors shrink-0">
+                            <button
+                                onClick={() => router.push('/agent-dashboard/itinerary-builder')}
+                                className="w-8 h-8 bg-black text-white flex items-center justify-center hover:bg-[var(--bp-sage)] transition-colors shrink-0"
+                            >
                                 <Plus className="w-4 h-4" />
                             </button>
                         </div>
