@@ -48,9 +48,55 @@ export default function ItineraryBuilderView() {
     return (
         <div className="flex-1 flex overflow-hidden h-full relative bp-grid-bg bg-white">
 
-            {/* ── LEFT PANEL: Parameters & Composition ──────────────────────── */}
-            <aside className="w-[300px] shrink-0 flex flex-col bg-white border-r border-[var(--bp-border)] overflow-hidden">
-                <div className="p-6 flex flex-col gap-8 h-full overflow-y-auto scrollbar-hide">
+            {/* ── LEFT PANEL: Parameters & Map (40%) ──────────────────────── */}
+            <aside className="w-[40%] shrink-0 flex flex-col bg-white border-r border-[var(--bp-border)] overflow-hidden">
+                {/* Fixed Map at the top */}
+                <div className="h-[280px] w-full bg-[#faf9f6] border-b border-stone-200 overflow-hidden relative group shrink-0">
+                    <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur text-stone-900 shadow-sm border border-stone-200 px-3 py-1.5 flex flex-col gap-0.5 pointer-events-none">
+                        <span className="text-[9px] font-mono text-stone-400 uppercase tracking-widest leading-none">View Mode</span>
+                        <span className="text-xs font-bold leading-none">Monument Schematic</span>
+                    </div>
+
+                    <button
+                        onClick={() => setMapExpanded(true)}
+                        className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur border border-stone-200 shadow-sm text-stone-600 hover:text-stone-900 transition-all opacity-0 group-hover:opacity-100"
+                    >
+                        <Maximize2 className="w-4 h-4" />
+                    </button>
+
+                    <div className="w-full h-full relative">
+                        {/* Interactive map placeholder imitating routing map */}
+                        <iframe
+                            src="https://www.openstreetmap.org/export/embed.html?bbox=77.10%2C28.50%2C77.30%2C28.70&layer=mapnik&marker=28.52%2C77.18"
+                            className="w-full h-[320px] filter sepia-[0.2] saturate-[0.8] brightness-[1.1] scale-105 pointer-events-none"
+                            style={{ border: 'none' }}
+                            scrolling="no"
+                        />
+                        {/* Overlay to intercept clicks on iframe and give custom styles */}
+                        <div className="absolute inset-0 bg-stone-100/10 pointer-events-auto">
+                            {/* Mock markers from HTML logic */}
+                            <div className="absolute top-[40%] left-[30%] transform -translate-x-1/2 -translate-y-1/2">
+                                <div className="w-3 h-3 bg-white border border-stone-900 rotate-45 shadow-sm"></div>
+                                <div className="absolute -top-7 -left-10 bg-white px-2 py-0.5 border border-stone-200 whitespace-nowrap shadow-sm z-20">
+                                    <span className="text-[9px] font-bold font-mono text-stone-900">QUTUB MINAR</span>
+                                </div>
+                            </div>
+                            <div className="absolute top-[55%] left-[65%] transform -translate-x-1/2 -translate-y-1/2">
+                                <div className="w-3 h-3 bg-stone-900 border border-white rotate-45 shadow-sm"></div>
+                                <div className="absolute top-5 -right-6 bg-white px-2 py-0.5 border border-stone-200 whitespace-nowrap shadow-sm">
+                                    <span className="text-[9px] font-mono text-stone-500">RED FORT</span>
+                                </div>
+                            </div>
+                            {/* Connection line between points (purely decorative SVG) */}
+                            <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-stone-900 stroke-[1.5] fill-none" style={{ strokeDasharray: '4 4' }}>
+                                <path d="M 96 112 L 208 154" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Parameters Form Scrollable Area */}
+                <div className="p-6 flex flex-col gap-8 flex-1 overflow-y-auto scrollbar-hide">
                     <div>
                         <h2 className="text-xs font-bold uppercase tracking-widest font-mono text-stone-900 mb-4 flex items-center gap-2">
                             <Settings className="w-4 h-4" /> Trip Parameters
@@ -127,9 +173,9 @@ export default function ItineraryBuilderView() {
                     </div>
 
                     {/* Alert Box at the bottom */}
-                    <div className="mt-auto border border-amber-200/50 bg-[#fffdf0] p-4 text-amber-900">
+                    <div className="mt-auto border border-amber-200/50 bg-[#fffdf0] p-4 text-amber-900 shrink-0">
                         <div className="flex items-start gap-2">
-                            <Info className="w-4 h-4 mt-0.5 text-amber-500" />
+                            <Info className="w-4 h-4 mt-0.5 text-amber-500 shrink-0" />
                             <div>
                                 <h4 className="text-xs font-bold uppercase tracking-tight">Monument Alert</h4>
                                 <p className="text-[10px] mt-1 leading-relaxed opacity-80">
@@ -139,10 +185,39 @@ export default function ItineraryBuilderView() {
                         </div>
                     </div>
                 </div>
+
+                {/* Voyageur AI embedded in panel */}
+                <div className="relative bg-white border-t border-stone-200 h-[80px]">
+                    <VoyageurAIPanel
+                        open={aiOpen}
+                        onOpenChange={setAiOpen}
+                        insightTag="Itinerary Intelligence"
+                        insightTagColor="bg-stone-900 text-white"
+                        insightBody={
+                            <ul className="space-y-3 mt-1 text-sm">
+                                <li className="flex gap-2.5 items-start">
+                                    <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 bg-emerald-400" />
+                                    <span className="text-stone-700 leading-relaxed font-mono text-[11px]">
+                                        Optimization: Moving <strong className="text-stone-900">Humayun's Tomb</strong> to Day 01 afternoon reduces total travel time in current traffic models by ~45 mins.
+                                    </span>
+                                </li>
+                                <div className="pl-4 mt-1">
+                                    <button className="bg-stone-100 border border-stone-200 text-stone-700 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider hover:bg-stone-900 hover:text-white transition-colors">
+                                        &gt; Apply Change
+                                    </button>
+                                </div>
+                            </ul>
+                        }
+                        inputPlaceholder="Query route logic or add monuments..."
+                        seedMessage="Architect loaded. Ready to optimize sequence, suggest venues, and calculate commute times for Indochina Loop."
+                        getAIReply={(text) => `Analyzing request: "${text}". I have mapped the coordinates. Would you like me to insert this into Day 02?`}
+                    />
+                </div>
             </aside>
 
-            {/* ── MIDDLE PANEL: Timeline ──────────────────────────────────────── */}
-            <main className="flex-1 flex flex-col min-w-0 bg-[#faf9f6]">
+            {/* ── RIGHT PANEL: Timeline (60%) ──────────────────────────────────────── */}
+            {/* ── RIGHT PANEL: Timeline (60%) ──────────────────────────────────────── */}
+            <main className="w-[60%] flex flex-col min-w-0 bg-[#faf9f6]">
                 {/* Header */}
                 <div className="bg-white/95 backdrop-blur z-10 border-b border-[var(--bp-border)] px-6 py-4 flex justify-between items-center shrink-0">
                     <h2 className="text-xs font-bold uppercase tracking-widest font-mono text-stone-900 flex items-center gap-2">
@@ -297,83 +372,6 @@ export default function ItineraryBuilderView() {
                     </div>
                 </div>
             </main>
-
-            {/* ── RIGHT PANEL: Map & Voyageur AI ──────────────────────────────── */}
-            <aside className="w-[320px] 2xl:w-[380px] shrink-0 flex flex-col bg-stone-50 relative border-l border-[var(--bp-border)]">
-
-                {/* Fixed Map at the top */}
-                <div className="h-[280px] w-full bg-[#faf9f6] border-b border-stone-200 overflow-hidden relative group">
-                    <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur text-stone-900 shadow-sm border border-stone-200 px-3 py-1.5 flex flex-col gap-0.5 pointer-events-none">
-                        <span className="text-[9px] font-mono text-stone-400 uppercase tracking-widest leading-none">View Mode</span>
-                        <span className="text-xs font-bold leading-none">Monument Schematic</span>
-                    </div>
-
-                    <button
-                        onClick={() => setMapExpanded(true)}
-                        className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur border border-stone-200 shadow-sm text-stone-600 hover:text-stone-900 transition-all opacity-0 group-hover:opacity-100"
-                    >
-                        <Maximize2 className="w-4 h-4" />
-                    </button>
-
-                    <div className="w-full h-full relative">
-                        {/* Interactive map placeholder imitating routing map */}
-                        <iframe
-                            src="https://www.openstreetmap.org/export/embed.html?bbox=77.10%2C28.50%2C77.30%2C28.70&layer=mapnik&marker=28.52%2C77.18"
-                            className="w-full h-[320px] filter sepia-[0.2] saturate-[0.8] brightness-[1.1] scale-105 pointer-events-none"
-                            style={{ border: 'none' }}
-                            scrolling="no"
-                        />
-                        {/* Overlay to intercept clicks on iframe and give custom styles */}
-                        <div className="absolute inset-0 bg-stone-100/10 pointer-events-auto">
-                            {/* Mock markers from HTML logic */}
-                            <div className="absolute top-[40%] left-[30%] transform -translate-x-1/2 -translate-y-1/2">
-                                <div className="w-3 h-3 bg-white border border-stone-900 rotate-45 shadow-sm"></div>
-                                <div className="absolute -top-7 -left-10 bg-white px-2 py-0.5 border border-stone-200 whitespace-nowrap shadow-sm z-20">
-                                    <span className="text-[9px] font-bold font-mono text-stone-900">QUTUB MINAR</span>
-                                </div>
-                            </div>
-                            <div className="absolute top-[55%] left-[65%] transform -translate-x-1/2 -translate-y-1/2">
-                                <div className="w-3 h-3 bg-stone-900 border border-white rotate-45 shadow-sm"></div>
-                                <div className="absolute top-5 -right-6 bg-white px-2 py-0.5 border border-stone-200 whitespace-nowrap shadow-sm">
-                                    <span className="text-[9px] font-mono text-stone-500">RED FORT</span>
-                                </div>
-                            </div>
-                            {/* Connection line between points (purely decorative SVG) */}
-                            <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-stone-900 stroke-[1.5] fill-none" style={{ strokeDasharray: '4 4' }}>
-                                <path d="M 96 112 L 208 154" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Voyageur AI embedded in panel */}
-                <div className="flex-1 relative bg-white">
-                    <VoyageurAIPanel
-                        open={aiOpen}
-                        onOpenChange={setAiOpen}
-                        insightTag="Itinerary Intelligence"
-                        insightTagColor="bg-stone-900 text-white"
-                        insightBody={
-                            <ul className="space-y-3 mt-1 text-sm">
-                                <li className="flex gap-2.5 items-start">
-                                    <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 bg-emerald-400" />
-                                    <span className="text-stone-700 leading-relaxed font-mono text-[11px]">
-                                        Optimization: Moving <strong className="text-stone-900">Humayun's Tomb</strong> to Day 01 afternoon reduces total travel time in current traffic models by ~45 mins.
-                                    </span>
-                                </li>
-                                <div className="pl-4 mt-1">
-                                    <button className="bg-stone-100 border border-stone-200 text-stone-700 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider hover:bg-stone-900 hover:text-white transition-colors">
-                                        &gt; Apply Change
-                                    </button>
-                                </div>
-                            </ul>
-                        }
-                        inputPlaceholder="Query route logic or add monuments..."
-                        seedMessage="Architect loaded. Ready to optimize sequence, suggest venues, and calculate commute times for Indochina Loop."
-                        getAIReply={(text) => `Analyzing request: "${text}". I have mapped the coordinates. Would you like me to insert this into Day 02?`}
-                    />
-                </div>
-            </aside>
 
             {/* ── TOP HEADER (Absolute overlapping layout to match agent header) ── */}
             <header className="absolute top-0 left-0 right-0 h-[64px] bg-white/95 backdrop-blur-sm border-b border-[var(--bp-border)] px-6 flex justify-between items-center z-50">
