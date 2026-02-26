@@ -4,13 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import activeGroupsData from '@/lib/agent-dashboard/data/active_groups.json';
 import upcomingGroupsData from '@/lib/agent-dashboard/data/upcoming_groups.json';
+import { CustomerSidebar } from '@/app/components/CustomerSidebar';
 
 /* ── Design tokens ── */
-const GOLD = '#c5a065';
-const DARK = '#1a1a1a';
-const MID = '#717171';
-const LIGHT = '#e5e5e5';
-const GREEN = '#8fa391';
+const GOLD = 'var(--gradient-opt-gold)';
+const DARK = 'var(--bp-text)';
+const MID = 'var(--bp-muted)';
+const LIGHT = 'var(--bp-border)';
+const GREEN = 'var(--bp-sage)';
 const FF_BODY = "'Outfit', sans-serif";
 const FF_MONO = "'JetBrains Mono', monospace";
 
@@ -56,8 +57,8 @@ function HoverCard({ children, style, revised = false }: { children: React.React
 function SectionLabel({ children }: { children: React.ReactNode }) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 3, height: 14, background: GOLD, flexShrink: 0 }} />
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', color: DARK, fontFamily: FF_MONO }}>{children}</span>
+            <div style={{ width: 3, height: 16, background: GOLD, flexShrink: 0 }} />
+            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.15em', color: DARK, fontFamily: FF_MONO }}>{children}</span>
         </div>
     );
 }
@@ -110,9 +111,7 @@ const DEST: Record<string, { city: string; country: string; lat: string; lng: st
 export default function CustomerDashboardInteractive() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
-    const [familyInitial, setFamilyInitial] = useState('F');
     const [destMeta, setDestMeta] = useState(DEST.DEFAULT);
-    const [navTab, setNavTab] = useState<'hub' | 'plan' | 'docs' | 'vip'>('hub');
     const [messages, setMessages] = useState(INITIAL_MESSAGES);
     const [chatInput, setChatInput] = useState('');
     const [dismissed, setDismissed] = useState<string[]>([]);
@@ -127,14 +126,11 @@ export default function CustomerDashboardInteractive() {
             if (f) { found = f; gid = g.id; break; }
         }
         if (!found) { router.push('/customer-login'); return; }
-        setFamilyInitial((found.family_name || 'F')[0].toUpperCase());
         setDestMeta(DEST[gid ?? 'DEFAULT'] ?? DEST.DEFAULT);
         setIsLoading(false);
     }, [router]);
 
     useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-
-    const logout = () => { sessionStorage.removeItem('familyId'); router.push('/customer-login'); };
 
     const send = () => {
         const txt = chatInput.trim();
@@ -160,39 +156,19 @@ export default function CustomerDashboardInteractive() {
         <div style={{ display: 'flex', height: '100vh', fontFamily: FF_BODY, background: '#f5f5f5', color: DARK, overflow: 'hidden' }}>
 
             {/* ══ SIDEBAR ══ */}
-            <aside style={{ width: 72, borderRight: `1px solid ${LIGHT}`, background: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                <div style={{ height: 72, borderBottom: `1px solid ${LIGHT}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ width: 38, height: 38, background: DARK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ color: '#fff', fontWeight: 700, fontSize: 17 }}>{familyInitial}</span>
-                    </div>
-                </div>
-                <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 28, gap: 2 }}>
-                    {([{ id: 'hub', icon: '⊞', label: 'HUB' }, { id: 'plan', icon: '◈', label: 'PLAN' }, { id: 'docs', icon: '⬛', label: 'DOCS' }, { id: 'vip', icon: '◆', label: 'VIP' }] as const).map(({ id, icon, label }) => (
-                        <button key={id} onClick={() => setNavTab(id)}
-                            style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '14px 0', cursor: 'pointer', background: navTab === id ? 'rgba(0,0,0,0.03)' : 'transparent', border: 'none', borderRight: navTab === id ? `2px solid ${DARK}` : '2px solid transparent', color: navTab === id ? DARK : '#aaa', transition: 'all 0.2s', gap: 3 }}>
-                            <span style={{ fontSize: 18 }}>{icon}</span>
-                            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em' }}>{label}</span>
-                        </button>
-                    ))}
-                </nav>
-                <div style={{ height: 72, borderTop: `1px solid ${LIGHT}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <button onClick={logout} style={{ width: 34, height: 34, borderRadius: '50%', background: DARK, border: 'none', cursor: 'pointer', color: '#fff', fontSize: 13, fontWeight: 700 }}>
-                        {familyInitial}
-                    </button>
-                </div>
-            </aside>
+            <CustomerSidebar activeTab="dashboard" />
 
             {/* ══ MAIN ══ */}
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
                 {/* HEADER */}
-                <header style={{ background: '#fff', borderBottom: `1px solid ${LIGHT}`, padding: '16px 36px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <header style={{ background: '#fff', borderBottom: `1px solid ${LIGHT}`, padding: '24px 40px', flexShrink: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-                            <span style={{ width: 7, height: 7, background: GREEN, borderRadius: '50%', display: 'inline-block' }} />
-                            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', color: GREEN, fontFamily: FF_MONO }}>ON ROUTE · LIVE TRACKING</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <span style={{ width: 8, height: 8, background: GREEN, borderRadius: '50%', display: 'inline-block' }} />
+                            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: GREEN, fontFamily: FF_MONO }}>ON ROUTE · LIVE TRACKING</span>
                         </div>
-                        <h1 style={{ fontSize: 30, fontWeight: 200, margin: 0 }}>
+                        <h1 style={{ fontSize: 36, fontWeight: 200, letterSpacing: '-0.02em', margin: 0, color: DARK }}>
                             Current Expedition: <strong style={{ fontWeight: 600 }}>{destMeta.city}, {destMeta.country}</strong>
                         </h1>
                     </div>
@@ -206,10 +182,6 @@ export default function CustomerDashboardInteractive() {
                                 <div style={{ height: '100%', width: `${destMeta.progress}%`, background: GOLD }} />
                             </div>
                         </div>
-                        <button onClick={() => router.push('/customer-portal')} className="btn-dark"
-                            style={{ background: DARK, color: '#fff', border: 'none', borderBottom: `2px solid ${GOLD}`, padding: '10px 22px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: FF_BODY }}>
-                            VIEW FULL ITINERARY →
-                        </button>
                     </div>
                 </header>
 
@@ -217,10 +189,10 @@ export default function CustomerDashboardInteractive() {
                 <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 430px 280px', overflow: 'hidden' }}>
 
                     {/* ── LEFT: Hero + Timeline ── */}
-                    <div style={{ borderRight: `1px solid ${LIGHT}`, overflowY: 'auto', background: '#fff' }}>
+                    <div style={{ borderRight: `1px solid ${LIGHT}`, overflowY: 'auto', background: '#fff', position: 'relative' }}>
 
                         {/* Hero */}
-                        <div style={{ position: 'relative', height: 220, overflow: 'hidden', flexShrink: 0 }}>
+                        <div style={{ position: 'sticky', top: 0, zIndex: 10, height: 220, overflow: 'hidden', flexShrink: 0 }}>
                             <img src={HERO_IMG} alt={destMeta.city} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(20%) brightness(0.88)', display: 'block' }} />
                             <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.68)', color: '#fff', fontSize: 10, fontFamily: FF_MONO, padding: '4px 10px', borderLeft: `2px solid ${GOLD}`, letterSpacing: '0.07em' }}>
                                 {destMeta.lat}, {destMeta.lng}
@@ -233,81 +205,87 @@ export default function CustomerDashboardInteractive() {
                         </div>
 
                         {/* Timeline */}
-                        <div style={{ padding: '24px 28px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                        <div style={{ paddingBottom: 24 }}>
+                            <div style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                padding: '24px 28px 20px 28px',
+                                position: 'sticky', top: 220, background: '#fff', zIndex: 10
+                            }}>
                                 <SectionLabel>UPCOMING TIMELINE</SectionLabel>
-                                <button onClick={() => router.push('/customer-portal')} className="link-gold"
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: MID, fontFamily: FF_BODY }}>
-                                    Full view →
+                                <button onClick={() => router.push('/customer-portal')} className="btn-gradient-hover"
+                                    style={{ border: `1px solid ${LIGHT}`, borderRadius: '2px', padding: '6px 14px', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: FF_BODY }}>
+                                    Full Itinerary →
                                 </button>
                             </div>
 
-                            {/* Notification banners */}
-                            {activeNotifs.length > 0 && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 22 }}>
-                                    {activeNotifs.map(n => {
-                                        const warn = n.severity === 'warning';
+                            <div style={{ padding: '0 28px' }}>
+                                {/* Notification banners */}
+                                {activeNotifs.length > 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 22 }}>
+                                        {activeNotifs.map(n => {
+                                            const warn = n.severity === 'warning';
+                                            return (
+                                                <HoverCard key={n.id} revised={warn} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '11px 14px' }}>
+                                                    <div style={{ width: 3, alignSelf: 'stretch', background: warn ? GOLD : GREEN, flexShrink: 0 }} />
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ fontSize: 15, fontWeight: 600, color: DARK, marginBottom: 3 }}>{n.title}</div>
+                                                        <div style={{ fontSize: 13, color: MID, lineHeight: 1.5 }}>{n.detail}</div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', flexShrink: 0 }}>
+                                                        <button onClick={() => router.push('/customer-portal')} className="btn-gold-outline"
+                                                            style={{ fontSize: 11, fontWeight: 700, color: GOLD, background: 'none', border: `1px solid ${GOLD}`, padding: '3px 8px', cursor: 'pointer', fontFamily: FF_BODY }}>
+                                                            View
+                                                        </button>
+                                                        <button onClick={() => setDismissed(d => [...d, n.id])}
+                                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#bbb', fontSize: 16, lineHeight: 1, padding: 0 }}>×</button>
+                                                    </div>
+                                                </HoverCard>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* Timeline events: [time 68px] [dot-track 24px] [card flex] */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    {TIMELINE_EVENTS.map((evt, idx) => {
+                                        const rev = evt.status === 'REVISED';
+                                        const first = idx === 0;
                                         return (
-                                            <HoverCard key={n.id} revised={warn} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '11px 14px' }}>
-                                                <div style={{ width: 3, alignSelf: 'stretch', background: warn ? GOLD : GREEN, flexShrink: 0 }} />
-                                                <div style={{ flex: 1 }}>
-                                                    <div style={{ fontSize: 15, fontWeight: 600, color: DARK, marginBottom: 3 }}>{n.title}</div>
-                                                    <div style={{ fontSize: 13, color: MID, lineHeight: 1.5 }}>{n.detail}</div>
+                                            <div key={evt.id} style={{ display: 'flex', alignItems: 'stretch' }}>
+                                                {/* Time */}
+                                                <div style={{ width: 68, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingTop: 10, paddingRight: 8 }}>
+                                                    <div style={{ fontSize: 14, fontWeight: 700, color: rev ? GOLD : DARK, fontFamily: FF_MONO, lineHeight: 1 }}>{evt.time}</div>
+                                                    {evt.tminus && <div style={{ fontSize: 9, color: rev ? GOLD : MID, fontFamily: FF_MONO, marginTop: 3, letterSpacing: '0.08em' }}>{evt.tminus}</div>}
                                                 </div>
-                                                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', flexShrink: 0 }}>
-                                                    <button onClick={() => router.push('/customer-portal')} className="btn-gold-outline"
-                                                        style={{ fontSize: 11, fontWeight: 700, color: GOLD, background: 'none', border: `1px solid ${GOLD}`, padding: '3px 8px', cursor: 'pointer', fontFamily: FF_BODY }}>
-                                                        View
-                                                    </button>
-                                                    <button onClick={() => setDismissed(d => [...d, n.id])}
-                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#bbb', fontSize: 16, lineHeight: 1, padding: 0 }}>×</button>
+                                                {/* Dot + line track */}
+                                                <div style={{ width: 24, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                                                    <div style={{ position: 'absolute', top: 0, bottom: 0, width: 1, background: LIGHT, left: '50%', transform: 'translateX(-50%)' }} />
+                                                    <div style={{
+                                                        marginTop: 12, width: first ? 11 : 8, height: first ? 11 : 8, borderRadius: '50%', flexShrink: 0, zIndex: 1,
+                                                        background: rev ? GOLD : (first ? '#fff' : '#ccc'),
+                                                        border: first ? `2px solid ${DARK}` : rev ? `2px solid ${GOLD}` : `1px solid #ccc`,
+                                                        boxShadow: rev ? `0 0 0 3px rgba(197,160,101,0.18)` : 'none',
+                                                    }} />
                                                 </div>
-                                            </HoverCard>
+                                                {/* Card */}
+                                                <div style={{ flex: 1, paddingLeft: 10, paddingBottom: 4 }}>
+                                                    <HoverCard revised={rev} style={{ padding: '12px 16px' }}>
+                                                        {evt.status && <span style={{ position: 'absolute', top: 10, right: 10, fontSize: 9, fontWeight: 700, color: GOLD, border: `1px solid ${GOLD}`, padding: '1px 6px', fontFamily: FF_MONO, letterSpacing: '0.1em' }}>{evt.status}</span>}
+                                                        <div style={{ fontSize: 17, fontWeight: 500, color: DARK, marginBottom: 5, paddingRight: evt.status ? 66 : 0, lineHeight: 1.3 }}>{evt.title}</div>
+                                                        <div style={{ fontSize: 14, color: MID }}>{evt.subtitle}</div>
+                                                        {evt.hasWhy && (
+                                                            <button onClick={() => router.push('/customer-portal')} className="link-gold"
+                                                                style={{ marginTop: 8, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: GOLD, fontWeight: 600, padding: 0, display: 'flex', alignItems: 'center', gap: 5, fontFamily: FF_BODY }}>
+                                                                <span style={{ width: 5, height: 5, borderRadius: '50%', background: GOLD, display: 'inline-block' }} />
+                                                                View 'Why' Analysis
+                                                            </button>
+                                                        )}
+                                                    </HoverCard>
+                                                </div>
+                                            </div>
                                         );
                                     })}
                                 </div>
-                            )}
-
-                            {/* Timeline events: [time 68px] [dot-track 24px] [card flex] */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                {TIMELINE_EVENTS.map((evt, idx) => {
-                                    const rev = evt.status === 'REVISED';
-                                    const first = idx === 0;
-                                    return (
-                                        <div key={evt.id} style={{ display: 'flex', alignItems: 'stretch' }}>
-                                            {/* Time */}
-                                            <div style={{ width: 68, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingTop: 10, paddingRight: 8 }}>
-                                                <div style={{ fontSize: 14, fontWeight: 700, color: rev ? GOLD : DARK, fontFamily: FF_MONO, lineHeight: 1 }}>{evt.time}</div>
-                                                {evt.tminus && <div style={{ fontSize: 9, color: rev ? GOLD : MID, fontFamily: FF_MONO, marginTop: 3, letterSpacing: '0.08em' }}>{evt.tminus}</div>}
-                                            </div>
-                                            {/* Dot + line track */}
-                                            <div style={{ width: 24, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-                                                <div style={{ position: 'absolute', top: 0, bottom: 0, width: 1, background: LIGHT, left: '50%', transform: 'translateX(-50%)' }} />
-                                                <div style={{
-                                                    marginTop: 12, width: first ? 11 : 8, height: first ? 11 : 8, borderRadius: '50%', flexShrink: 0, zIndex: 1,
-                                                    background: rev ? GOLD : (first ? '#fff' : '#ccc'),
-                                                    border: first ? `2px solid ${DARK}` : rev ? `2px solid ${GOLD}` : `1px solid #ccc`,
-                                                    boxShadow: rev ? `0 0 0 3px rgba(197,160,101,0.18)` : 'none',
-                                                }} />
-                                            </div>
-                                            {/* Card */}
-                                            <div style={{ flex: 1, paddingLeft: 10, paddingBottom: 4 }}>
-                                                <HoverCard revised={rev} style={{ padding: '12px 16px' }}>
-                                                    {evt.status && <span style={{ position: 'absolute', top: 10, right: 10, fontSize: 9, fontWeight: 700, color: GOLD, border: `1px solid ${GOLD}`, padding: '1px 6px', fontFamily: FF_MONO, letterSpacing: '0.1em' }}>{evt.status}</span>}
-                                                    <div style={{ fontSize: 17, fontWeight: 500, color: DARK, marginBottom: 5, paddingRight: evt.status ? 66 : 0, lineHeight: 1.3 }}>{evt.title}</div>
-                                                    <div style={{ fontSize: 14, color: MID }}>{evt.subtitle}</div>
-                                                    {evt.hasWhy && (
-                                                        <button onClick={() => router.push('/customer-portal')} className="link-gold"
-                                                            style={{ marginTop: 8, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: GOLD, fontWeight: 600, padding: 0, display: 'flex', alignItems: 'center', gap: 5, fontFamily: FF_BODY }}>
-                                                            <span style={{ width: 5, height: 5, borderRadius: '50%', background: GOLD, display: 'inline-block' }} />
-                                                            View 'Why' Analysis
-                                                        </button>
-                                                    )}
-                                                </HoverCard>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
                             </div>
                         </div>
                     </div>
@@ -462,6 +440,10 @@ export default function CustomerDashboardInteractive() {
         /* View full btn */
         .btn-outline { border: 1px solid ${LIGHT}; transition: color 0.2s, border-color 0.2s; }
         .btn-outline:hover { color: ${DARK} !important; border-color: ${DARK}; border-bottom-color: ${GOLD}; }
+
+        /* Full view btn timeline */
+        .btn-gradient-hover { background: transparent; color: ${DARK}; transition: all 0.2s; }
+        .btn-gradient-hover:hover { background: var(--gradient-opt); color: #fff !important; border-color: transparent !important; box-shadow: 0 2px 8px rgba(197,160,101,0.25); }
 
         /* Agent contact icons */
         .agent-btn  { border: 1px solid ${LIGHT}; color: ${MID}; transition: border-color 0.2s, color 0.2s; }
