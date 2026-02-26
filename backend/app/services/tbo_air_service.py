@@ -31,18 +31,19 @@ class TBOAirClient:
 
     def __init__(
         self,
-        booking_url: Optional[str] = None,
-        search_url: Optional[str] = None,
+        auth_url: Optional[str] = None,
+        service_url: Optional[str] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
     ):
-        self.booking_url = (booking_url or settings.TBO_AIR_BOOKING_URL).rstrip("/")
-        self.search_url = (search_url or settings.TBO_AIR_SEARCH_URL).rstrip("/")
+        self.auth_url = (auth_url or getattr(settings, 'TBO_AIR_AUTHENTICATE_URL', 'http://Sharedapi.tektravels.com/SharedData.svc/rest')).rstrip("/")
+        self.service_url = (service_url or getattr(settings, 'TBO_AIR_SERVICE_URL', 'http://api.tektravels.com/BookingEngineService_Air/AirService.svc/rest')).rstrip("/")
         self.username = username or settings.TBO_AIR_USERNAME
         self.password = password or settings.TBO_AIR_PASSWORD
         self.headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "Accept-Encoding": "gzip",
         }
 
         # Token cache
@@ -66,13 +67,13 @@ class TBOAirClient:
         resp.raise_for_status()
         return resp.json()
 
-    def _booking_post(self, endpoint: str, payload: dict) -> dict:
-        """POST to the booking base URL (Auth, Book, Ticket)."""
-        return self._post(self.booking_url, endpoint, payload)
+    def _auth_post(self, endpoint: str, payload: dict) -> dict:
+        """POST to the authentication base URL."""
+        return self._post(self.auth_url, endpoint, payload)
 
-    def _search_post(self, endpoint: str, payload: dict) -> dict:
-        """POST to the search base URL (Search, FareQuote, FareRule, SSR)."""
-        return self._post(self.search_url, endpoint, payload)
+    def _service_post(self, endpoint: str, payload: dict) -> dict:
+        """POST to the air service base URL (Search, Booking, SSR, etc.)."""
+        return self._post(self.service_url, endpoint, payload)
 
     # ------------------------------------------------------------------ #
     #  Task 3: Authentication & Token Management
@@ -80,18 +81,18 @@ class TBOAirClient:
 
     def authenticate(self) -> str:
         """
-        POST /Authenticate/ValidateAgency → Get auth token.
+        POST /Authenticate → Get auth token.
 
         Returns:
             TokenId string for use in all subsequent API calls.
         """
         payload = {
-            "BookingMode": "API",
+            "ClientId": "ApiIntegrationNew",
             "UserName": self.username,
             "Password": self.password,
-            "IPAddress": "192.168.10.36",
+            "EndUserIp": "192.168.10.36",
         }
-        data = self._booking_post("Authenticate/ValidateAgency", payload)
+        data = self._auth_post("Authenticate", payload)
 
         token_id = data.get("TokenId")
         if not token_id:
@@ -199,7 +200,7 @@ class TBOAirClient:
             "ResultFareType": 0,
             "PreferredCurrency": preferred_currency,
         }
-        return self._search_post("Search", payload)
+        return self._service_post("Search", payload)
 
     # ------------------------------------------------------------------ #
     #  Task 5: Fare Quote & Fare Rules
@@ -225,7 +226,7 @@ class TBOAirClient:
             "TokenId": token_id,
             "ResultIndex": result_index,
         }
-        return self._search_post("FareQuote", payload)
+        return self._service_post("FareQuote", payload)
 
     def get_fare_rules(
         self,
@@ -246,7 +247,7 @@ class TBOAirClient:
             "TokenId": token_id,
             "ResultIndex": result_index,
         }
-        return self._search_post("FareRule", payload)
+        return self._service_post("FareRule", payload)
 
     # ------------------------------------------------------------------ #
     #  Task 6: SSR (Special Service Requests)
@@ -271,7 +272,7 @@ class TBOAirClient:
             "TokenId": token_id,
             "ResultIndex": result_index,
         }
-        return self._search_post("SSR", payload)
+        return self._service_post("SSR", payload)
 
     # ------------------------------------------------------------------ #
     #  Task 7: Flight Booking (PNR Creation)
@@ -354,7 +355,7 @@ class TBOAirClient:
         if fare_classification:
             payload["FareClassification"] = fare_classification
 
-        return self._booking_post("Booking/Book", payload)
+        return self._service_post("Booking/Book", payload)
 
     # ------------------------------------------------------------------ #
     #  Task 8: Ticketing (E-Ticket Issuance)
@@ -424,7 +425,63 @@ class TBOAirClient:
         if fare_classification:
             payload["FareClassification"] = fare_classification
 
-        return self._booking_post("Booking/Ticket", payload)
+        return self._service_post("Booking/Ticket", payload)
+
+    # ------------------------------------------------------------------ #
+    #  Task 9: Get Booking Details
+    # ------------------------------------------------------------------ #
+
+    def get_booking_details(
+        self,
+        pnr: str,
+        booking_id: str,
+        end_user_ip: str = "192.168.10.36",
+    ) -> Dict[str, Any]:
+        """
+        POST /Booking/GetBookingDetails → Retrieve latest status of PNR.
+
+        Returns:
+            Booking details including TicketStatus, PNR, Itinerary.
+        """
+        token_id = self.get_token()
+        payload = {
+            "EndUserIp": end_user_ip,
+            "TokenId": token_id,
+            "PNR": pnr,
+            "BookingId": booking_id
+        }
+        return self._service_post("Booking/GetBookingDetails", payload)
+
+    # ------------------------------------------------------------------ #
+    #  Task 10: Cancellations
+    # ------------------------------------------------------------------ #
+
+    def cancel_booking(
+        self,
+        booking_id: str,
+        request_type: int = 1,
+        cancellation_type: int = 3,
+        remarks: str = "Customer requested cancellation",
+        end_user_ip: str = "192.168.10.36",
+    ) -> Dict[str, Any]:
+        """
+        POST /Booking/SendChangeRequest → Cancel a PNR/Booking.
+
+        Args:
+            booking_id: The TBO BookingId
+            request_type: 1=Cancellation, 2=Amendment
+            cancellation_type: 1=NoShow, 2=FlightCancelled, 3=ChangedMind
+        """
+        token_id = self.get_token()
+        payload = {
+            "EndUserIp": end_user_ip,
+            "TokenId": token_id,
+            "BookingId": booking_id,
+            "RequestType": request_type,
+            "CancellationType": cancellation_type,
+            "Remarks": remarks
+        }
+        return self._service_post("Booking/SendChangeRequest", payload)
 
 
 # Module-level singleton

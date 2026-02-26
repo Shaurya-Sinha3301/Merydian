@@ -1,0 +1,26 @@
+{
+  "https://api.tboair.com/Authenticate/ValidateAgency": {
+    "error": "HTTPSConnectionPool(host='api.tboair.com', port=443): Max retries exceeded with url: /Authenticate/ValidateAgency (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x000001AE114E3A10>: Failed to resolve 'api.tboair.com' ([Errno 11001] getaddrinfo failed)\"))"
+  },
+  "http://api.tboair.com/Authenticate/ValidateAgency": {
+    "error": "HTTPConnectionPool(host='api.tboair.com', port=80): Max retries exceeded with url: /Authenticate/ValidateAgency (Caused by NameResolutionError(\"<urllib3.connection.HTTPConnection object at 0x000001AE115F01A0>: Failed to resolve 'api.tboair.com' ([Errno 11001] getaddrinfo failed)\"))"
+  },
+  "https://testapi.tboair.com/Authenticate/ValidateAgency": {
+    "error": "HTTPSConnectionPool(host='testapi.tboair.com', port=443): Max retries exceeded with url: /Authenticate/ValidateAgency (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x000001AE115F8550>: Failed to resolve 'testapi.tboair.com' ([Errno 11001] getaddrinfo failed)\"))"
+  },
+  "http://testapi.tboair.com/Authenticate/ValidateAgency": {
+    "error": "HTTPConnectionPool(host='testapi.tboair.com', port=80): Max retries exceeded with url: /Authenticate/ValidateAgency (Caused by NameResolutionError(\"<urllib3.connection.HTTPConnection object at 0x000001AE115F8A50>: Failed to resolve 'testapi.tboair.com' ([Errno 11001] getaddrinfo failed)\"))"
+  },
+  "https://api.tboholidays.com/Authenticate/ValidateAgency": {
+    "status": 401,
+    "response": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" cont"
+  },
+  "https://travelboutiqueonline.com/Authenticate/ValidateAgency": {
+    "status": 404,
+    "response": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" cont"
+  },
+  "https://api.travelboutiqueonline.com/Authenticate/ValidateAgency": {
+    "status": 404,
+    "response": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" cont"
+  }
+}
