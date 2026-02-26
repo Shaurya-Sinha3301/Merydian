@@ -501,6 +501,10 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
     const [dismissedRemovals, setDismissedRemovals] = useState<string[]>([]);
     const [acceptedRemovals, setAcceptedRemovals] = useState<string[]>([]);
 
+    // Demo: Current day index (0 = Day 1, 1 = Day 2, 2 = Day 3)
+    // In production, this should come from backend based on actual trip progress
+    const currentDayIndex = 1; // Day 2 has started, so Day 1 is fully completed
+
     if (!trip) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
@@ -525,7 +529,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                 panelHovered ? 'overflow-hidden' : 'overflow-auto',
             )}>
                 {/* All 3 days rendered sequentially — continuous scroll */}
-                {DAYS.map((day) => (
+                {DAYS.map((day, dayIndex) => (
                     <div key={day.date}>
                         {/* Per-day sticky header */}
                         <div className="sticky top-0 z-30 border-b border-gray-200 bg-gray-50 w-full">
@@ -544,13 +548,17 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
 
                         {/* Timeline rows for this day */}
                         <div className="relative px-6 py-6">
-                            {/* Dashed vertical connector line */}
-                            <div className="absolute left-[4.5rem] top-6 bottom-6 border-l border-dashed border-gray-300 pointer-events-none" />
-
                             <div className="space-y-4">
-                                {day.rows.map((row: TimeRow) => {
+                                {day.rows.map((row: TimeRow, rowIndex: number) => {
                                     const count = row.cards.length;
                                     const isMulti = count > 1;
+                                    // Determine if this event is completed
+                                    // If current day is later than this day, all events are completed
+                                    // If current day is this day, check rowIndex
+                                    const isDayCompleted = dayIndex < currentDayIndex;
+                                    const isCompleted = isDayCompleted || (dayIndex === currentDayIndex && rowIndex < 2);
+                                    const isLastRow = rowIndex === day.rows.length - 1;
+
                                     return (
                                         <div
                                             key={row.time}
@@ -560,11 +568,36 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                             )}
                                             style={{ gridTemplateColumns: '80px 1fr' }}
                                         >
+                                            {/* Dashed vertical line connector to next event */}
+                                            {!isLastRow && (
+                                                <div
+                                                    className={cn(
+                                                        'absolute left-[4.5rem] top-8 w-px pointer-events-none',
+                                                        isCompleted ? 'bg-emerald-500' : 'bg-gray-900'
+                                                    )}
+                                                    style={{
+                                                        height: 'calc(100% + 1rem)',
+                                                        backgroundImage: isCompleted
+                                                            ? 'repeating-linear-gradient(0deg, #10b981, #10b981 3px, transparent 3px, transparent 5px)'
+                                                            : 'repeating-linear-gradient(0deg, #1a1a1a, #1a1a1a 3px, transparent 3px, transparent 5px)',
+                                                        backgroundColor: 'transparent',
+                                                    }}
+                                                />
+                                            )}
+
                                             {/* Time column */}
-                                            <div className="text-right relative z-10">
-                                                <div className="font-bold text-gray-900 text-sm leading-none">{row.time}</div>
+                                            <div className="text-right relative z-10 pr-4">
+                                                <div className={cn(
+                                                    "font-bold text-sm leading-none",
+                                                    isCompleted ? "text-emerald-600" : "text-gray-900"
+                                                )}>{row.time}</div>
                                                 <div className="text-[9px] text-gray-400 font-mono mt-0.5">{row.period}</div>
-                                                <div className="absolute right-[-2.25rem] top-1.5 w-1.5 h-1.5 bg-white border border-gray-400 rounded-full group-hover/row:border-black transition-all" />
+                                                <div className={cn(
+                                                    "absolute right-[-1.25rem] top-1.5 w-1.5 h-1.5 rounded-full border transition-all",
+                                                    isCompleted
+                                                        ? "bg-emerald-500 border-emerald-500"
+                                                        : "bg-white border-gray-400 group-hover/row:border-black"
+                                                )} />
                                             </div>
 
                                             {/* Cards — 1, 2 or 3 col grid depending on branch count */}
@@ -590,7 +623,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                     const isExpanded = expandedPoiId === poi.id;
                                     const showDetailed = showDetailedView === poi.id;
                                     const whyData = AI_POI_WHY_DATA[poi.id];
-                                    
+
                                     return (
                                         <div key={poi.id} className="grid gap-8 relative group/row items-start" style={{ gridTemplateColumns: '80px 1fr' }}>
                                             {/* Time */}
@@ -620,8 +653,8 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                     </button>
                                                 </div>
                                                 {/* Card with hover gradient border */}
-                                                <div 
-                                                    className="relative group cursor-pointer transition-all duration-300" 
+                                                <div
+                                                    className="relative group cursor-pointer transition-all duration-300"
                                                     style={{ boxShadow: '0 10px 30px -10px rgba(197,160,101,0.1)' }}
                                                     onClick={() => setExpandedPoiId(isExpanded ? null : poi.id)}
                                                 >
@@ -677,11 +710,22 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                                 <div className="flex justify-between items-center mt-auto pt-1.5 border-t border-gray-100/70">
                                                                     <div className="flex items-center gap-3">
                                                                         {accepted ? (
-                                                                            <div className="text-[10px] font-bold text-emerald-600 flex items-center gap-1"><Check className="w-3 h-3" /> ACCEPTED</div>
+                                                                            <div className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded"><Check className="w-3 h-3" /> ACCEPTED</div>
                                                                         ) : (
-                                                                            <div className="flex items-center gap-4">
-                                                                                <button onClick={(e) => { e.stopPropagation(); setAcceptedPois(p => [...p, poi.id]); }} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-900 hover:text-emerald-600 transition-colors"><span>⊕</span> Accept</button>
-                                                                                <button onClick={(e) => { e.stopPropagation(); setDismissedPois(p => [...p, poi.id]); }} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-400 transition-colors"><span>⊗</span> Decline</button>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <button
+                                                                                    onClick={(e) => { e.stopPropagation(); setAcceptedPois(p => [...p, poi.id]); }}
+                                                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-black text-white hover:bg-gray-800 transition-all shadow-sm"
+                                                                                    style={{ borderBottom: '2px solid #c5a065' }}
+                                                                                >
+                                                                                    <Check className="w-3 h-3" /> ACCEPT
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={(e) => { e.stopPropagation(); setDismissedPois(p => [...p, poi.id]); }}
+                                                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-white border-2 border-gray-300 text-gray-700 hover:border-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                                                                                >
+                                                                                    <X className="w-3 h-3" /> DECLINE
+                                                                                </button>
                                                                             </div>
                                                                         )}
                                                                         <span className="text-[9px] font-mono text-gray-400 border-l border-gray-200 pl-3">
@@ -700,77 +744,79 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                             </div>
                                                         </div>
 
-                                                        {/* Expanded Primary Details */}
+                                                        {/* Expanded Details - Two Column Layout */}
                                                         {isExpanded && whyData && (
                                                             <div className="mt-4 pt-4 border-t border-gray-200" onClick={(e) => e.stopPropagation()}>
-                                                                {/* Schedule Comparison */}
-                                                                <div className="mb-4">
-                                                                    <div className="flex items-center justify-between mb-3">
-                                                                        <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500">SCHEDULE COMPARISON</span>
-                                                                        <div className="flex items-center gap-3 text-[10px] font-mono">
-                                                                            <span className="flex items-center gap-1"><span className="w-3 h-3 border border-gray-300 inline-block" /> ORIGINAL</span>
-                                                                            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-gray-900 inline-block" /> OPTIMIZED</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="grid grid-cols-2 gap-3 items-start">
-                                                                        {/* Original card */}
-                                                                        <div className="border border-dashed border-gray-200 p-3 bg-gray-50 relative">
-                                                                            <div className="text-xs font-mono text-gray-300 line-through mb-1">{whyData.originalTime}</div>
-                                                                            <div className="font-semibold text-gray-300 line-through text-sm">{whyData.originalTitle}</div>
-                                                                            <div className="mt-2">
-                                                                                <span className="text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-400 px-2 py-0.5">{whyData.originalTag}</span>
-                                                                            </div>
-                                                                        </div>
-                                                                        {/* New card */}
-                                                                        <div className="p-3 relative" style={{
-                                                                            background: '#fffdf9',
-                                                                            backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), var(--gradient-opt)',
-                                                                            backgroundOrigin: 'border-box',
-                                                                            backgroundClip: 'padding-box, border-box',
-                                                                            border: '1.5px solid transparent',
-                                                                        }}>
-                                                                            <div className="text-xs font-mono font-bold mb-1" style={{ color: '#c5a065' }}>{whyData.newTime}</div>
-                                                                            <div className="font-semibold text-gray-900 text-sm">{whyData.newTitle}</div>
-                                                                            <div className="text-[11px] text-gray-500 mt-1">{whyData.newSubtitle}</div>
-                                                                            <div className="flex gap-2 mt-2 flex-wrap">
-                                                                                {whyData.newTags.map(t => (
-                                                                                    <span key={t} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5" style={{ border: '1px solid #8fa391', color: '#8fa391' }}>{t}</span>
-                                                                                ))}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
+                                                                {/* Reason Badge */}
+                                                                <div className="mb-4 p-3 bg-amber-50 border-l-4 border-amber-400">
+                                                                    <div className="text-[10px] font-bold tracking-widest uppercase text-amber-700 mb-1">AI RECOMMENDATION REASON</div>
+                                                                    <p className="text-xs text-amber-900">{poi.subtitle}</p>
                                                                 </div>
 
-                                                                {/* Net Impact */}
-                                                                <div className="border border-gray-200 p-3 bg-gray-50 mb-4">
-                                                                    <div className="flex justify-between items-center">
-                                                                        <span className="text-[11px] text-gray-600 font-semibold">Net Impact</span>
-                                                                        <span className="font-mono font-bold text-lg" style={{ color: '#c5a065' }}>{whyData.netImpact}</span>
+                                                                {/* Two Column Layout */}
+                                                                <div className="grid grid-cols-2 gap-4">
+                                                                    {/* LEFT SIDE - Important Details */}
+                                                                    <div className="space-y-4">
+                                                                        {/* Schedule Comparison */}
+                                                                        <div>
+                                                                            <div className="flex items-center justify-between mb-3">
+                                                                                <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500">SCHEDULE COMPARISON</span>
+                                                                                <div className="flex items-center gap-2 text-[9px] font-mono">
+                                                                                    <span className="flex items-center gap-1"><span className="w-2 h-2 border border-gray-300 inline-block" /> ORIGINAL</span>
+                                                                                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-gray-900 inline-block" /> OPTIMIZED</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="space-y-3">
+                                                                                {/* Original card */}
+                                                                                <div className="border border-dashed border-gray-200 p-3 bg-gray-50 relative">
+                                                                                    <div className="text-xs font-mono text-gray-300 line-through mb-1">{whyData.originalTime}</div>
+                                                                                    <div className="font-semibold text-gray-300 line-through text-sm">{whyData.originalTitle}</div>
+                                                                                    <div className="mt-2">
+                                                                                        <span className="text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-400 px-2 py-0.5">{whyData.originalTag}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                                {/* New card */}
+                                                                                <div className="p-3 relative" style={{
+                                                                                    background: '#fffdf9',
+                                                                                    backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), var(--gradient-opt)',
+                                                                                    backgroundOrigin: 'border-box',
+                                                                                    backgroundClip: 'padding-box, border-box',
+                                                                                    border: '1.5px solid transparent',
+                                                                                }}>
+                                                                                    <div className="text-xs font-mono font-bold mb-1" style={{ color: '#c5a065' }}>{whyData.newTime}</div>
+                                                                                    <div className="font-semibold text-gray-900 text-sm">{whyData.newTitle}</div>
+                                                                                    <div className="text-[11px] text-gray-500 mt-1">{whyData.newSubtitle}</div>
+                                                                                    <div className="flex gap-2 mt-2 flex-wrap">
+                                                                                        {whyData.newTags.map(t => (
+                                                                                            <span key={t} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5" style={{ border: '1px solid #8fa391', color: '#8fa391' }}>{t}</span>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Net Impact */}
+                                                                        <div className="border border-gray-200 p-4 bg-gray-50">
+                                                                            <div className="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-3">NET IMPACT</div>
+                                                                            <div className="flex items-baseline gap-2 mb-2">
+                                                                                <span className="font-mono font-bold text-4xl" style={{ color: '#c5a065' }}>{whyData.netImpact}</span>
+                                                                            </div>
+                                                                            <p className="text-xs text-gray-600 leading-relaxed">{whyData.netImpactNote}</p>
+                                                                        </div>
                                                                     </div>
-                                                                    <p className="text-[10px] text-gray-400 mt-1 leading-snug">{whyData.netImpactNote}</p>
-                                                                </div>
 
-                                                                {/* View More Button */}
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); setShowDetailedView(showDetailed ? null : poi.id); }}
-                                                                    className="w-full py-2 px-4 text-[10px] font-bold tracking-widest uppercase text-gray-600 border border-gray-200 bg-white hover:border-[#c5a065] hover:text-[#c5a065] transition-all mb-3"
-                                                                >
-                                                                    {showDetailed ? '▲ HIDE DETAILS' : '▼ VIEW MORE DETAILS'}
-                                                                </button>
-
-                                                                {/* Detailed View */}
-                                                                {showDetailed && (
-                                                                    <div className="space-y-4 mb-4 p-4 bg-gray-50 border border-gray-200">
+                                                                    {/* RIGHT SIDE - Secondary Details */}
+                                                                    <div className="space-y-4">
                                                                         {/* Operational Logic */}
                                                                         <div>
                                                                             <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500 block mb-3">OPERATIONAL LOGIC</span>
                                                                             <div className="space-y-3">
                                                                                 {whyData.logicItems.map((item, i) => (
-                                                                                    <div key={i} className="flex items-start gap-3">
+                                                                                    <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-200">
                                                                                         <div className="w-7 h-7 bg-white border border-gray-100 flex items-center justify-center flex-shrink-0 text-sm">
                                                                                             {item.icon}
                                                                                         </div>
-                                                                                        <div>
+                                                                                        <div className="flex-1 min-w-0">
                                                                                             <div className="font-semibold text-xs text-gray-900 mb-1">{item.title}</div>
                                                                                             <div className="text-[11px] text-gray-500 leading-relaxed">
                                                                                                 {item.body.split(item.highlight ?? '___NONE___').map((part, j, arr) => j < arr.length - 1 ? (
@@ -784,7 +830,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                                         </div>
 
                                                                         {/* Cost Delta Analysis */}
-                                                                        <div>
+                                                                        <div className="border border-gray-200 p-4 bg-gray-50">
                                                                             <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500 block mb-3">COST DELTA ANALYSIS</span>
                                                                             <div className="space-y-3">
                                                                                 {[
@@ -813,28 +859,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                )}
-
-                                                                {/* Action Buttons */}
-                                                                {!accepted && (
-                                                                    <div className="flex gap-2">
-                                                                        <button
-                                                                            onClick={(e) => { e.stopPropagation(); setAcceptedPois(p => [...p, poi.id]); setExpandedPoiId(null); }}
-                                                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-white text-[11px] font-bold tracking-widest uppercase transition-all"
-                                                                            style={{ background: '#1a1a1a', borderBottom: '2px solid #c5a065' }}
-                                                                            onMouseEnter={e => (e.currentTarget.style.background = '#333')}
-                                                                            onMouseLeave={e => (e.currentTarget.style.background = '#1a1a1a')}
-                                                                        >
-                                                                            <Check className="w-4 h-4" /> APPROVE CHANGE
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={(e) => { e.stopPropagation(); setDismissedPois(p => [...p, poi.id]); setExpandedPoiId(null); }}
-                                                                            className="flex-1 px-4 py-3 text-[11px] font-bold tracking-widest uppercase text-gray-600 border border-gray-200 bg-white hover:border-red-300 hover:text-red-500 transition-all"
-                                                                        >
-                                                                            REJECT & REVERT
-                                                                        </button>
-                                                                    </div>
-                                                                )}
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </div>
@@ -850,7 +875,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                     const isExpanded = expandedRemovalId === rem.id;
                                     const showDetailed = showDetailedView === rem.id;
                                     const whyData = AI_REMOVAL_WHY_DATA[rem.id];
-                                    
+
                                     return (
                                         <div key={rem.id} className="grid gap-8 relative group/row items-start" style={{ gridTemplateColumns: '80px 1fr' }}>
                                             {/* Time */}
@@ -879,8 +904,8 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                     </button>
                                                 </div>
                                                 {/* Greyed card */}
-                                                <div 
-                                                    className="relative cursor-pointer transition-all duration-300" 
+                                                <div
+                                                    className="relative cursor-pointer transition-all duration-300"
                                                     onClick={() => setExpandedRemovalId(isExpanded ? null : rem.id)}
                                                 >
                                                     <div className="flex gap-3 items-center p-3 h-24 bg-gray-50 border border-dashed border-gray-200 opacity-60 grayscale">
@@ -906,11 +931,22 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                             <div className="flex justify-between items-center mt-auto pt-1.5 border-t border-gray-200">
                                                                 <div className="flex items-center gap-3">
                                                                     {accepted ? (
-                                                                        <div className="text-[10px] font-bold text-emerald-600 flex items-center gap-1"><Check className="w-3 h-3" /> ACCEPTED</div>
+                                                                        <div className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded"><Check className="w-3 h-3" /> ACCEPTED</div>
                                                                     ) : (
-                                                                        <div className="flex items-center gap-4">
-                                                                            <button onClick={(e) => { e.stopPropagation(); setAcceptedRemovals(r => [...r, rem.id]); }} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-900 hover:text-emerald-600 transition-colors pointer-events-auto"><span>⊕</span> Accept</button>
-                                                                            <button onClick={(e) => { e.stopPropagation(); setDismissedRemovals(r => [...r, rem.id]); }} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-400 transition-colors pointer-events-auto"><span>⊗</span> Decline</button>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <button
+                                                                                onClick={(e) => { e.stopPropagation(); setAcceptedRemovals(r => [...r, rem.id]); }}
+                                                                                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-black text-white hover:bg-gray-800 transition-all shadow-sm"
+                                                                                style={{ borderBottom: '2px solid #c5a065' }}
+                                                                            >
+                                                                                <Check className="w-3 h-3" /> ACCEPT
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={(e) => { e.stopPropagation(); setDismissedRemovals(r => [...r, rem.id]); }}
+                                                                                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-white border-2 border-gray-300 text-gray-700 hover:border-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                                                                            >
+                                                                                <X className="w-3 h-3" /> DECLINE
+                                                                            </button>
                                                                         </div>
                                                                     )}
                                                                     <span className="text-[9px] font-mono text-gray-400 border-l border-gray-200 pl-3">
@@ -929,77 +965,79 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                         </div>
                                                     </div>
 
-                                                    {/* Expanded Primary Details */}
+                                                    {/* Expanded Details - Two Column Layout */}
                                                     {isExpanded && whyData && (
                                                         <div className="mt-4 pt-4 border-t border-gray-200 bg-white p-3" onClick={(e) => e.stopPropagation()}>
-                                                            {/* Schedule Comparison */}
-                                                            <div className="mb-4">
-                                                                <div className="flex items-center justify-between mb-3">
-                                                                    <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500">SCHEDULE COMPARISON</span>
-                                                                    <div className="flex items-center gap-3 text-[10px] font-mono">
-                                                                        <span className="flex items-center gap-1"><span className="w-3 h-3 border border-gray-300 inline-block" /> ORIGINAL</span>
-                                                                        <span className="flex items-center gap-1"><span className="w-3 h-3 bg-gray-900 inline-block" /> OPTIMIZED</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="grid grid-cols-2 gap-3 items-start">
-                                                                    {/* Original card */}
-                                                                    <div className="border border-dashed border-gray-200 p-3 bg-gray-50 relative">
-                                                                        <div className="text-xs font-mono text-gray-300 line-through mb-1">{whyData.originalTime}</div>
-                                                                        <div className="font-semibold text-gray-300 line-through text-sm">{whyData.originalTitle}</div>
-                                                                        <div className="mt-2">
-                                                                            <span className="text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-400 px-2 py-0.5">{whyData.originalTag}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    {/* New card */}
-                                                                    <div className="p-3 relative" style={{
-                                                                        background: '#fffdf9',
-                                                                        backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), var(--gradient-opt)',
-                                                                        backgroundOrigin: 'border-box',
-                                                                        backgroundClip: 'padding-box, border-box',
-                                                                        border: '1.5px solid transparent',
-                                                                    }}>
-                                                                        <div className="text-xs font-mono font-bold mb-1" style={{ color: '#c5a065' }}>{whyData.newTime}</div>
-                                                                        <div className="font-semibold text-gray-900 text-sm">{whyData.newTitle}</div>
-                                                                        <div className="text-[11px] text-gray-500 mt-1">{whyData.newSubtitle}</div>
-                                                                        <div className="flex gap-2 mt-2 flex-wrap">
-                                                                            {whyData.newTags.map(t => (
-                                                                                <span key={t} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5" style={{ border: '1px solid #8fa391', color: '#8fa391' }}>{t}</span>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+                                                            {/* Reason Badge */}
+                                                            <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-400">
+                                                                <div className="text-[10px] font-bold tracking-widest uppercase text-red-700 mb-1">REMOVAL REASON</div>
+                                                                <p className="text-xs text-red-900">{rem.reason}</p>
                                                             </div>
 
-                                                            {/* Net Impact */}
-                                                            <div className="border border-gray-200 p-3 bg-gray-50 mb-4">
-                                                                <div className="flex justify-between items-center">
-                                                                    <span className="text-[11px] text-gray-600 font-semibold">Net Impact</span>
-                                                                    <span className="font-mono font-bold text-lg" style={{ color: '#c5a065' }}>{whyData.netImpact}</span>
+                                                            {/* Two Column Layout */}
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                {/* LEFT SIDE - Important Details */}
+                                                                <div className="space-y-4">
+                                                                    {/* Schedule Comparison */}
+                                                                    <div>
+                                                                        <div className="flex items-center justify-between mb-3">
+                                                                            <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500">SCHEDULE COMPARISON</span>
+                                                                            <div className="flex items-center gap-2 text-[9px] font-mono">
+                                                                                <span className="flex items-center gap-1"><span className="w-2 h-2 border border-gray-300 inline-block" /> ORIGINAL</span>
+                                                                                <span className="flex items-center gap-1"><span className="w-2 h-2 bg-gray-900 inline-block" /> OPTIMIZED</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="space-y-3">
+                                                                            {/* Original card */}
+                                                                            <div className="border border-dashed border-gray-200 p-3 bg-gray-50 relative">
+                                                                                <div className="text-xs font-mono text-gray-300 line-through mb-1">{whyData.originalTime}</div>
+                                                                                <div className="font-semibold text-gray-300 line-through text-sm">{whyData.originalTitle}</div>
+                                                                                <div className="mt-2">
+                                                                                    <span className="text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-400 px-2 py-0.5">{whyData.originalTag}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            {/* New card */}
+                                                                            <div className="p-3 relative" style={{
+                                                                                background: '#fffdf9',
+                                                                                backgroundImage: 'linear-gradient(#fffdf9,#fffdf9), var(--gradient-opt)',
+                                                                                backgroundOrigin: 'border-box',
+                                                                                backgroundClip: 'padding-box, border-box',
+                                                                                border: '1.5px solid transparent',
+                                                                            }}>
+                                                                                <div className="text-xs font-mono font-bold mb-1" style={{ color: '#c5a065' }}>{whyData.newTime}</div>
+                                                                                <div className="font-semibold text-gray-900 text-sm">{whyData.newTitle}</div>
+                                                                                <div className="text-[11px] text-gray-500 mt-1">{whyData.newSubtitle}</div>
+                                                                                <div className="flex gap-2 mt-2 flex-wrap">
+                                                                                    {whyData.newTags.map(t => (
+                                                                                        <span key={t} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5" style={{ border: '1px solid #8fa391', color: '#8fa391' }}>{t}</span>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Net Impact */}
+                                                                    <div className="border border-gray-200 p-4 bg-gray-50">
+                                                                        <div className="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-3">NET IMPACT</div>
+                                                                        <div className="flex items-baseline gap-2 mb-2">
+                                                                            <span className="font-mono font-bold text-4xl" style={{ color: '#c5a065' }}>{whyData.netImpact}</span>
+                                                                        </div>
+                                                                        <p className="text-xs text-gray-600 leading-relaxed">{whyData.netImpactNote}</p>
+                                                                    </div>
                                                                 </div>
-                                                                <p className="text-[10px] text-gray-400 mt-1 leading-snug">{whyData.netImpactNote}</p>
-                                                            </div>
 
-                                                            {/* View More Button */}
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); setShowDetailedView(showDetailed ? null : rem.id); }}
-                                                                className="w-full py-2 px-4 text-[10px] font-bold tracking-widest uppercase text-gray-600 border border-gray-200 bg-white hover:border-[#c5a065] hover:text-[#c5a065] transition-all mb-3"
-                                                            >
-                                                                {showDetailed ? '▲ HIDE DETAILS' : '▼ VIEW MORE DETAILS'}
-                                                            </button>
-
-                                                            {/* Detailed View */}
-                                                            {showDetailed && (
-                                                                <div className="space-y-4 mb-4 p-4 bg-gray-50 border border-gray-200">
+                                                                {/* RIGHT SIDE - Secondary Details */}
+                                                                <div className="space-y-4">
                                                                     {/* Operational Logic */}
                                                                     <div>
                                                                         <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500 block mb-3">OPERATIONAL LOGIC</span>
                                                                         <div className="space-y-3">
                                                                             {whyData.logicItems.map((item, i) => (
-                                                                                <div key={i} className="flex items-start gap-3">
+                                                                                <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-200">
                                                                                     <div className="w-7 h-7 bg-white border border-gray-100 flex items-center justify-center flex-shrink-0 text-sm">
                                                                                         {item.icon}
                                                                                     </div>
-                                                                                    <div>
+                                                                                    <div className="flex-1 min-w-0">
                                                                                         <div className="font-semibold text-xs text-gray-900 mb-1">{item.title}</div>
                                                                                         <div className="text-[11px] text-gray-500 leading-relaxed">
                                                                                             {item.body.split(item.highlight ?? '___NONE___').map((part, j, arr) => j < arr.length - 1 ? (
@@ -1013,7 +1051,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                                     </div>
 
                                                                     {/* Cost Delta Analysis */}
-                                                                    <div>
+                                                                    <div className="border border-gray-200 p-4 bg-gray-50">
                                                                         <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500 block mb-3">COST DELTA ANALYSIS</span>
                                                                         <div className="space-y-3">
                                                                             {[
@@ -1042,28 +1080,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                            )}
-
-                                                            {/* Action Buttons */}
-                                                            {!accepted && (
-                                                                <div className="flex gap-2">
-                                                                    <button
-                                                                        onClick={(e) => { e.stopPropagation(); setAcceptedRemovals(r => [...r, rem.id]); setExpandedRemovalId(null); }}
-                                                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-white text-[11px] font-bold tracking-widest uppercase transition-all"
-                                                                        style={{ background: '#1a1a1a', borderBottom: '2px solid #c5a065' }}
-                                                                        onMouseEnter={e => (e.currentTarget.style.background = '#333')}
-                                                                        onMouseLeave={e => (e.currentTarget.style.background = '#1a1a1a')}
-                                                                    >
-                                                                        <Check className="w-4 h-4" /> APPROVE CHANGE
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={(e) => { e.stopPropagation(); setDismissedRemovals(r => [...r, rem.id]); setExpandedRemovalId(null); }}
-                                                                        className="flex-1 px-4 py-3 text-[11px] font-bold tracking-widest uppercase text-gray-600 border border-gray-200 bg-white hover:border-red-300 hover:text-red-500 transition-all"
-                                                                    >
-                                                                        REJECT & REVERT
-                                                                    </button>
-                                                                </div>
-                                                            )}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>

@@ -178,6 +178,11 @@ export default function GroupsView({ tripId }: { tripId: string }) {
 
     const chatEndRef = useRef<HTMLDivElement>(null);
 
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages]);
 
     const sendChat = () => {
@@ -206,27 +211,30 @@ export default function GroupsView({ tripId }: { tripId: string }) {
 
     if (!trip) return <div className="p-8 text-center text-stone-500">Trip not found</div>;
 
+    // Wait until mounted on client to prevent hydration mismatch from browser extension injected attributes
+    if (!mounted) return <div className="flex-1 flex overflow-hidden h-full relative bp-grid-bg bg-white" />;
+
     return (
         <div className="flex-1 flex overflow-hidden h-full relative bp-grid-bg bg-white">
 
             {/* ── LEFT SIDEBAR: Families ──────────────────────────────────────── */}
-            <aside className="w-[300px] shrink-0 flex flex-col gap-3 p-4 overflow-hidden">
+            <aside className="w-[300px] shrink-0 flex flex-col gap-3 p-4 overflow-hidden border-r border-stone-200/50">
                 {/* Header panel */}
-                <div className="bg-[#faf9f6] border border-stone-200/80 shadow-sm p-4 flex flex-col gap-3">
-                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                        <h2 className="text-sm font-bold text-stone-900 tracking-wide uppercase">Family Groups</h2>
-                        <span className="bg-stone-200/50 border border-stone-200 text-stone-700 text-xs font-semibold px-2 py-1">
-                            Active: {FAMILIES.length}
+                <div className="bg-[#faf9f6] border border-stone-200 shadow-sm rounded-xl p-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between border-b border-stone-200/50 pb-3">
+                        <h2 className="text-[10px] font-black text-stone-900 tracking-widest uppercase">Family Groups</h2>
+                        <span className="bg-stone-100 border border-stone-200 text-stone-700 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+                            {FAMILIES.length}
                         </span>
                     </div>
                     {/* Search */}
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            placeholder="Search family or booking ID..."
-                            className="w-full bg-stone-50 border border-stone-200 py-2 pl-10 pr-3 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300"
+                            placeholder="Search family or booking..."
+                            className="w-full bg-white border border-stone-200 rounded-lg py-2 pl-9 pr-3 text-xs text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300 focus:border-stone-300 transition-all"
                         />
                     </div>
                     {/* Filter pills */}
@@ -236,10 +244,10 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                 key={f}
                                 onClick={() => setFamilyFilter(f)}
                                 className={cn(
-                                    'flex-1 py-1.5 border text-xs font-semibold capitalize transition-all duration-150',
+                                    'flex-1 py-1.5 border rounded-lg text-[10px] font-black capitalize transition-all duration-150 uppercase tracking-wider',
                                     familyFilter === f
-                                        ? 'bg-stone-800 border-stone-800 text-white shadow-sm ring-2 ring-stone-400/30'
-                                        : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50 hover:text-stone-700'
+                                        ? 'bg-stone-900 border-stone-900 text-white shadow-sm'
+                                        : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50 hover:text-stone-700 hover:border-stone-300'
                                 )}
                             >{f}</button>
                         ))}
@@ -256,47 +264,44 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                 key={family.id}
                                 onClick={() => setActiveFamilyId(family.id)}
                                 className={cn(
-                                    'w-full text-left border p-4 transition-all cursor-pointer',
+                                    'w-full text-left rounded-xl border p-4 transition-all cursor-pointer',
                                     isActive
-                                        ? 'bg-stone-200/50 border-stone-300'
+                                        ? 'bg-stone-100 border-stone-300 shadow-inner'
                                         : isWarning
                                             ? 'bg-[#faf9f6] border-[#8e5a4e]/30 shadow-sm hover:border-[#8e5a4e]/50 hover:shadow-md'
                                             : 'bg-[#faf9f6] border-stone-200 shadow-sm hover:border-stone-300 hover:shadow-md'
                                 )}
-                                style={isActive ? {
-                                    boxShadow: 'inset 3px 3px 7px rgba(0,0,0,0.12), inset -2px -2px 5px rgba(255,255,255,0.8)',
-                                } : undefined}
                             >
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-3">
                                         <div className={cn(
-                                            'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border border-stone-200',
-                                            isWarning ? 'bg-stone-100 text-[#8e5a4e]' : 'bg-stone-100 text-stone-700'
+                                            'w-10 h-10 rounded-full flex items-center justify-center font-black text-xs border-2',
+                                            isWarning ? 'bg-stone-50 text-[#8e5a4e] border-[#8e5a4e]/20' : 'bg-stone-50 text-stone-700 border-stone-200'
                                         )}>
                                             {family.initials}
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-stone-800 text-sm">{family.name}</h4>
-                                            <span className="text-xs text-stone-500 block mt-0.5">{family.pax} Guests • {family.room}</span>
+                                            <h4 className="font-bold text-stone-900 text-sm tracking-tight">{family.name}</h4>
+                                            <span className="text-[10px] text-stone-500 block mt-0.5 font-medium uppercase tracking-wider">{family.pax} Guests • {family.room}</span>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-xs font-medium text-stone-400">{family.lastMessageTime}</span>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">{family.lastMessageTime}</span>
                                         <SentimentDot sentiment={family.sentiment} />
                                     </div>
                                 </div>
                                 {family.lastMessage && (
-                                    <div className="mt-2 text-xs text-stone-600 bg-stone-100/50 p-2 border border-stone-100 italic">
+                                    <div className="mt-2 text-[11px] text-stone-600 bg-stone-50 p-2.5 rounded-lg border border-stone-200/50 italic leading-relaxed">
                                         {family.lastMessage}
                                     </div>
                                 )}
                                 {family.tags && family.tags.length > 0 && (
-                                    <div className="flex gap-2 mt-3 pt-3 border-t border-stone-100 flex-wrap">
+                                    <div className="flex gap-2 mt-3 pt-3 border-t border-stone-200/50 flex-wrap">
                                         {family.tags.map((tag, i) => (
                                             <span key={i} className={cn(
-                                                'text-[10px] font-bold px-2 py-1 uppercase tracking-wider flex items-center gap-1 border',
+                                                'text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-widest flex items-center gap-1 border',
                                                 tag.variant === 'warning'
-                                                    ? 'bg-[#8e5a4e]/10 text-[#8e5a4e] border-[#8e5a4e]/20'
+                                                    ? 'bg-[#8e5a4e]/10 text-[#8e5a4e] border-[#8e5a4e]/30'
                                                     : 'bg-stone-100 text-stone-700 border-stone-200'
                                             )}>
                                                 {tag.variant === 'warning' ? <AlertTriangle className="w-2.5 h-2.5" /> : <Crown className="w-2.5 h-2.5" />}
@@ -315,34 +320,34 @@ export default function GroupsView({ tripId }: { tripId: string }) {
             <main className="flex-1 flex flex-col gap-4 p-4 min-w-0 overflow-hidden">
 
                 {/* Activity Timeline */}
-                <div className={cn('min-h-0 bg-[#faf9f6] border border-stone-200 shadow-sm flex flex-col overflow-hidden transition-all duration-300', timelineOpen ? 'flex-[1.2]' : 'flex-[0_0_auto]')}>
-                    <div className="flex justify-between items-center px-5 py-3.5 border-b border-stone-100 bg-[#faf9f6] shrink-0">
+                <div className={cn('min-h-0 bg-[#faf9f6] border border-stone-200 rounded-xl shadow-sm flex flex-col overflow-hidden transition-all duration-300', timelineOpen ? 'flex-[1.2]' : 'flex-[0_0_auto]')}>
+                    <div className="flex justify-between items-center px-5 py-3.5 border-b border-stone-200/50 bg-[#faf9f6] shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="p-1.5 bg-stone-100 text-stone-600">
-                                <FileText className="w-4 h-4" />
+                            <div className="p-1.5 bg-stone-100 rounded-lg text-stone-600 border border-stone-200">
+                                <FileText className="w-3.5 h-3.5" />
                             </div>
-                            <h2 className="text-sm font-bold text-stone-800 tracking-wide uppercase">Activity Timeline</h2>
+                            <h2 className="text-[10px] font-black text-stone-900 tracking-widest uppercase">Activity Timeline</h2>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="flex gap-1.5 bg-stone-100/50 p-1 border border-stone-100 mr-2">
+                            <div className="flex gap-1 bg-stone-100 p-1 rounded-lg border border-stone-200 mr-2">
                                 {(['all', 'requests', 'reviews'] as LogFilter[]).map(f => (
                                     <button
                                         key={f}
                                         onClick={() => setLogFilter(f)}
                                         className={cn(
-                                            'px-3 py-1 text-xs font-semibold capitalize transition-colors',
+                                            'px-3 py-1 text-[9px] font-black capitalize transition-colors rounded-md uppercase tracking-widest',
                                             logFilter === f
-                                                ? 'bg-white shadow-sm text-stone-700 border border-stone-200'
-                                                : 'text-stone-500 hover:text-stone-700'
+                                                ? 'bg-white shadow-sm text-stone-900 border border-stone-200'
+                                                : 'text-stone-500 hover:text-stone-700 hover:bg-stone-50'
                                         )}
                                     >
-                                        {f.charAt(0).toUpperCase() + f.slice(1)}
+                                        {f}
                                     </button>
                                 ))}
                             </div>
                             <button
                                 onClick={toggleTimeline}
-                                className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-transparent hover:border-stone-200"
                                 title={timelineOpen ? 'Minimise timeline' : 'Expand timeline'}
                             >
                                 {timelineOpen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -351,26 +356,26 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                     </div>
 
                     {timelineOpen && (
-                        <div className="flex-1 overflow-y-auto scrollbar-hide p-5 space-y-3 bg-stone-100/20">
+                        <div className="flex-1 overflow-y-auto scrollbar-hide p-5 space-y-3 bg-white/50">
                             {filteredLog.map(item => {
                                 const Icon = activityIcons[item.id] ?? Clock;
                                 return (
-                                    <div key={item.id} className="group bg-white border border-stone-200 p-4 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden">
+                                    <div key={item.id} className="group bg-white border border-stone-200 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-stone-300 transition-all cursor-pointer relative overflow-hidden">
                                         {/* Left accent bar */}
                                         <div className={cn('absolute left-0 top-0 bottom-0 w-1', item.accentColor)} />
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-start gap-4">
-                                                <div className="mt-0.5 bg-stone-50 text-stone-500 p-2 shrink-0">
-                                                    <Icon className="w-4 h-4" />
+                                                <div className="mt-0.5 bg-stone-50 text-stone-500 p-2 rounded-lg shrink-0 border border-stone-200">
+                                                    <Icon className="w-3.5 h-3.5" />
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <h3 className="text-sm font-bold text-stone-800">{item.title}</h3>
-                                                        <span className="bg-stone-100 text-stone-600 text-[10px] font-bold px-2 py-0.5 border border-stone-200">{item.badge}</span>
+                                                        <h3 className="text-sm font-bold text-stone-900 tracking-tight">{item.title}</h3>
+                                                        <span className="bg-stone-100 text-stone-600 text-[9px] font-black px-2 py-0.5 rounded-full border border-stone-200 uppercase tracking-widest">{item.badge}</span>
                                                     </div>
-                                                    <p className="text-xs text-stone-500 font-medium">{item.time}</p>
+                                                    <p className="text-[10px] text-stone-500 font-bold uppercase tracking-wider">{item.time}</p>
                                                     {item.body && (
-                                                        <p className="text-sm text-stone-600 bg-stone-50 p-2.5 border border-stone-100 mt-2 italic">
+                                                        <p className="text-xs text-stone-600 bg-stone-50 p-2.5 rounded-lg border border-stone-200/50 mt-2 italic leading-relaxed">
                                                             {item.body}
                                                         </p>
                                                     )}
@@ -379,10 +384,10 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                             {/* Hover actions */}
                                             {item.actionable && (
                                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                                    <button className="px-3 py-1.5 bg-[#4f5d4e] text-white text-xs font-semibold hover:bg-[#3d4a3c] transition-colors flex items-center gap-1">
+                                                    <button className="px-3 py-1.5 bg-[#4f5d4e] text-white text-[10px] font-black rounded-lg hover:bg-[#3d4a3c] transition-colors flex items-center gap-1 uppercase tracking-wider shadow-sm">
                                                         <CheckCircle className="w-3 h-3" /> Approve
                                                     </button>
-                                                    <button className="px-3 py-1.5 border border-stone-200 bg-white text-stone-600 text-xs font-semibold hover:bg-stone-50 transition-colors flex items-center gap-1">
+                                                    <button className="px-3 py-1.5 border border-stone-200 bg-white text-stone-600 text-[10px] font-black rounded-lg hover:bg-stone-50 hover:border-stone-300 transition-colors flex items-center gap-1 uppercase tracking-wider">
                                                         <XCircle className="w-3 h-3" /> Reject
                                                     </button>
                                                 </div>
@@ -396,25 +401,25 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                 </div>
 
                 {/* Live Chat Panel */}
-                <div className={cn('min-h-0 bg-[#faf9f6] border border-stone-200 shadow-lg flex flex-col overflow-hidden transition-all duration-300', chatOpen ? 'flex-1' : 'flex-[0_0_auto]')}>
+                <div className={cn('min-h-0 bg-[#faf9f6] border border-stone-200 rounded-xl shadow-sm flex flex-col overflow-hidden transition-all duration-300', chatOpen ? 'flex-1' : 'flex-[0_0_auto]')}>
                     {/* Chat header */}
-                    <div className="px-5 py-3 border-b border-stone-100 bg-[#faf9f6] flex justify-between items-center shrink-0">
+                    <div className="px-5 py-3 border-b border-stone-200/50 bg-[#faf9f6] flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.5)] animate-pulse" />
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.5)] animate-pulse" />
                             <div>
-                                <h3 className="font-bold text-stone-800 text-sm">
+                                <h3 className="font-black text-stone-900 text-sm tracking-tight">
                                     {activeFamily?.name ?? 'Family'} Chat
                                 </h3>
-                                <span className="text-xs text-stone-400">Active now</span>
+                                <span className="text-[9px] text-stone-400 uppercase tracking-widest font-bold">Active now</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] bg-stone-100 text-stone-500 px-2 py-1 font-bold uppercase tracking-widest">
-                                Secure Channel
+                            <span className="text-[9px] bg-stone-100 text-stone-600 px-2 py-1 rounded-full font-black uppercase tracking-widest border border-stone-200">
+                                Secure
                             </span>
                             <button
                                 onClick={toggleChat}
-                                className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors border border-transparent hover:border-stone-200"
                                 title={chatOpen ? 'Minimise chat' : 'Expand chat'}
                             >
                                 {chatOpen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -425,24 +430,24 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                     {/* Messages — only rendered when expanded */}
                     {chatOpen && (
                         <>
-                            <div className="flex-1 overflow-y-auto scrollbar-hide p-5 space-y-4 bg-stone-50/50">
+                            <div className="flex-1 overflow-y-auto scrollbar-hide p-5 space-y-4 bg-white/50">
                                 <div className="flex justify-center mb-1">
-                                    <span className="text-[10px] font-bold text-stone-400 bg-stone-200/40 px-3 py-1 uppercase tracking-widest">Today</span>
+                                    <span className="text-[9px] font-black text-stone-400 bg-stone-100 px-3 py-1 rounded-full uppercase tracking-widest border border-stone-200">Today</span>
                                 </div>
                                 {chatMessages.map((msg, i) => (
                                     <div key={i} className={cn('flex', msg.role === 'agent' ? 'justify-end' : 'justify-start')}>
                                         <div className={cn('flex gap-2 max-w-[85%]', msg.role === 'agent' ? 'flex-row-reverse' : '')}>
                                             <div className={cn(
-                                                'w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold mt-1',
-                                                msg.role === 'guest' ? 'bg-stone-200 text-stone-700' : 'bg-[#353b48] text-white'
+                                                'w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-black mt-1 border-2',
+                                                msg.role === 'guest' ? 'bg-stone-100 text-stone-700 border-stone-200' : 'bg-[#353b48] text-white border-[#353b48]'
                                             )}>
                                                 {msg.initials}
                                             </div>
                                             <div className={cn(
-                                                'px-4 py-3 text-sm shadow-sm',
+                                                'px-4 py-3 text-xs rounded-2xl shadow-sm border',
                                                 msg.role === 'guest'
-                                                    ? 'bg-white border border-stone-200 text-stone-700'
-                                                    : 'bg-[#353b48] text-white'
+                                                    ? 'bg-white border-stone-200 text-stone-700 rounded-tl-none'
+                                                    : 'bg-[#353b48] text-white border-[#353b48] rounded-tr-none'
                                             )}>
                                                 {msg.text}
                                             </div>
@@ -453,10 +458,10 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                             </div>
 
                             {/* Quick action chips + input */}
-                            <div className="p-4 bg-white border-t border-stone-100 shrink-0">
+                            <div className="p-4 bg-white border-t border-stone-200 shrink-0">
                                 <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-hide">
                                     {['Send Itinerary', 'Suggest Activity', 'Room Service'].map(label => (
-                                        <button key={label} className="whitespace-nowrap text-xs font-bold border border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100 px-3 py-1.5 transition-colors uppercase tracking-wider flex items-center gap-1">
+                                        <button key={label} className="whitespace-nowrap text-[9px] font-black border border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100 hover:border-stone-300 px-3 py-1.5 rounded-full transition-colors uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
                                             <Calendar className="w-3 h-3" /> {label}
                                         </button>
                                     ))}
@@ -468,14 +473,14 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                                         onChange={e => setChatInput(e.target.value)}
                                         onKeyDown={e => { if (e.key === 'Enter') sendChat(); }}
                                         placeholder="Type your message..."
-                                        className="flex-1 bg-stone-50 border border-stone-200 py-2.5 px-4 text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300 transition-all"
+                                        className="flex-1 bg-stone-50 border border-stone-200 rounded-lg py-2.5 px-4 text-xs text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300 focus:border-stone-300 transition-all"
                                     />
                                     <button
                                         onClick={sendChat}
                                         disabled={!chatInput.trim()}
-                                        className="w-10 bg-[#4a647c] text-white flex items-center justify-center hover:bg-[#3d5368] transition-colors disabled:opacity-40"
+                                        className="w-10 bg-[#4a647c] text-white rounded-lg flex items-center justify-center hover:bg-[#3d5368] transition-colors disabled:opacity-40 shadow-sm"
                                     >
-                                        <Send className="w-4 h-4" />
+                                        <Send className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
                             </div>
@@ -485,19 +490,19 @@ export default function GroupsView({ tripId }: { tripId: string }) {
             </main>
 
             {/* ── RIGHT SIDEBAR: Map + Manifest ─────────────────────────────── */}
-            <aside className="w-[260px] shrink-0 flex flex-col gap-4 p-4 overflow-y-auto scrollbar-hide">
+            <aside className="w-[260px] shrink-0 flex flex-col gap-4 p-4 overflow-y-auto scrollbar-hide border-l border-stone-200/50">
 
                 {/* Map */}
-                <div className="bg-[#faf9f6] border border-stone-200 shadow-sm overflow-hidden h-[180px] relative group">
+                <div className="bg-[#faf9f6] border border-stone-200 rounded-xl shadow-sm overflow-hidden h-[180px] relative group">
                     {/* Label badge */}
-                    <div className="absolute top-2.5 left-2.5 z-10 bg-white/90 backdrop-blur text-stone-700 text-[10px] font-bold px-2 py-1 shadow-sm border border-stone-200 flex items-center gap-1.5 uppercase tracking-wider">
+                    <div className="absolute top-2.5 left-2.5 z-10 bg-white/95 backdrop-blur text-stone-700 text-[9px] font-black px-2 py-1 rounded-lg shadow-sm border border-stone-200 flex items-center gap-1.5 uppercase tracking-widest">
                         <span className="w-1.5 h-1.5 bg-[#4a647c] rounded-full" />
                         Pool Sector 04
                     </div>
                     {/* Maximize button */}
                     <button
                         onClick={() => setMapExpanded(true)}
-                        className="absolute top-2.5 right-2.5 z-10 w-7 h-7 bg-white/90 backdrop-blur border border-stone-200 shadow-sm flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
+                        className="absolute top-2.5 right-2.5 z-10 w-7 h-7 bg-white/95 backdrop-blur border border-stone-200 rounded-lg shadow-sm flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-white hover:border-stone-300 transition-colors opacity-0 group-hover:opacity-100"
                         title="Expand map"
                     >
                         <Maximize2 className="w-3.5 h-3.5" />
@@ -521,7 +526,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                         onClick={() => setMapExpanded(false)}
                     >
                         <div
-                            className="relative bg-white shadow-2xl flex flex-col overflow-hidden border border-stone-200"
+                            className="relative bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-stone-200"
                             style={{ width: '70vw', height: '65vh' }}
                             onClick={e => e.stopPropagation()}
                         >
@@ -529,11 +534,11 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                             <div className="flex items-center justify-between px-4 py-3 bg-white/95 backdrop-blur border-b border-stone-200 z-10 shrink-0">
                                 <div className="flex items-center gap-2">
                                     <span className="w-2 h-2 bg-[#4a647c] rounded-full" />
-                                    <span className="text-xs font-bold text-stone-700 uppercase tracking-wider">Pool Sector 04</span>
+                                    <span className="text-[10px] font-black text-stone-900 uppercase tracking-widest">Pool Sector 04</span>
                                 </div>
                                 <button
                                     onClick={() => setMapExpanded(false)}
-                                    className="w-7 h-7 flex items-center justify-center bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 transition-colors"
+                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 transition-colors border border-stone-200"
                                 >
                                     <Minimize2 className="w-3.5 h-3.5" />
                                 </button>
@@ -556,30 +561,30 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                 )}
 
                 {/* Manifest Details */}
-                <div className="bg-[#faf9f6] border border-stone-200/80 shadow-sm p-4 flex-1 flex flex-col">
-                    <div className="flex items-center gap-2 mb-4 border-b border-stone-100 pb-2">
-                        <FileText className="w-4 h-4 text-stone-400" />
-                        <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest">Manifest Details</h3>
+                <div className="bg-[#faf9f6] border border-stone-200 shadow-sm rounded-xl p-4 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 mb-4 border-b border-stone-200/50 pb-3">
+                        <FileText className="w-3.5 h-3.5 text-stone-400" />
+                        <h3 className="text-[10px] font-black text-stone-900 uppercase tracking-widest">Manifest Details</h3>
                     </div>
                     <div className="space-y-3">
                         {[
                             { label: 'Dates', value: trip.dateRange },
-                            { label: 'Guests', valueNode: <div className="flex gap-1"><span className="text-stone-800 font-bold bg-stone-100 px-1.5 py-0.5 text-xs border border-stone-200">2 ADT</span><span className="text-stone-800 font-bold bg-stone-100 px-1.5 py-0.5 text-xs border border-stone-200">2 CHD</span></div> },
+                            { label: 'Guests', valueNode: <div className="flex gap-1"><span className="text-stone-900 font-black bg-stone-100 px-1.5 py-0.5 rounded text-[10px] border border-stone-200 uppercase tracking-wider">2 ADT</span><span className="text-stone-900 font-black bg-stone-100 px-1.5 py-0.5 rounded text-[10px] border border-stone-200 uppercase tracking-wider">2 CHD</span></div> },
                             { label: 'Package', value: 'PREMIUM ALL-INC', mono: true },
                         ].map(({ label, value, valueNode, mono }) => (
-                            <div key={label} className="flex justify-between items-center text-sm">
-                                <span className="text-stone-500 font-medium text-xs">{label}</span>
+                            <div key={label} className="flex justify-between items-center text-xs">
+                                <span className="text-stone-500 font-bold text-[10px] uppercase tracking-wider">{label}</span>
                                 {valueNode ?? (
                                     <span className={cn(
-                                        'text-stone-800 font-bold bg-stone-100 px-2 py-0.5 border border-stone-200 text-xs',
-                                        mono && 'uppercase tracking-wider text-[10px]'
+                                        'text-stone-900 font-black bg-stone-100 px-2 py-0.5 rounded border border-stone-200 text-[10px]',
+                                        mono && 'uppercase tracking-widest'
                                     )}>{value}</span>
                                 )}
                             </div>
                         ))}
                     </div>
-                    <div className="mt-auto pt-4 border-t border-stone-100 border-dashed">
-                        <button className="w-full py-2.5 bg-stone-100/50 border border-stone-200 text-stone-700 hover:bg-white hover:border-stone-300 hover:shadow-sm transition-all text-[10px] font-bold flex items-center justify-center gap-2 uppercase tracking-widest">
+                    <div className="mt-auto pt-4 border-t border-stone-200/50 border-dashed">
+                        <button className="w-full py-2.5 bg-stone-100 border border-stone-200 text-stone-700 hover:bg-white hover:border-stone-300 hover:shadow-sm transition-all text-[9px] font-black rounded-lg flex items-center justify-center gap-2 uppercase tracking-widest">
                             <FileText className="w-3.5 h-3.5 text-stone-400" />
                             Open Contract PDF
                         </button>
