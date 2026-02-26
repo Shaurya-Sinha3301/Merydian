@@ -9,11 +9,11 @@ import { useCanvasVideo } from '../hooks/useCanvasVideo';
 gsap.registerPlugin(ScrollTrigger);
 
 interface HeroCanvasProps {
-  scrollTrackRef: React.RefObject<HTMLDivElement>;
+  scrollTrackRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function HeroCanvas({ scrollTrackRef }: HeroCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null) as React.RefObject<HTMLCanvasElement>;
   const textRef1 = useRef<HTMLHeadingElement>(null);
   const textRef2 = useRef<HTMLHeadingElement>(null);
   const textRef3 = useRef<HTMLHeadingElement>(null);

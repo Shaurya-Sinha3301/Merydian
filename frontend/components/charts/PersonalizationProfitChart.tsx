@@ -64,29 +64,29 @@ const CustomScatterTooltip = ({ active, payload }: any) => {
     return (
       <div className="bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-3 min-w-[200px] z-50 rounded-none mix-blend-normal">
         <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200">
-          <p className="text-[12px] font-bold text-gray-900 uppercase tracking-widest">
+          <p className="text-[14px] font-bold text-gray-900 uppercase tracking-widest">
             {data.name}
           </p>
-          <span className="text-[9px] font-mono bg-gray-100 px-1 py-0.5 border border-gray-300">
+          <span className="text-[11px] font-mono bg-gray-100 px-1 py-0.5 border border-gray-300">
             {data.id}
           </span>
         </div>
 
-        <div className="space-y-1.5 text-[10px]">
+        <div className="space-y-1.5 text-[12px]">
           <div className="flex justify-between items-center group">
-            <span className="text-gray-500 uppercase tracking-wider text-[9px] group-hover:text-black transition-colors">Customization</span>
+            <span className="text-gray-500 uppercase tracking-wider text-[11px] group-hover:text-black transition-colors">Customization</span>
             <span className="font-mono font-bold text-gray-900">{data.personalization} pts</span>
           </div>
           <div className="flex justify-between items-center group">
-            <span className="text-gray-500 uppercase tracking-wider text-[9px] group-hover:text-black transition-colors">Profit Margin</span>
+            <span className="text-gray-500 uppercase tracking-wider text-[11px] group-hover:text-black transition-colors">Profit Margin</span>
             <span className="font-mono font-bold text-gray-900">{data.margin}%</span>
           </div>
           <div className="flex justify-between items-center group">
-            <span className="text-gray-500 uppercase tracking-wider text-[9px] group-hover:text-black transition-colors">Net Profit</span>
+            <span className="text-gray-500 uppercase tracking-wider text-[11px] group-hover:text-black transition-colors">Net Profit</span>
             <span className="font-mono font-bold text-green-600">₹{data.profit.toLocaleString()}</span>
           </div>
           <div className="flex justify-between items-center group">
-            <span className="text-gray-500 uppercase tracking-wider text-[9px] group-hover:text-black transition-colors">Total Revenue</span>
+            <span className="text-gray-500 uppercase tracking-wider text-[11px] group-hover:text-black transition-colors">Total Revenue</span>
             <span className="font-mono font-bold text-gray-600">₹{data.revenue.toLocaleString()}</span>
           </div>
         </div>
@@ -110,15 +110,15 @@ export function PersonalizationProfitChart() {
               <Target className="w-4 h-4 text-black" />
             </div>
             <div>
-              <h2 className="text-[14px] font-bold uppercase tracking-widest text-black">
+              <h2 className="text-[16px] font-bold uppercase tracking-widest text-black">
                 Personalization vs Profitability
               </h2>
-              <p className="text-[10px] text-gray-500 tracking-wider mt-0.5 uppercase">
+              <p className="text-[12px] text-gray-500 tracking-wider mt-0.5 uppercase">
                 Per-Family Efficiency Quadrant Analysis
               </p>
             </div>
           </div>
-          <span className="text-[10px] font-mono text-black border-2 border-black px-2 py-1 bg-[#e9ecef] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">
+          <span className="text-[12px] font-mono text-black border-2 border-black px-2 py-1 bg-[#e9ecef] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">
             INTELLIGENCE MODULE
           </span>
         </div>
@@ -137,10 +137,10 @@ export function PersonalizationProfitChart() {
 
 
           {/* Contextual Axis Interpretations */}
-          <div className="absolute top-6 right-6 text-[9px] uppercase font-bold tracking-widest text-[#7B8FA3] mix-blend-multiply z-0 opacity-40">
+          <div className="absolute top-6 right-6 text-[11px] uppercase font-bold tracking-widest text-[#7B8FA3] mix-blend-multiply z-0 opacity-40">
             High Margin
           </div>
-          <div className="absolute bottom-16 right-6 text-[9px] uppercase font-bold tracking-widest text-[#7B8FA3] mix-blend-multiply z-0 opacity-40">
+          <div className="absolute bottom-16 right-6 text-[11px] uppercase font-bold tracking-widest text-[#7B8FA3] mix-blend-multiply z-0 opacity-40">
             High Customization
           </div>
 
@@ -156,14 +156,14 @@ export function PersonalizationProfitChart() {
                   dataKey="personalization"
                   name="Personalization Score"
                   domain={[0, 20]} // Set domain based on max score
-                  tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'ui-monospace, monospace' }}
+                  tick={{ fill: '#6b7280', fontSize: 13, fontFamily: 'ui-monospace, monospace' }}
                   tickLine={false}
                   axisLine={{ stroke: '#000', strokeWidth: 2 }}
                 >
                   <Label
                     value="Customization Effort (Unique POIs + Routing Deviations)"
                     position="bottom"
-                    style={{ fontSize: 10, fill: '#000', fontFamily: 'ui-sans-serif, system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}
+                    style={{ fontSize: 12, fill: '#000', fontFamily: 'ui-sans-serif, system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}
                     offset={15}
                   />
                 </XAxis>
@@ -174,7 +174,7 @@ export function PersonalizationProfitChart() {
                   dataKey="margin"
                   name="Profit Margin"
                   domain={[0, 80]} // Set domain based on max margin
-                  tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'ui-monospace, monospace' }}
+                  tick={{ fill: '#6b7280', fontSize: 13, fontFamily: 'ui-monospace, monospace' }}
                   tickLine={false}
                   axisLine={{ stroke: '#000', strokeWidth: 2 }}
                   tickFormatter={(val) => `${val}%`}
@@ -183,7 +183,7 @@ export function PersonalizationProfitChart() {
                     value="Profit Margin (%)"
                     angle={-90}
                     position="insideLeft"
-                    style={{ fontSize: 10, fill: '#000', fontFamily: 'ui-sans-serif, system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}
+                    style={{ fontSize: 12, fill: '#000', fontFamily: 'ui-sans-serif, system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}
                     offset={5}
                     dy={50}
                   />
@@ -203,14 +203,14 @@ export function PersonalizationProfitChart() {
                   stroke="#111827"
                   strokeDasharray="4 4"
                   strokeOpacity={0.4}
-                  label={{ value: "AVG MARGIN", position: "insideTopRight", fill: "#374151", fontSize: 9, fontFamily: "ui-monospace, monospace", fontWeight: 700 }}
+                  label={{ value: "AVG MARGIN", position: "insideTopRight", fill: "#374151", fontSize: 11, fontFamily: "ui-monospace, monospace", fontWeight: 700 }}
                 />
                 <ReferenceLine
                   x={avgPersonalization}
                   stroke="#111827"
                   strokeDasharray="4 4"
                   strokeOpacity={0.4}
-                  label={{ value: "AVG EFFORT", position: "insideBottomRight", fill: "#374151", fontSize: 9, fontFamily: "ui-monospace, monospace", fontWeight: 700 }}
+                  label={{ value: "AVG EFFORT", position: "insideBottomRight", fill: "#374151", fontSize: 11, fontFamily: "ui-monospace, monospace", fontWeight: 700 }}
                 />
 
                 {/* Quadrant Data Series classification */}
@@ -225,41 +225,41 @@ export function PersonalizationProfitChart() {
 
           {/* Legend / Quadrant Explanations Bottom Left */}
           <div className="mt-8 pt-4 border-t border-gray-200">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#4b5563] mb-3 flex items-center gap-1.5">
-              <Info className="w-3 h-3" />
+            <h4 className="text-[12px] font-bold uppercase tracking-widest text-[#4b5563] mb-3 flex items-center gap-1.5">
+              <Info className="w-4 h-4" />
               Quadrant Classification Guide
             </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#6B8E7F] border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"></div>
-                  <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Ideal</span>
+                  <span className="text-[12px] font-bold text-gray-900 uppercase tracking-wider">Ideal</span>
                 </div>
-                <p className="text-[9px] text-gray-500 leading-tight">Low custom. High margin. Highly scalable.</p>
+                <p className="text-[11px] text-gray-500 leading-tight">Low custom. High margin. Highly scalable.</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#7B8FA3] border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"></div>
-                  <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Premium</span>
+                  <span className="text-[12px] font-bold text-gray-900 uppercase tracking-wider">Premium</span>
                 </div>
-                <p className="text-[9px] text-gray-500 leading-tight">High custom. High margin. Worth the effort.</p>
+                <p className="text-[11px] text-gray-500 leading-tight">High custom. High margin. Worth the effort.</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#D4A373] border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"></div>
-                  <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Inefficient</span>
+                  <span className="text-[12px] font-bold text-gray-900 uppercase tracking-wider">Inefficient</span>
                 </div>
-                <p className="text-[9px] text-gray-500 leading-tight">Low custom. Low margin. Pricing review needed.</p>
+                <p className="text-[11px] text-gray-500 leading-tight">Low custom. Low margin. Pricing review needed.</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#C17767] border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"></div>
-                  <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Risky</span>
+                  <span className="text-[12px] font-bold text-gray-900 uppercase tracking-wider">Risky</span>
                 </div>
-                <p className="text-[9px] text-gray-500 leading-tight">High custom. Low margin. Operations drain.</p>
+                <p className="text-[11px] text-gray-500 leading-tight">High custom. Low margin. Operations drain.</p>
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-2 text-[9px] text-gray-500 uppercase tracking-wider border border-gray-200 px-3 py-2 bg-gray-50/50">
+            <div className="mt-4 flex items-center gap-2 text-[11px] text-gray-500 uppercase tracking-wider border border-gray-200 px-3 py-2 bg-gray-50/50">
               <span className="font-bold text-black border border-black rounded-full px-1.5 py-0.5 bg-white">!</span>
               Bubble size indicates Total Revenue volume
             </div>
@@ -269,8 +269,8 @@ export function PersonalizationProfitChart() {
         {/* Right: Key Metrics / KPI Summary */}
         <div className="bg-[#f8f9fa] flex flex-col items-stretch p-0">
           <div className="px-5 py-4 border-b border-gray-200 bg-white">
-            <h4 className="text-[11px] font-bold uppercase tracking-widest text-black flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-gray-600" />
+            <h4 className="text-[13px] font-bold uppercase tracking-widest text-black flex items-center gap-1.5">
+              <TrendingUp className="w-4 h-4 text-gray-600" />
               Portfolio Summary
             </h4>
           </div>
@@ -279,13 +279,13 @@ export function PersonalizationProfitChart() {
             {summaryMetrics.map((metric, idx) => (
               <div key={idx} className="border-l-4 border-black bg-white p-3 shadow-sm hover:shadow-md hover:border-gray-600 transition-all border-y border-r border-y-gray-200 border-r-gray-200 group">
                 <div className="flex justify-between items-start mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">{metric.label}</span>
+                  <span className="text-[12px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">{metric.label}</span>
                   {metric.icon}
                 </div>
-                <div className="text-2xl font-mono font-bold text-black tracking-tighter my-0.5">
+                <div className="text-3xl font-mono font-bold text-black tracking-tighter my-0.5">
                   {metric.value}
                 </div>
-                <div className="text-[9px] font-mono text-gray-400 mt-1 uppercase tracking-wider">
+                <div className="text-[11px] font-mono text-gray-400 mt-1 uppercase tracking-wider">
                   ↳ {metric.subtext}
                 </div>
               </div>
@@ -294,19 +294,19 @@ export function PersonalizationProfitChart() {
             {/* AI Actionable Insight Card */}
             <div className="mt-6 border-2 border-[#111827] bg-[#f9fafb] p-4 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-8 h-8 bg-[#111827] transform translate-x-4 -translate-y-4 rotate-45"></div>
-              <h5 className="text-[10px] font-bold uppercase tracking-widest text-[#111827] mb-2 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+              <h5 className="text-[12px] font-bold uppercase tracking-widest text-[#111827] mb-2 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
                 AI Strategic Insight
               </h5>
-              <p className="text-[11px] leading-relaxed text-gray-700">
+              <p className="text-[13px] leading-relaxed text-gray-700">
                 <span className="font-bold font-mono text-black">FAM-004 & FAM-006</span> are consistently demanding high customization but yielding below-average margins.
               </p>
-              <p className="text-[11px] leading-relaxed text-gray-700 mt-2 font-mono pb-2 border-b border-gray-300">
-                <strong className="text-blue-600 uppercase tracking-widest text-[9px]">Recommendation:</strong> Implement a mandatory "Service Fee Tier" for any custom requests exceeding 10 POI deviations.
+              <p className="text-[13px] leading-relaxed text-gray-700 mt-2 font-mono pb-2 border-b border-gray-300">
+                <strong className="text-blue-600 uppercase tracking-widest text-[11px]">Recommendation:</strong> Implement a mandatory "Service Fee Tier" for any custom requests exceeding 10 POI deviations.
               </p>
               <div className="mt-3 text-right">
-                <button className="text-[9px] uppercase tracking-widest font-bold text-black hover:text-blue-600 transition-colors flex items-center justify-end w-full gap-1">
-                  Apply Pricing Rules <TrendingUp className="w-3 h-3" />
+                <button className="text-[11px] uppercase tracking-widest font-bold text-black hover:text-blue-600 transition-colors flex items-center justify-end w-full gap-1">
+                  Apply Pricing Rules <TrendingUp className="w-4 h-4" />
                 </button>
               </div>
             </div>

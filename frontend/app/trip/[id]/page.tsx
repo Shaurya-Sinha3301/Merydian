@@ -1,12 +1,12 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import DashboardNavbar from '@/app/customer-dashboard/components/DashboardNavbar';
+// import DashboardNavbar from '@/app/customer-dashboard/components/DashboardNavbar';
 import TripHeader from './components/TripHeader';
-import BigMap from '@/app/my-trips/components/BigMap';
-import ScrollableCalendar from '@/app/my-trips/components/ScrollableCalendar';
-import FamilyMembers from '@/app/my-trips/components/FamilyMembers';
-import DocVault from '@/app/my-trips/components/DocVault';
+// import BigMap from '@/app/my-trips/components/BigMap';
+// import ScrollableCalendar from '@/app/my-trips/components/ScrollableCalendar';
+// import FamilyMembers from '@/app/my-trips/components/FamilyMembers';
+// import DocVault from '@/app/my-trips/components/DocVault';
 import AgentChatPanel from '@/components/chat/AgentChatPanel';
 
 export default function TripDetailPage() {
@@ -15,18 +15,18 @@ export default function TripDetailPage() {
 
     return (
         <div className="min-h-screen bg-[#F0F2F5]">
-            <DashboardNavbar />
+            {/* <DashboardNavbar /> */}
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 p-6 max-w-[1920px] mx-auto pt-24 h-[calc(100vh-1rem)]">
                 {/* Main Content: Map, Calendar, Docs */}
                 <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar">
                     <TripHeader tripId={tripId} />
-                    <BigMap />
+                    {/* <BigMap /> */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <ScrollableCalendar />
-                        <FamilyMembers />
+                        {/* <ScrollableCalendar /> */}
+                        {/* <FamilyMembers /> */}
                     </div>
-                    <DocVault />
+                    {/* <DocVault /> */}
                 </div>
 
                 {/* Right Sidebar: Chat */}
