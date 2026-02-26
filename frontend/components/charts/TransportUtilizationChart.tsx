@@ -139,7 +139,7 @@ export function TransportUtilizationChart() {
 
       {/* Chart Content */}
       <div className="px-5 py-4">
-        <div className="w-full h-[180px]">
+        <div className="w-full h-[180px] min-w-[200px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
@@ -233,8 +233,8 @@ export function TransportUtilizationChart() {
                   </div>
                 </div>
                 <div className={`w-12 text-[10px] font-bold uppercase tracking-wider text-right ${item.risk === 'Low' ? 'text-green-600' :
-                    item.risk === 'High' ? 'text-red-600' :
-                      'text-orange-600'
+                  item.risk === 'High' ? 'text-red-600' :
+                    'text-orange-600'
                   }`}>
                   {item.risk}
                 </div>

@@ -1,97 +1,94 @@
 "use client"
 
-import { TrendingUp, Target } from "lucide-react"
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, LineChart, ReferenceLine, Label } from "recharts"
+import { Target, Info, TrendingUp, Minus } from "lucide-react"
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Label, ZAxis } from "recharts"
 
-export const description = "Personalization vs Profit Tradeoff - Efficiency Frontier"
+export const description = "Per-Family Personalization vs Profitability"
 
-// Possible itinerary solutions plotted on the frontier
-const frontierData = [
-  { personalization: 45, margin: 78, type: "frontier", label: "High Profit" },
-  { personalization: 55, margin: 75, type: "frontier" },
-  { personalization: 65, margin: 72, type: "frontier" },
-  { personalization: 72, margin: 68, type: "frontier", label: "Optimal" },
-  { personalization: 78, margin: 62, type: "frontier" },
-  { personalization: 85, margin: 55, type: "frontier" },
-  { personalization: 92, margin: 45, type: "frontier", label: "High Personal" },
+// Mock data representing families, their personalization score, and profit metrics
+// Personalization Score: (Unique POIs) + (Route Deviations) + (Special Constraints)
+// Profit: Revenue - Cost
+const familyData = [
+  { id: "FAM-001", name: "Sharma Family", personalization: 12, margin: 45, profit: 4500, revenue: 10000, cost: 5500, classification: "premium" },
+  { id: "FAM-002", name: "Patel Family", personalization: 3, margin: 65, profit: 5200, revenue: 8000, cost: 2800, classification: "ideal" },
+  { id: "FAM-003", name: "Gupta Family", personalization: 8, margin: 55, profit: 6600, revenue: 12000, cost: 5400, classification: "premium" },
+  { id: "FAM-004", name: "Singh Family", personalization: 18, margin: 25, profit: 1500, revenue: 6000, cost: 4500, classification: "risky" },
+  { id: "FAM-005", name: "Reddy Family", personalization: 5, margin: 40, profit: 2000, revenue: 5000, cost: 3000, classification: "inefficient" },
+  { id: "FAM-006", name: "Verma Family", personalization: 15, margin: 35, profit: 3150, revenue: 9000, cost: 5850, classification: "risky" },
+  { id: "FAM-007", name: "Khan Family", personalization: 7, margin: 50, profit: 4250, revenue: 8500, cost: 4250, classification: "ideal" },
+  { id: "FAM-008", name: "Desai Family", personalization: 10, margin: 60, profit: 7200, revenue: 12000, cost: 4800, classification: "premium" },
 ]
 
-// Current chosen solution and alternatives
-const solutionPoints = [
-  { personalization: 72, margin: 68, type: "chosen", label: "Current Solution", size: 120 },
-  { personalization: 58, margin: 52, type: "suboptimal", label: "Alt 1", size: 60 },
-  { personalization: 82, margin: 48, type: "suboptimal", label: "Alt 2", size: 60 },
-  { personalization: 65, margin: 58, type: "suboptimal", label: "Alt 3", size: 60 },
-]
+// Calculate averages for quadrants
+const avgPersonalization = familyData.reduce((acc, curr) => acc + curr.personalization, 0) / familyData.length
+const avgMargin = familyData.reduce((acc, curr) => acc + curr.margin, 0) / familyData.length
 
-// Time series data for derived metrics
-const timeSeriesData = [
-  { day: "Day 1", personalizationIndex: 65, profitProtectionIndex: 72 },
-  { day: "Day 2", personalizationIndex: 68, profitProtectionIndex: 70 },
-  { day: "Day 3", personalizationIndex: 70, profitProtectionIndex: 69 },
-  { day: "Day 4", personalizationIndex: 72, profitProtectionIndex: 68 },
-  { day: "Day 5", personalizationIndex: 72, profitProtectionIndex: 68 },
-]
+// KPI Aggregations
+const highestPersonalization = familyData.reduce((prev, current) => (prev.personalization > current.personalization) ? prev : current)
+const highestProfit = familyData.reduce((prev, current) => (prev.profit > current.profit) ? prev : current)
+const avgProfitMargin = avgMargin.toFixed(1)
+const avgPersonalizationScore = avgPersonalization.toFixed(1)
 
-// Derived metrics
-const derivedMetrics = [
+// Derived metrics for summary cards
+const summaryMetrics = [
   {
-    label: "Personalization Index",
-    value: "72%",
-    formula: "(Preference Alignment + Must-Visit Adherence) / Total Constraints",
-    description: "Measures how well the itinerary matches family preferences"
+    label: "Highest Profit",
+    value: `₹${(highestProfit.profit / 1000).toFixed(1)}k`,
+    subtext: highestProfit.name,
+    icon: <TrendingUp className="w-3.5 h-3.5 text-green-600" />
   },
   {
-    label: "Profit Protection Index",
-    value: "68%",
-    formula: "(Actual Margin / Maximum Feasible Margin) × 100",
-    description: "Shows margin efficiency vs theoretical maximum"
+    label: "Highest Personalization",
+    value: `${highestPersonalization.personalization} pts`,
+    subtext: highestPersonalization.name,
+    icon: <Target className="w-3.5 h-3.5 text-blue-600" />
   },
+  {
+    label: "Avg Profit Margin",
+    value: `${avgProfitMargin}%`,
+    subtext: "Across all families",
+    icon: <Minus className="w-3.5 h-3.5 text-gray-500" />
+  },
+  {
+    label: "Avg Customization",
+    value: `${avgPersonalizationScore} pts`,
+    subtext: "Per family average",
+    icon: <Minus className="w-3.5 h-3.5 text-gray-500" />
+  }
 ]
 
-// Custom tooltip for scatter plot
+// Custom tooltip for the bubble chart
 const CustomScatterTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload
     return (
-      <div className="bg-white border border-gray-200 shadow-lg p-3 rounded">
-        <p className="text-[10px] font-bold text-gray-900 mb-1.5">
-          {data.label || "Solution Point"}
-        </p>
-        <div className="space-y-0.5 text-[9px]">
-          <div className="flex justify-between gap-3">
-            <span className="text-gray-600">Personalization:</span>
-            <span className="font-mono font-bold text-gray-900">{data.personalization}%</span>
+      <div className="bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-3 min-w-[200px] z-50 rounded-none mix-blend-normal">
+        <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200">
+          <p className="text-[12px] font-bold text-gray-900 uppercase tracking-widest">
+            {data.name}
+          </p>
+          <span className="text-[9px] font-mono bg-gray-100 px-1 py-0.5 border border-gray-300">
+            {data.id}
+          </span>
+        </div>
+
+        <div className="space-y-1.5 text-[10px]">
+          <div className="flex justify-between items-center group">
+            <span className="text-gray-500 uppercase tracking-wider text-[9px] group-hover:text-black transition-colors">Customization</span>
+            <span className="font-mono font-bold text-gray-900">{data.personalization} pts</span>
           </div>
-          <div className="flex justify-between gap-3">
-            <span className="text-gray-600">Margin:</span>
+          <div className="flex justify-between items-center group">
+            <span className="text-gray-500 uppercase tracking-wider text-[9px] group-hover:text-black transition-colors">Profit Margin</span>
             <span className="font-mono font-bold text-gray-900">{data.margin}%</span>
           </div>
-        </div>
-      </div>
-    )
-  }
-  return null
-}
-
-// Custom tooltip for time series
-const CustomTimeTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white border border-gray-200 shadow-lg p-3 rounded">
-        <p className="text-[10px] font-bold text-gray-900 mb-1.5">{label}</p>
-        <div className="space-y-0.5 text-[9px]">
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex justify-between gap-3">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: entry.color }} />
-                <span className="text-gray-600">
-                  {entry.dataKey === 'personalizationIndex' ? 'Personalization' : 'Profit Protection'}:
-                </span>
-              </div>
-              <span className="font-mono font-bold text-gray-900">{entry.value}%</span>
-            </div>
-          ))}
+          <div className="flex justify-between items-center group">
+            <span className="text-gray-500 uppercase tracking-wider text-[9px] group-hover:text-black transition-colors">Net Profit</span>
+            <span className="font-mono font-bold text-green-600">₹{data.profit.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between items-center group">
+            <span className="text-gray-500 uppercase tracking-wider text-[9px] group-hover:text-black transition-colors">Total Revenue</span>
+            <span className="font-mono font-bold text-gray-600">₹{data.revenue.toLocaleString()}</span>
+          </div>
         </div>
       </div>
     )
@@ -101,210 +98,221 @@ const CustomTimeTooltip = ({ active, payload, label }: any) => {
 
 export function PersonalizationProfitChart() {
   return (
-    <div className="border border-gray-200 bg-white">
+    <div className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] relative">
+      {/* Decorative Blueprint Overlay */}
+      <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+
       {/* Header */}
-      <div className="border-b border-gray-200 px-5 py-3">
-        <div className="flex justify-between items-center mb-0">
-          <span className="text-[14px] font-semibold capitalize text-gray-900 tracking-tight flex items-center gap-1.5">
-            <Target className="w-4 h-4 shrink-0" />
-            Tradeoff Frontier
-          </span>
-          <span className="text-[10px] font-mono text-gray-400 border border-gray-200 px-1.5 py-0.5">
-            EFFICIENCY
+      <div className="border-b-2 border-black px-6 py-4 bg-[#f8f9fa] relative z-10">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center bg-white shrink-0">
+              <Target className="w-4 h-4 text-black" />
+            </div>
+            <div>
+              <h2 className="text-[14px] font-bold uppercase tracking-widest text-black">
+                Personalization vs Profitability
+              </h2>
+              <p className="text-[10px] text-gray-500 tracking-wider mt-0.5 uppercase">
+                Per-Family Efficiency Quadrant Analysis
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono text-black border-2 border-black px-2 py-1 bg-[#e9ecef] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">
+            INTELLIGENCE MODULE
           </span>
         </div>
       </div>
 
-      {/* Main Content - Two Column Layout */}
-      <div className="grid grid-cols-2 gap-4 p-5">
+      {/* Main Content Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] divide-y lg:divide-y-0 lg:divide-x-2 divide-black relative z-10">
 
-        {/* Left: Frontier Curve */}
-        <div>
-          <div className="mb-3">
-            <h4 className="text-[11px] font-bold uppercase text-gray-400 tracking-wider mb-0">
-              Frontier
-            </h4>
+        {/* Left: Bubble Scatter Plot Workspace */}
+        <div className="p-6 bg-white relative">
+          {/* Blueprint Corner Markers */}
+          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-black -translate-x-[2px] -translate-y-[2px]"></div>
+          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-black translate-x-[2px] -translate-y-[2px]"></div>
+          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-black -translate-x-[2px] translate-y-[2px]"></div>
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-black translate-x-[2px] translate-y-[2px]"></div>
+
+
+          {/* Contextual Axis Interpretations */}
+          <div className="absolute top-6 right-6 text-[9px] uppercase font-bold tracking-widest text-[#7B8FA3] mix-blend-multiply z-0 opacity-40">
+            High Margin
+          </div>
+          <div className="absolute bottom-16 right-6 text-[9px] uppercase font-bold tracking-widest text-[#7B8FA3] mix-blend-multiply z-0 opacity-40">
+            High Customization
           </div>
 
-          <div className="w-full h-[200px] border border-gray-100 bg-gray-50/30 p-2">
+
+          <div className="w-full h-[350px] relative z-10 min-w-[250px]">
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 10, right: 10, bottom: 20, left: 20 }}>
-                <CartesianGrid strokeDasharray="2 2" stroke="#e5e5e5" />
+              <ScatterChart margin={{ top: 20, right: 30, bottom: 30, left: 30 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+
+                {/* X Axis: Personalization */}
                 <XAxis
                   type="number"
                   dataKey="personalization"
-                  name="Personalization"
-                  domain={[40, 95]}
+                  name="Personalization Score"
+                  domain={[0, 20]} // Set domain based on max score
                   tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'ui-monospace, monospace' }}
                   tickLine={false}
-                  axisLine={{ stroke: '#e5e5e5' }}
+                  axisLine={{ stroke: '#000', strokeWidth: 2 }}
                 >
                   <Label
-                    value="Personalization Score (%)"
+                    value="Customization Effort (Unique POIs + Routing Deviations)"
                     position="bottom"
-                    style={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'ui-monospace, monospace' }}
-                    offset={5}
+                    style={{ fontSize: 10, fill: '#000', fontFamily: 'ui-sans-serif, system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}
+                    offset={15}
                   />
                 </XAxis>
+
+                {/* Y Axis: Profit Margin */}
                 <YAxis
                   type="number"
                   dataKey="margin"
-                  name="Margin"
-                  domain={[40, 80]}
+                  name="Profit Margin"
+                  domain={[0, 80]} // Set domain based on max margin
                   tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'ui-monospace, monospace' }}
                   tickLine={false}
-                  axisLine={{ stroke: '#e5e5e5' }}
+                  axisLine={{ stroke: '#000', strokeWidth: 2 }}
+                  tickFormatter={(val) => `${val}%`}
                 >
                   <Label
-                    value="Margin (%)"
+                    value="Profit Margin (%)"
                     angle={-90}
-                    position="left"
-                    style={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'ui-monospace, monospace' }}
+                    position="insideLeft"
+                    style={{ fontSize: 10, fill: '#000', fontFamily: 'ui-sans-serif, system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}
                     offset={5}
+                    dy={50}
                   />
                 </YAxis>
-                <Tooltip content={<CustomScatterTooltip />} />
 
-                {/* Frontier line */}
-                <Scatter
-                  data={frontierData}
-                  fill="#7B8FA3"
-                  line={{ stroke: '#7B8FA3', strokeWidth: 2 }}
-                  shape="circle"
+                {/* Z Axis: Revenue (controls bubble size) */}
+                <ZAxis type="number" dataKey="revenue" range={[100, 1500]} name="Revenue" />
+
+                <Tooltip
+                  content={<CustomScatterTooltip />}
+                  cursor={{ strokeDasharray: '3 3', stroke: '#a3a3a3', strokeWidth: 1 }}
                 />
 
-                {/* Solution points */}
-                <Scatter
-                  data={solutionPoints.filter(p => p.type === 'chosen')}
-                  fill="#6B8E7F"
-                  shape="circle"
+                {/* Quadrant Lines (Averages) */}
+                <ReferenceLine
+                  y={avgMargin}
+                  stroke="#111827"
+                  strokeDasharray="4 4"
+                  strokeOpacity={0.4}
+                  label={{ value: "AVG MARGIN", position: "insideTopRight", fill: "#374151", fontSize: 9, fontFamily: "ui-monospace, monospace", fontWeight: 700 }}
                 />
-                <Scatter
-                  data={solutionPoints.filter(p => p.type === 'suboptimal')}
-                  fill="#C17767"
-                  shape="circle"
+                <ReferenceLine
+                  x={avgPersonalization}
+                  stroke="#111827"
+                  strokeDasharray="4 4"
+                  strokeOpacity={0.4}
+                  label={{ value: "AVG EFFORT", position: "insideBottomRight", fill: "#374151", fontSize: 9, fontFamily: "ui-monospace, monospace", fontWeight: 700 }}
                 />
+
+                {/* Quadrant Data Series classification */}
+                <Scatter data={familyData.filter(d => d.classification === 'ideal')} fill="#6B8E7F" opacity={0.8} shape="circle" stroke="#111827" strokeWidth={1} />
+                <Scatter data={familyData.filter(d => d.classification === 'premium')} fill="#7B8FA3" opacity={0.8} shape="circle" stroke="#111827" strokeWidth={1} />
+                <Scatter data={familyData.filter(d => d.classification === 'inefficient')} fill="#D4A373" opacity={0.8} shape="circle" stroke="#111827" strokeWidth={1} />
+                <Scatter data={familyData.filter(d => d.classification === 'risky')} fill="#C17767" opacity={0.8} shape="circle" stroke="#111827" strokeWidth={1} />
+
               </ScatterChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Legend */}
-          <div className="mt-3 flex items-center gap-4 text-[8px]">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-[#7B8FA3]"></div>
-              <span className="text-gray-600">Frontier</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#6B8E7F]"></div>
-              <span className="text-gray-600 font-bold">Current</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-[#C17767]"></div>
-              <span className="text-gray-600">Suboptimal</span>
-            </div>
-          </div>
-
-          {/* Interpretation */}
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <div className="space-y-1.5 text-[8px] font-mono">
-              <div className="flex items-start gap-2">
-                <span className="text-red-600 font-bold">↓</span>
-                <span className="text-gray-600">Too personalized → Margin drops</span>
+          {/* Legend / Quadrant Explanations Bottom Left */}
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#4b5563] mb-3 flex items-center gap-1.5">
+              <Info className="w-3 h-3" />
+              Quadrant Classification Guide
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#6B8E7F] border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"></div>
+                  <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Ideal</span>
+                </div>
+                <p className="text-[9px] text-gray-500 leading-tight">Low custom. High margin. Highly scalable.</p>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-red-600 font-bold">↓</span>
-                <span className="text-gray-600">Too profit-focused → Satisfaction drops</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#7B8FA3] border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"></div>
+                  <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Premium</span>
+                </div>
+                <p className="text-[9px] text-gray-500 leading-tight">High custom. High margin. Worth the effort.</p>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">✓</span>
-                <span className="text-gray-900 font-bold">Optimal point balances both</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#D4A373] border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"></div>
+                  <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Inefficient</span>
+                </div>
+                <p className="text-[9px] text-gray-500 leading-tight">Low custom. Low margin. Pricing review needed.</p>
               </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#C17767] border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"></div>
+                  <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Risky</span>
+                </div>
+                <p className="text-[9px] text-gray-500 leading-tight">High custom. Low margin. Operations drain.</p>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-2 text-[9px] text-gray-500 uppercase tracking-wider border border-gray-200 px-3 py-2 bg-gray-50/50">
+              <span className="font-bold text-black border border-black rounded-full px-1.5 py-0.5 bg-white">!</span>
+              Bubble size indicates Total Revenue volume
             </div>
           </div>
         </div>
 
-        {/* Right: Time Series & Metrics */}
-        <div>
-          <div className="mb-3">
-            <h4 className="text-[11px] font-bold uppercase text-gray-400 tracking-wider mb-0">
-              Metrics Over Time
+        {/* Right: Key Metrics / KPI Summary */}
+        <div className="bg-[#f8f9fa] flex flex-col items-stretch p-0">
+          <div className="px-5 py-4 border-b border-gray-200 bg-white">
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-black flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5 text-gray-600" />
+              Portfolio Summary
             </h4>
           </div>
 
-          <div className="w-full h-[200px] border border-gray-100 bg-gray-50/30 p-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={timeSeriesData} margin={{ top: 10, right: 10, bottom: 20, left: 20 }}>
-                <CartesianGrid strokeDasharray="2 2" stroke="#e5e5e5" vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'ui-monospace, monospace' }}
-                  tickLine={false}
-                  axisLine={{ stroke: '#e5e5e5' }}
-                />
-                <YAxis
-                  domain={[60, 75]}
-                  tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'ui-monospace, monospace' }}
-                  tickLine={false}
-                  axisLine={{ stroke: '#e5e5e5' }}
-                >
-                  <Label
-                    value="Index (%)"
-                    angle={-90}
-                    position="left"
-                    style={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'ui-monospace, monospace' }}
-                    offset={5}
-                  />
-                </YAxis>
-                <Tooltip content={<CustomTimeTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="personalizationIndex"
-                  stroke="#8B7355"
-                  strokeWidth={2}
-                  dot={{ fill: '#8B7355', r: 3 }}
-                  name="Personalization"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="profitProtectionIndex"
-                  stroke="#6B8E7F"
-                  strokeWidth={2}
-                  dot={{ fill: '#6B8E7F', r: 3 }}
-                  name="Profit Protection"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Metric Cards */}
-          <div className="mt-3 space-y-2">
-            {derivedMetrics.map((metric, index) => (
-              <div key={index} className="border border-gray-100 bg-white p-2.5">
+          <div className="flex-1 overflow-y-auto p-5 pb-8 space-y-4">
+            {summaryMetrics.map((metric, idx) => (
+              <div key={idx} className="border-l-4 border-black bg-white p-3 shadow-sm hover:shadow-md hover:border-gray-600 transition-all border-y border-r border-y-gray-200 border-r-gray-200 group">
                 <div className="flex justify-between items-start mb-1">
-                  <span className="text-[9px] font-bold text-gray-900">{metric.label}</span>
-                  <span className="text-[13px] font-mono font-bold text-gray-900">{metric.value}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">{metric.label}</span>
+                  {metric.icon}
                 </div>
-                <div className="text-[7px] text-gray-500 mb-1 leading-relaxed">
-                  {metric.description}
+                <div className="text-2xl font-mono font-bold text-black tracking-tighter my-0.5">
+                  {metric.value}
                 </div>
-                <div className="text-[7px] bg-gray-50 border border-gray-100 px-1.5 py-1 rounded font-mono text-gray-600">
-                  {metric.formula}
+                <div className="text-[9px] font-mono text-gray-400 mt-1 uppercase tracking-wider">
+                  ↳ {metric.subtext}
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Bottom Insight */}
-      <div className="border-t border-gray-100 px-5 py-3 bg-gray-50/30">
-        <div className="flex items-start gap-2">
-          <TrendingUp className="w-3.5 h-3.5 text-green-600 shrink-0 mt-0.5" />
-          <div className="text-[9px] text-gray-600 leading-relaxed">
-            <span className="font-bold text-gray-900">Current Position:</span> Your solution sits on the efficiency frontier at 72% personalization and 68% margin,
-            representing an optimal balance. Moving further right would sacrifice 4-6% margin for each 10% personalization gain.
+            {/* AI Actionable Insight Card */}
+            <div className="mt-6 border-2 border-[#111827] bg-[#f9fafb] p-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-8 h-8 bg-[#111827] transform translate-x-4 -translate-y-4 rotate-45"></div>
+              <h5 className="text-[10px] font-bold uppercase tracking-widest text-[#111827] mb-2 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                AI Strategic Insight
+              </h5>
+              <p className="text-[11px] leading-relaxed text-gray-700">
+                <span className="font-bold font-mono text-black">FAM-004 & FAM-006</span> are consistently demanding high customization but yielding below-average margins.
+              </p>
+              <p className="text-[11px] leading-relaxed text-gray-700 mt-2 font-mono pb-2 border-b border-gray-300">
+                <strong className="text-blue-600 uppercase tracking-widest text-[9px]">Recommendation:</strong> Implement a mandatory "Service Fee Tier" for any custom requests exceeding 10 POI deviations.
+              </p>
+              <div className="mt-3 text-right">
+                <button className="text-[9px] uppercase tracking-widest font-bold text-black hover:text-blue-600 transition-colors flex items-center justify-end w-full gap-1">
+                  Apply Pricing Rules <TrendingUp className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   )

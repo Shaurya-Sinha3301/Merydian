@@ -222,7 +222,7 @@ export function CostPerFamilyRadarChart() {
           </div>
         </div>
 
-        <div className="w-full h-[220px]">
+        <div className="w-full h-[220px] min-w-[200px]">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart
               data={chartData}
@@ -279,7 +279,7 @@ export function CostPerFamilyRadarChart() {
 
           <div className="flex items-center gap-4">
             {/* Pie Chart */}
-            <div className="w-[140px] h-[140px]">
+            <div className="w-[140px] h-[140px] min-w-[140px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip content={<CustomPieTooltip />} />

@@ -60,7 +60,7 @@ const Analytics: React.FC = () => {
                             <p className="text-[10px] font-bold text-green-600 uppercase tracking-wider">+12.5% vs Prev Period</p>
                         </div>
                     </div>
-                    <div className="h-[300px]">
+                    <div className="h-[300px] w-full min-w-[200px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={data}>
                                 <defs>
