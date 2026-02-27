@@ -50,84 +50,103 @@ export default function SignupPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-6">
-            <div className="max-w-md w-full bg-white rounded-3xl p-8 shadow-lg border border-gray-200">
-                <div className="text-center mb-8">
-                    <div className="flex items-center justify-center gap-2 mb-6">
-                        <svg className="w-8 h-8 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                            <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        <span className="text-2xl font-black tracking-tight text-gray-900">Meili AI</span>
+        <div className="w-full min-h-screen flex items-center justify-center bg-white bp-grid-bg">
+            <div className="w-full max-w-[440px] bg-white border border-[var(--bp-border)] p-12 shadow-sm flex flex-col relative overflow-hidden">
+
+                {/* Decorative Top Line */}
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--bp-border)] to-transparent opacity-50"></div>
+
+                {/* Status Indicator */}
+                <div className="absolute top-6 right-6 flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-[var(--bp-sage)] rounded-full animate-pulse"></div>
+                    <span className="text-[8px] font-bold text-[var(--bp-muted)] tracking-[0.2em] uppercase">SYSTEM READY</span>
+                </div>
+
+                {/* Logo Section */}
+                <div className="flex flex-col items-center mt-2 mb-10">
+                    <div className="w-12 h-12 bg-black flex items-center justify-center mb-4 border border-[var(--bp-border)]">
+                        <span className="text-white text-xl font-light tracking-widest">V</span>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-                    <p className="text-gray-600">Join us to start planning your perfect trip</p>
+                    <div className="text-center flex flex-col gap-0.5">
+                        <span className="text-[9px] font-bold tracking-[0.3em] text-black">VOYAGEUR</span>
+                        <span className="text-[8px] font-medium tracking-[0.2em] text-[var(--bp-muted)]">SIGNUP</span>
+                    </div>
+                </div>
+
+                {/* Title */}
+                <div className="text-center mb-8 flex flex-col gap-2">
+                    <h1 className="text-xl font-light tracking-[0.15em] text-[#111111] leading-relaxed uppercase">
+                        Create Account
+                    </h1>
+                    <p className="text-sm font-medium tracking-[0.1em] text-[var(--bp-muted)] uppercase">
+                        Join to start planning
+                    </p>
                 </div>
 
                 {/* Error Message */}
                 {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                        <p className="text-sm text-red-600">{error}</p>
+                    <div className="py-2 border-l-2 border-[var(--bp-red)] pl-3 mb-6">
+                        <p className="text-[10px] font-bold text-[var(--bp-red)] tracking-wider uppercase">{error}</p>
                     </div>
                 )}
 
                 {/* User Type Selection */}
-                <div className="flex bg-gray-100 rounded-2xl p-1 mb-6">
+                <div className="flex border border-[var(--bp-border)] p-1 mb-8">
                     <button
                         type="button"
                         onClick={() => setUserType('customer')}
-                        className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${userType === 'customer'
-                            ? 'bg-white text-gray-900 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900'
+                        className={`flex-1 py-3 px-4 text-[10px] tracking-[0.15em] font-bold transition-colors uppercase ${userType === 'customer'
+                            ? 'bg-black text-white'
+                            : 'bg-transparent text-[var(--bp-muted)] hover:text-black'
                             }`}
                     >
-                        Customer
+                        CUSTOMER
                     </button>
                     <button
                         type="button"
                         onClick={() => setUserType('agent')}
-                        className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all ${userType === 'agent'
-                            ? 'bg-white text-gray-900 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900'
+                        className={`flex-1 py-3 px-4 text-[10px] tracking-[0.15em] font-bold transition-colors uppercase ${userType === 'agent'
+                            ? 'bg-black text-white'
+                            : 'bg-transparent text-[var(--bp-muted)] hover:text-black'
                             }`}
                     >
-                        Travel Agent
+                        AGENT
                     </button>
                 </div>
 
                 {/* Signup Form */}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Full Name
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="group">
+                        <label className="bp-label mb-2 block">
+                            FULL NAME
                         </label>
                         <input
                             type="text"
                             required
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                            placeholder="Enter your full name"
+                            className="w-full py-2 bg-transparent text-black text-sm border-b border-[var(--bp-border)] focus:border-black outline-none transition-colors placeholder:text-gray-300 placeholder:tracking-widest uppercase tracking-wide"
+                            placeholder="JOHN DOE"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Email Address
+                    <div className="group">
+                        <label className="bp-label mb-2 block">
+                            EMAIL ADDRESS
                         </label>
                         <input
                             type="email"
                             required
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                            placeholder="Enter your email"
+                            className="w-full py-2 bg-transparent text-black text-sm border-b border-[var(--bp-border)] focus:border-black outline-none transition-colors placeholder:text-gray-300 placeholder:tracking-widest uppercase tracking-wide"
+                            placeholder="EMAIL@EXAMPLE.COM"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Password
+                    <div className="group">
+                        <label className="bp-label mb-2 block">
+                            PASSWORD
                         </label>
                         <input
                             type="password"
@@ -135,14 +154,14 @@ export default function SignupPage() {
                             minLength={6}
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                            placeholder="Create a password (min. 6 characters)"
+                            className="w-full py-2 bg-transparent text-black text-lg font-mono tracking-widest border-b border-[var(--bp-border)] focus:border-black outline-none transition-colors placeholder:text-gray-300"
+                            placeholder="••••••••"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Confirm Password
+                    <div className="group">
+                        <label className="bp-label mb-2 block">
+                            CONFIRM PASSWORD
                         </label>
                         <input
                             type="password"
@@ -150,80 +169,59 @@ export default function SignupPage() {
                             minLength={6}
                             value={formData.confirmPassword}
                             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                            className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                            placeholder="Confirm your password"
+                            className="w-full py-2 bg-transparent text-black text-lg font-mono tracking-widest border-b border-[var(--bp-border)] focus:border-black outline-none transition-colors placeholder:text-gray-300"
+                            placeholder="••••••••"
                         />
                     </div>
 
-                    <div className="flex items-start">
+                    <div className="flex items-start gap-3 pt-2">
                         <input
                             type="checkbox"
                             required
-                            className="mt-1 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                            className="mt-1 appearance-none w-3.5 h-3.5 border border-[var(--bp-border)] checked:bg-black checked:border-black transition-colors cursor-pointer relative after:content-[''] after:hidden checked:after:block after:absolute after:left-[3px] after:top-[1px] after:w-1.5 after:h-2 after:border-r-[1.5px] after:border-b-[1.5px] after:border-white after:rotate-45"
                         />
-                        <span className="ml-2 text-sm text-gray-600">
-                            I agree to the{' '}
-                            <a href="#" className="text-gray-900 font-medium hover:underline">
-                                Terms of Service
-                            </a>{' '}
-                            and{' '}
-                            <a href="#" className="text-gray-900 font-medium hover:underline">
-                                Privacy Policy
-                            </a>
+                        <span className="text-[9px] font-mono text-[var(--bp-muted)] tracking-widest leading-relaxed uppercase pt-[2px]">
+                            I AGREE TO THE{' '}
+                            <a href="#" className="text-black hover:underline font-bold">TERMS</a>{' '}
+                            AND{' '}
+                            <a href="#" className="text-black hover:underline font-bold">PRIVACY POLICY</a>
                         </span>
                     </div>
 
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className={`w-full bg-gray-900 text-white py-3 px-4 rounded-xl font-bold hover:bg-gray-800 transition-all ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                    >
-                        {isLoading ? (
-                            <span className="flex items-center justify-center gap-2">
-                                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                        fill="none"
-                                    />
-                                    <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    />
-                                </svg>
-                                Creating Account...
-                            </span>
-                        ) : (
-                            `Create ${userType === 'customer' ? 'Customer' : 'Agent'} Account`
-                        )}
-                    </button>
+                    <div className="pt-6">
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full py-4 bg-black text-white text-[10px] tracking-[0.2em] font-bold hover:bg-[var(--bp-sage)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    <span>CREATING ACCOUNT...</span>
+                                </>
+                            ) : (
+                                `CREATE ${userType === 'customer' ? 'CUSTOMER' : 'AGENT'} ACCOUNT`
+                            )}
+                        </button>
+                    </div>
                 </form>
 
-                <div className="mt-6 text-center">
-                    <p className="text-sm text-gray-600">
-                        Already have an account?{' '}
-                        <Link href="/login" className="text-gray-900 font-medium hover:underline">
-                            Sign in
-                        </Link>
+                {/* Footer metadata */}
+                <div className="mt-12 pt-6 border-t border-[var(--bp-border)]/50 text-center flex flex-col gap-4">
+                    <p className="text-[8px] font-mono tracking-[0.1em] text-[var(--bp-muted)] uppercase">
+                        ALREADY HAVE AN ACCOUNT? <Link href="/login" className="text-black hover:underline">SIGN IN</Link>
                     </p>
-                </div>
-
-                <div className="mt-6 text-center">
-                    <Link
-                        href="/"
-                        className="text-sm text-gray-600 hover:text-gray-900 flex items-center justify-center gap-2"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        Back to Home
-                    </Link>
+                    <div className="flex justify-center">
+                        <Link
+                            href="/"
+                            className="text-[9px] font-bold text-[var(--bp-muted)] hover:text-black transition-colors flex items-center gap-1.5 tracking-widest uppercase"
+                        >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            RETURN TO HUB
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
