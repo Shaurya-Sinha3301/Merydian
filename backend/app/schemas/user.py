@@ -29,8 +29,7 @@ class UserProfileResponse(BaseModel):
 class UserProfileUpdate(BaseModel):
     """Request model for updating user profile."""
 
-    @Field(None, max_length=255)
-    full_name: Optional[str] = None
+    full_name: Optional[str] = Field(None, max_length=255)
 
     @validator('full_name')
     def strip_whitespace(cls, v):

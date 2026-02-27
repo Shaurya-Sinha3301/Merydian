@@ -2,8 +2,9 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 from enum import Enum
 import uuid as uuid_lib
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from app.core.dependencies import get_current_user, get_optional_user
 from app.schemas.auth import TokenPayload
@@ -11,6 +12,7 @@ from app.schemas.events import EventCreate, EventType, EventResponse
 from app.services.itinerary_service import ItineraryService
 from app.services.event_service import EventService
 from app.services.preference_service import PreferenceService
+from app.services.explanation_service import ExplanationService
 from app.models.preference import PreferenceType
 from app.models.event import EventType as ModelEventType
 
@@ -44,7 +46,7 @@ class FeedbackResponse(BaseModel):
     message: str
     event_created: EventResponse
 
-from app.core.redis import RedisManager
+from app.core.redis import get_redis
 import json
 
 @router.get("/current", response_model=Dict[str, Any])
@@ -65,7 +67,7 @@ async def get_current_itinerary(
         family_id = uuid_lib.UUID(current_user.family_id)
         
         # Check Cache
-        redis = await RedisManager.get_redis()
+        redis = await get_redis()
         cache_key = f"itinerary:current:{family_id}"
         cached_data = await redis.get(cache_key)
         
@@ -371,3 +373,98 @@ async def submit_poi_request(
             status_code=500,
             detail=f"Failed to process POI request: {str(e)}"
         )
+
+
+# ---------------------------------------------------------------------------
+#  Explainability endpoints
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/explanations/{itinerary_id}",
+    summary="Get LLM explanations for an itinerary version",
+    tags=["Explanations"],
+)
+async def get_itinerary_explanations(
+    itinerary_id: UUID,
+    family_id: Optional[UUID] = Query(default=None, description="Filter by family UUID"),
+    current_user: TokenPayload = Depends(get_current_user),
+):
+    """
+    Return all per-POI explanations stored for the given itinerary version.
+    Each entry describes why a POI was added, removed, or rerouted.
+
+    Grouped output: {"by_day": {"1": [...], "2": [...]}, "total": N}
+    """
+    try:
+        records = ExplanationService.get_explanations(
+            itinerary_id=itinerary_id,
+            family_id=family_id,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    by_day: Dict[str, List[Dict]] = {}
+    for rec in records:
+        day_key = str(rec.day_number)
+        by_day.setdefault(day_key, []).append({
+            "id": str(rec.id),
+            "family_id": str(rec.family_id),
+            "poi_id": rec.poi_id,
+            "poi_name": rec.poi_name,
+            "change_type": rec.change_type,
+            "causal_tags": rec.causal_tags or [],
+            "cost_delta": rec.cost_delta or {},
+            "satisfaction_delta": rec.satisfaction_delta or {},
+            "explanation": rec.llm_explanation,
+            "trigger_message": rec.trigger_message,
+            "created_at": rec.created_at.isoformat() if rec.created_at else None,
+        })
+
+    return {"itinerary_id": str(itinerary_id), "by_day": by_day, "total": len(records)}
+
+
+@router.get(
+    "/explanations/trip/{trip_id}",
+    summary="Get all LLM explanations for a trip",
+    tags=["Explanations"],
+)
+async def get_trip_explanations(
+    trip_id: str,
+    family_id: Optional[UUID] = Query(default=None, description="Filter by family UUID"),
+    current_user: TokenPayload = Depends(get_current_user),
+):
+    """
+    Return all stored explanations for a trip across all itinerary versions,
+    ordered most-recent first.
+    """
+    try:
+        records = ExplanationService.get_trip_explanations(
+            trip_id=trip_id,
+            family_id=family_id,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {
+        "trip_id": trip_id,
+        "explanations": [
+            {
+                "id": str(rec.id),
+                "itinerary_id": str(rec.itinerary_id),
+                "prev_itinerary_id": str(rec.prev_itinerary_id) if rec.prev_itinerary_id else None,
+                "family_id": str(rec.family_id),
+                "day": rec.day_number,
+                "poi_id": rec.poi_id,
+                "poi_name": rec.poi_name,
+                "change_type": rec.change_type,
+                "causal_tags": rec.causal_tags or [],
+                "cost_delta": rec.cost_delta or {},
+                "satisfaction_delta": rec.satisfaction_delta or {},
+                "explanation": rec.llm_explanation,
+                "trigger_message": rec.trigger_message,
+                "created_at": rec.created_at.isoformat() if rec.created_at else None,
+            }
+            for rec in records
+        ],
+        "total": len(records),
+    }

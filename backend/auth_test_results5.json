@@ -1,0 +1,100 @@
+{
+  "http://Sharedapi.tektravels.com/SharedData.svc/rest/Authenticate": [
+    {
+      "payload_index": 0,
+      "status": 400,
+      "response": "\u00ef\u00bb\u00bf<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n<html xmlns=\"http://www.w3.org/199"
+    },
+    {
+      "payload_index": 1,
+      "status": 200,
+      "response": {
+        "Status": 1,
+        "TokenId": "ec4cab9a-67f6-4e38-b87c-fdbdd61b1646",
+        "Error": {
+          "ErrorCode": 0,
+          "ErrorMessage": ""
+        },
+        "Member": {
+          "FirstName": "Test",
+          "LastName": "test",
+          "Email": "abc@test.com",
+          "MemberId": 57749,
+          "AgencyId": 57595,
+          "LoginName": "Hackathon",
+          "LoginDetails": "Login Success at#@ 27/02/2026 01:07:25 #@ IPAddress: 103.110.48.154",
+          "isPrimaryAgent": false
+        }
+      }
+    }
+  ],
+  "https://Sharedapi.tektravels.com/SharedData.svc/rest/Authenticate": [
+    {
+      "payload_index": 0,
+      "status": 400,
+      "response": "\u00ef\u00bb\u00bf<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n<html xmlns=\"http://www.w3.org/199"
+    },
+    {
+      "payload_index": 1,
+      "status": 200,
+      "response": {
+        "Status": 1,
+        "TokenId": "6ca63c4c-3f0e-4ba0-8e94-f3a12153abc2",
+        "Error": {
+          "ErrorCode": 0,
+          "ErrorMessage": ""
+        },
+        "Member": {
+          "FirstName": "Test",
+          "LastName": "test",
+          "Email": "abc@test.com",
+          "MemberId": 57749,
+          "AgencyId": 57595,
+          "LoginName": "Hackathon",
+          "LoginDetails": "Login Success at#@ 27/02/2026 01:08:08 #@ IPAddress: 103.110.48.154",
+          "isPrimaryAgent": false
+        }
+      }
+    }
+  ],
+  "http://api.tektravels.com/SharedData.svc/rest/Authenticate": [
+    {
+      "payload_index": 0,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "payload_index": 1,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    }
+  ],
+  "https://api.tektravels.com/SharedData.svc/rest/Authenticate": [
+    {
+      "payload_index": 0,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "payload_index": 1,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    }
+  ],
+  "http://api.tektravels.com/SharedServices/SharedData.svc/rest/Authenticate": [
+    {
+      "payload_index": 0,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "payload_index": 1,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    }
+  ],
+  "https://api.tektravels.com/SharedServices/SharedData.svc/rest/Authenticate": [
+    {
+      "payload_index": 0,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "payload_index": 1,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    }
+  ]
+}

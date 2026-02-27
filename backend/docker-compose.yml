@@ -1,8 +1,9 @@
-version: '3.8'
-
 services:
   backend:
-    build: .
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile
+
     container_name: meiliai_backend
     ports:
       - "8000:8000"
@@ -16,10 +17,13 @@ services:
       - redis
     volumes:
       - .:/app
+      - ../ml_or:/app/ml_or
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   celery_worker:
-    build: .
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile
     container_name: meiliai_celery_worker
     env_file:
       - .env
@@ -32,7 +36,8 @@ services:
       - backend
     volumes:
       - .:/app
-    command: celery -A app.worker.celery worker --loglevel=info
+      - ../ml_or:/app/ml_or
+    command: celery -A app.core.celery_app worker --loglevel=info
 
   redis:
     image: redis:7-alpine

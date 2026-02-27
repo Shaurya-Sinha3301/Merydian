@@ -295,108 +295,191 @@ class OptimizerService:
         message: str
     ) -> Dict[str, Any]:
         """
-        Process user feedback through the agent pipeline.
-        
-        This is the main integration point between the backend and the agent system.
-        
-        Args:
-            trip_id: Trip identifier
-            family_id: Family providing feedback
-            message: Natural language feedback message
-            
-        Returns:
-            Dictionary with processing results:
-            - success: bool
-            - event_type: str
-            - action_taken: str
-            - explanations: List[str]
-            - itinerary_updated: bool
-            - iteration: int
-            - cost_analysis: Dict (if available)
+        Process user feedback through the explainability pipeline.
+
+        Flow:
+          1. Load the latest + previous itinerary versions for the family from DB
+          2. Run FeedbackProcessor.process_feedback() (DiffEngine → CausalTagger
+             → DeltaEngine → PayloadBuilder → LLM)
+          3. Persist per-POI explanations via ExplanationService
+          4. Update the trip session feedback history
+
+        Returns dict with success, action_taken, explanations, itinerary_updated.
         """
         logger.info(f"Processing feedback for trip {trip_id}, family {family_id}")
-        
+
         # Get trip session
         trip_session = OptimizerService.get_trip_session(trip_id)
         if not trip_session:
             raise ValueError(f"Trip session not found: {trip_id}")
-        
-        # Try to import and use FeedbackProcessor
+
         try:
-            # Add project root to path for imports
-            import sys
-            from pathlib import Path
-            project_root = Path(__file__).parent.parent.parent.parent
-            if str(project_root) not in sys.path:
-                sys.path.insert(0, str(project_root))
-            
             from ml_or.demos.reopt_hard_constraints.feedback_processor import FeedbackProcessor
-            from ml_or.demos.reopt_hard_constraints.trip_session_manager import TripSessionManager
-            
-            # Create database-backed session manager adapter
-            session_manager = DatabaseSessionManagerAdapter(trip_session)
-            
-            # Create feedback processor
+            from app.services.itinerary_service import ItineraryService
+            from app.services.explanation_service import ExplanationService
+            from uuid import UUID
+
+            # --- 1. Load latest itinerary ---
+            # Resolve family UUID (trip_session stores family IDs as strings)
+            family_uuid: Optional[UUID] = None
+            try:
+                family_uuid = UUID(family_id)
+            except (ValueError, AttributeError):
+                from sqlmodel import Session, select
+                from app.models.family import Family
+                from app.core.db import engine
+                with Session(engine) as session:
+                    fam = session.exec(
+                        select(Family).where(Family.family_code == family_id)
+                    ).first()
+                    if fam:
+                        family_uuid = fam.id
+
+            old_itinerary: Dict = {}
+            new_itinerary: Dict = {}
+            prev_itinerary_id: Optional[UUID] = None
+            new_itinerary_id: Optional[UUID] = None
+
+            if family_uuid:
+                history = ItineraryService.get_itinerary_history(family_uuid, limit=1)
+                if history:
+                    old_itin = history[0]
+                    old_itinerary = old_itin.data or {}
+                    prev_itinerary_id = old_itin.id
+
             processor = FeedbackProcessor()
+
+            # --- 2. Parse natural language to constraints ---
+            from pathlib import Path
+            import json
+            import os
+            import tempfile
+            from app.services.preference_service import PreferenceService
+            from app.models.preference import PreferenceType
             
-            # Prepare output directory
-            output_dir = Path(trip_session.output_dir)
+            locations_path = Path(__file__).parent.parent.parent / "ml_or" / "data" / "locations.json"
+            available_pois = []
+            if locations_path.exists():
+                with open(locations_path, "r") as f:
+                    locs_data = json.load(f)
+                    available_pois = [(loc.get("location_id"), loc.get("name")) for loc in locs_data if "location_id" in loc]
             
-            # Process feedback through agent pipeline
+            parsed_constraints = processor.parse_user_feedback(message, available_pois)
+
+            # --- 3. Update Preferences in DB ---
+            if family_uuid and (parsed_constraints.get("add") or parsed_constraints.get("remove")):
+                for poi_id in parsed_constraints.get("add", []):
+                    name = next((n for lid, n in available_pois if lid == poi_id), poi_id)
+                    PreferenceService.add_preference(family_uuid, poi_id, name, PreferenceType.MUST_VISIT, reason=message)
+                for poi_id in parsed_constraints.get("remove", []):
+                    name = next((n for lid, n in available_pois if lid == poi_id), poi_id)
+                    PreferenceService.add_preference(family_uuid, poi_id, name, PreferenceType.NEVER_VISIT, reason=message)
+
+            # --- 4. Run Optimizer with Temp Files ---
+            optimization_ran = False
+            if family_uuid and old_itinerary:
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    base_path = os.path.join(temp_dir, "base_itinerary.json")
+                    prefs_path = os.path.join(temp_dir, "family_prefs.json")
+                    
+                    with open(base_path, "w") as f:
+                        json.dump(old_itinerary, f)
+                        
+                    family_prefs = [{
+                        "family_id": family_id,
+                        "members": 2, # Defaults if full profile not loaded here
+                        "must_visit_locations": PreferenceService.get_must_visit_pois(family_uuid),
+                        "never_visit_locations": PreferenceService.get_never_visit_pois(family_uuid)
+                    }]
+                    with open(prefs_path, "w") as f:
+                        json.dump(family_prefs, f)
+                    
+                    opt_result = processor.run_optimizer(base_path, prefs_path, temp_dir)
+                    if opt_result.get("optimizer_ran") and opt_result.get("optimized_itinerary"):
+                        new_itinerary = opt_result["optimized_itinerary"]
+                        optimization_ran = True
+
+            # --- 5. Save New Itinerary to DB ---
+            if optimization_ran and new_itinerary:
+                new_itin_record = ItineraryService.create_version(family_uuid, new_itinerary)
+                new_itinerary_id = new_itin_record.id
+                trip_session.iteration_count += 1
+            else:
+                new_itinerary = old_itinerary # No change
+
+            # --- 6. Run explainability pipeline ---
             result = processor.process_feedback(
                 trip_id=trip_id,
                 family_id=family_id,
-                message=message,
-                session_manager=session_manager,
-                output_dir=output_dir
+                old_itinerary=old_itinerary,
+                new_itinerary=new_itinerary,
+                user_message=message,
             )
-            
-            # Update trip session in database
-            trip_session = session_manager.get_db_session()
-            OptimizerService.update_trip_session(trip_session)
-            
-            # Extract cost analysis if available
-            cost_analysis = None
-            if result.get("itinerary_updated"):
-                cost_analysis = OptimizerService._extract_cost_analysis(
-                    output_dir / trip_id / f"iteration_{result['iteration']}"
+
+            explanations_list = result.get("explanations", [])
+            llm_sentences = [e.get("llm_explanation", "") for e in explanations_list if e.get("llm_explanation")]
+
+            # --- 7. Save Explanations to DB ---
+            if explanations_list and family_uuid and new_itinerary_id:
+                ExplanationService.save_explanations(
+                    trip_id=trip_id,
+                    family_id=family_uuid,
+                    itinerary_id=new_itinerary_id,
+                    prev_itinerary_id=prev_itinerary_id,
+                    explanations=explanations_list,
+                    trigger_message=message,
                 )
-            
-            return {
-                "success": result["success"],
-                "event_type": result["event_type"],
-                "action_taken": result["action_taken"],
-                "explanations": result["explanations"],
-                "itinerary_updated": result["itinerary_updated"],
-                "iteration": result["iteration"],
-                "cost_analysis": cost_analysis,
-                "output_dir": result.get("output_dir")
-            }
-            
-        except ImportError as e:
-            logger.error(f"Failed to import agent components: {e}")
-            logger.warning("Falling back to simple acknowledgment")
-            
-            # Fallback: Just record the feedback
+
+            itinerary_updated = optimization_ran and bool(result.get("diffs"))
+
+            # --- 8. Update trip session feedback history ---
             trip_session.feedback_history.append({
                 "iteration": trip_session.iteration_count,
                 "timestamp": datetime.utcnow().isoformat(),
                 "family_id": family_id,
                 "message": message,
-                "event_type": "ACKNOWLEDGED",
-                "action": "FALLBACK_MODE"
+                "event_type": "EXPLAINABILITY_PROCESSED",
+                "action": "PIPELINE_COMPLETE" if explanations_list else "NO_CHANGES_DETECTED",
+                "explanations_count": len(explanations_list),
             })
             OptimizerService.update_trip_session(trip_session)
-            
+
             return {
                 "success": True,
-                "event_type": "ACKNOWLEDGED",
-                "action_taken": "FALLBACK_MODE",
-                "explanations": [f"Feedback acknowledged: {message}"],
-                "itinerary_updated": False,
+                "event_type": "EXPLAINABILITY_PROCESSED",
+                "action_taken": "PIPELINE_COMPLETE" if explanations_list else "NO_CHANGES_DETECTED",
+                "explanations": llm_sentences or [f"Feedback acknowledged: {message}"],
+                "itinerary_updated": itinerary_updated,
                 "iteration": trip_session.iteration_count,
-                "cost_analysis": None
+                "cost_analysis": result.get("payloads", {}).get("travel_agent", {}).get("financial_summary"),
             }
+
+        except ImportError as e:
+            logger.warning("FeedbackProcessor not importable (%s), using fallback", e)
+
+        except Exception as e:
+            logger.error("FeedbackProcessor pipeline error: %s", e, exc_info=True)
+
+        # --- Fallback: just record the feedback message ---
+        trip_session.feedback_history.append({
+            "iteration": trip_session.iteration_count,
+            "timestamp": datetime.utcnow().isoformat(),
+            "family_id": family_id,
+            "message": message,
+            "event_type": "ACKNOWLEDGED",
+            "action": "FALLBACK_MODE",
+        })
+        OptimizerService.update_trip_session(trip_session)
+
+        return {
+            "success": True,
+            "event_type": "ACKNOWLEDGED",
+            "action_taken": "FALLBACK_MODE",
+            "explanations": [f"Feedback acknowledged: {message}"],
+            "itinerary_updated": False,
+            "iteration": trip_session.iteration_count,
+            "cost_analysis": None,
+        }
     
     @staticmethod
     def _extract_cost_analysis(iteration_dir: Path) -> Optional[Dict[str, Any]]:
