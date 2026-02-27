@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
     Plus, Save, Download, Settings,
     ChevronUp, ChevronDown, Edit2, Trash2, Maximize2, Minimize2,
-    Users, Mail, UserPlus, Clock, X, Calendar
+    Users, Mail, UserPlus, Clock, X, Calendar, MapPin
 } from 'lucide-react';
 import VoyageurAIPanel from './VoyageurAIPanel';
 
@@ -15,6 +15,7 @@ interface Family {
     id: string;
     email: string;
     members: number;
+    location: string;
 }
 
 interface Activity {
@@ -80,6 +81,7 @@ export default function ItineraryBuilderView() {
     const [families, setFamilies] = useState<Family[]>([]);
     const [newEmail, setNewEmail] = useState('');
     const [newMembers, setNewMembers] = useState('');
+    const [newLocation, setNewLocation] = useState('');
     const [addingFamily, setAddingFamily] = useState(false);
 
     // Activity Timeline — starts with one empty day
@@ -106,12 +108,14 @@ export default function ItineraryBuilderView() {
             id: generateFamilyId(),
             email: newEmail.trim(),
             members: memberCount,
+            location: newLocation.trim() || 'Not specified',
         };
         setFamilies(prev => [...prev, newFamily]);
         setNewEmail('');
         setNewMembers('');
+        setNewLocation('');
         setAddingFamily(false);
-    }, [newEmail, newMembers]);
+    }, [newEmail, newMembers, newLocation]);
 
     const handleRemoveFamily = useCallback((famId: string) => {
         setFamilies(prev => prev.filter(f => f.id !== famId));
@@ -247,11 +251,11 @@ export default function ItineraryBuilderView() {
                                 </div>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="bp-label">Project Name</label>
+                                        <label className="bp-label">Trip Name</label>
                                         <input
                                             type="text" value={projectName}
                                             onChange={e => setProjectName(e.target.value)}
-                                            placeholder="Enter project name..."
+                                            placeholder="Enter trip name..."
                                             className="w-full bg-white border border-[var(--bp-border)] text-sm p-2.5 font-medium text-[var(--bp-text)] placeholder-gray-300 focus:border-black focus:outline-none hover:border-gray-400 transition-colors"
                                         />
                                     </div>
@@ -307,6 +311,7 @@ export default function ItineraryBuilderView() {
                                                     <span className="text-[9px] font-bold text-[var(--bp-sage)] bg-[var(--bp-sage)]/10 px-1.5 py-0.5 uppercase tracking-widest border border-[var(--bp-sage)]/20">{fam.id}</span>
                                                 </div>
                                                 <p className="text-xs text-[var(--bp-text)] truncate font-medium">{fam.email}</p>
+                                                <p className="text-[10px] text-[var(--bp-muted)] truncate flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3" />{fam.location}</p>
                                             </div>
                                             <span className="text-[9px] font-bold text-[var(--bp-muted)] bg-gray-100 border border-[var(--bp-border)] px-1.5 py-0.5 uppercase tracking-wider shrink-0">
                                                 {fam.members} {fam.members === 1 ? 'Member' : 'Members'}
@@ -354,6 +359,19 @@ export default function ItineraryBuilderView() {
                                                     />
                                                 </div>
                                             </div>
+                                            <div>
+                                                <label className="bp-label">Initial Location</label>
+                                                <div className="relative">
+                                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" />
+                                                    <input
+                                                        type="text"
+                                                        value={newLocation}
+                                                        onChange={e => setNewLocation(e.target.value)}
+                                                        placeholder="e.g. New Delhi, India"
+                                                        className="w-full bg-white border border-[var(--bp-border)] text-xs p-2.5 pl-9 text-[var(--bp-text)] placeholder-gray-300 focus:outline-none focus:border-black transition-all"
+                                                    />
+                                                </div>
+                                            </div>
                                             <div className="flex gap-2 pt-1">
                                                 <button
                                                     onClick={handleAddFamily}
@@ -362,7 +380,7 @@ export default function ItineraryBuilderView() {
                                                     <Plus className="w-3.5 h-3.5" /> Add Family
                                                 </button>
                                                 <button
-                                                    onClick={() => { setAddingFamily(false); setNewEmail(''); setNewMembers(''); }}
+                                                    onClick={() => { setAddingFamily(false); setNewEmail(''); setNewMembers(''); setNewLocation(''); }}
                                                     className="px-4 py-2 border border-[var(--bp-border)] text-[var(--bp-muted)] text-[10px] font-bold uppercase tracking-widest hover:border-black hover:text-black transition-colors"
                                                 >
                                                     Cancel
