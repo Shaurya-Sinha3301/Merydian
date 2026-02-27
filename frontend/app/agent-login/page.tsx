@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import AgentLoginInteractive from './components/AgentLoginInteractive';
 
 export const metadata: Metadata = {
-    title: 'Agent Login - Voyageur',
+    title: 'Agent Login - MerYDiaN',
     description: 'Login to your agent portal',
 };
 
