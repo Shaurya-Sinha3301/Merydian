@@ -96,7 +96,7 @@ export default function HeroSection() {
           className="text-center space-y-6"
         >
           <h1 className="font-serif text-3xl tracking-[0.3em] uppercase text-white">
-            Meili AI
+            Merydian
           </h1>
           <div className="w-64 h-px bg-white/10 overflow-hidden mx-auto">
             <motion.div

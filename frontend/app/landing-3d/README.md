@@ -1,6 +1,6 @@
 # 3D Animated Landing Page
 
-This is an isolated 3D animated landing page for Meili AI, featuring scroll-based canvas animations and modern design.
+This is an isolated 3D animated landing page for Merydian, featuring scroll-based canvas animations and modern design.
 
 ## Structure
 

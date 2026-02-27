@@ -58,7 +58,7 @@ export default function SignupPage() {
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                             <circle cx="12" cy="10" r="3" />
                         </svg>
-                        <span className="text-2xl font-black tracking-tight text-gray-900">Meili AI</span>
+                        <span className="text-2xl font-black tracking-tight text-gray-900">Merydian</span>
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
                     <p className="text-gray-600">Join us to start planning your perfect trip</p>

@@ -16,11 +16,10 @@ export default function Header3D() {
 
   return (
     <header
-      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-out rounded-full flex items-center justify-between backdrop-blur-md border border-white/10 ${
-        !scrolled
+      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-out rounded-full flex items-center justify-between backdrop-blur-md border border-white/10 ${!scrolled
           ? 'w-[95%] max-w-7xl py-4 px-8 bg-black/20'
           : 'w-[80%] max-w-5xl py-3 px-6 bg-black/60'
-      }`}
+        }`}
     >
       <div className="flex items-center gap-12">
         <Link
@@ -30,7 +29,7 @@ export default function Header3D() {
           <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-serif italic text-lg group-hover:bg-amber-400 transition-colors">
             M
           </div>
-          <span>MEILI AI</span>
+          <span>MERYDIAN</span>
         </Link>
       </div>
 

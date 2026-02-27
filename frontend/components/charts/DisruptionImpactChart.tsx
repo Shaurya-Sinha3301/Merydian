@@ -112,7 +112,7 @@ export function DisruptionImpactChart() {
                         Disruption Point: {currentPoint.time}
                     </div>
 
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <LineChart
                             data={chartData}
                             margin={{ top: 20, right: 10, left: -20, bottom: 5 }}

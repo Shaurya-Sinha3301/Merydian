@@ -334,7 +334,7 @@ def _process_single_hotel(
             "MiddleName": "",
             "LastName": "User",
             "Phoneno": "9999999999",
-            "Email": "test@meili.ai",
+            "Email": "test@merydian.ai",
             "PaxType": 1,
             "LeadPassenger": True,
             "Age": 30,

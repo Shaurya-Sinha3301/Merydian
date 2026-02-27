@@ -12,7 +12,7 @@ export default function Footer3D() {
               M
             </div>
             <span className="text-white font-serif text-2xl font-bold tracking-widest">
-              MEILI AI
+              MERYDIAN
             </span>
           </div>
 
@@ -27,7 +27,7 @@ export default function Footer3D() {
         </div>
 
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-xs font-medium uppercase tracking-[0.2em] text-white/50">
-          <p>© 2026 Meili AI. All rights reserved.</p>
+          <p>© 2026 Merydian. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-white transition-colors">
               Privacy
