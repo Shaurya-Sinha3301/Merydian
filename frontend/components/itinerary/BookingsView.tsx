@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import {
     Plane, Hotel, Utensils, Bus,
-    Calendar, TrendingUp, Minimize2
+    Calendar, TrendingUp, Minimize2,
+    Hash, Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTripById } from '@/lib/trips';
@@ -44,10 +45,10 @@ interface DayGroup {
 
 // ─── Family tag colour map — matches ItineraryDetailView ─────────────────────
 const FAM_COLORS: Record<string, string> = {
-    'FAM A': 'bg-blue-50 text-blue-700 border-blue-400',
-    'FAM B': 'bg-amber-50 text-amber-700 border-amber-400',
-    'FAM C': 'bg-rose-50 text-rose-700 border-rose-400',
-    'All': 'bg-slate-50 text-slate-600 border-slate-300',
+    'FAM A': 'bg-black text-white border-black',
+    'FAM B': 'bg-[#2C4C3B] text-white border-[#2C4C3B]',
+    'FAM C': 'bg-[#C5A059] text-white border-[#C5A059]',
+    'All': 'bg-white text-black border-black/20',
 };
 
 const ALL_FAMILIES = [
@@ -489,11 +490,11 @@ const ACTIVE_INTELLIGENCE = [
 
 function getStatusDot(status: BookingStatus) {
     switch (status) {
-        case 'confirmed': return 'bg-emerald-500 shadow-[0_0_0_2px_#d1fae5]';
-        case 'pending': return 'bg-amber-500 shadow-[0_0_0_2px_#fef3c7]';
-        case 'cancelled': return 'bg-red-500 shadow-[0_0_0_2px_#fee2e2]';
-        case 'delayed': return 'bg-amber-500 shadow-[0_0_0_2px_#fef3c7]';
-        default: return 'bg-slate-400 shadow-[0_0_0_2px_#f1f5f9]';
+        case 'confirmed': return 'bg-[#2C4C3B] shadow-[0_0_0_2px_#E6ECE9]';
+        case 'pending': return 'bg-[#C5A059] shadow-[0_0_0_2px_#F8F5F0]';
+        case 'cancelled': return 'bg-gray-400 shadow-[0_0_0_2px_#F1F5F9]';
+        case 'delayed': return 'bg-[#C5A059] shadow-[0_0_0_2px_#F8F5F0]';
+        default: return 'bg-gray-400 shadow-[0_0_0_2px_#F1F5F9]';
     }
 }
 
@@ -536,20 +537,20 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                 {/* ── Sub-header: Filters & Cost ──────────────────────────────────── */}
                 <div className="border-b border-gray-200 bg-gray-50 px-8 py-3 flex justify-between items-center shrink-0">
                     {/* Filters — GroupsView-style tab tray */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide bg-stone-100/50 p-1 rounded-md border border-stone-100">
+                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide bg-white p-1 rounded-none border border-black/10">
                         {FILTERS.map((f, idx) => (
                             <React.Fragment key={f.id}>
-                                {idx === 1 && <div className="h-4 w-px bg-stone-200 mx-0.5" />}
+                                {idx === 1 && <div className="h-4 w-px bg-black/10 mx-0.5" />}
                                 <button
                                     onClick={() => setActiveFilter(f.id)}
                                     className={cn(
-                                        'px-3 py-1 text-xs font-semibold flex items-center gap-1.5 transition-colors rounded capitalize',
+                                        'px-4 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-colors rounded-none capitalize border border-transparent',
                                         activeFilter === f.id
-                                            ? 'bg-white shadow-sm text-stone-700 border border-stone-200'
-                                            : 'text-stone-500 hover:text-stone-700'
+                                            ? 'bg-black text-[#C5A059] shadow-sm'
+                                            : 'bg-transparent text-gray-500 hover:text-black'
                                     )}
                                 >
-                                    <span className="material-symbols-outlined text-[14px]">{f.materialIcon}</span>
+                                    <span className="material-symbols-outlined text-[15px]">{f.materialIcon}</span>
                                     {f.label}
                                 </button>
                             </React.Fragment>
@@ -610,10 +611,12 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                                                     <div className="flex gap-4 items-start w-full">
                                                         {/* Icon Box — rounded-lg to match card design */}
                                                         <div className={cn(
-                                                            'w-10 h-10 border border-gray-200 flex items-center justify-center text-gray-400 rounded-sm shrink-0',
-                                                            isCancelled ? 'bg-gray-100' : 'bg-gray-50'
+                                                            'w-10 h-10 border flex items-center justify-center shrink-0 rounded-none transition-colors border-black/10',
+                                                            isCancelled
+                                                                ? 'bg-gray-50 text-gray-300'
+                                                                : 'bg-white text-black shadow-sm'
                                                         )}>
-                                                            <Icon className={cn('w-5 h-5', isCancelled && 'text-gray-300')} />
+                                                            <Icon strokeWidth={1} className={cn('w-5 h-5', isCancelled && 'text-gray-300')} />
                                                         </div>
 
                                                         {/* 12-col grid */}
@@ -660,20 +663,20 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                                                                     isCancelled ? 'text-gray-400' : 'text-gray-600'
                                                                 )}>
                                                                     {booking.metaPrimary && (
-                                                                        <span className="flex items-center gap-1">
-                                                                            <span className={cn('material-symbols-outlined text-[12px]', isCancelled ? 'text-gray-300' : 'text-gray-400')}>tag</span>
+                                                                        <span className="flex items-center gap-1.5">
+                                                                            <Hash strokeWidth={1.5} className={cn('w-3.5 h-3.5', isCancelled ? 'text-gray-300' : 'text-[#7A8A94]')} />
                                                                             {booking.metaPrimary}
                                                                         </span>
                                                                     )}
                                                                     {booking.time && (
-                                                                        <span className="flex items-center gap-1">
-                                                                            <span className={cn('material-symbols-outlined text-[12px]', isCancelled ? 'text-gray-300' : 'text-gray-400')}>schedule</span>
+                                                                        <span className="flex items-center gap-1.5">
+                                                                            <Clock strokeWidth={1.5} className={cn('w-3.5 h-3.5', isCancelled ? 'text-gray-300' : 'text-[#7A8A94]')} />
                                                                             {booking.time}
                                                                         </span>
                                                                     )}
                                                                     {booking.metaSecondary && !booking.time && (
-                                                                        <span className="flex items-center gap-1">
-                                                                            <span className={cn('material-symbols-outlined text-[12px]', isCancelled ? 'text-gray-300' : 'text-gray-400')}>date_range</span>
+                                                                        <span className="flex items-center gap-1.5">
+                                                                            <Calendar strokeWidth={1.5} className={cn('w-3.5 h-3.5', isCancelled ? 'text-gray-300' : 'text-[#7A8A94]')} />
                                                                             {booking.metaSecondary}
                                                                         </span>
                                                                     )}
@@ -720,10 +723,10 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                                                         </button>
                                                     ) : (
                                                         <>
-                                                            <button className="p-1.5 rounded border border-gray-200 bg-white text-gray-500 hover:text-blue-600 hover:border-blue-200 transition-colors">
+                                                            <button className="p-1.5 rounded-none border border-black/10 bg-white text-gray-500 hover:text-[#C5A059] hover:border-[#C5A059] transition-colors">
                                                                 <span className="material-symbols-outlined text-sm">edit</span>
                                                             </button>
-                                                            <button className="p-1.5 rounded border border-gray-200 bg-white text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors">
+                                                            <button className="p-1.5 rounded-none border border-black/10 bg-white text-gray-500 hover:text-black hover:border-black transition-colors">
                                                                 <span className="material-symbols-outlined text-sm">delete</span>
                                                             </button>
                                                         </>

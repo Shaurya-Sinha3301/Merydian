@@ -115,7 +115,7 @@ export default function AISupportSection() {
                   whileHover={{ scale: 1.02, x: 10 }}
                   className="relative group"
                 >
-                  <div className="bg-black p-8 border border-black/20 shadow-xl relative overflow-hidden">
+                  <div className="bg-white p-8 border-2 border-black/10 shadow-xl relative overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-300">
                     {/* Gold corner accents */}
                     <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -127,29 +127,29 @@ export default function AISupportSection() {
                           transition={{ duration: 2, repeat: Infinity }}
                           className={`w-3 h-3 rounded-full bg-${step.statusColor}`}
                         />
-                        <span className="text-xs uppercase tracking-[0.2em] text-white/80 font-light">
+                        <span className="text-xs uppercase tracking-[0.2em] text-black/70 font-light">
                           {step.status}
                         </span>
                       </div>
                       
-                      <p className="text-white font-light leading-relaxed">
+                      <p className="text-base font-serif text-black leading-relaxed">
                         {step.content}
                       </p>
                       
                       {step.hasProgress && (
-                        <div className="h-1 bg-white/10 overflow-hidden">
+                        <div className="h-1 bg-black/10 overflow-hidden">
                           <motion.div 
                             initial={{ width: "0%" }}
                             whileInView={{ width: "100%" }}
                             viewport={{ once: true }}
                             transition={{ duration: 2, delay: step.delay + 0.3 }}
-                            className="h-full bg-gradient-to-r from-[#D4AF37] to-white"
+                            className="h-full bg-gradient-to-r from-[#D4AF37] to-black"
                           />
                         </div>
                       )}
                       
                       {step.metrics && (
-                        <div className="flex gap-6 pt-4 border-t border-white/10">
+                        <div className="flex gap-6 pt-4 border-t border-black/10">
                           {step.metrics.map((metric, metricIdx) => (
                             <motion.div
                               key={metricIdx}
@@ -159,7 +159,7 @@ export default function AISupportSection() {
                               transition={{ duration: 0.5, delay: step.delay + 0.5 + metricIdx * 0.1 }}
                               className="space-y-1"
                             >
-                              <span className="text-xs text-white/50 font-light">{metric.label}:</span>
+                              <span className="text-xs text-black/50 font-light">{metric.label}:</span>
                               <span className="text-lg font-serif text-[#D4AF37] ml-2">{metric.value}</span>
                             </motion.div>
                           ))}

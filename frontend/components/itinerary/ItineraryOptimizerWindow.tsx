@@ -14,7 +14,8 @@ import {
     CreditCard,
     CheckCircle,
     AlertCircle,
-    XCircle
+    XCircle,
+    Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TRIPS as MOCK_TRIPS, Trip, TripStatus } from '@/lib/trips';
@@ -105,9 +106,7 @@ const TRIP_IMAGES: Record<string, { src: string; label: string }> = {
     'TR-5510': { src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAQwu8e00TDJf93eZ5vizbyQiEjccclu0JPaybGn_6-taYjBromJ4lcK64ROEGG6Z8dBehupqCdEinFSIpLYzf62jh0ynJFckVUVKW7nJ4Y3T3BWFnr6wdtK3zNadE3p-6CMkN7xE45z7f_nSRirK013ZsI5MZ_cBja5zs5btS7wyxezJKE2kvpeymjq2JxTdxgb_XGJROE_mK_T5eb6AV-24XW7_Oe-8MGQfxe9Rj30pKkg8K3aDVORjJNXpzBFmAvUs6J6XBbniOf', label: 'Bali, Indonesia' },
 };
 
-// ─── TripCard ─────────────────────────────────────────────────────────────────
-
-function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
+function TripCard({ trip, onClick, onDelete }: { trip: Trip; onClick?: () => void; onDelete?: (id: string) => void }) {
     const isCancelled = trip.status === 'CANCELLED';
     const { dot, text, label } = STATUS_CONFIG[trip.status];
     const tags = getBookingTags(trip.status);
@@ -115,11 +114,13 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
     const action = getNextAction(trip.status);
     const img = TRIP_IMAGES[trip.id] ?? { src: '', label: trip.title };
 
+    const [confirming, setConfirming] = useState(false);
+
     return (
         <article
-            onClick={!isCancelled ? onClick : undefined}
+            onClick={!isCancelled && !confirming ? onClick : undefined}
             className={cn(
-                'bp-card flex flex-col h-full',
+                'bp-card flex flex-col h-full group relative overflow-hidden',
                 isCancelled ? 'opacity-60' : 'cursor-pointer',
             )}
         >
@@ -141,11 +142,7 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
             {/* ── Hero image ─── */}
             <div className="w-full aspect-[4/3] relative overflow-hidden border-y border-[var(--bp-border)]">
                 {img.src ? (
-                    <img
-                        src={img.src}
-                        alt={img.label}
-                        className="bp-img w-full h-full absolute inset-0"
-                    />
+                    <img src={img.src} alt={img.label} className="w-full h-full absolute inset-0 object-cover" />
                 ) : (
                     <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                         <span className="text-gray-400 text-xs tracking-widest uppercase">{img.label}</span>
@@ -171,10 +168,7 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
                     <span className="bp-label mb-2">Booking Status</span>
                     <div className="grid grid-cols-2 gap-1.5">
                         {tags.map((tag) => (
-                            <span
-                                key={tag.label}
-                                className={cn('bp-tag', `bp-tag-${tag.status}`)}
-                            >
+                            <span key={tag.label} className={cn('bp-tag', `bp-tag-${tag.status}`)}>
                                 <span className="mr-1">{tag.icon}</span>
                                 {tag.label}
                             </span>
@@ -198,18 +192,78 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick?: () => void }) {
                     </div>
                 </div>
 
-                {/* Next action footer */}
+                {/* Next action footer — delete button lives here, right of the timestamp */}
                 <div className="border-t border-[var(--bp-border)] pt-3 mt-auto">
                     <div className="flex justify-between items-center">
                         <span className="bp-label mb-0">Next Action</span>
-                        <span className="text-[9px] font-mono text-[var(--bp-muted)]">{action.time}</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[9px] font-mono text-[var(--bp-muted)]">{action.time}</span>
+                            {onDelete && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 flex items-center justify-center text-[var(--bp-muted)] hover:text-black transition-colors"
+                                    title="Delete trip"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                            )}
+                        </div>
                     </div>
                     <p className="text-xs font-medium mt-1 text-[var(--bp-text)]">{action.text}</p>
                 </div>
             </div>
+
+            {/* ── Delete confirmation overlay — site-consistent design ─── */}
+            {confirming && (
+                <div
+                    className="absolute inset-0 z-30 bg-[var(--bp-bg,#f5f3ee)] flex flex-col justify-between p-5"
+                    onClick={e => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div className="border-b border-[var(--bp-border)] pb-4">
+                        <span className="bp-label">Confirm Deletion</span>
+                        <p className="text-base font-light text-[var(--bp-text)] mt-0.5 leading-snug">{trip.title}</p>
+                    </div>
+
+                    {/* Details */}
+                    <div className="flex flex-col gap-2 py-4">
+                        <div className="flex justify-between items-center">
+                            <span className="bp-label mb-0">Reference</span>
+                            <span className="text-xs font-mono font-semibold text-[var(--bp-text)]">{trip.id}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="bp-label mb-0">Dates</span>
+                            <span className="text-xs font-mono text-[var(--bp-text)]">{trip.dateRange || '—'}</span>
+                        </div>
+                        <div className="mt-2 border border-[var(--bp-border)] bg-white p-3">
+                            <p className="text-[10px] font-mono text-[var(--bp-muted)] uppercase tracking-widest leading-relaxed">
+                                This will permanently remove the trip record. This action cannot be undone.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-2 border-t border-[var(--bp-border)]">
+                        <button
+                            onClick={() => setConfirming(false)}
+                            className="flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest border border-[var(--bp-border)] text-[var(--bp-muted)] hover:border-black hover:text-black transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={() => { onDelete?.(trip.id); setConfirming(false); }}
+                            className="flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest bg-black text-white hover:bg-[var(--bp-sage)] transition-colors"
+                        >
+                            Confirm Delete
+                        </button>
+                    </div>
+                </div>
+            )}
         </article>
     );
 }
+
+
 
 // ─── Filter tabs ──────────────────────────────────────────────────────────────
 
@@ -248,8 +302,9 @@ export default function ItineraryOptimizerWindow() {
                 const data = await apiClient.getAgentTrips({ limit: 20 });
                 const items: any[] = data?.items ?? [];
 
+                let mapped: Trip[] = [];
                 if (items.length > 0) {
-                    const mapped: Trip[] = items.map((t: any) => ({
+                    mapped = items.map((t: any) => ({
                         id: t.trip_id,
                         title: t.trip_name ?? t.trip_id,
                         client: (t.families ?? []).join(', ') || 'Unknown',
@@ -263,12 +318,33 @@ export default function ItineraryOptimizerWindow() {
                             : 'N/A',
                         members: [],
                     }));
-                    setTrips(mapped);
+                } else {
+                    mapped = [...MOCK_TRIPS];
                 }
-                // If empty, keep mock data so UI isn't blank
+
+                // Load local mocked built trips
+                try {
+                    const builtTripsStr = sessionStorage.getItem('builtTrips');
+                    if (builtTripsStr) {
+                        const builtTrips = JSON.parse(builtTripsStr);
+                        mapped = [...builtTrips, ...mapped];
+                    }
+                } catch (e) {
+                    console.warn('Failed to load built trips', e);
+                }
+
+                setTrips(mapped);
             } catch (err) {
                 console.warn('[ItineraryOptimizerWindow] Could not fetch trips from backend, using mock data:', err);
-                // Keep MOCK_TRIPS as fallback
+                let fallback = [...MOCK_TRIPS];
+                try {
+                    const builtTripsStr = sessionStorage.getItem('builtTrips');
+                    if (builtTripsStr) {
+                        const builtTrips = JSON.parse(builtTripsStr);
+                        fallback = [...builtTrips, ...fallback];
+                    }
+                } catch (e) { }
+                setTrips(fallback);
             } finally {
                 setIsLoading(false);
             }
@@ -276,6 +352,17 @@ export default function ItineraryOptimizerWindow() {
 
         loadTrips();
     }, []);
+
+    const handleDelete = (id: string) => {
+        // Remove from local state
+        setTrips(prev => prev.filter(t => t.id !== id));
+        // Also remove from sessionStorage built trips if it lives there
+        try {
+            const stored = JSON.parse(sessionStorage.getItem('builtTrips') || '[]');
+            const updated = stored.filter((t: any) => t.id !== id);
+            sessionStorage.setItem('builtTrips', JSON.stringify(updated));
+        } catch { }
+    };
 
     const filtered = useMemo(() => {
         return trips.filter((t: Trip) => {
@@ -353,7 +440,10 @@ export default function ItineraryOptimizerWindow() {
                             </div>
 
                             {/* Add button — square black */}
-                            <button className="w-8 h-8 bg-black text-white flex items-center justify-center hover:bg-[var(--bp-sage)] transition-colors shrink-0">
+                            <button
+                                onClick={() => router.push('/agent-dashboard/itinerary-builder')}
+                                className="w-8 h-8 bg-black text-white flex items-center justify-center hover:bg-[var(--bp-sage)] transition-colors shrink-0"
+                            >
                                 <Plus className="w-4 h-4" />
                             </button>
                         </div>
@@ -371,6 +461,7 @@ export default function ItineraryOptimizerWindow() {
                                     <TripCard
                                         trip={trip}
                                         onClick={() => router.push(`/agent-dashboard/itinerary-management/${trip.id}`)}
+                                        onDelete={handleDelete}
                                     />
                                 </div>
                             ))}

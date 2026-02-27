@@ -9,21 +9,28 @@ interface UseCanvasAnimationReturn {
 }
 
 export function useCanvasAnimation(
-  canvasRef: RefObject<HTMLCanvasElement>
+  canvasRef: RefObject<HTMLCanvasElement | null>
 ): UseCanvasAnimationReturn {
   const [images, setImages] = useState<HTMLImageElement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
 
-  const frameCount = 278;
+  const frameCount = 384; // 192 frames from 1st + 192 frames from 2nd
 
   useEffect(() => {
     const loadedImages: HTMLImageElement[] = [];
     let loadedCount = 0;
 
     const currentFrame = (index: number) => {
-      const paddedIndex = String(index + 1).padStart(3, '0');
-      return `/frames/ezgif-frame-${paddedIndex}.jpg`;
+      if (index < 192) {
+        // 1st sequence (frames 0-191)
+        const paddedIndex = String(index).padStart(3, '0');
+        return `/frames/hero-1/frame_${paddedIndex}_delay-0.042s.webp`;
+      } else {
+        // 2nd sequence (frames 192-383)
+        const paddedIndex = String(index - 192).padStart(3, '0');
+        return `/frames/hero-2/frame_${paddedIndex}_delay-0.041s.webp`;
+      }
     };
 
     for (let i = 0; i < frameCount; i++) {
