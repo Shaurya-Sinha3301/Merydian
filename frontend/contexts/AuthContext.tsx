@@ -61,10 +61,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const token = localStorage.getItem('access_token');
             if (token) {
                 apiClient.setToken(token);
-                const userData = decodeToken(token);
-                if (userData) {
-                    setUser(userData);
-                } else {
+                try {
+                    const profile = await apiClient.getUserProfile();
+                    setUser(profile);
+                } catch (e) {
                     // Token invalid, try to refresh
                     const refreshed = await refreshToken();
                     if (!refreshed) {
@@ -98,17 +98,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.setItem('access_token', response.access_token);
             apiClient.setToken(response.access_token);
 
-            // Decode and set user
-            const userData = decodeToken(response.access_token);
-            if (userData) {
-                setUser(userData);
+            // Fetch and set user
+            const profile = await apiClient.getUserProfile();
+            setUser(profile);
 
-                // Redirect based on role
-                if (userData.role === 'agent') {
-                    router.push('/agent-dashboard');
-                } else {
-                    router.push('/customer-portal');
-                }
+            // Redirect based on role
+            if (profile.role === 'agent') {
+                router.push('/agent-dashboard');
+            } else {
+                router.push('/customer-portal');
             }
         } catch (error: any) {
             console.error('Login failed:', error);
@@ -134,18 +132,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.setItem('access_token', response.access_token);
             apiClient.setToken(response.access_token);
 
-            // Decode and set user
-            const userData = decodeToken(response.access_token);
-            if (userData) {
-                setUser(userData);
+            // Fetch and set user
+            const profile = await apiClient.getUserProfile();
+            setUser(profile);
 
-                // Redirect based on role
-                if (role === 'agent') {
-                    router.push('/agent-dashboard');
-                } else {
-                    // New customers go to portal directly now
-                    router.push('/customer-portal');
-                }
+            // Redirect based on role
+            if (role === 'agent') {
+                router.push('/agent-dashboard');
+            } else {
+                // New customers go to portal directly now
+                router.push('/customer-portal');
             }
         } catch (error: any) {
             console.error('Signup failed:', error);
@@ -175,13 +171,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.setItem('access_token', response.access_token);
             apiClient.setToken(response.access_token);
 
-            // Update user data
-            const userData = decodeToken(response.access_token);
-            if (userData) {
-                setUser(userData);
-                return true;
-            }
-            return false;
+            // Fetch updated user data
+            const profile = await apiClient.getUserProfile();
+            setUser(profile);
+            return true;
         } catch (error) {
             console.error('Token refresh failed:', error);
             // Clear auth state on refresh failure

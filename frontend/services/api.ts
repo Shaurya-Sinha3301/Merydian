@@ -78,6 +78,10 @@ export interface FamilyPreferences {
     id: string;
     family_code: string;
     family_name: string;
+    trip_name?: string;
+    destination?: string;
+    start_date?: string;
+    end_date?: string;
     preferences: Record<string, any>;
     members: any[];
 }
@@ -246,10 +250,17 @@ export class APIClient {
     }
 
     /**
+     * Get current user profile
+     */
+    async getUserProfile(): Promise<any> {
+        return this.request<any>('/users/me');
+    }
+
+    /**
      * Get current itinerary for authenticated user
      */
-    async getCurrentItinerary(): Promise<Itinerary> {
-        return this.request<Itinerary>('/itinerary/current');
+    async getCurrentItinerary(): Promise<any> {
+        return this.request<any>('/itinerary/current');
     }
 
     /**
@@ -308,6 +319,13 @@ export class APIClient {
         return this.request<{ options: ItineraryOption[] }>(
             `/agent/itinerary/options?event_id=${encodeURIComponent(eventId)}`
         );
+    }
+
+    /**
+     * Get detailed summary of a trip
+     */
+    async getTripSummary(tripId: string): Promise<any> {
+        return this.request<any>(`/trips/${encodeURIComponent(tripId)}/summary`);
     }
 
     /**
