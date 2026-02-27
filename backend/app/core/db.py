@@ -38,3 +38,10 @@ def init_db():
 def get_engine():
     """Get the database engine instance."""
     return engine
+
+
+def get_session():
+    """FastAPI dependency that yields a SQLModel session."""
+    from sqlmodel import Session
+    with Session(engine) as session:
+        yield session

@@ -1,0 +1,6 @@
+﻿app/landing-3d/components/HeroCanvas.tsx(21,61): error TS2345: Argument of type 'RefObject<HTMLCanvasElement | null>' is not assignable to parameter of type 'RefObject<HTMLCanvasElement>'.
+  Type 'HTMLCanvasElement | null' is not assignable to type 'HTMLCanvasElement'.
+    Type 'null' is not assignable to type 'HTMLCanvasElement'.
+app/landing-3d/components/Landing3DPage.tsx(16,23): error TS2322: Type 'RefObject<HTMLDivElement | null>' is not assignable to type 'RefObject<HTMLDivElement>'.
+  Type 'HTMLDivElement | null' is not assignable to type 'HTMLDivElement'.
+    Type 'null' is not assignable to type 'HTMLDivElement'.

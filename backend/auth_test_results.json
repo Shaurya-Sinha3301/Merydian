@@ -1,0 +1,46 @@
+{
+  "https://api.tektravels.com/Authenticate/ValidateAgency": {
+    "status": 200,
+    "response": "Invalid Resource Requested"
+  },
+  "http://api.tektravels.com/Authenticate/ValidateAgency": {
+    "status": 200,
+    "response": "Invalid Resource Requested"
+  },
+  "https://api.tektravels.com/SharedServices/SharedData.svc/rest/Authenticate": {
+    "status": 200,
+    "response": "Invalid Resource Requested"
+  },
+  "http://api.tektravels.com/SharedServices/SharedData.svc/rest/Authenticate": {
+    "status": 200,
+    "response": "Invalid Resource Requested"
+  },
+  "https://api.tektravels.com/BookingEngineService_Air/AirService.svc/rest/Authenticate": {
+    "status": 404,
+    "response": "\ufeff<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xh"
+  },
+  "http://api.tbotechnology.in/TBOHolidays_BookingEngineAPI/Authenticate/ValidateAgency": {
+    "status": 404,
+    "response": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" cont"
+  },
+  "http://api.tbotechnology.in/TBOHolidays_AirService/Authenticate/ValidateAgency": {
+    "status": 404,
+    "response": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" cont"
+  },
+  "http://api.tbotechnology.in/Authenticate/ValidateAgency": {
+    "status": 404,
+    "response": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" cont"
+  },
+  "https://api.tbotechnology.in/Authenticate/ValidateAgency": {
+    "status": 404,
+    "response": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" cont"
+  },
+  "https://api.tektravels.com/api/v1/Authenticate/ValidateAgency": {
+    "status": 200,
+    "response": "Invalid Resource Requested"
+  },
+  "http://api.tektravels.com/api/v1/Authenticate/ValidateAgency": {
+    "status": 200,
+    "response": "Invalid Resource Requested"
+  }
+}

@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth
@@ -18,12 +18,19 @@ logger = logging.getLogger(__name__)
 
 from app.core.rate_limit import RateLimiter
 
+_rate_limiter = RateLimiter(times=100, seconds=60)
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    # Global Rate Limit: 100 requests per minute
-    dependencies=[Depends(RateLimiter(times=100, seconds=60))]
 )
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    # Skip rate limiting for WebSocket upgrade requests
+    if request.headers.get("upgrade", "").lower() != "websocket":
+        await _rate_limiter(request)
+    return await call_next(request)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):

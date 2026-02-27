@@ -27,8 +27,9 @@ async def health_check(session: Session = Depends(get_session)):
 
     # Check Redis
     try:
-        redis = await RedisManager.get_redis()
-        if await redis.ping():
+        from app.core.redis import get_redis
+        redis_client = await get_redis()
+        if await redis_client.ping():
             health_status["redis"] = "connected"
         else:
             health_status["redis"] = "disconnected"

@@ -287,6 +287,26 @@ def test_08_ticketing_dry_run():
     return True
 
 
+def test_09_get_booking_details_dry_run():
+    """Test get booking details — DRY RUN."""
+    log.info("=" * 60)
+    log.info("TEST 9: GetBookingDetails (DRY RUN)")
+    log.info("=" * 60)
+
+    skip("GetBookingDetails", "Dry run only — requires a real PNR and BookingId")
+    return True
+
+
+def test_10_cancel_booking_dry_run():
+    """Test cancel booking — DRY RUN."""
+    log.info("=" * 60)
+    log.info("TEST 10: CancelBooking (DRY RUN)")
+    log.info("=" * 60)
+
+    skip("CancelBooking", "Dry run only — requires a real BookingId")
+    return True
+
+
 # ======================== RUNNER ========================
 
 def run_all():
@@ -302,6 +322,8 @@ def run_all():
         test_06_ssr,
         test_07_booking_dry_run,
         test_08_ticketing_dry_run,
+        test_09_get_booking_details_dry_run,
+        test_10_cancel_booking_dry_run,
     ]
 
     for test_fn in tests:

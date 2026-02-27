@@ -32,9 +32,9 @@ class Settings(BaseSettings):
     TBO_USERNAME: str
     TBO_PASSWORD: str
 
-    # TBO AIR API
-    TBO_AIR_BOOKING_URL: str = ""
-    TBO_AIR_SEARCH_URL: str = ""
+    # TBO AIR API  (test base URLs — override in .env for production)
+    TBO_AIR_AUTHENTICATE_URL: str = "http://Sharedapi.tektravels.com/SharedData.svc/rest"
+    TBO_AIR_SERVICE_URL: str = "http://api.tektravels.com/BookingEngineService_Air/AirService.svc/rest"
     TBO_AIR_USERNAME: str = ""
     TBO_AIR_PASSWORD: str = ""
 
