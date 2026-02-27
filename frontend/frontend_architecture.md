@@ -1,369 +1,528 @@
-# Meili-AI (MerYDiaN) — Frontend Architecture Guide
+# MerYDiaN — Frontend Architecture & Backend Integration Guide
 
-> **Framework**: Next.js 15 (App Router) · **Styling**: Tailwind CSS · **State**: React Context (AuthContext)  
-> **Root**: `frontend/`
+> **Framework**: Next.js 15 (App Router) · **Styling**: Tailwind CSS · **Auth State**: React Context (`contexts/AuthContext.tsx`)  
+> **API Client**: `services/api.ts` → `http://localhost:8000/api/v1`
 
 ---
 
-## 1. High-Level Folder Structure
+## Table of Contents
+1. [Landing Page Workflow](#1-landing-page-workflow)
+2. [Customer Workflow (Full Flow)](#2-customer-workflow-full-flow)
+3. [Travel Agent Workflow (Full Flow)](#3-travel-agent-workflow-full-flow)
+4. [Signup Flow](#4-signup-flow)
+5. [API Client — All Backend Endpoints](#5-api-client--all-backend-endpoints)
+6. [Data Sources — Mock vs Backend](#6-data-sources--mock-vs-backend)
+7. [Storage Keys Reference](#7-storage-keys-reference)
+8. [Placeholder Routes (Not Functional)](#8-placeholder-routes-not-functional)
+9. [Demo Section](#9-demo-section)
+
+---
+
+## 1. Landing Page Workflow
+
+**Route**: `/`  
+**Page file**: `frontend/app/page.tsx`  
+**Renders**: `<LandingPage />` from `frontend/components/LandingPage.tsx`
 
 ```
-frontend/
-├── app/                    # Next.js App Router — all routes live here
-│   ├── layout.tsx          # Root layout (fonts, AuthProvider wrapper)
-│   ├── page.tsx            # "/" landing page
-│   ├── globals.css         # Global styles
-│   └── [route-dirs]/       # Each directory = a URL route
-├── components/             # Shared, reusable components (non-route)
-│   ├── landing/            # Landing page sections
-│   ├── itinerary/          # Itinerary views used by agent & customer
-│   ├── charts/             # Chart components (Intelligence page)
-│   ├── chat/               # AgentChatPanel
-│   ├── common/             # Navigation, breadcrumbs, progress bars
-│   ├── ui/                 # Generic UI primitives (Sidebar, AppIcon, etc.)
-│   └── demo/               # Demo dashboard components
-├── contexts/               # React Contexts
-│   └── AuthContext.tsx      # Auth state, login/signup/logout, JWT decode
-├── services/               # API & backend service clients
-│   ├── api.ts              # Core API client (login, signup, refresh, CRUD)
-│   ├── itinerary.service.ts
-│   ├── map.service.ts
-│   ├── media.service.ts
-│   ├── poi.service.ts
-│   └── websocket.service.ts
-├── hooks/                  # Custom React hooks
-├── lib/                    # Utilities, data files, helper functions
-├── types/                  # TypeScript type definitions
-├── sockets/                # WebSocket configuration
-└── public/                 # Static assets (images, icons, frames)
+Landing Page (/)
+│
+├── Header (components/landing/Header.tsx)
+│     ├── Logo link → / (home)
+│     ├── Anchor links: #features, #analytics, #ai-support, #pricing
+│     ├── Button: "Login as Customer" → /customer-login
+│     └── Button: "Login as Agent" → /agent-login
+│
+├── HeroSection (components/landing/HeroSection.tsx)
+│     └── Parallax frame animation (reads images from public/)
+│
+├── FeaturesSection (components/landing/FeaturesSection.tsx)
+│     └── Feature cards (static, no navigation)
+│
+├── AnalyticsSection (components/landing/AnalyticsSection.tsx)
+│     └── Analytics demo visuals (static)
+│
+├── AISupportSection (components/landing/AISupportSection.tsx)
+│     └── AI capabilities showcase (static)
+│
+├── TestimonialSection (components/landing/TestimonialSection.tsx)
+│     └── User testimonials (static)
+│
+├── PricingSection (components/landing/PricingSection.tsx)
+│     └── Pricing tiers (static)
+│
+└── Footer (components/landing/Footer.tsx)
+      ├── Anchor links: #features, #analytics, #ai-support, #pricing
+      ├── Link: "Customer Login" → /customer-login
+      ├── Link: "Agent Login" → /agent-login
+      └── Static: Contact, Careers, Press, Socials, Privacy, Terms
 ```
 
----
-
-## 2. Root Layout & Auth Flow
-
-### [layout.tsx](file:///c:/Users/Lenovo/OneDrive/Desktop/Coding/Projects/Meili-AI/Meili-AI/frontend/app/layout.tsx)
-
-Every page is wrapped by:
-```
-<AuthProvider>     ← from contexts/AuthContext.tsx
-  {children}       ← route pages
-</AuthProvider>
-```
-
-### Auth Redirect Rules (in `AuthContext.tsx`)
-
-| Action | Agent Role | Customer (Traveller) Role |
-|--------|-----------|--------------------------|
-| After **login** | → `/agent-dashboard` | → `/customer-portal` |
-| After **signup** | → `/agent-dashboard` | → `/customer-portal` |
-| After **logout** | → `/login` | → `/login` |
+**Backend needed**: None. Fully static marketing page.
 
 ---
 
-## 3. Complete Route Map
+## 2. Customer Workflow (Full Flow)
 
-### 🏠 Public / Landing
+### Step 1: Customer Login
 
-| Route | File | Renders | Description |
-|-------|------|---------|-------------|
-| `/` | `app/page.tsx` | `<LandingPage />` from `components/LandingPage.tsx` | Marketing landing page |
-| `/signup` | `app/signup/page.tsx` | Self-contained (inline) | Signup form (customer or agent toggle) |
-| `/customer-login` | `app/customer-login/page.tsx` | `<CustomerLoginInteractive />` from `./components/` | Customer login (Family ID based) |
-| `/agent-login` | `app/agent-login/page.tsx` | `<AgentLoginInteractive />` from `./components/` | Travel agent login |
+**Route**: `/customer-login`  
+**Page file**: `frontend/app/customer-login/page.tsx`  
+**Renders**: `<CustomerLoginInteractive />` from `frontend/app/customer-login/components/CustomerLoginInteractive.tsx`
 
----
+| Field | Details |
+|-------|---------|
+| Input | `familyId` (format: `FAM001`), `password` |
+| Validation | Regex `/^FAM\d{3}$/i`, password must not be empty |
+| On submit | Stores `familyId` in **sessionStorage** |
+| Redirect | → `/customer-preference` |
+| Links | "Contact your travel agent" (dead link), "Return to Hub" → `/` |
 
-### 👤 Customer Portal (Post-Login)
-
-| Route | File | Renders | Description |
-|-------|------|---------|-------------|
-| `/customer-portal` | `app/customer-portal/page.tsx` | `<EnhancedCustomerPortalInteractive />` | Main customer hub — trips, family, chat |
-| `/customer-dashboard` | `app/customer-dashboard/page.tsx` | `<CustomerDashboardInteractive />` | Alternate customer dashboard view |
-| `/customer-bookings` | `app/customer-bookings/page.tsx` | Self-contained + `<BookingCard />`, `<BookingDetailsModal />`, `<CustomerSidebar />` | View/filter all bookings |
-| `/customer-preference` | `app/customer-preference/page.tsx` | `<PreferenceBuilderInteractive />` | Interest/preference calibration |
-| `/customer-trip-request` | `app/customer-trip-request/page.tsx` | `<CustomerProgressIndicator />` + `<TripRequestInteractive />` | Multi-step trip request form |
-| `/customer-itinerary-view` | `app/customer-itinerary-view/page.tsx` | `<CustomerProgressIndicator />` + `<CustomerItineraryInteractive />` | Review AI-generated itinerary |
-| `/customer-itinerary/[tripId]` | `app/customer-itinerary/[tripId]/page.tsx` | `<ItineraryView />` from `components/itinerary/` | View specific trip itinerary |
-| `/itinerary-selection` | `app/itinerary-selection/page.tsx` | Self-contained | Choose a curated itinerary skeleton |
-| `/trip/[id]` | `app/trip/[id]/page.tsx` | `<TripHeader />` + `<AgentChatPanel />` | Trip detail with chat assistant |
+**⚡ Backend needed**: Currently **no actual auth** — only validates format client-side. Backend should provide:
+- `POST /auth/login` — validate familyId + password, return JWT
+- Customer role should grant access to `/customer-*` routes
 
 ---
 
-### 🧳 Agent Dashboard (Post-Login)
+### Step 2: Interest Calibration (Preference Selection)
 
-| Route | File | Renders | Description |
-|-------|------|---------|-------------|
-| `/agent-dashboard/itinerary-management` | `app/agent-dashboard/itinerary-management/page.tsx` | `<NavigationBreadcrumbs />` + `<ItineraryOptimizerWindow />` | Trip list & management hub |
-| `/agent-dashboard/itinerary-management/new` | `…/new/page.tsx` | Self-contained | Create new itinerary (families + days + events) |
-| `/agent-dashboard/itinerary-management/[tripId]` | `…/[tripId]/page.tsx` | `<ItineraryDetailView />` | Detailed trip timeline & optimization |
-| `/agent-dashboard/itinerary-management/[tripId]/bookings` | `…/bookings/page.tsx` | `<BookingsView />` | Manage trip bookings |
-| `/agent-dashboard/itinerary-management/[tripId]/groups` | `…/groups/page.tsx` | `<GroupsView />` | Manage trip groups & families |
-| `/agent-dashboard/itinerary-management/[tripId]/intelligence` | `…/intelligence/page.tsx` | `<IntelligenceView />` | Analytics charts for the trip |
-| `/agent-dashboard/itinerary-builder` | `app/agent-dashboard/itinerary-builder/page.tsx` | `<NavigationBreadcrumbs />` + `<ItineraryBuilderView />` | Drag-and-drop itinerary builder |
-| `/agent-request-review` | `app/agent-request-review/page.tsx` | `<AgentWorkflowTabs />` + `<NavigationBreadcrumbs />` + `<AgentRequestReviewInteractive />` | Review customer trip requests |
-| `/optimizer` | `app/optimizer/page.tsx` | `<EditorInteractive />` | Detailed itinerary editor with cost analysis |
-| `/analytics` | `app/analytics/page.tsx` | `<Sidebar />` + `<NavigationBreadcrumbs />` + inline stats | Revenue & analytics dashboard |
+**Route**: `/customer-preference`  
+**Page file**: `frontend/app/customer-preference/page.tsx`  
+**Renders**: `<PreferenceBuilderInteractive />` from `frontend/app/customer-preference/components/PreferenceBuilderInteractive.tsx`
 
-#### Agent `[tripId]` Layout
+| Aspect | Details |
+|--------|---------|
+| Auth check | Reads `familyId` from sessionStorage. If missing → redirect to `/customer-login` |
+| Data source | **JSON files**: `active_groups.json`, `upcoming_groups.json`, `itinerary_data.json` (all from `frontend/lib/agent-dashboard/data/`) |
+| Logic | Looks up family by ID in groups data, gets destination metadata |
+| User action | Select exactly 5 experience cards from a catalogue of 10 |
+| On save | Stores `preferenceVectors` (array of selected IDs) in **sessionStorage** |
+| Redirect | → `/customer-dashboard` |
 
-The route `/agent-dashboard/itinerary-management/[tripId]/` has its own [layout.tsx](file:///c:/Users/Lenovo/OneDrive/Desktop/Coding/Projects/Meili-AI/Meili-AI/frontend/app/agent-dashboard/itinerary-management/%5BtripId%5D/layout.tsx) that wraps all sub-pages with:
-
-```
-<NavigationBreadcrumbs />
-<TripDetailNavbar tripId={tripId} />   ← Tab navigation (Itinerary | Bookings | Groups | Intelligence)
-{children}
-```
+**⚡ Backend needed**:
+- `GET /families/{familyId}` — fetch family details and group assignment
+- `GET /families/{familyId}/preferences` — fetch existing preferences
+- `PUT /families/{familyId}/preferences` — save selected preference vectors
+- Replace JSON file lookups with API calls
 
 ---
 
-### 🔬 Demo Section
+### Step 3: Customer Dashboard
 
-| Route | File | Renders | Description |
-|-------|------|---------|-------------|
-| `/demo` | `app/demo/page.tsx` | `<Dashboard />` from `components/demo/` | Demo dashboard |
-| `/demo/analytics` | `app/demo/analytics/page.tsx` | Demo analytics |
-| `/demo/families` | `app/demo/families/page.tsx` | Demo families list |
-| `/demo/family/[id]` | `app/demo/family/[id]/page.tsx` | Demo family detail |
+**Route**: `/customer-dashboard`  
+**Page file**: `frontend/app/customer-dashboard/page.tsx`  
+**Renders**: `<CustomerDashboardInteractive />` from `frontend/app/customer-dashboard/components/CustomerDashboardInteractive.tsx`
 
-The demo section has its own [layout.tsx](file:///c:/Users/Lenovo/OneDrive/Desktop/Coding/Projects/Meili-AI/Meili-AI/frontend/app/demo/layout.tsx) with `<Sidebar />` + `<TopNav />` (from `components/demo/`).
+| Aspect | Details |
+|--------|---------|
+| Auth check | Reads `familyId` from sessionStorage. If missing → redirect to `/customer-login` |
+| Data source | **JSON files**: `active_groups.json`, `upcoming_groups.json` |
+| Sidebar | `<CustomerSidebar />` from `frontend/app/components/CustomerSidebar.tsx` |
+
+**Layout**: 3-column layout:
+1. **Left**: Hero image + Timeline events (hardcoded static data)
+2. **Center**: Chat panel with mock agent (AGENT_04) — messages stored in local state
+3. **Right**: Travel Vault (static booking cards) + Today's Brief + Assigned Agent info
+
+**Navigation from this page**:
+| Action | Destination |
+|--------|-------------|
+| "Full Itinerary →" button | `/customer-portal` |
+| "View" on notification | `/customer-portal` |
+| "View 'Why' Analysis" on timeline | `/customer-portal` |
+| "All Bookings →" button | `/customer-bookings` |
+| Sidebar: HUB | `/customer-dashboard` (current) |
+| Sidebar: PLAN | `/customer-portal` |
+| Sidebar: DOCS | `/customer-bookings` |
+| Sidebar: Logout | Clears `familyId` → `/customer-login` |
+
+**⚡ Backend needed**:
+- `GET /families/{familyId}/timeline` — fetch today's timeline events
+- `GET /families/{familyId}/bookings` — fetch travel vault items
+- `POST /chat/messages` + `GET /chat/messages` — agent chat messaging (or WebSocket)
+- `GET /families/{familyId}/notifications` — live notifications
 
 ---
 
-### 🚧 Placeholder Routes (Stub Pages — "Coming Soon")
+### Step 4: Customer Portal (Itinerary View)
+
+**Route**: `/customer-portal`  
+**Page file**: `frontend/app/customer-portal/page.tsx`  
+**Renders**: `<EnhancedCustomerPortalInteractive />` from `frontend/app/customer-portal/components/EnhancedCustomerPortalInteractive.tsx`
+
+| Aspect | Details |
+|--------|---------|
+| Auth check | Reads `familyId` from sessionStorage. If missing → redirect to `/customer-login` |
+| Data source | **JSON files**: `active_groups.json`, `upcoming_groups.json`, `itinerary_data.json` |
+| Sidebar | `<CustomerSidebar activeTab="portal" />` |
+
+**What it shows**: Full day-by-day itinerary timeline with expandable event cards showing:
+- Event details (time, duration, type, status, description)
+- Provider/guide information and booking references
+- Disruption alerts with "Why?" analysis modal
+- AI-recommended POI additions (Accept/Decline actions)
+- Day navigation (sidebar with day numbers + prev/next buttons)
+
+**Navigation from this page**:
+| Action | Destination |
+|--------|-------------|
+| "← MY BOOKINGS" header button | `/customer-bookings` |
+| Back button (←) | `router.back()` |
+| "← BACK" (when no itinerary) | `/customer-login` |
+
+**Sub-components** (all in `frontend/app/customer-portal/components/`):
+- `WhyButton` — triggers optimization analysis modal
+- Inline event cards, disruption banners, AI POI suggestion cards
+
+**⚡ Backend needed**:
+- `GET /itineraries/{itineraryId}` — fetch full itinerary with days and events
+- `POST /itineraries/{itineraryId}/poi/accept` — accept AI suggestion
+- `POST /itineraries/{itineraryId}/poi/decline` — decline AI suggestion
+- Disruption data should come from itinerary events
+
+---
+
+### Step 5: Customer Bookings
+
+**Route**: `/customer-bookings`  
+**Page file**: `frontend/app/customer-bookings/page.tsx`  
+**Renders**: Self-contained page + sub-components
+
+| Aspect | Details |
+|--------|---------|
+| Data source | **JSON files**: `itinerary_data.json`, `active_groups.json`, `upcoming_groups.json` |
+| Sidebar | `<CustomerSidebar activeTab="bookings" />` |
+
+**Sub-components** (in `frontend/app/customer-bookings/components/`):
+- `BookingCard.tsx` — individual booking display
+- `BookingDetailsModal.tsx` — expanded booking details modal
+
+**Features**: Filter by type (flight, hotel, transport, meal, activity) and status (confirmed, pending, cancelled)
+
+**⚡ Backend needed**:
+- `GET /families/{familyId}/bookings?type=&status=` — fetch filtered bookings
+
+---
+
+### Other Customer Routes
+
+| Route | File | Component | Data | Backend Need |
+|-------|------|-----------|------|-------------|
+| `/customer-trip-request` | `frontend/app/customer-trip-request/page.tsx` | `<CustomerProgressIndicator />` + `<TripRequestInteractive />` | Multi-step wizard form | `POST /trips/request` — submit trip request |
+| `/customer-itinerary-view` | `frontend/app/customer-itinerary-view/page.tsx` | `<CustomerProgressIndicator />` + `<CustomerItineraryInteractive />` | Itinerary review | `GET /itineraries/{id}` — fetch itinerary for review |
+| `/customer-itinerary/[tripId]` | `frontend/app/customer-itinerary/[tripId]/page.tsx` | `<ItineraryView />` from `components/itinerary/` | Fetches from JSON | `GET /itineraries/{tripId}` — specific itinerary |
+| `/itinerary-selection` | `frontend/app/itinerary-selection/page.tsx` | Self-contained | Static curated options | Selection triggers → `/customer-trip-request` |
+| `/trip/[id]` | `frontend/app/trip/[id]/page.tsx` | `<TripHeader />` + `<AgentChatPanel />` | Trip+chat | `GET /trips/{id}`, WebSocket for chat |
+
+**Trip Request sub-components** (in `frontend/app/customer-trip-request/components/`):
+- `DestinationSelector.tsx` — Step 1: choose destination
+- `DateRangePicker.tsx` — Step 2: pick dates
+- `BudgetRangeSlider.tsx` — Step 3: set budget
+- `GroupComposition.tsx` — Step 4: family members
+- `TravelerPreferences.tsx` — Step 5: travel style
+- `PlacePreferences.tsx` — Step 6: place preferences
+- `ProgressIndicator.tsx` — step progress bar
+
+---
+
+## 3. Travel Agent Workflow (Full Flow)
+
+### Step 1: Agent Login
+
+**Route**: `/agent-login`  
+**Page file**: `frontend/app/agent-login/page.tsx`  
+**Renders**: `<AgentLoginInteractive />` from `frontend/app/agent-login/components/AgentLoginInteractive.tsx`
+
+| Field | Details |
+|-------|---------|
+| Input | `email` (username/email), `password` |
+| Validation | Both fields required |
+| On submit | Stores `agentEmail` in **sessionStorage** |
+| Redirect | → `/agent-dashboard/itinerary-management` |
+| Links | "Apply now" → `/signup`, "Return to Hub" → `/`, "FORGOT PASSWORD?" (dead link) |
+
+**⚡ Backend needed**: Same as customer — currently no real auth.
+- `POST /auth/login` — validate agent credentials, return JWT with agent role
+
+---
+
+### Step 2: Itinerary Management (Trip List)
+
+**Route**: `/agent-dashboard/itinerary-management`  
+**Page file**: `frontend/app/agent-dashboard/itinerary-management/page.tsx`  
+**Renders**: `<NavigationBreadcrumbs />` + `<ItineraryOptimizerWindow />`
+
+**Component file**: `frontend/components/itinerary/ItineraryOptimizerWindow.tsx`
+
+| Aspect | Details |
+|--------|---------|
+| Data source | **Tries API first**: `apiClient.getAgentTrips()` → fallback to `MOCK_TRIPS` from `lib/trips.ts` |
+| Also loads | `sessionStorage.getItem('builtTrips')` — locally created trips |
+| Features | Trip card grid, filter by status (All/Approved/In Review/Draft/Cancelled), search by PNR/client |
+
+**Navigation from this page**:
+| Action | Destination |
+|--------|-------------|
+| Click on a trip card | `/agent-dashboard/itinerary-management/{tripId}` |
+| "+" button (create new) | `/agent-dashboard/itinerary-builder` |
+| Delete button on card | Removes from local state + sessionStorage |
+
+**⚡ Backend needed**:
+- `GET /trips?limit=&skip=&status=` — list agent trips (already partially integrated!)
+- `DELETE /trips/{id}` — delete a trip
+
+---
+
+### Step 3: Trip Detail View (Tabs)
+
+**Route**: `/agent-dashboard/itinerary-management/[tripId]`  
+**Layout file**: `frontend/app/agent-dashboard/itinerary-management/[tripId]/layout.tsx`  
+**Wraps all sub-pages with**: `<NavigationBreadcrumbs />` + `<TripDetailNavbar tripId={tripId} />`
+
+**TripDetailNavbar** (`frontend/components/itinerary/TripDetailNavbar.tsx`) provides tab navigation:
+
+| Tab | Route | Page File | Component |
+|-----|-------|-----------|-----------|
+| **Optimization** | `…/[tripId]` | `…/[tripId]/page.tsx` | `<ItineraryDetailView />` |
+| **Groups** | `…/[tripId]/groups` | `…/[tripId]/groups/page.tsx` | `<GroupsView />` |
+| **Bookings** | `…/[tripId]/bookings` | `…/[tripId]/bookings/page.tsx` | `<BookingsView />` |
+| **Intelligence** | `…/[tripId]/intelligence` | `…/[tripId]/intelligence/page.tsx` | `<IntelligenceView />` |
+
+**Back button** in TripDetailNavbar → `/agent-dashboard/itinerary-management`
+
+All tab components are from `frontend/components/itinerary/`:
+- `ItineraryDetailView.tsx` — day-by-day timeline with drag-to-edit, VoyageurAI chat panel
+- `GroupsView.tsx` — family/group management  
+- `BookingsView.tsx` — booking management with TicketModal
+- `IntelligenceView.tsx` — analytics charts (uses `components/charts/*`)
+
+**Intelligence charts** (`frontend/components/charts/`):
+- `DisruptionImpactChart.tsx`
+- `FamilyAnalysisRadarChart.tsx`
+- `FamilyCostStackedChart.tsx`
+- `PersonalizationProfitChart.tsx`
+
+**⚡ Backend needed**:
+- `GET /trips/{tripId}` — trip metadata
+- `GET /trips/{tripId}/itinerary` — full itinerary for optimization view
+- `GET /trips/{tripId}/groups` — family/group list
+- `GET /trips/{tripId}/bookings` — bookings list
+- `GET /trips/{tripId}/analytics` — intelligence data for charts
+- `PUT /trips/{tripId}/itinerary` — save itinerary modifications
+- `POST /trips/{tripId}/ai-feedback` — VoyageurAI agent feedback
+
+---
+
+### Step 4: Itinerary Builder (New Trip)
+
+**Two entry points for creating trips:**
+
+#### A. Itinerary Builder
+
+**Route**: `/agent-dashboard/itinerary-builder`  
+**Page file**: `frontend/app/agent-dashboard/itinerary-builder/page.tsx`  
+**Renders**: `<NavigationBreadcrumbs />` + `<ItineraryBuilderView />` from `frontend/components/itinerary/ItineraryBuilderView.tsx`
+
+#### B. New Trip (Inline Form)
+
+**Route**: `/agent-dashboard/itinerary-management/new`  
+**Page file**: `frontend/app/agent-dashboard/itinerary-management/new/page.tsx`  
+**Renders**: Self-contained form with families, trip overview, day/event builder
+**On save**: Stores trip in `sessionStorage.setItem('builtTrips', ...)` and in `localStorage.setItem('agent_mock_trips', ...)`
+
+**⚡ Backend needed**:
+- `POST /trips` — create trip with families and itinerary
+- `POST /trips/initialize-with-optimization` — create trip + auto-optimize (already in API client!)
+
+---
+
+### Other Agent Routes
+
+| Route | File | Component | Description | Backend Need |
+|-------|------|-----------|-------------|-------------|
+| `/agent-request-review` | `frontend/app/agent-request-review/page.tsx` | `<AgentWorkflowTabs />` + `<NavigationBreadcrumbs />` + `<AgentRequestReviewInteractive />` | Review customer trip requests | `GET /trips/requests`, `PUT /trips/requests/{id}/approve` |
+| `/optimizer` | `frontend/app/optimizer/page.tsx` | `<EditorInteractive />` | Detailed itinerary editor | Same itinerary endpoints |
+| `/analytics` | `frontend/app/analytics/page.tsx` | `<Sidebar />` + `<NavigationBreadcrumbs />` + inline stats | Analytics dashboard | `GET /analytics/summary` |
+
+**Optimizer sub-components** (in `frontend/app/optimizer/components/`):
+- `EditorInteractive.tsx` — main editor with timeline, activity library, cost analysis
+- `ActivityLibrary.tsx` — searchable activity catalogue
+- `ComparisonView.tsx` — before/after itinerary comparison
+- `CostAnalysisPanel.tsx` — cost breakdown panel
+- `ItineraryTimeline.tsx` — visual timeline editor
+
+---
+
+## 4. Signup Flow
+
+**Route**: `/signup`  
+**Page file**: `frontend/app/signup/page.tsx`  
+**Renders**: Self-contained inline form
+
+| Field | Details |
+|-------|---------|
+| User type toggle | Customer / Agent |
+| Fields | Full name, email, password, confirm password |
+| On submit | Calls `signup()` from `AuthContext` |
+| Redirect | Agent → `/agent-dashboard`, Customer → `/customer-portal` |
+| Links | "Return to Home" → `/` |
+
+**⚡ Backend needed**: `POST /auth/signup` (already in API client)
+
+---
+
+## 5. API Client — All Backend Endpoints
+
+**File**: `frontend/services/api.ts`  
+**Base URL**: `NEXT_PUBLIC_API_URL` env var or `http://localhost:8000/api/v1`  
+**Auth**: JWT token stored in `localStorage('access_token')`
+
+| Method | Endpoint | Used By |
+|--------|----------|---------|
+| `login()` | `POST /auth/login` | AuthContext |
+| `signup()` | `POST /auth/signup` | AuthContext |
+| `refreshToken()` | `POST /auth/refresh` | AuthContext (auto every 25min) |
+| `logout()` | `POST /auth/logout` | AuthContext |
+| `logoutAll()` | `POST /auth/logout-all` | — |
+| `processAgentFeedback()` | `POST /agent/feedback` | VoyageurAI chat |
+| `getCurrentItinerary()` | `GET /itinerary/current` | Customer itinerary view |
+| `submitFeedback()` | `POST /feedback` | POI feedback |
+| `requestPOI()` | `POST /poi/request` | Customer POI request |
+| `initializeTrip()` | `POST /trips/initialize` | Trip creation |
+| `initializeTripWithOptimization()` | `POST /trips/initialize-with-optimization` | Trip creation + ML |
+| `getAgentItineraryOptions()` | `GET /agent/events/{eventId}/options` | Agent dashboard |
+| `approveOption()` | `POST /agent/options/{optionId}/approve` | Agent approval |
+| `getFamilyPreferences()` | `GET /family/preferences` | Preference page |
+| `updateFamilyPreferences()` | `PATCH /family/preferences` | Preference update |
+| `getAgentTrips()` | `GET /trips?limit=&skip=&status=` | Itinerary management |
+| `getItineraryDiff()` | `GET /itinerary/diff?a=&b=` | Version comparison |
+| `submitFeedbackMessage()` | `POST /agent/feedback` | Suggest change modal |
+| `getFamilyEvents()` | `GET /families/{familyId}/events` | Customer suggestions panel |
+
+---
+
+## 6. Data Sources — Mock vs Backend
+
+| Data | Current Source | Location | Replace With |
+|------|---------------|----------|-------------|
+| Active groups | JSON import | `frontend/lib/agent-dashboard/data/active_groups.json` | `GET /groups?status=active` |
+| Upcoming groups | JSON import | `frontend/lib/agent-dashboard/data/upcoming_groups.json` | `GET /groups?status=upcoming` |
+| Itinerary timeline | JSON import | `frontend/lib/agent-dashboard/data/itinerary_data.json` | `GET /itineraries/{id}` |
+| Trip list (mock) | TypeScript const | `frontend/lib/trips.ts` (MOCK_TRIPS) | `GET /trips` (already partially done) |
+| Experience catalogue | Hardcoded array | Inside `PreferenceBuilderInteractive.tsx` | `GET /experiences` |
+| AI POI suggestions | Hardcoded object | Inside `EnhancedCustomerPortalInteractive.tsx` | `GET /itineraries/{id}/suggestions` |
+| Timeline events | Hardcoded array | Inside `CustomerDashboardInteractive.tsx` | `GET /families/{id}/timeline` |
+| Chat messages | Local state | Inside `CustomerDashboardInteractive.tsx` | WebSocket or `GET/POST /chat/messages` |
+| Built trips | sessionStorage | `builtTrips` key | `POST /trips` → `GET /trips` |
+
+---
+
+## 7. Storage Keys Reference
+
+### sessionStorage (cleared on tab close)
+
+| Key | Set By | Used By | Value |
+|-----|--------|---------|-------|
+| `familyId` | Customer Login | Preference, Dashboard, Portal, Bookings | e.g. `"FAM001"` |
+| `familyName` | — | CustomerSidebar | Family name string |
+| `agentEmail` | Agent Login | — | Agent email/username |
+| `preferenceVectors` | Preference Builder | — | JSON array of IDs |
+| `builtTrips` | New Trip Form | ItineraryOptimizerWindow | JSON array of Trip objects |
+| `familyGroupMap` | Customer Login | Bookings | Group mapping |
+
+### localStorage (persists)
+
+| Key | Set By | Used By | Value |
+|-----|--------|---------|-------|
+| `access_token` | AuthContext / API client | All API calls | JWT string |
+| `agent_mock_trips` | New Trip Form | — | JSON trips backup |
+
+---
+
+## 8. Placeholder Routes (Not Functional)
+
+These routes exist as files but only display "Coming soon..." text with no actual functionality:
 
 | Route | File |
 |-------|------|
-| `/dashboard` | `app/dashboard/page.tsx` |
-| `/bookings` | `app/bookings/page.tsx` |
-| `/itinerary` | `app/itinerary/page.tsx` |
-| `/map` | `app/map/page.tsx` |
-| `/agent/dashboard` | `app/agent/dashboard/page.tsx` |
-| `/poi/[poiId]` | `app/poi/[poiId]/page.tsx` |
-| `/neumorphic-demo` | `app/neumorphic-demo/page.tsx` |
+| `/dashboard` | `frontend/app/dashboard/page.tsx` |
+| `/bookings` | `frontend/app/bookings/page.tsx` |
+| `/itinerary` | `frontend/app/itinerary/page.tsx` |
+| `/map` | `frontend/app/map/page.tsx` |
+| `/agent/dashboard` | `frontend/app/agent/dashboard/page.tsx` |
+| `/poi/[poiId]` | `frontend/app/poi/[poiId]/page.tsx` |
+| `/neumorphic-demo` | `frontend/app/neumorphic-demo/page.tsx` |
+| `/login` | `frontend/app/login/page.tsx` (generic, unused) |
+
+> **Note**: These are likely legacy or future routes. The active login routes are `/customer-login` and `/agent-login`.
 
 ---
 
-## 4. Component Dependency Map
+## 9. Demo Section
 
-### How Components Connect
+**Layout**: `frontend/app/demo/layout.tsx` — provides `<Sidebar />` + `<TopNav />` from `components/demo/`
 
-```mermaid
-graph TD
-    subgraph "Root"
-        Layout["layout.tsx<br/>(AuthProvider)"]
-    end
+| Route | File | Component |
+|-------|------|-----------|
+| `/demo` | `frontend/app/demo/page.tsx` | `<Dashboard />` from `components/demo/pages/Dashboard` |
+| `/demo/analytics` | `frontend/app/demo/analytics/page.tsx` | Demo analytics |
+| `/demo/families` | `frontend/app/demo/families/page.tsx` | Demo families list |
+| `/demo/family/[id]` | `frontend/app/demo/family/[id]/page.tsx` | Demo family detail |
 
-    subgraph "Public"
-        LP["/ → LandingPage"]
-        CL["customer-login → CustomerLoginInteractive"]
-        AL["agent-login → AgentLoginInteractive"]
-        SU["signup → (inline form)"]
-    end
+**Backend needed**: None. Demo-only with isolated layout.
 
-    subgraph "Customer Portal"
-        CP["customer-portal → EnhancedCustomerPortalInteractive"]
-        CB["customer-bookings → BookingCard + CustomerSidebar"]
-        CPref["customer-preference → PreferenceBuilderInteractive"]
-        CTR["customer-trip-request → TripRequestInteractive"]
-        CIV["customer-itinerary-view → CustomerItineraryInteractive"]
-        CI["customer-itinerary/tripId → ItineraryView"]
-    end
+---
 
-    subgraph "Agent Dashboard"
-        AIM["itinerary-management → ItineraryOptimizerWindow"]
-        AID["tripId → ItineraryDetailView"]
-        AIB["tripId/bookings → BookingsView"]
-        AIG["tripId/groups → GroupsView"]
-        AII["tripId/intelligence → IntelligenceView"]
-        AINew["new → (inline form)"]
-        AB["itinerary-builder → ItineraryBuilderView"]
-        ARR["agent-request-review → AgentRequestReviewInteractive"]
-        OPT["optimizer → EditorInteractive"]
-    end
+## Visual Flow Summary
 
-    Layout --> LP
-    Layout --> CL
-    Layout --> AL
-    Layout --> CP
-    Layout --> AIM
-
-    LP --> Header["components/landing/Header"]
-    LP --> Hero["components/landing/HeroSection"]
-    LP --> Features["components/landing/FeaturesSection"]
-    LP --> Footer["components/landing/Footer"]
-
-    CP --> TripCard["EnhancedTripCard"]
-    CP --> ChatModal["EnhancedAgentChatModal"]
-    CP --> PlanTrip["PlanTripModal"]
-
-    CTR --> DestSel["DestinationSelector"]
-    CTR --> DatePick["DateRangePicker"]
-    CTR --> BudgetSldr["BudgetRangeSlider"]
-    CTR --> GroupComp["GroupComposition"]
-    CTR --> TravPref["TravelerPreferences"]
-
-    AID --> TimelineCard["TimelineEventCard"]
-    AID --> TicketModal["TicketModal"]
-    AID --> VoyageurAI["VoyageurAIPanel"]
-
-    AII --> Charts["charts/*"]
 ```
-
----
-
-## 5. Shared Components Reference
-
-### Navigation Components (`components/common/`)
-
-| Component | Used By | Purpose |
-|-----------|---------|---------|
-| `NavigationBreadcrumbs` | Agent pages (itinerary-mgmt, analytics, request-review) | Contextual breadcrumb trail |
-| `CustomerProgressIndicator` | `customer-trip-request`, `customer-itinerary-view` | Multi-step progress bar (draft → in-review → approved) |
-| `AgentWorkflowTabs` | `agent-request-review` | Tab bar for the agent workflow |
-| `AgentNavigation` | Agent pages | Agent-specific nav links |
-| `CustomerNavigation` | Customer pages | Customer-specific nav links |
-| `RoleBasedNavigation` | — | Switches between Agent/Customer nav |
-
-### Sidebar Components
-
-| Component | Location | Used By |
-|-----------|----------|---------|
-| `CustomerSidebar` | `app/components/CustomerSidebar.tsx` | `customer-bookings` |
-| `Sidebar` (Agent) | `components/ui/Sidebar.tsx` | `analytics`, agent tripId layout |
-| `Sidebar` (Demo) | `components/demo/Sidebar.tsx` | Demo layout |
-
-### Itinerary Components (`components/itinerary/`)
-
-| Component | Used By |
-|-----------|---------|
-| `ItineraryOptimizerWindow` | `/agent-dashboard/itinerary-management` (trip list) |
-| `ItineraryDetailView` | `/agent-dashboard/…/[tripId]` (timeline detail) |
-| `ItineraryBuilderView` | `/agent-dashboard/itinerary-builder` |
-| `ItineraryView` | `/customer-itinerary/[tripId]` (customer view) |
-| `BookingsView` | `…/[tripId]/bookings` |
-| `GroupsView` | `…/[tripId]/groups` |
-| `IntelligenceView` | `…/[tripId]/intelligence` |
-| `TripDetailNavbar` | `[tripId]` layout (tab navigation) |
-| `TimelineEventCard` | Used within `ItineraryDetailView` |
-| `VoyageurAIPanel` | Used within `ItineraryDetailView` |
-| `TicketModal` | Used within `BookingsView` |
-
-### Chart Components (`components/charts/`)
-
-| Component | Purpose |
-|-----------|---------|
-| `DisruptionImpactChart` | Disruption impact simulation |
-| `FamilyAnalysisRadarChart` | Family analysis metrics radar |
-| `FamilyCostStackedChart` | Cost breakdown per family |
-| `PersonalizationProfitChart` | Personalization vs. profit analysis |
-
-### Landing Page Components (`components/landing/`)
-
-| Component | Purpose |
-|-----------|---------|
-| `Header` | Top navbar with CTA buttons |
-| `HeroSection` | Hero with parallax animation |
-| `FeaturesSection` | Feature cards grid |
-| `AISupportSection` | AI capabilities showcase |
-| `AnalyticsSection` | Analytics demo visuals |
-| `PricingSection` | Pricing tiers |
-| `TestimonialSection` | User testimonials |
-| `Footer` | Site footer |
-
----
-
-## 6. Key Navigation Flows
-
-### Customer Journey
+┌─────────────────────────────────────────────────────────────────┐
+│                    LANDING PAGE (/)                               │
+│  Header: [Login Customer] [Login Agent]                          │
+└──────────┬────────────────────────────┬──────────────────────────┘
+           │                            │
+           ▼                            ▼
+┌──────────────────────┐    ┌──────────────────────┐
+│  /customer-login     │    │  /agent-login         │
+│  (FamilyID + Pass)   │    │  (Email + Pass)       │
+│  stores: familyId    │    │  stores: agentEmail   │
+│  → /signup (link)    │    │  → /signup (link)     │
+└──────────┬───────────┘    └──────────┬────────────┘
+           │                            │
+           ▼                            ▼
+┌──────────────────────┐    ┌───────────────────────────────────┐
+│  /customer-preference│    │  /agent-dashboard/                │
+│  Select 5 interests  │    │     itinerary-management          │
+│  stores: prefs       │    │  (Trip card grid, search, filter) │
+│  → /customer-dash    │    └──┬─────────┬──────────────────────┘
+└──────────┬───────────┘       │         │
+           │                   │         │ Click "+"
+           ▼                   │         ▼
+┌──────────────────────┐       │    ┌──────────────────────┐
+│  /customer-dashboard │       │    │ /agent-dashboard/    │
+│  Sidebar: HUB|PLAN|  │       │    │ itinerary-builder    │
+│           DOCS        │       │    └──────────────────────┘
+│  Timeline + Chat +   │       │
+│  Travel Vault        │       │ Click trip card
+│  → /customer-portal  │       ▼
+│  → /customer-bookings│  ┌──────────────────────────────────┐
+└──────────┬───────────┘  │ /agent-dashboard/                │
+           │              │   itinerary-management/[tripId]   │
+           ▼              │ ┌────────────────────────────────┐│
+┌──────────────────────┐  │ │ Tabs:                          ││
+│  /customer-portal    │  │ │ Optimization | Groups |        ││
+│  Day-by-day itinerary│  │ │ Bookings | Intelligence        ││
+│  Event detail cards  │  │ └────────────────────────────────┘│
+│  AI POI suggestions  │  └──────────────────────────────────┘
+│  "Why?" modal        │
+│  → /customer-bookings│
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  /customer-bookings  │
+│  Filter by type/     │
+│  status              │
+│  BookingDetailsModal │
+└──────────────────────┘
 ```
-Landing (/) 
-  → Sign Up (/signup) or Customer Login (/customer-login)
-    → Customer Portal (/customer-portal)
-      ├── View Trips → Itinerary (/customer-itinerary/[tripId])
-      ├── Plan New Trip → Itinerary Selection (/itinerary-selection)
-      │     → Trip Request Form (/customer-trip-request)
-      │       → Itinerary Review (/customer-itinerary-view)
-      ├── View Bookings (/customer-bookings)
-      ├── Set Preferences (/customer-preference)
-      └── Trip Detail with Chat (/trip/[id])
-```
-
-### Agent Journey
-```
-Landing (/) 
-  → Agent Login (/agent-login)
-    → Itinerary Management (/agent-dashboard/itinerary-management)
-      ├── Create New Trip (/agent-dashboard/itinerary-management/new)
-      ├── Select Trip → Trip Detail (…/[tripId])
-      │     ├── Tab: Itinerary (…/[tripId])
-      │     ├── Tab: Bookings (…/[tripId]/bookings)
-      │     ├── Tab: Groups (…/[tripId]/groups)
-      │     └── Tab: Intelligence (…/[tripId]/intelligence)
-      └── Itinerary Builder (/agent-dashboard/itinerary-builder)
-    → Review Customer Requests (/agent-request-review)
-    → Itinerary Editor (/optimizer)
-    → Analytics (/analytics)
-```
-
----
-
-## 7. Data Flow & Services
-
-### API Client (`services/api.ts`)
-
-The centralized API client handles all backend communication:
-- **Auth**: `login()`, `signup()`, `logout()`, `refreshToken()`
-- **Trips**: CRUD operations for trips/itineraries
-- **Token management**: Auto-sets JWT on requests, auto-refresh every 25 minutes
-
-### Data Sources (Current — Mostly Mock)
-
-Many pages currently load data from local JSON files:
-- `lib/agent-dashboard/data/itinerary_data.json` — itinerary data
-- `lib/agent-dashboard/data/active_groups.json` — active group trips
-- `lib/agent-dashboard/data/upcoming_groups.json` — upcoming group trips
-
-> [!IMPORTANT]
-> **For backend integration**: Replace these JSON imports with API calls through `services/api.ts`. The data structures in these JSON files define the expected shape of your API responses.
-
-### Session Storage Keys
-
-| Key | Set By | Used By |
-|-----|--------|---------|
-| `familyId` | Customer login | `customer-bookings`, `customer-itinerary` |
-| `familyGroupMap` | Customer login | `customer-bookings`, `customer-itinerary` |
-| `access_token` (localStorage) | `AuthContext` | All authenticated requests |
-| `agent_mock_trips` (localStorage) | New itinerary form | Agent dashboard |
-
----
-
-## 8. Customer Portal Component Breakdown
-
-The `/customer-portal` page ([EnhancedCustomerPortalInteractive.tsx](file:///c:/Users/Lenovo/OneDrive/Desktop/Coding/Projects/Meili-AI/Meili-AI/frontend/app/customer-portal/components/EnhancedCustomerPortalInteractive.tsx)) is the most complex customer-facing component. It uses these sub-components:
-
-| Sub-Component | File | Purpose |
-|---------------|------|---------|
-| `EnhancedTripCard` | `./EnhancedTripCard.tsx` | Trip card with actions (view, suggest change, report issue) |
-| `EnhancedAgentChatModal` | `./EnhancedAgentChatModal.tsx` | Full agent chat modal |
-| `PlanTripModal` | `./PlanTripModal.tsx` | "Plan a Trip" creation modal |
-| `SuggestChangeModal` | `./SuggestChangeModal.tsx` | Suggest changes to itinerary |
-| `ReportIssueModal` | `./ReportIssueModal.tsx` | Report an issue modal |
-| `FamilyMemberCard` | `./FamilyMemberCard.tsx` | Family member display card |
-| `DetailedItineraryModal` | `./DetailedItineraryModal.tsx` | Detailed itinerary preview |
-
----
-
-## 9. Trip Request Form Components
-
-The `/customer-trip-request` form ([TripRequestInteractive.tsx](file:///c:/Users/Lenovo/OneDrive/Desktop/Coding/Projects/Meili-AI/Meili-AI/frontend/app/customer-trip-request/components/TripRequestInteractive.tsx)) orchestrates a multi-step wizard using:
-
-| Step | Component | File |
-|------|-----------|------|
-| 1 | `DestinationSelector` | `./components/DestinationSelector.tsx` |
-| 2 | `DateRangePicker` | `./components/DateRangePicker.tsx` |
-| 3 | `BudgetRangeSlider` | `./components/BudgetRangeSlider.tsx` |
-| 4 | `GroupComposition` | `./components/GroupComposition.tsx` |
-| 5 | `TravelerPreferences` | `./components/TravelerPreferences.tsx` |
-| 6 | `PlacePreferences` | `./components/PlacePreferences.tsx` |
-| — | `ProgressIndicator` | `./components/ProgressIndicator.tsx` |
