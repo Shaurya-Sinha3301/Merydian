@@ -9,19 +9,24 @@ export const description = "Analysis of Each Family Radar Chart"
 
 // Analytical metrics for multiple families - SCALED 0-100 for Radar Chart visualization
 // User requested parameters:
-// 1. Profit Margin -> (Family Revenue - Family Cost) / Family Revenue
+// 1. Revenue Contribution -> Family Revenue / Total Revenue (shown as %)
 // 2. Total Cost
 // 3. Satisfaction Score -> no of POIs met
 // 4. Profit Contribution -> Family Profit / Total Profit
 // 5. Cost per POI -> Family Total Cost / Number of POIs visited
 
+// Revenue data for calculating Revenue Contribution
+// family1 (Kumar): ₹310k, family2 (Sharma): ₹380k, family3 (Patel): ₹196k, family4 (Gupta): ₹314k
+// Total Revenue = ₹1,200k
+// Revenue Contrib: family1=25.8%, family2=31.7%, family3=16.3%, family4=26.2%
+
 const chartData = [
   {
-    metric: "Profit Margin",
-    family1: 65,  // Actual: 65%
-    family2: 72,  // Actual: 72%
-    family3: 58,  // Actual: 58%
-    family4: 68,  // Actual: 68%
+    metric: "Revenue Contrib.",
+    family1: 26,  // Actual: 25.8%
+    family2: 32,  // Actual: 31.7%
+    family3: 16,  // Actual: 16.3%
+    family4: 26,  // Actual: 26.2%
   },
   {
     metric: "Total Cost",
@@ -55,8 +60,8 @@ const chartData = [
 
 // Unscaled true values map for tooltips
 const trueValues: Record<string, any> = {
-  "Profit Margin": {
-    family1: "65%", family2: "72%", family3: "58%", family4: "68%"
+  "Revenue Contrib.": {
+    family1: "25.8%", family2: "31.7%", family3: "16.3%", family4: "26.2%"
   },
   "Total Cost": {
     family1: "₹186k", family2: "₹220k", family3: "₹138k", family4: "₹195k"
@@ -75,10 +80,10 @@ const trueValues: Record<string, any> = {
 // Scaling information for metrics
 const metricScaling = [
   {
-    name: "Profit Margin",
-    description: "Net Margin (Rev - Cost)/Rev",
-    formula: "Direct %",
-    range: "Higher is better"
+    name: "Revenue Contrib.",
+    description: "Family Revenue / Total Revenue",
+    formula: "(Fam Rev / Total Rev) × 100",
+    range: "Higher = Larger share"
   },
   {
     name: "Total Cost",
@@ -349,23 +354,21 @@ export function FamilyAnalysisRadarChart() {
             </div>
 
             {/* Legend */}
-            <div className="flex-1 space-y-1.5">
+            <div className="flex-1 space-y-0.5">
               {costBreakdownData.map((item, index) => (
-                <div key={index} className="flex items-center justify-between gap-2 p-1.5 hover:bg-gray-50 transition-colors rounded">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div key={index} className="flex items-center justify-between gap-1 px-1 py-0.5 hover:bg-gray-50 transition-colors rounded">
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
                     <div
-                      className="w-2.5 h-2.5 rounded-sm shrink-0"
+                      className="w-2 h-2 rounded-sm shrink-0"
                       style={{ backgroundColor: item.color }}
                     />
                     <span className="text-[9px] font-semibold text-gray-900 truncate">
                       {item.category}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[8px] font-mono font-bold text-gray-900 bg-gray-100 px-1.5 py-0.5 border border-gray-200 rounded">
-                      {item.percentage}%
-                    </span>
-                  </div>
+                  <span className="text-[8px] font-mono font-bold text-gray-900 bg-gray-100 px-1 py-0.5 border border-gray-200 rounded shrink-0">
+                    {item.percentage}%
+                  </span>
                 </div>
               ))}
             </div>

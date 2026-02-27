@@ -1,10 +1,11 @@
 'use client';
 
-import { Sparkles, ChevronRight } from 'lucide-react';
+import { Sparkles, ChevronRight, TrendingUp } from 'lucide-react';
 import { FamilyAnalysisRadarChart } from '@/components/charts/FamilyAnalysisRadarChart';
 import { FamilyCostStackedChart } from '@/components/charts/FamilyCostStackedChart';
 import { PersonalizationProfitChart } from '@/components/charts/PersonalizationProfitChart';
 import { DisruptionImpactChart } from '@/components/charts/DisruptionImpactChart';
+import { summaryMetrics } from '@/components/charts/PersonalizationProfitChart';
 
 // ─── IntelligenceView ─────────────────────────────────────────────────────────
 // Intelligence dashboard with analytical charts and strategic insights
@@ -30,13 +31,9 @@ export default function IntelligenceView() {
                     <FamilyCostStackedChart />
                 </div>
 
-                {/* Personalization vs Profit - Full Width Below */}
-                <div className="mb-6">
+                {/* Personalization + Disruption — side by side */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <PersonalizationProfitChart />
-                </div>
-
-                {/* Disruption Impact Simulator - Full Width Below */}
-                <div className="mb-6">
                     <DisruptionImpactChart />
                 </div>
             </div>
@@ -97,6 +94,52 @@ export default function IntelligenceView() {
                                 '> PROJECTED REVENUE: +$850 Net',
                             ]}
                         />
+
+                        {/* ── Divider ── */}
+                        <div className="border-t border-gray-200 pt-4 mt-2">
+                            <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-gray-400 flex items-center gap-1.5 mb-4">
+                                <TrendingUp className="w-3.5 h-3.5" />
+                                Portfolio KPIs
+                            </span>
+
+                            {/* KPI Summary Cards from Personalization Chart */}
+                            <div className="space-y-3">
+                                {summaryMetrics.map((metric, idx) => (
+                                    <div key={idx} className="border-l-4 border-black bg-white p-3 shadow-sm hover:shadow-md hover:border-gray-600 transition-all border-y border-r border-y-gray-200 border-r-gray-200 group">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="text-[11px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">{metric.label}</span>
+                                            {metric.icon}
+                                        </div>
+                                        <div className="text-2xl font-mono font-bold text-black tracking-tighter my-0.5">
+                                            {metric.value}
+                                        </div>
+                                        <div className="text-[10px] font-mono text-gray-400 mt-1 uppercase tracking-wider">
+                                            ↳ {metric.subtext}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* ── AI Strategic Insight ── */}
+                        <div className="mt-4 border-2 border-[#111827] bg-[#f9fafb] p-4 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-8 h-8 bg-[#111827] transform translate-x-4 -translate-y-4 rotate-45"></div>
+                            <h5 className="text-[11px] font-bold uppercase tracking-widest text-[#111827] mb-2 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                                AI Strategic Insight
+                            </h5>
+                            <p className="text-[12px] leading-relaxed text-gray-700">
+                                <span className="font-bold font-mono text-black">FAM-004 &amp; FAM-006</span> are consistently demanding high customization but yielding below-average margins.
+                            </p>
+                            <p className="text-[12px] leading-relaxed text-gray-700 mt-2 font-mono pb-2 border-b border-gray-300">
+                                <strong className="text-blue-600 uppercase tracking-widest text-[10px]">Recommendation:</strong> Implement a mandatory &quot;Service Fee Tier&quot; for custom requests exceeding 10 POI deviations.
+                            </p>
+                            <div className="mt-3 text-right">
+                                <button className="text-[10px] uppercase tracking-widest font-bold text-black hover:text-blue-600 transition-colors flex items-center justify-end w-full gap-1">
+                                    Apply Pricing Rules <TrendingUp className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

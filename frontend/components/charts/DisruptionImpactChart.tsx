@@ -104,7 +104,7 @@ export function DisruptionImpactChart() {
 
             {/* Chart Content */}
             <div className="px-5 py-6">
-                <div className="w-full h-[240px] min-w-[200px] relative">
+                <div className="w-full h-[200px] min-w-[200px] relative">
 
                     {/* Static Timeline Progress Indicator Label overlay */}
                     <div className="absolute top-0 right-0 flex items-center gap-2 bg-black text-white px-2 py-1 rounded text-[9px] font-mono shadow-md z-10">
