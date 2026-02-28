@@ -113,14 +113,24 @@ export function FamilyCostStackedChart() {
     const [viewMode, setViewMode] = useState<"total" | "day-wise">("total")
 
     return (
-        <div className="border border-gray-200 bg-white">
-            {/* Header mapping to dashboard style */}
-            <div className="border-b border-gray-200 px-5 py-3 flex justify-between items-center bg-gray-50/50">
-                <div className="flex items-center gap-2">
-                    <Banknote className="w-5 h-5 text-gray-700 shrink-0" />
-                    <span className="text-[16px] font-bold text-gray-900 tracking-tight">
-                        Family Cost Overview
-                    </span>
+        <div className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] relative">
+            {/* Decorative Blueprint Overlay */}
+            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+
+            {/* Header */}
+            <div className="border-b-2 border-black px-6 py-4 flex justify-between items-center bg-[#f8f9fa] relative z-10">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center bg-white shrink-0">
+                        <Banknote className="w-4 h-4 text-black" />
+                    </div>
+                    <div>
+                        <h2 className="text-[16px] font-bold uppercase tracking-widest text-black">
+                            Family Cost Overview
+                        </h2>
+                        <p className="text-[12px] text-gray-500 tracking-wider mt-0.5 uppercase">
+                            Total vs Day-wise Breakdown
+                        </p>
+                    </div>
                 </div>
 
                 {/* View Toggle */}
@@ -149,7 +159,7 @@ export function FamilyCostStackedChart() {
             </div>
 
             {/* Analytics Summary Banner */}
-            <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-white">
+            <div className="px-6 py-3 border-b-2 border-black flex items-center justify-between bg-white relative z-10">
                 <div className="flex items-center gap-4">
                     <div>
                         <p className="text-[11px] uppercase tracking-wider text-gray-400 font-bold mb-0.5">Avg Cost / Family</p>
@@ -169,7 +179,7 @@ export function FamilyCostStackedChart() {
             </div>
 
             {/* Chart Content */}
-            <div className="px-5 py-6">
+            <div className="px-6 py-6 relative z-10">
                 <div className="w-full h-[220px] min-w-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
@@ -261,7 +271,7 @@ export function FamilyCostStackedChart() {
             </div>
 
             {/* Footer Insight */}
-            <div className="bg-gray-50/50 border-t border-gray-100 px-5 py-3">
+            <div className="bg-[#f8f9fa] border-t-2 border-black px-6 py-3 relative z-10">
                 <div className="flex items-start gap-3">
                     <CreditCard className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
                     <p className="text-[13px] text-gray-600 leading-relaxed">

@@ -234,22 +234,34 @@ export function FamilyAnalysisRadarChart() {
   }
 
   return (
-    <div className="border border-gray-200 bg-white shadow-sm">
-      {/* Header matching dashboard style */}
-      <div className="border-b border-gray-200 px-5 py-3 bg-gray-50/50">
-        <div className="flex justify-between items-center mb-0">
-          <span className="text-[16px] font-bold capitalize text-gray-900 tracking-tight flex items-center gap-1.5">
-            <RadarIcon className="w-5 h-5 text-gray-700 shrink-0" />
-            Analysis of Each Family
-          </span>
-          <span className="text-[12px] font-mono font-bold text-gray-400 border border-gray-200 px-1.5 py-0.5 bg-white">
+    <div className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] relative">
+      {/* Decorative Blueprint Overlay */}
+      <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+
+      {/* Header */}
+      <div className="border-b-2 border-black px-6 py-4 bg-[#f8f9fa] relative z-10">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center bg-white shrink-0">
+              <RadarIcon className="w-4 h-4 text-black" />
+            </div>
+            <div>
+              <h2 className="text-[16px] font-bold uppercase tracking-widest text-black">
+                Analysis of Each Family
+              </h2>
+              <p className="text-[12px] text-gray-500 tracking-wider mt-0.5 uppercase">
+                Multi-Family Performance Radar
+              </p>
+            </div>
+          </div>
+          <span className="text-[12px] font-mono text-black border-2 border-black px-2 py-1 bg-[#e9ecef] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">
             MULTI-FAMILY
           </span>
         </div>
       </div>
 
       {/* Chart Content */}
-      <div className="px-5 py-4">
+      <div className="px-6 py-4 relative z-10">
         {/* Scale indicator */}
         <div className="flex justify-between items-center mb-2 px-4">
           <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider font-bold">Chart Scale: 0-100 (Hover for exact figures)</span>
@@ -303,9 +315,9 @@ export function FamilyAnalysisRadarChart() {
         </div>
 
         {/* Cost Breakdown Pie Chart */}
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="mt-4 pt-4 border-t-2 border-black">
           <div className="mb-3">
-            <h4 className="text-[12px] font-bold uppercase text-gray-600 tracking-wider mb-1">
+            <h4 className="text-[12px] font-bold uppercase text-black tracking-widest mb-1">
               Global Cost Breakdown
             </h4>
             <p className="text-[11px] text-gray-400 leading-relaxed font-mono">
@@ -376,13 +388,13 @@ export function FamilyAnalysisRadarChart() {
         </div>
 
         {/* Metric Definitions */}
-        <details className="mt-4 pt-4 border-t border-gray-100 group">
+        <details className="mt-4 pt-4 border-t-2 border-black group">
           <summary className="cursor-pointer text-[11px] font-bold uppercase text-gray-400 hover:text-black flex items-center gap-1 select-none transition-colors list-none">
             <span className="text-[13px]">▸</span>
             <span className="group-open:hidden">Show Radar Metrics Definition</span>
             <span className="hidden group-open:inline">Hide Radar Metrics Definition</span>
           </summary>
-          <div className="mt-2 bg-gray-50/50 border border-gray-100 p-2.5">
+          <div className="mt-2 bg-[#f8f9fa] border-2 border-black p-2.5">
             <div className="space-y-2 font-mono text-[10px] text-gray-600">
               {metricScaling.map((metric, index) => (
                 <div key={index} className="pb-2 border-b border-gray-100 last:border-0">
