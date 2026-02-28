@@ -176,7 +176,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(profile);
             return true;
         } catch (error) {
-            console.error('Token refresh failed:', error);
+            if ((error as any).status !== 401 && (error as any).status !== 403) {
+                console.error('Token refresh failed:', error);
+            }
             // Clear auth state on refresh failure
             localStorage.removeItem('access_token');
             apiClient.clearToken();

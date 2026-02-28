@@ -135,12 +135,18 @@ export class APIClient {
                 const error = await response.json().catch(() => ({
                     detail: `HTTP ${response.status}: ${response.statusText}`
                 }));
-                throw new Error(error.detail || `Request failed with status ${response.status}`);
+                const err = new Error(error.detail || `Request failed with status ${response.status}`);
+                (err as any).status = response.status;
+                throw err;
             }
 
             return response.json();
-        } catch (error) {
-            console.error(`API request failed: ${endpoint}`, error);
+        } catch (error: any) {
+            // Next.js intercepts console.error and displays a full-screen dev overlay.
+            // We suppress 401/403 logs here because AuthProvider handles them natively.
+            if (error.status !== 401 && error.status !== 403) {
+                console.error(`API request failed: ${endpoint}`, error);
+            }
             throw error;
         }
     }
@@ -211,7 +217,9 @@ export class APIClient {
         });
 
         if (!response.ok) {
-            throw new Error('Token refresh failed');
+            const err = new Error('Token refresh failed');
+            (err as any).status = response.status;
+            throw err;
         }
 
         return response.json();
