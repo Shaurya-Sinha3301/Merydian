@@ -15,11 +15,11 @@ const TABS = [
 ] as const;
 
 // ─── Component ─────────────────────────────────────────────────────────────────
-export default function TripDetailNavbar({ tripId }: { tripId: string }) {
+export default function TripDetailNavbar({ tripId }: { tripId?: string }) {
     const router = useRouter();
     const pathname = usePathname();
-    const trip = getTripById(tripId);
-    const basePath = `/agent-dashboard/itinerary-management/${tripId}`;
+    const trip = tripId ? getTripById(tripId) : null;
+    const basePath = tripId ? `/agent-dashboard/itinerary-management/${tripId}` : `/agent-dashboard/itinerary-management`;
 
     // Determine active tab from URL
     const activeTab = pathname.endsWith('/intelligence')
@@ -30,7 +30,9 @@ export default function TripDetailNavbar({ tripId }: { tripId: string }) {
                 ? 'groups'
                 : 'optimization';
 
-    if (!trip) return null;
+    // REMOVED: if (!trip) return null; because backend trips aren't in getTripById synchronously
+
+    const displayTitle = trip ? trip.title : tripId ? `Trip ${tripId}` : 'Itinerary Overview';
 
     return (
         /* Matches ItineraryOptimizerWindow header container */
@@ -40,21 +42,25 @@ export default function TripDetailNavbar({ tripId }: { tripId: string }) {
                 {/* ── Left: back button + trip info ───────────────────────── */}
                 <div className="flex items-center gap-4 min-w-0 w-1/4">
                     {/* Sharp square back button — Optimizer style */}
-                    <button
-                        onClick={() => router.push('/agent-dashboard/itinerary-management')}
-                        className="w-9 h-9 flex items-center justify-center border border-[var(--bp-border)] hover:border-black bg-white text-[var(--bp-muted)] hover:text-black transition-colors shrink-0"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                    </button>
+                    {tripId && (
+                        <button
+                            onClick={() => router.push('/agent-dashboard/itinerary-management')}
+                            className="w-9 h-9 flex items-center justify-center border border-[var(--bp-border)] hover:border-black bg-white text-[var(--bp-muted)] hover:text-black transition-colors shrink-0"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                        </button>
+                    )}
 
                     <div className="min-w-0">
                         {/* Large light title — same weight/tracking as Optimizer h1 */}
                         <h2 className="text-2xl md:text-3xl font-[300] tracking-[-0.02em] text-black leading-tight truncate">
-                            {trip.title}
+                            {displayTitle}
                         </h2>
-                        <p className="text-[var(--bp-muted)] mt-0.5 font-light text-xs tracking-wide truncate">
-                            Client: {trip.client} · {trip.dateRange}
-                        </p>
+                        {tripId && (
+                            <p className="text-[var(--bp-muted)] mt-0.5 font-light text-xs tracking-wide truncate">
+                                {trip ? `Client: ${trip.client} · ${trip.dateRange}` : 'Loading details...'}
+                            </p>
+                        )}
                     </div>
                 </div>
 

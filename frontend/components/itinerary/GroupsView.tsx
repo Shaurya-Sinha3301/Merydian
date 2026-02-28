@@ -209,7 +209,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
 
     const activeFamily = FAMILIES.find(f => f.id === activeFamilyId);
 
-    if (!trip) return <div className="p-8 text-center text-stone-500">Trip not found</div>;
+    // REMOVED: if (!trip) return <div className="p-8 text-center text-stone-500">Trip not found</div>;
 
     // Wait until mounted on client to prevent hydration mismatch from browser extension injected attributes
     if (!mounted) return <div className="flex-1 flex overflow-hidden h-full relative bp-grid-bg bg-white" />;
@@ -568,7 +568,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                     </div>
                     <div className="space-y-3">
                         {[
-                            { label: 'Dates', value: trip.dateRange },
+                            { label: 'Dates', value: trip?.dateRange ?? 'OCT 12 – OCT 16' },
                             { label: 'Guests', valueNode: <div className="flex gap-1"><span className="text-stone-900 font-black bg-stone-100 px-1.5 py-0.5 rounded text-[10px] border border-stone-200 uppercase tracking-wider">2 ADT</span><span className="text-stone-900 font-black bg-stone-100 px-1.5 py-0.5 rounded text-[10px] border border-stone-200 uppercase tracking-wider">2 CHD</span></div> },
                             { label: 'Package', value: 'PREMIUM ALL-INC', mono: true },
                         ].map(({ label, value, valueNode, mono }) => (

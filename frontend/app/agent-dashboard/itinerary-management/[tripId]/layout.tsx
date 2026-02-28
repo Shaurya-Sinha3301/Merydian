@@ -1,4 +1,3 @@
-import { Sidebar } from '@/components/ui/Sidebar';
 import NavigationBreadcrumbs from '@/components/common/NavigationBreadcrumbs';
 import TripDetailNavbar from '@/components/itinerary/TripDetailNavbar';
 

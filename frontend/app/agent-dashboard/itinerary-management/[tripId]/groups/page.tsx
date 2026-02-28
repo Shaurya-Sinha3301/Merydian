@@ -1,16 +1,17 @@
 import type { Metadata } from 'next';
 import GroupsView from '@/components/itinerary/GroupsView';
 
-type PageProps = {
-    params: Promise<{ tripId: string }>;
+export const metadata: Metadata = {
+    title: 'Groups - Voyageur',
+    description: 'Manage family groups and member preferences for this itinerary.',
 };
 
-export const metadata: Metadata = {
-    title: 'Trip Groups – Voyageur Studio',
-    description: 'Manage trip groups, family requests, and live communication.',
-};
+interface PageProps {
+    params: Promise<{ tripId: string }>;
+}
 
 export default async function TripGroupsPage({ params }: PageProps) {
     const { tripId } = await params;
+
     return <GroupsView tripId={tripId} />;
 }
