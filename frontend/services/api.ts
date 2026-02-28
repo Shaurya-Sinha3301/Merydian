@@ -135,7 +135,13 @@ export class APIClient {
                 const error = await response.json().catch(() => ({
                     detail: `HTTP ${response.status}: ${response.statusText}`
                 }));
-                const err = new Error(error.detail || `Request failed with status ${response.status}`);
+                let errMsg = error.detail;
+                if (Array.isArray(errMsg)) {
+                    errMsg = errMsg.map((e: any) => `${e.loc?.join('.')} ${e.msg}`).join(', ');
+                } else if (typeof errMsg === 'object' && errMsg !== null) {
+                    errMsg = JSON.stringify(errMsg);
+                }
+                const err = new Error(errMsg || `Request failed with status ${response.status}`);
                 (err as any).status = response.status;
                 throw err;
             }
@@ -330,10 +336,32 @@ export class APIClient {
     }
 
     /**
+     * Register a customer and auto-create their family profile (agent action)
+     */
+    async registerCustomerByAgent(data: {
+        email: string;
+        members: number;
+        children: number;
+        initial_location?: string;
+    }): Promise<{ message: string; family_code: string; user_id: string; family_id: string }> {
+        return this.request('/agent/customers', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    /**
      * Get detailed summary of a trip
      */
     async getTripSummary(tripId: string): Promise<any> {
         return this.request<any>(`/trips/${encodeURIComponent(tripId)}/summary`);
+    }
+
+    /**
+     * Get the full actual itinerary JSON data of a trip
+     */
+    async getTripItinerary(tripId: string): Promise<any> {
+        return this.request<any>(`/trips/${encodeURIComponent(tripId)}/itinerary`);
     }
 
     /**
@@ -378,6 +406,18 @@ export class APIClient {
         if (params?.status) query.set('trip_status', params.status);
         const qs = query.toString();
         return this.request(`/trips/${qs ? '?' + qs : ''}`);
+    }
+
+    /**
+     * Get trips associated with the currently authenticated customer's family
+     */
+    async getCustomerTrips(params?: { limit?: number; skip?: number; status?: string }): Promise<any> {
+        const query = new URLSearchParams();
+        if (params?.limit) query.set('limit', String(params.limit));
+        if (params?.skip) query.set('skip', String(params.skip));
+        if (params?.status) query.set('trip_status', params.status);
+        const qs = query.toString();
+        return this.request(`/trips/me${qs ? '?' + qs : ''}`);
     }
 
     /**

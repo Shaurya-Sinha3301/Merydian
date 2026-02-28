@@ -9,7 +9,7 @@ Provides endpoints for:
 
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field, validator
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Annotated
 from datetime import date
 
 from app.services.trip_service import TripService
@@ -387,6 +387,52 @@ async def get_trip_summary(trip_id: str):
         )
 
 
+@router.get("/{trip_id}/itinerary")
+async def get_trip_itinerary(trip_id: str):
+    """
+    Get the full latest optimized itinerary for a trip.
+    Reads the actual JSON file specified in the TripSession.
+    
+    **Example:**
+    ```
+    GET /api/v1/trips/delhi_20260315_1234/itinerary
+    ```
+    """
+    import os
+    import json
+    from app.services.optimizer_service import OptimizerService
+    
+    try:
+        session = OptimizerService.get_trip_session(trip_id)
+        if not session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Trip session for ID {trip_id} not found"
+            )
+            
+        itinerary_path = session.latest_itinerary_path or session.baseline_itinerary_path
+        
+        if not itinerary_path or not os.path.exists(itinerary_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Itinerary JSON file not found at path: {itinerary_path}"
+            )
+            
+        with open(itinerary_path, 'r') as f:
+            data = json.load(f)
+            return data
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load itinerary: {str(e)}"
+        )
+
+
+
+
 @router.patch("/{trip_id}/families/{family_id}/preferences")
 async def update_family_preferences(
     trip_id: str,
@@ -439,6 +485,89 @@ async def update_family_preferences(
 
 
 from app.core.pagination import PaginationParams, PaginatedResponse
+from app.core.dependencies import get_current_user
+
+@router.get("/me", response_model=PaginatedResponse[TripDetailResponse])
+async def get_my_trips(
+    current_user: Annotated[Any, Depends(get_current_user)],
+    pagination: PaginationParams = Depends(),
+    trip_status: str = None,
+):
+    """
+    Get trips belonging to the currently authenticated user's family.
+    """
+    if not current_user.family_id:
+        # A user might not be assigned to a family yet
+        return PaginatedResponse(
+            items=[],
+            total=0,
+            skip=pagination.skip,
+            limit=pagination.limit
+        )
+
+    try:
+        # Currently the TripService list_trips doesn't filter by family_id efficiently in its signature.
+        # But we can reuse TripService._get_... or manually query here.
+        from sqlmodel import select, func, col
+        from sqlalchemy.dialects.postgresql import JSONB
+        from app.core.db import get_db_session
+        from app.models.trip import TripSession
+        
+        with get_db_session() as session:
+            statement = select(TripSession).where(
+                col(TripSession.family_ids).cast(JSONB).contains([current_user.family_id])
+            ).order_by(TripSession.created_at.desc())
+
+            if trip_status:
+                statement = statement.where(TripSession.status == trip_status)
+
+            # Counter
+            count_stmt = select(func.count()).select_from(TripSession).where(
+                col(TripSession.family_ids).cast(JSONB).contains([current_user.family_id])
+            )
+            if trip_status:
+                count_stmt = count_stmt.where(TripSession.status == trip_status)
+
+            total = session.exec(count_stmt).one()
+            
+            statement = statement.offset(pagination.skip).limit(pagination.limit)
+            trips = session.exec(statement).all()
+            
+            results = []
+            for trip in trips:
+                _ = trip.family_ids
+                _ = trip.initial_preferences
+                _ = trip.current_preferences
+                _ = trip.feedback_history
+                
+                results.append({
+                    "trip_id": trip.trip_id,
+                    "trip_name": trip.trip_name,
+                    "destination": trip.destination,
+                    "start_date": trip.start_date.isoformat() if trip.start_date else None,
+                    "end_date": trip.end_date.isoformat() if trip.end_date else None,
+                    "families": trip.family_ids,
+                    "iteration_count": trip.iteration_count,
+                    "initial_preferences": trip.initial_preferences,
+                    "current_preferences": trip.current_preferences,
+                    "feedback_count": len(trip.feedback_history) if trip.feedback_history else 0,
+                    "latest_itinerary_path": trip.latest_itinerary_path,
+                    "status": trip.status,
+                    "created_at": trip.created_at.isoformat() if trip.created_at else None,
+                })
+
+        return PaginatedResponse(
+            items=[TripDetailResponse(**t) for t in results],
+            total=total,
+            skip=pagination.skip,
+            limit=pagination.limit
+        )
+    except Exception as e:
+        logger.error(f"Failed to get user trips: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to list trips: {str(e)}"
+        )
 
 @router.get("/", response_model=PaginatedResponse[TripDetailResponse])
 async def list_trips(

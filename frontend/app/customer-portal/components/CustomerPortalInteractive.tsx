@@ -7,8 +7,9 @@ import TripCard from './TripCard';
 import PlanTripModal from './PlanTripModal';
 import AgentChatModal from './AgentChatModal';
 import DetailedItineraryModal from './DetailedItineraryModal';
-import activeGroupsData from '@/lib/agent-dashboard/data/active_groups.json';
 import upcomingGroupsData from '@/lib/agent-dashboard/data/upcoming_groups.json';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/services/api';
 
 interface FamilyMember {
   id: string;
@@ -36,6 +37,7 @@ const CustomerPortalInteractive = () => {
   const [showFamilyMembers, setShowFamilyMembers] = useState(false);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
+  const { user } = useAuth();
   const [familyName, setFamilyName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -49,70 +51,55 @@ const CustomerPortalInteractive = () => {
   };
 
   useEffect(() => {
-    // Get family ID from session storage
-    const familyId = sessionStorage.getItem('familyId');
-    
-    if (!familyId) {
+    if (!user || user.role !== 'traveller') {
       router.push('/customer-login');
       return;
     }
 
-    // Find family in active and upcoming groups
-    let foundFamily: any = null;
-    let foundGroups: Trip[] = [];
-    const familyGroupMap: { [key: string]: string } = {}; // Map trip ID to group ID
+    const fetchTrips = async () => {
+      try {
+        const res = await apiClient.getCustomerTrips();
+        const apiTrips = res.items || [];
 
-    // Search in active groups
-    activeGroupsData.groups.forEach((group: any) => {
-      const family = group.families.find((f: any) => f.id === familyId);
-      if (family) {
-        foundFamily = family;
-        const tripId = group.id;
-        familyGroupMap[tripId] = group.id; // Store mapping
-        foundGroups.push({
-          id: tripId,
-          destination: group.current_location,
-          startDate: group.start_date,
-          endDate: group.end_date,
-          status: 'active' as const,
-          groupName: group.group_name,
-          thumbnail: getThumbnailForDestination(group.current_location)
+        let foundFamily: any = null;
+        let foundGroups: Trip[] = [];
+        const familyGroupMap: { [key: string]: string } = {};
+
+        // Parse frontend trips from backend api
+        apiTrips.forEach((trip: any) => {
+          if (!foundFamily) {
+            foundFamily = { family_name: user.full_name || 'Your Family', members: [] };
+          }
+          foundGroups.push({
+            id: trip.trip_id,
+            destination: trip.destination || 'Unknown',
+            startDate: trip.start_date || new Date().toISOString().split('T')[0],
+            endDate: trip.end_date || new Date().toISOString().split('T')[0],
+            status: 'upcoming' as const,
+            groupName: trip.trip_name || trip.destination,
+            thumbnail: getThumbnailForDestination(trip.destination || '')
+          });
+          familyGroupMap[trip.trip_id] = trip.trip_id;
         });
+
+        if (!foundFamily) {
+          // Provide an empty state if no trips are found yet
+          foundFamily = { family_name: user.full_name || 'Your Family', members: [] };
+        }
+
+        sessionStorage.setItem('familyGroupMap', JSON.stringify(familyGroupMap));
+        setFamilyName(foundFamily.family_name);
+        setFamilyMembers(foundFamily.members || []);
+        setTrips(foundGroups);
+      } catch (err) {
+        console.error("Failed to load customer trips", err);
+      } finally {
+        setIsLoading(false);
       }
-    });
+    };
 
-    // Search in upcoming groups
-    upcomingGroupsData.groups.forEach((group: any) => {
-      const family = group.families.find((f: any) => f.id === familyId);
-      if (family) {
-        if (!foundFamily) foundFamily = family;
-        const tripId = group.id;
-        familyGroupMap[tripId] = group.id; // Store mapping
-        foundGroups.push({
-          id: tripId,
-          destination: group.current_location === 'Not Started' ? group.group_name : group.current_location,
-          startDate: group.start_date,
-          endDate: group.end_date,
-          status: 'upcoming' as const,
-          groupName: group.group_name,
-          thumbnail: getThumbnailForDestination(group.group_name)
-        });
-      }
-    });
-
-    if (!foundFamily) {
-      router.push('/customer-login');
-      return;
-    }
-
-    // Store the mapping in sessionStorage for use in DetailedItineraryModal
-    sessionStorage.setItem('familyGroupMap', JSON.stringify(familyGroupMap));
-
-    setFamilyName(foundFamily.family_name);
-    setFamilyMembers(foundFamily.members);
-    setTrips(foundGroups);
-    setIsLoading(false);
-  }, [router]);
+    fetchTrips();
+  }, [user, router]);
 
   const getThumbnailForDestination = (destination: string): string => {
     const thumbnails: { [key: string]: string } = {
@@ -165,8 +152,8 @@ const CustomerPortalInteractive = () => {
                 className="px-4 py-2 bg-[#FDFDFF] text-[#212121] rounded-lg font-medium hover:bg-[#EDEDED] transition-all flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
-                  <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                  <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z" />
+                  <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
                 </svg>
                 <span>My Bookings</span>
               </button>
@@ -201,12 +188,12 @@ const CustomerPortalInteractive = () => {
               onClick={() => setShowFamilyMembers(!showFamilyMembers)}
               className="flex items-center gap-3 px-6 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-[#212121] transition-all group"
             >
-              <svg 
-                className={`w-5 h-5 text-[#212121] transition-transform ${showFamilyMembers ? 'rotate-180' : ''}`} 
-                fill="currentColor" 
+              <svg
+                className={`w-5 h-5 text-[#212121] transition-transform ${showFamilyMembers ? 'rotate-180' : ''}`}
+                fill="currentColor"
                 viewBox="0 0 20 20"
               >
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/>
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
               <span className="text-xl font-bold text-[#212121]">
                 {showFamilyMembers ? 'Family Members' : 'View Members'}
@@ -216,7 +203,7 @@ const CustomerPortalInteractive = () => {
               </span>
             </button>
           </div>
-          
+
           {showFamilyMembers && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
               {familyMembers.map((member) => (

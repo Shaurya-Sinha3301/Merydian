@@ -554,7 +554,7 @@ class AgentService:
         trip_session = TripService.get_active_trip_for_family(family_id)
         if not trip_session:
             logger.warning("No active trip for family %s — creating fallback session", family_id)
-            baseline_path = "ml_or/data/base_itinerary_final.json"
+            baseline_path = "ml_or/data/base_itinerary_clustered.json"
             trip_id = f"auto_{family_id}"
             OptimizerService.create_trip_session(
                 trip_id=trip_id,
