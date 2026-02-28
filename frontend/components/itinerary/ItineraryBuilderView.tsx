@@ -1,378 +1,731 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    Plus, Building2,
-    Save, Download, Settings, Info, Filter,
-    ChevronUp, ChevronDown, Edit2, Trash2, Maximize2, Minimize2, Users
+    Plus, Save, Download, Settings,
+    ChevronUp, ChevronDown, Edit2, Trash2, Maximize2, Minimize2,
+    Users, Mail, UserPlus, Clock, X, Calendar, MapPin
 } from 'lucide-react';
 import VoyageurAIPanel from './VoyageurAIPanel';
+import { apiClient } from '@/services/api';
+
+// ─── Types ──────────────────────────────────────────────────────────────────────
+
+interface Family {
+    id: string;
+    email: string;
+    members: number;
+    location: string;
+}
+
+interface Activity {
+    id: string;
+    name: string;
+    time: string;
+    duration: string;
+    tag: string;
+}
+
+interface Day {
+    id: string;
+    title: string;
+    activities: Activity[];
+}
+
+// ─── Predefined Activity Tags ───────────────────────────────────────────────────
+
+const ACTIVITY_TAGS = [
+    'HISTORICAL',
+    'ACTIVITY',
+    'ADVENTURE',
+    'FUN',
+    'CULTURAL',
+    'DINING',
+    'NATURE',
+    'OTHER',
+];
+
+// ─── ID Generators ──────────────────────────────────────────────────────────────
+
+function generateFamilyId(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const suffix = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    return `FAM-${suffix}`;
+}
+
+let activityCounter = 0;
+function generateActivityId(): string {
+    activityCounter++;
+    return `ACT-${activityCounter}-${Date.now().toString(36).slice(-4)}`;
+}
+
+let dayCounter = 0;
+function generateDayId(): string {
+    dayCounter++;
+    return `DAY-${dayCounter}-${Date.now().toString(36).slice(-4)}`;
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────────
 
 export default function ItineraryBuilderView() {
     const router = useRouter();
 
     const [aiOpen, setAiOpen] = useState(false);
     const [mapExpanded, setMapExpanded] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
-    const [projectName, setProjectName] = useState('The Royal Rajasthan Loop');
-    const [startDate, setStartDate] = useState('OCT 12, 2024');
-    const [duration, setDuration] = useState('14 DAYS');
-    const [families] = useState([
-        { id: 'ANDERSON_FAM_04', pax: '2A+2C' },
-        { id: 'MILLER_FAM_02', pax: '2A' }
+    // Trip Parameters — empty by default
+    const [projectName, setProjectName] = useState('');
+    const [startDate, setStartDate] = useState('');
+
+    // Group Composition — empty by default
+    const [families, setFamilies] = useState<Family[]>([]);
+    const [newEmail, setNewEmail] = useState('');
+    const [newMembers, setNewMembers] = useState('');
+    const [newLocation, setNewLocation] = useState('');
+    const [addingFamily, setAddingFamily] = useState(false);
+
+    // Activity Timeline — starts with one empty day
+    const [days, setDays] = useState<Day[]>([
+        { id: 'DAY-INIT-1', title: '', activities: [] },
     ]);
+    const [addingActivityDayId, setAddingActivityDayId] = useState<string | null>(null);
+    const [newActivityName, setNewActivityName] = useState('');
+    const [newActivityTime, setNewActivityTime] = useState('');
+    const [newActivityDuration, setNewActivityDuration] = useState('');
+    const [newActivityTag, setNewActivityTag] = useState(ACTIVITY_TAGS[0]);
 
-    const handleSave = () => {
-        const builtTrip = {
-            id: 'TR-' + Math.floor(Math.random() * 9000 + 1000),
-            title: projectName,
-            client: families.map(f => f.id.split('_')[0]).join(', '),
-            status: 'DRAFT',
-            dateRange: `${startDate} – TBD`,
+    // Derived duration
+    const duration = `${days.length} ${days.length === 1 ? 'Day' : 'Days'}`;
+
+    // ── Handlers ──────────────────────────────────────────────────────────────
+
+    const handleAddFamily = useCallback(() => {
+        if (!newEmail.trim() || !newMembers.trim()) return;
+        const memberCount = parseInt(newMembers, 10);
+        if (isNaN(memberCount) || memberCount < 1) return;
+
+        const newFamily: Family = {
+            id: generateFamilyId(),
+            email: newEmail.trim(),
+            members: memberCount,
+            location: newLocation.trim() || 'Not specified',
         };
-        const existing = JSON.parse(sessionStorage.getItem('builtTrips') || '[]');
-        existing.push(builtTrip);
-        sessionStorage.setItem('builtTrips', JSON.stringify(existing));
-        router.push('/agent-dashboard/itinerary-management');
+        setFamilies(prev => [...prev, newFamily]);
+        setNewEmail('');
+        setNewMembers('');
+        setNewLocation('');
+        setAddingFamily(false);
+    }, [newEmail, newMembers, newLocation]);
+
+    const handleRemoveFamily = useCallback((famId: string) => {
+        setFamilies(prev => prev.filter(f => f.id !== famId));
+    }, []);
+
+    const handleAddActivity = useCallback((dayId: string) => {
+        if (!newActivityName.trim()) return;
+        const newAct: Activity = {
+            id: generateActivityId(),
+            name: newActivityName.trim(),
+            time: newActivityTime || '09:00',
+            duration: newActivityDuration || '1 Hour',
+            tag: newActivityTag || 'OTHER',
+        };
+        setDays(prev => prev.map(d =>
+            d.id === dayId ? { ...d, activities: [...d.activities, newAct] } : d
+        ));
+        setNewActivityName('');
+        setNewActivityTime('');
+        setNewActivityDuration('');
+        setNewActivityTag(ACTIVITY_TAGS[0]);
+        setAddingActivityDayId(null);
+    }, [newActivityName, newActivityTime, newActivityDuration, newActivityTag]);
+
+    const handleRemoveActivity = useCallback((dayId: string, actId: string) => {
+        setDays(prev => prev.map(d =>
+            d.id === dayId ? { ...d, activities: d.activities.filter(a => a.id !== actId) } : d
+        ));
+    }, []);
+
+    const handleAddDay = useCallback(() => {
+        const newDay: Day = {
+            id: generateDayId(),
+            title: '',
+            activities: [],
+        };
+        setDays(prev => [...prev, newDay]);
+    }, []);
+
+    const handleRemoveDay = useCallback((dayId: string) => {
+        setDays(prev => prev.filter(d => d.id !== dayId));
+    }, []);
+
+    const handleUpdateDayTitle = useCallback((dayId: string, title: string) => {
+        setDays(prev => prev.map(d =>
+            d.id === dayId ? { ...d, title } : d
+        ));
+    }, []);
+
+    const handleSave = async () => {
+        if (families.length === 0) {
+            alert("Please add at least one family to the trip.");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            // 1. Register all families and collect their codes
+            const familyCodes = [];
+            const familyPrefObjects = []; // For initialize
+
+            const fallbackPrefsTemplate = [
+                {
+                    children: 2, budget_sensitivity: 0.9, energy_level: 0.6, pace_preference: "relaxed",
+                    interest_vector: { history: 0.9, architecture: 0.8, food: 0.4, nature: 0.5, nightlife: 0.1, shopping: 0.3, religious: 0.9 },
+                    must_visit_locations: ["LOC_008", "LOC_016"], never_visit_locations: ["LOC_001"],
+                    notes: "Budget sensitive. History buff. HATES Red Fort. LOVES Akshardham."
+                },
+                {
+                    children: 0, budget_sensitivity: 0.2, energy_level: 0.9, pace_preference: "fast",
+                    interest_vector: { history: 0.3, architecture: 0.5, food: 0.9, nature: 0.2, nightlife: 1.0, shopping: 0.8, religious: 0.1 },
+                    must_visit_locations: ["LOC_001"], never_visit_locations: ["LOC_006"],
+                    notes: "Time sensitive. Loves Nightlife. Must Red Fort. Hates Akshardham."
+                },
+                {
+                    children: 1, budget_sensitivity: 0.5, energy_level: 0.7, pace_preference: "moderate",
+                    interest_vector: { history: 0.5, architecture: 0.5, food: 0.6, nature: 0.5, nightlife: 0.5, shopping: 0.5, religious: 0.5 },
+                    must_visit_locations: [], never_visit_locations: [],
+                    notes: "Neutral family. Consenting to whatever."
+                }
+            ];
+
+            for (let i = 0; i < families.length; i++) {
+                const fam = families[i];
+                const fallbackPref = fallbackPrefsTemplate[i % fallbackPrefsTemplate.length];
+
+                const result = await apiClient.registerCustomerByAgent({
+                    email: fam.email,
+                    members: fam.members,
+                    children: fallbackPref.children,
+                    initial_location: fam.location
+                });
+
+                familyCodes.push(result.family_code);
+
+                familyPrefObjects.push({
+                    family_id: result.family_code,
+                    members: fam.members,
+                    children: fallbackPref.children,
+                    budget_sensitivity: fallbackPref.budget_sensitivity,
+                    energy_level: fallbackPref.energy_level,
+                    pace_preference: fallbackPref.pace_preference,
+                    interest_vector: fallbackPref.interest_vector,
+                    must_visit_locations: fallbackPref.must_visit_locations,
+                    never_visit_locations: fallbackPref.never_visit_locations,
+                    notes: fallbackPref.notes
+                });
+            }
+
+            const dest = families[0]?.location || 'Delhi'; // Fallback
+            const startDt = startDate ? new Date(startDate) : new Date();
+            const endDt = new Date(startDt.getTime() + (days.length * 24 * 60 * 60 * 1000));
+
+            const commonPayload = {
+                trip_name: projectName || 'Untitled Trip',
+                destination: dest,
+                start_date: startDt.toISOString().split('T')[0],
+                end_date: endDt.toISOString().split('T')[0],
+                family_ids: familyCodes,
+                num_travellers: families.reduce((acc, f) => acc + f.members, 0)
+            };
+
+            // 2. Initialize Trip
+            console.log("Calling initialize...");
+            const initResult = await apiClient.initializeTrip({
+                trip_name: commonPayload.trip_name,
+                destination: commonPayload.destination,
+                start_date: commonPayload.start_date,
+                end_date: commonPayload.end_date,
+                families: familyPrefObjects,
+                baseline_itinerary: 'delhi_3day_skeleton'
+            });
+            console.log("Initialize result:", initResult);
+
+            // 3. Initialize Trip with Optimization
+            console.log("Calling initializeWithOptimization...");
+            const optiResult = await apiClient.initializeTripWithOptimization(commonPayload);
+            console.log("Initialize with Optimization result:", optiResult);
+
+            if (optiResult.success && optiResult.option_id) {
+                // 4. Auto-Approve Optional
+                console.log("Calling approveOption...");
+                const approveResult = await apiClient.approveOption(optiResult.option_id);
+                console.log("Approve option result:", approveResult);
+
+                router.push('/agent-dashboard/itinerary-management');
+            } else {
+                alert("Failed to initialize trip with optimization: " + (optiResult.message || JSON.stringify(optiResult)));
+                setIsSaving(false);
+            }
+        } catch (error: any) {
+            console.error(error);
+            alert("An error occurred while saving the itinerary: " + (error.message || "Unknown error"));
+            setIsSaving(false);
+        }
     };
 
-    return (
-        // Root: full height flex column so header + body stack
-        <div className="flex-1 flex flex-col min-h-0 bp-grid-bg bg-white">
+    // ── Render ────────────────────────────────────────────────────────────────
 
-            {/* ── HEADER ──────────────────────────────────────────────────────── */}
-            <header className="h-[60px] shrink-0 bg-white border-b border-[var(--bp-border)] px-6 flex justify-between items-center z-40">
-                <h1 className="text-sm font-semibold tracking-tight text-stone-900 uppercase flex items-center gap-3">
-                    Activity Architect
-                    <span className="text-stone-300 font-light hidden sm:inline">/</span>
-                    <span className="font-mono text-xs text-stone-500 bg-stone-50 px-2 py-1 tracking-wider border border-stone-200 hidden sm:inline rounded-sm">
-                        PROJECT: {projectName.toUpperCase()}
-                    </span>
-                </h1>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleSave}
-                        className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-stone-900 transition-colors px-3 py-1.5 hover:bg-stone-50 border border-transparent hover:border-stone-200 rounded-sm"
-                    >
-                        <Save className="w-4 h-4" /> Save
-                    </button>
-                    <div className="p-[1.5px] rounded-sm" style={{ background: 'linear-gradient(135deg, #d4a853, #5a7c5c, #3b6b4a)' }}>
-                        <button className="bg-stone-900 text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors flex items-center gap-2 rounded-sm">
-                            <Download className="w-3.5 h-3.5" /> Export Route
-                        </button>
-                    </div>
+    return (
+        <div className="flex flex-col h-full bp-grid-bg bg-white overflow-hidden">
+
+            {/* ── HEADER — matches management page style ────────────────────── */}
+            <div className="shrink-0 w-full z-10 bg-white/95 backdrop-blur-sm border-b border-[var(--bp-border)]">
+                <div className="px-6 md:px-8 py-4 max-w-7xl mx-auto">
+                    <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-[300] tracking-[-0.02em] text-black leading-tight">
+                                Activity Architect
+                            </h1>
+                            <p className="text-[var(--bp-muted)] mt-1 font-light text-xs tracking-wide">
+                                Build &amp; configure group itineraries
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className={`h-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border px-4 transition-colors ${isSaving
+                                    ? 'bg-gray-50 text-gray-400 border-[var(--bp-border)] cursor-not-allowed'
+                                    : 'border-[var(--bp-border)] text-[var(--bp-muted)] hover:border-black hover:text-black'
+                                    }`}
+                            >
+                                <Save className="w-3.5 h-3.5" /> {isSaving ? 'Saving...' : 'Save'}
+                            </button>
+                            <button className="h-8 bg-black text-white px-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:bg-[var(--bp-sage)] transition-colors">
+                                <Download className="w-3.5 h-3.5" /> Export
+                            </button>
+                        </div>
+                    </header>
                 </div>
-            </header>
+            </div>
 
             {/* ── TWO-COLUMN BODY ─────────────────────────────────────────────── */}
             <div className="flex-1 flex overflow-hidden min-h-0">
 
-                {/* ── LEFT PANEL: Map (fixed height) + Parameters (scrollable) ── */}
-                <aside className="w-[40%] shrink-0 flex flex-col border-r border-[var(--bp-border)] overflow-hidden bg-[#faf9f6]">
+                {/* ── LEFT PANEL ──────────────────────────────────────────────── */}
+                <aside className="w-[40%] shrink-0 flex flex-col border-r border-[var(--bp-border)] overflow-hidden bg-white">
 
-                    {/* STICKY MAP — fixed height, never scrolls */}
-                    <div className="h-[260px] shrink-0 w-full bg-stone-200 overflow-hidden relative group border-b border-stone-200">
-                        <div className="absolute top-3 left-3 z-10 bg-white/95 backdrop-blur px-3 py-1.5 border border-stone-200 shadow-sm pointer-events-none rounded-sm">
-                            <span className="text-[9px] font-mono text-stone-400 uppercase tracking-widest leading-none block">View Mode</span>
-                            <span className="text-xs font-bold leading-none">Monument Schematic</span>
+                    {/* STICKY MAP */}
+                    <div className="h-[200px] shrink-0 w-full bg-gray-100 overflow-hidden relative group border-b border-[var(--bp-border)]">
+                        <div className="absolute top-3 left-3 z-10 bg-white/95 backdrop-blur px-3 py-1.5 border border-[var(--bp-border)] pointer-events-none">
+                            <span className="bp-label mb-0">View Mode</span>
+                            <span className="text-xs font-semibold text-[var(--bp-text)]">Route Schematic</span>
                         </div>
                         <button
                             onClick={() => setMapExpanded(true)}
-                            className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur border border-stone-200 shadow-sm text-stone-500 hover:text-stone-900 transition-all opacity-0 group-hover:opacity-100 rounded-sm"
+                            className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur border border-[var(--bp-border)] text-[var(--bp-muted)] hover:text-black hover:border-black transition-all opacity-0 group-hover:opacity-100"
                         >
                             <Maximize2 className="w-3.5 h-3.5" />
                         </button>
                         <div className="w-full h-full relative">
                             <iframe
                                 src="https://www.openstreetmap.org/export/embed.html?bbox=77.10%2C28.50%2C77.30%2C28.70&layer=mapnik&marker=28.52%2C77.18"
-                                className="w-full h-[320px] filter sepia-[0.22] saturate-[0.7] brightness-[1.05] scale-105 pointer-events-none"
+                                className="w-full h-[260px] filter sepia-[0.22] saturate-[0.7] brightness-[1.05] scale-105 pointer-events-none"
                                 style={{ border: 'none' }}
                                 scrolling="no"
                             />
-                            <div className="absolute inset-0 pointer-events-none">
-                                {/* Qutub Minar marker */}
-                                <div className="absolute top-[38%] left-[28%] -translate-x-1/2 -translate-y-1/2">
-                                    <div className="w-3.5 h-3.5 bg-white border-2 border-stone-900 rotate-45 shadow" />
-                                    <div className="absolute -top-8 -left-10 bg-white px-2 py-0.5 border border-stone-300 whitespace-nowrap shadow z-20 rounded-sm">
-                                        <span className="text-[9px] font-bold font-mono text-stone-900">QUTUB MINAR</span>
-                                    </div>
-                                </div>
-                                {/* Red Fort marker */}
-                                <div className="absolute top-[54%] left-[66%] -translate-x-1/2 -translate-y-1/2">
-                                    <div className="w-3.5 h-3.5 bg-stone-900 border-2 border-white rotate-45 shadow" />
-                                    <div className="absolute top-5 -right-6 bg-white px-2 py-0.5 border border-stone-300 whitespace-nowrap shadow rounded-sm">
-                                        <span className="text-[9px] font-mono text-stone-500">RED FORT</span>
-                                    </div>
-                                </div>
-                                {/* Route line */}
-                                <svg className="absolute inset-0 w-full h-full fill-none" style={{ strokeDasharray: '4 4' }}>
-                                    <path d="M 96 100 L 212 138" stroke="#1c1917" strokeWidth="1.5" />
-                                </svg>
-                            </div>
                         </div>
-                        {/* Bottom fade */}
-                        <div className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
-                            style={{ background: 'linear-gradient(to top, rgba(250,249,246,0.8), transparent)' }} />
                     </div>
 
                     {/* SCROLLABLE PARAMETERS */}
                     <div className="flex-1 overflow-y-auto scrollbar-hide">
-                        <div className="p-5 flex flex-col gap-6">
+                        <div className="p-6 flex flex-col gap-6">
 
-                            {/* Trip Parameters */}
-                            <div>
-                                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-stone-200">
-                                    <Settings className="w-3.5 h-3.5 text-stone-400" />
-                                    <h2 className="text-[10px] font-bold uppercase tracking-widest font-mono text-stone-600">Trip Parameters</h2>
+                            {/* ── Trip Parameters ──────────────────────────────── */}
+                            <section>
+                                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[var(--bp-border)]">
+                                    <Settings className="w-3.5 h-3.5 text-[var(--bp-muted)]" />
+                                    <span className="bp-label mb-0">Trip Parameters</span>
                                 </div>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-[9px] font-mono text-stone-400 uppercase mb-1.5 tracking-widest">Project Name</label>
+                                        <label className="bp-label">Trip Name</label>
                                         <input
                                             type="text" value={projectName}
                                             onChange={e => setProjectName(e.target.value)}
-                                            className="w-full bg-white border border-stone-200 text-sm p-2.5 font-medium text-stone-900 focus:border-stone-500 focus:outline-none rounded-sm hover:border-stone-300 transition-colors"
+                                            placeholder="Enter trip name..."
+                                            className="w-full bg-white border border-[var(--bp-border)] text-sm p-2.5 font-medium text-[var(--bp-text)] placeholder-gray-300 focus:border-black focus:outline-none hover:border-gray-400 transition-colors"
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-[9px] font-mono text-stone-400 uppercase mb-1.5 tracking-widest">Start Date</label>
+                                            <label className="bp-label">Start Date</label>
                                             <input
-                                                type="text" value={startDate}
+                                                type="date" value={startDate}
                                                 onChange={e => setStartDate(e.target.value)}
-                                                className="w-full bg-white border border-stone-200 text-xs p-2.5 font-mono text-stone-900 focus:border-stone-500 focus:outline-none rounded-sm hover:border-stone-300 transition-colors"
+                                                className="w-full bg-white border border-[var(--bp-border)] text-xs p-2.5 font-mono text-[var(--bp-text)] focus:border-black focus:outline-none hover:border-gray-400 transition-colors"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-[9px] font-mono text-stone-400 uppercase mb-1.5 tracking-widest">Duration</label>
-                                            <input
-                                                type="text" value={duration}
-                                                onChange={e => setDuration(e.target.value)}
-                                                className="w-full bg-white border border-stone-200 text-xs p-2.5 font-mono text-stone-900 focus:border-stone-500 focus:outline-none rounded-sm hover:border-stone-300 transition-colors"
-                                            />
+                                            <label className="bp-label">Duration</label>
+                                            <div className="w-full bg-gray-50 border border-[var(--bp-border)] text-xs p-2.5 font-mono font-semibold text-[var(--bp-text)] flex items-center gap-2">
+                                                <Calendar className="w-3.5 h-3.5 text-[var(--bp-muted)]" />
+                                                {duration}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </section>
 
-                            {/* Group Composition */}
-                            <div>
-                                <div className="flex items-center justify-between mb-4 pb-2 border-b border-stone-200">
+                            {/* ── Group Composition ────────────────────────────── */}
+                            <section>
+                                <div className="flex items-center justify-between mb-4 pb-2 border-b border-[var(--bp-border)]">
                                     <div className="flex items-center gap-2">
-                                        <Users className="w-3.5 h-3.5 text-stone-400" />
-                                        <h2 className="text-[10px] font-bold uppercase tracking-widest font-mono text-stone-600">Group Composition</h2>
+                                        <Users className="w-3.5 h-3.5 text-[var(--bp-muted)]" />
+                                        <span className="bp-label mb-0">Group Composition</span>
                                     </div>
-                                    <span className="text-[9px] font-mono text-stone-400 bg-stone-100 border border-stone-200 px-1.5 py-0.5 rounded-sm">MULTI-ID</span>
+                                    <span className="text-[9px] font-bold text-[var(--bp-muted)] bg-gray-100 border border-[var(--bp-border)] px-2 py-0.5 uppercase tracking-widest">
+                                        {families.length} {families.length === 1 ? 'Family' : 'Families'}
+                                    </span>
                                 </div>
+
+                                {/* Family Cards */}
                                 <div className="space-y-2">
-                                    {families.map((fam, idx) => (
-                                        <div key={idx} className="group flex items-center gap-2 p-2 bg-white border border-stone-200 hover:border-stone-300 transition-all rounded-sm relative overflow-hidden hover:shadow-sm">
-                                            {/* Gold→green left accent on hover */}
-                                            <div className="absolute left-0 top-0 bottom-0 w-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
-                                                style={{ background: 'linear-gradient(to bottom, #d4a853, #5a7c5c)' }} />
-                                            <div className="w-8 h-8 flex items-center justify-center bg-stone-100 border border-stone-200 shrink-0 rounded-sm">
-                                                <span className="text-xs font-mono font-bold text-stone-600">{fam.id.charAt(0)}</span>
+                                    {families.length === 0 && !addingFamily && (
+                                        <div className="border border-dashed border-[var(--bp-border)] p-4 text-center">
+                                            <p className="text-xs text-[var(--bp-muted)] font-light">No families added yet</p>
+                                        </div>
+                                    )}
+
+                                    {families.map((fam) => (
+                                        <div key={fam.id} className="bp-card group relative p-3 flex items-center gap-3 overflow-hidden">
+                                            {/* Left accent on hover */}
+                                            <div className="absolute left-0 top-0 bottom-0 w-[3px] opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--bp-sage)]" />
+                                            <div className="w-9 h-9 flex items-center justify-center bg-gray-100 border border-[var(--bp-border)] shrink-0">
+                                                <span className="text-xs font-bold text-[var(--bp-text)]">{fam.email.charAt(0).toUpperCase()}</span>
                                             </div>
-                                            <p className="flex-1 text-xs font-mono font-medium text-stone-800 truncate">{fam.id}</p>
-                                            <span className="text-[9px] text-stone-400 font-mono shrink-0 bg-stone-50 border border-stone-100 px-1.5 py-0.5 rounded-sm">{fam.pax}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-0.5">
+                                                    <span className="text-[9px] font-bold text-[var(--bp-sage)] bg-[var(--bp-sage)]/10 px-1.5 py-0.5 uppercase tracking-widest border border-[var(--bp-sage)]/20">{fam.id}</span>
+                                                </div>
+                                                <p className="text-xs text-[var(--bp-text)] truncate font-medium">{fam.email}</p>
+                                                <p className="text-[10px] text-[var(--bp-muted)] truncate flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3" />{fam.location}</p>
+                                            </div>
+                                            <span className="text-[9px] font-bold text-[var(--bp-muted)] bg-gray-100 border border-[var(--bp-border)] px-1.5 py-0.5 uppercase tracking-wider shrink-0">
+                                                {fam.members} {fam.members === 1 ? 'Member' : 'Members'}
+                                            </span>
+                                            <button
+                                                onClick={() => handleRemoveFamily(fam.id)}
+                                                className="p-1 text-gray-300 hover:text-[var(--bp-red)] transition-colors opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
                                         </div>
                                     ))}
-                                    <button className="group w-full flex items-center justify-center gap-2 border border-dashed border-stone-300 py-2.5 text-[10px] font-mono uppercase text-stone-400 hover:text-stone-700 hover:border-stone-500 hover:bg-white transition-all rounded-sm mt-1">
-                                        <Plus className="w-3.5 h-3.5" /> Add Family ID
-                                    </button>
+
+                                    {/* Add Family Form */}
+                                    {addingFamily ? (
+                                        <div className="border border-black p-4 space-y-3 bg-white">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <UserPlus className="w-3.5 h-3.5 text-[var(--bp-muted)]" />
+                                                <span className="bp-label mb-0">New Family</span>
+                                            </div>
+                                            <div>
+                                                <label className="bp-label">Family Head Email</label>
+                                                <div className="relative">
+                                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" />
+                                                    <input
+                                                        type="email"
+                                                        value={newEmail}
+                                                        onChange={e => setNewEmail(e.target.value)}
+                                                        placeholder="e.g. john@family.com"
+                                                        className="w-full bg-white border border-[var(--bp-border)] text-xs p-2.5 pl-9 text-[var(--bp-text)] placeholder-gray-300 focus:outline-none focus:border-black transition-all"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="bp-label">Number of Members</label>
+                                                <div className="relative">
+                                                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" />
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={newMembers}
+                                                        onChange={e => setNewMembers(e.target.value)}
+                                                        placeholder="e.g. 4"
+                                                        className="w-full bg-white border border-[var(--bp-border)] text-xs p-2.5 pl-9 text-[var(--bp-text)] placeholder-gray-300 focus:outline-none focus:border-black transition-all"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="bp-label">Initial Location</label>
+                                                <div className="relative">
+                                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" />
+                                                    <input
+                                                        type="text"
+                                                        value={newLocation}
+                                                        onChange={e => setNewLocation(e.target.value)}
+                                                        placeholder="e.g. New Delhi, India"
+                                                        className="w-full bg-white border border-[var(--bp-border)] text-xs p-2.5 pl-9 text-[var(--bp-text)] placeholder-gray-300 focus:outline-none focus:border-black transition-all"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2 pt-1">
+                                                <button
+                                                    onClick={handleAddFamily}
+                                                    className="flex-1 py-2 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[var(--bp-sage)] transition-colors flex items-center justify-center gap-1.5"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5" /> Add Family
+                                                </button>
+                                                <button
+                                                    onClick={() => { setAddingFamily(false); setNewEmail(''); setNewMembers(''); setNewLocation(''); }}
+                                                    className="px-4 py-2 border border-[var(--bp-border)] text-[var(--bp-muted)] text-[10px] font-bold uppercase tracking-widest hover:border-black hover:text-black transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => setAddingFamily(true)}
+                                            className="w-full flex items-center justify-center gap-2 border border-dashed border-gray-300 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[var(--bp-muted)] hover:text-black hover:border-black transition-all mt-1"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" /> Add Family
+                                        </button>
+                                    )}
                                 </div>
-                            </div>
+                            </section>
                         </div>
                     </div>
                 </aside>
 
-                {/* ── RIGHT PANEL: Timeline (60%) ─────────────────────────────── */}
-                <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                {/* ── RIGHT PANEL: Activity Timeline ──────────────────────────── */}
+                <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
 
                     {/* Timeline section header (sticky) */}
                     <div className="bg-white border-b border-[var(--bp-border)] px-6 py-3.5 flex justify-between items-center shrink-0">
-                        <h2 className="text-[10px] font-bold uppercase tracking-widest font-mono text-stone-600 flex items-center gap-2">
-                            <Building2 className="w-3.5 h-3.5" /> Monument Timeline
-                        </h2>
+                        <div className="flex items-center gap-3">
+                            <Calendar className="w-3.5 h-3.5 text-[var(--bp-muted)]" />
+                            <span className="bp-label mb-0">Activity Timeline</span>
+                            <span className="text-[9px] font-bold text-[var(--bp-muted)] bg-gray-100 border border-[var(--bp-border)] px-2 py-0.5 uppercase tracking-widest">
+                                {days.length} {days.length === 1 ? 'Day' : 'Days'}
+                            </span>
+                        </div>
                         <div className="flex items-center gap-1">
-                            <button className="p-1.5 hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors rounded-sm"><Filter className="w-3.5 h-3.5" /></button>
-                            <button className="p-1.5 hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors rounded-sm"><ChevronUp className="w-3.5 h-3.5" /></button>
-                            <button className="p-1.5 hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors rounded-sm"><ChevronDown className="w-3.5 h-3.5" /></button>
+                            <button className="w-7 h-7 flex items-center justify-center border border-transparent hover:border-[var(--bp-border)] text-[var(--bp-muted)] hover:text-black transition-colors"><ChevronUp className="w-3.5 h-3.5" /></button>
+                            <button className="w-7 h-7 flex items-center justify-center border border-transparent hover:border-[var(--bp-border)] text-[var(--bp-muted)] hover:text-black transition-colors"><ChevronDown className="w-3.5 h-3.5" /></button>
                         </div>
                     </div>
 
                     {/* Scrollable days */}
-                    <div className="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-10 bg-[#faf9f6]">
+                    <div className="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-8">
 
-                        {/* ── Day 1 ── */}
-                        <div>
-                            <div className="flex items-center justify-between mb-5 sticky top-0 bg-[#faf9f6]/98 backdrop-blur py-2.5 border-b border-dashed border-stone-200 z-10">
-                                <div className="flex items-center gap-3">
-                                    <span className="bg-stone-900 text-white text-[10px] font-bold px-2.5 py-1 font-mono tracking-widest">DAY 01</span>
-                                    <span className="text-sm font-semibold text-stone-800">Imperial New Delhi</span>
-                                </div>
-                                <span className="text-[10px] font-mono text-stone-400 bg-white border border-stone-200 px-2 py-0.5 rounded-sm">OCT 12</span>
-                            </div>
-
-                            <div className="ml-4 pl-5 border-l-2 border-stone-200 space-y-4">
-
-                                {/* Card: Qutub Minar */}
-                                <div className="group relative flex bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md transition-all overflow-hidden rounded-sm">
-                                    <div className="absolute top-0 left-0 bottom-0 w-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
-                                        style={{ background: 'linear-gradient(to bottom, #d4a853, #5a7c5c)' }} />
-                                    <div className="w-[88px] shrink-0 bg-stone-100 relative overflow-hidden border-r border-stone-100" style={{ minHeight: '90px' }}>
-                                        <img
-                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHEfIerhPgoh_W0PbpveI2rCWMElLqzvkFCQHBS1TLUXqfl4x6Rh3GiQ54cGPAxS9yU7D84e6T_LBY_zPElcGSLLtAvR1mnK9oSKqSlerJbbOCS_QXotb0KOVCHicQrsls1eKYTTy1_PfwcrV2VyDg2Lmpn_gnh_3becoYFaIrgg-FGX36CLIPaqOI5qyZX5BpQM2Bpup5nBNpq8KSBGdReZZnTA1VG3aCIOYClr63eaDhB67ZZQEfaT1wB9MiDuiXJQ7oNG4ysWz8"
-                                            alt="Qutub Minar"
-                                            className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500 absolute inset-0"
+                        {days.map((day, dayIdx) => (
+                            <div key={day.id}>
+                                {/* Day Header */}
+                                <div className="flex items-center justify-between mb-4 sticky top-0 bg-white/98 backdrop-blur py-2.5 border-b border-dashed border-[var(--bp-border)] z-10">
+                                    <div className="flex items-center gap-3">
+                                        <span className="bg-black text-white text-[10px] font-bold px-2.5 py-1 font-mono tracking-widest">
+                                            DAY {String(dayIdx + 1).padStart(2, '0')}
+                                        </span>
+                                        <input
+                                            type="text"
+                                            value={day.title}
+                                            onChange={e => handleUpdateDayTitle(day.id, e.target.value)}
+                                            placeholder="Day title..."
+                                            className="text-sm font-semibold text-[var(--bp-text)] bg-transparent border-b border-transparent hover:border-gray-300 focus:border-black focus:outline-none transition-colors px-1 py-0.5 placeholder-gray-300"
                                         />
-                                        <div className="absolute bottom-0 left-0 w-full bg-black/65 text-white text-[9px] font-mono text-center py-1 tracking-wider z-10">09:00</div>
                                     </div>
-                                    <div className="p-3.5 flex-1 flex flex-col justify-between">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <span className="text-[9px] font-mono text-stone-400 uppercase tracking-widest">UNESCO Site</span>
-                                                <h4 className="text-sm font-semibold text-stone-900 leading-tight mt-0.5">Qutub Minar Complex</h4>
-                                            </div>
-                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="text-stone-300 hover:text-stone-700 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                                                <button className="text-stone-300 hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-between items-end mt-2.5 pt-2 border-t border-stone-50">
-                                            <p className="text-[10px] text-stone-500 font-mono">Guided Walk • 2.5 Hours</p>
-                                            <span className="text-[9px] font-mono text-stone-300 bg-stone-50 border border-stone-100 px-1.5 py-0.5 rounded-sm">#HISTORICAL</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Card: Humayun's Tomb */}
-                                <div className="group relative flex bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md transition-all overflow-hidden rounded-sm">
-                                    <div className="absolute top-0 left-0 bottom-0 w-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
-                                        style={{ background: 'linear-gradient(to bottom, #d4a853, #5a7c5c)' }} />
-                                    <div className="w-[88px] shrink-0 bg-stone-50 border-r border-stone-100 flex items-center justify-center relative" style={{ minHeight: '90px' }}>
-                                        <Building2 className="w-7 h-7 text-stone-200 group-hover:text-stone-300 transition-colors" />
-                                        <div className="absolute bottom-0 left-0 w-full bg-black/65 text-white text-[9px] font-mono text-center py-1 tracking-wider">14:00</div>
-                                    </div>
-                                    <div className="p-3.5 flex-1 flex flex-col justify-between">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <span className="text-[9px] font-mono text-stone-400 uppercase tracking-widest">Landmark</span>
-                                                <h4 className="text-sm font-semibold text-stone-900 leading-tight mt-0.5">Humayun's Tomb</h4>
-                                            </div>
-                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="text-stone-300 hover:text-stone-700 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                                                <button className="text-stone-300 hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-between items-end mt-2.5 pt-2 border-t border-stone-50">
-                                            <p className="text-[10px] text-stone-500 font-mono">Garden Walk • 1.5 Hours</p>
-                                            <span className="text-[9px] font-mono text-stone-300 bg-stone-50 border border-stone-100 px-1.5 py-0.5 rounded-sm">#MUGHAL_ARCH</span>
-                                        </div>
+                                    <div className="flex items-center gap-2">
+                                        {startDate && (
+                                            <span className="text-[10px] font-mono text-[var(--bp-muted)] bg-white border border-[var(--bp-border)] px-2 py-0.5">
+                                                {(() => {
+                                                    const d = new Date(startDate);
+                                                    d.setDate(d.getDate() + dayIdx);
+                                                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+                                                })()}
+                                            </span>
+                                        )}
+                                        {days.length > 1 && (
+                                            <button
+                                                onClick={() => handleRemoveDay(day.id)}
+                                                className="w-6 h-6 flex items-center justify-center text-gray-300 hover:text-[var(--bp-red)] transition-colors border border-transparent hover:border-[var(--bp-red)]"
+                                                title="Remove day"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Add row */}
-                                <div className="flex items-center gap-3 border border-dashed border-stone-250 px-4 py-3 bg-white/50 hover:bg-white hover:border-stone-400 transition-all rounded-sm cursor-pointer group">
-                                    <Plus className="w-4 h-4 text-stone-300 group-hover:text-stone-600 shrink-0 transition-colors" />
-                                    <span className="text-xs text-stone-400 group-hover:text-stone-600 font-mono transition-colors">Add monument or activity...</span>
+                                <div className="ml-4 pl-5 border-l-2 border-gray-200 space-y-3">
+
+                                    {/* Activity Cards */}
+                                    {day.activities.length === 0 && addingActivityDayId !== day.id && (
+                                        <div className="border border-dashed border-[var(--bp-border)] p-4 text-center">
+                                            <p className="text-xs text-[var(--bp-muted)] font-light">No activities yet</p>
+                                        </div>
+                                    )}
+
+                                    {day.activities.map((act) => (
+                                        <div key={act.id} className="bp-card group relative flex items-center gap-4 p-3.5 overflow-hidden">
+                                            {/* Left accent */}
+                                            <div className="absolute left-0 top-0 bottom-0 w-[3px] opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--bp-sage)]" />
+                                            {/* Time badge */}
+                                            <div className="w-12 h-12 bg-gray-50 border border-[var(--bp-border)] flex flex-col items-center justify-center shrink-0">
+                                                <Clock className="w-3 h-3 text-[var(--bp-muted)] mb-0.5" />
+                                                <span className="text-[10px] font-bold font-mono text-[var(--bp-text)]">{act.time}</span>
+                                            </div>
+                                            {/* Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-sm font-semibold text-[var(--bp-text)] tracking-tight">{act.name}</h4>
+                                                <p className="text-[10px] text-[var(--bp-muted)] font-medium uppercase tracking-wider mt-0.5">{act.duration}</p>
+                                            </div>
+                                            {/* Tag + Actions */}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <span className="text-[9px] font-bold text-[var(--bp-muted)] bg-gray-100 border border-[var(--bp-border)] px-2 py-0.5 uppercase tracking-widest">
+                                                    #{act.tag}
+                                                </span>
+                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button className="w-6 h-6 flex items-center justify-center text-gray-300 hover:text-black border border-transparent hover:border-[var(--bp-border)] transition-colors">
+                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRemoveActivity(day.id, act.id)}
+                                                        className="w-6 h-6 flex items-center justify-center text-gray-300 hover:text-[var(--bp-red)] border border-transparent hover:border-[var(--bp-red)] transition-colors"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Add Activity Form / Button */}
+                                    {addingActivityDayId === day.id ? (
+                                        <div className="border border-black p-4 space-y-3 bg-white">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Plus className="w-3.5 h-3.5 text-[var(--bp-muted)]" />
+                                                    <span className="bp-label mb-0">New Activity</span>
+                                                </div>
+                                                <button onClick={() => setAddingActivityDayId(null)} className="w-6 h-6 flex items-center justify-center text-[var(--bp-muted)] hover:text-black transition-colors">
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                            <div>
+                                                <label className="bp-label">Activity Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={newActivityName}
+                                                    onChange={e => setNewActivityName(e.target.value)}
+                                                    placeholder="e.g. Taj Mahal Visit"
+                                                    className="w-full bg-white border border-[var(--bp-border)] text-xs p-2.5 text-[var(--bp-text)] placeholder-gray-300 focus:outline-none focus:border-black transition-all"
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div>
+                                                    <label className="bp-label">Time</label>
+                                                    <input
+                                                        type="time"
+                                                        value={newActivityTime}
+                                                        onChange={e => setNewActivityTime(e.target.value)}
+                                                        className="w-full bg-white border border-[var(--bp-border)] text-xs p-2.5 font-mono text-[var(--bp-text)] focus:outline-none focus:border-black transition-all"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="bp-label">Duration</label>
+                                                    <input
+                                                        type="text"
+                                                        value={newActivityDuration}
+                                                        onChange={e => setNewActivityDuration(e.target.value)}
+                                                        placeholder="e.g. 2 Hours"
+                                                        className="w-full bg-white border border-[var(--bp-border)] text-xs p-2.5 text-[var(--bp-text)] placeholder-gray-300 focus:outline-none focus:border-black transition-all"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="bp-label">Tag</label>
+                                                    <select
+                                                        value={newActivityTag}
+                                                        onChange={e => setNewActivityTag(e.target.value)}
+                                                        className="w-full bg-white border border-[var(--bp-border)] text-xs p-2.5 text-[var(--bp-text)] focus:outline-none focus:border-black transition-all appearance-none cursor-pointer"
+                                                    >
+                                                        {ACTIVITY_TAGS.map(tag => (
+                                                            <option key={tag} value={tag}>{tag}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleAddActivity(day.id)}
+                                                className="w-full py-2 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[var(--bp-sage)] transition-colors flex items-center justify-center gap-1.5"
+                                            >
+                                                <Plus className="w-3.5 h-3.5" /> Add Activity
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => {
+                                                setAddingActivityDayId(day.id);
+                                                setNewActivityName('');
+                                                setNewActivityTime('');
+                                                setNewActivityDuration('');
+                                                setNewActivityTag(ACTIVITY_TAGS[0]);
+                                            }}
+                                            className="w-full flex items-center gap-3 border border-dashed border-gray-300 px-4 py-3 hover:border-black hover:bg-gray-50 transition-all cursor-pointer group"
+                                        >
+                                            <Plus className="w-4 h-4 text-gray-300 group-hover:text-black shrink-0 transition-colors" />
+                                            <span className="text-xs text-[var(--bp-muted)] group-hover:text-black font-mono transition-colors">Add activity...</span>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
-                        </div>
-
-                        {/* ── Day 2 ── */}
-                        <div>
-                            <div className="flex items-center justify-between mb-5 sticky top-0 bg-[#faf9f6]/98 backdrop-blur py-2.5 border-b border-dashed border-stone-200 z-10">
-                                <div className="flex items-center gap-3">
-                                    <span className="bg-stone-900 text-white text-[10px] font-bold px-2.5 py-1 font-mono tracking-widest">DAY 02</span>
-                                    <span className="text-sm font-semibold text-stone-800">Old Delhi Heritage</span>
-                                </div>
-                                <span className="text-[10px] font-mono text-stone-400 bg-white border border-stone-200 px-2 py-0.5 rounded-sm">OCT 13</span>
-                            </div>
-
-                            <div className="ml-4 pl-5 border-l-2 border-stone-200 space-y-4">
-
-                                {/* Card: Red Fort */}
-                                <div className="group relative flex bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md transition-all overflow-hidden rounded-sm">
-                                    <div className="absolute top-0 left-0 bottom-0 w-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
-                                        style={{ background: 'linear-gradient(to bottom, #d4a853, #5a7c5c)' }} />
-                                    <div className="w-[88px] shrink-0 bg-stone-50 border-r border-stone-100 flex items-center justify-center relative" style={{ minHeight: '90px' }}>
-                                        <Building2 className="w-7 h-7 text-stone-200 group-hover:text-stone-300 transition-colors" />
-                                        <div className="absolute bottom-0 left-0 w-full bg-black/65 text-white text-[9px] font-mono text-center py-1 tracking-wider">09:00</div>
-                                    </div>
-                                    <div className="p-3.5 flex-1 flex flex-col justify-between">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <span className="text-[9px] font-mono text-stone-400 uppercase tracking-widest">Fortress</span>
-                                                <h4 className="text-sm font-semibold text-stone-900 leading-tight mt-0.5">Red Fort Private Tour</h4>
-                                            </div>
-                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="text-stone-300 hover:text-stone-700 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                                                <button className="text-stone-300 hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-between items-end mt-2.5 pt-2 border-t border-stone-50">
-                                            <p className="text-[10px] text-stone-500 font-mono">Diwan-i-Aam & Museums</p>
-                                            <span className="text-[9px] font-mono text-stone-300 bg-stone-50 border border-stone-100 px-1.5 py-0.5 rounded-sm">#ICONIC</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Add row */}
-                                <div className="flex items-center gap-3 border border-dashed border-stone-250 px-4 py-3 bg-white/50 hover:bg-white hover:border-stone-400 transition-all rounded-sm cursor-pointer group">
-                                    <Plus className="w-4 h-4 text-stone-300 group-hover:text-stone-600 shrink-0 transition-colors" />
-                                    <span className="text-xs text-stone-400 group-hover:text-stone-600 font-mono transition-colors">Add monument or activity...</span>
-                                </div>
-                            </div>
-                        </div>
+                        ))}
 
                         {/* Add New Day */}
                         <div>
-                            <div className="p-[1.5px] rounded-sm" style={{ background: 'linear-gradient(135deg, #d4a853, #5a7c5c, #3b6b4a)' }}>
-                                <button className="w-full bg-[#faf9f6] hover:bg-white transition-colors flex items-center justify-center gap-2 py-3 text-[10px] font-bold uppercase tracking-widest text-stone-600 hover:text-stone-900 rounded-sm">
-                                    <Plus className="w-3.5 h-3.5" /> Add New Day
-                                </button>
-                            </div>
+                            <button
+                                onClick={handleAddDay}
+                                className="w-full bg-black text-white hover:bg-[var(--bp-sage)] transition-colors flex items-center justify-center gap-2 py-3 text-[10px] font-bold uppercase tracking-widest"
+                            >
+                                <Plus className="w-3.5 h-3.5" /> Add New Day
+                            </button>
                         </div>
 
                     </div>
                 </main>
             </div>
 
-            {/* Voyageur AI (renders as fixed overlay – always at bottom-right) */}
+            {/* Voyageur AI */}
             <VoyageurAIPanel
                 open={aiOpen}
                 onOpenChange={setAiOpen}
                 insightTag="Itinerary Intelligence"
-                insightTagColor="bg-stone-900 text-white"
+                insightTagColor="bg-black text-white"
                 insightBody={
                     <ul className="space-y-3 mt-1 text-sm">
                         <li className="flex gap-2.5 items-start">
-                            <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 bg-emerald-400" />
-                            <span className="text-stone-700 leading-relaxed font-mono text-[11px]">
-                                Moving <strong className="text-stone-900">Humayun's Tomb</strong> to Day 01 afternoon cuts travel time by ~45 min per current traffic models.
+                            <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 bg-[var(--bp-sage)]" />
+                            <span className="text-[var(--bp-text)] leading-relaxed font-mono text-[11px]">
+                                Ready to help optimize your itinerary. Add days and activities to get started.
                             </span>
                         </li>
-                        <div className="pl-4 mt-1">
-                            <button className="bg-stone-100 border border-stone-200 text-stone-700 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider hover:bg-stone-900 hover:text-white transition-colors rounded-sm">
-                                &gt; Apply Change
-                            </button>
-                        </div>
                     </ul>
                 }
-                inputPlaceholder="Query route logic or add monuments..."
+                inputPlaceholder="Query route logic or add activities..."
                 seedMessage="Architect loaded. Ready to optimize sequence, suggest venues, and calculate commute times."
-                getAIReply={text => `Analyzing: "${text}". I've mapped the coordinates — would you like me to insert this into Day 02?`}
+                getAIReply={text => `Analyzing: "${text}". I've mapped the coordinates — would you like me to insert this into the timeline?`}
             />
 
             {/* Map Expand Modal */}
             {mapExpanded && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setMapExpanded(false)}>
-                    <div className="relative bg-white shadow-2xl flex flex-col overflow-hidden border border-stone-200 rounded-sm" style={{ width: '80vw', height: '80vh' }} onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-between px-6 py-4 bg-white shrink-0 border-b border-stone-200">
-                            <span className="text-xs font-bold text-stone-900 uppercase tracking-widest font-mono">Route Visualization Map</span>
-                            <button onClick={() => setMapExpanded(false)} className="p-2 bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors rounded-sm">
+                    <div className="relative bg-white shadow-2xl flex flex-col overflow-hidden border border-[var(--bp-border)]" style={{ width: '80vw', height: '80vh' }} onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-6 py-4 bg-white shrink-0 border-b border-[var(--bp-border)]">
+                            <span className="bp-label mb-0">Route Visualization Map</span>
+                            <button onClick={() => setMapExpanded(false)} className="w-8 h-8 flex items-center justify-center border border-[var(--bp-border)] text-[var(--bp-muted)] hover:border-black hover:text-black transition-colors">
                                 <Minimize2 className="w-4 h-4" />
                             </button>
                         </div>

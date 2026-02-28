@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import activeGroupsData from '@/lib/agent-dashboard/data/active_groups.json';
 import upcomingGroupsData from '@/lib/agent-dashboard/data/upcoming_groups.json';
 import { CustomerSidebar } from '@/app/components/CustomerSidebar';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/services/api';
 
 /* ── Design tokens ── */
 const GOLD = 'var(--gradient-opt-gold)';
@@ -109,6 +111,7 @@ const DEST: Record<string, { city: string; country: string; lat: string; lng: st
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════ */
 export default function CustomerDashboardInteractive() {
+    const { user } = useAuth();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [destMeta, setDestMeta] = useState(DEST.DEFAULT);
@@ -118,17 +121,47 @@ export default function CustomerDashboardInteractive() {
     const chatEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const fid = sessionStorage.getItem('familyId');
-        if (!fid) { router.push('/customer-login'); return; }
-        let found: any = null, gid: string | null = null;
-        for (const g of [...activeGroupsData.groups, ...upcomingGroupsData.groups]) {
-            const f = g.families.find((f: any) => f.id === fid);
-            if (f) { found = f; gid = g.id; break; }
+        if (!user || user.role !== 'traveller') {
+            router.push('/customer-login');
+            return;
         }
-        if (!found) { router.push('/customer-login'); return; }
-        setDestMeta(DEST[gid ?? 'DEFAULT'] ?? DEST.DEFAULT);
-        setIsLoading(false);
-    }, [router]);
+
+        const fetchTrips = async () => {
+            try {
+                const res = await apiClient.getCustomerTrips();
+                const trips = res.items || [];
+
+                if (trips.length > 0) {
+                    // Pick the first upcoming trip or the most recently active
+                    const activeTrip = trips.find((t: any) => t.status === 'active') || trips[0];
+                    const gid = activeTrip.trip_id;
+
+                    // Dynamically seed DEST map if missing
+                    if (gid && !DEST[gid]) {
+                        DEST[gid] = {
+                            city: (activeTrip.destination || 'Unknown').toUpperCase(),
+                            country: '',
+                            lat: 'Tracking...',
+                            lng: 'Tracking...',
+                            progress: 0
+                        };
+                    }
+
+                    setDestMeta(DEST[gid] || DEST.DEFAULT);
+                } else {
+                    // Fallback to default if no trips found
+                    setDestMeta(DEST.DEFAULT);
+                }
+            } catch (error) {
+                console.error("Failed to load customer trips", error);
+                // Continue with default dest
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchTrips();
+    }, [user, router]);
 
     useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 

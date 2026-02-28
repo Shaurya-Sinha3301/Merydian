@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
     ArrowLeft, TrendingUp, GripVertical, Check, X, Minimize2, Download, Share2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getTripById } from '@/lib/trips';
+import { getTripById, Trip } from '@/lib/trips';
 import VoyageurAIPanel from './VoyageurAIPanel';
+import { apiClient } from '@/services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -482,6 +483,57 @@ function ActivityCard({ card, compact }: { card: LaneCard; compact?: boolean }) 
     );
 }
 
+function transformItinerary(data: any): Day[] {
+    if (!data || !data.days || !Array.isArray(data.days)) return DAYS; // Fallback to Paris
+
+    return data.days.map((dayData: any, idx: number) => {
+        let currentTime = new Date();
+        currentTime.setHours(9, 0, 0, 0); // Start at 9:00 AM
+
+        const rows: TimeRow[] = (dayData.pois || []).map((poi: any, poiIdx: number) => {
+            const timeStr = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+            // Increment time for next POI based on duration
+            const durationMins = poi.planned_visit_time_min || 60;
+            const nextTime = new Date(currentTime.getTime() + durationMins * 60000 + 30 * 60000); // +30m transit
+            currentTime = nextTime;
+
+            const durationHrs = Math.floor(durationMins / 60);
+            const durationRemMins = durationMins % 60;
+            const durationLabel = `${durationHrs}H ${durationRemMins.toString().padStart(2, '0')}M`;
+
+            return {
+                time: timeStr,
+                period: 'UTC+1',
+                cards: [{
+                    id: `d${dayData.day}-poi${poiIdx}`,
+                    evtId: `EVT-${poi.location_id}`,
+                    category: 'Activity',
+                    categoryBorder: 'border-blue-200',
+                    categoryBg: 'bg-blue-50',
+                    categoryText: 'text-blue-700',
+                    locationCode: poi.location_id,
+                    durationLabel,
+                    durationColor: 'text-blue-600',
+                    title: poi.comment || 'Activity',
+                    description: `Sequence ${poi.sequence}: Scheduled visit to ${poi.comment}.`,
+                    participants: [{ code: 'ALL', color: '' }],
+                    statusLabel: 'Confirmed',
+                    statusIcon: 'confirmed',
+                    imageUrl: 'https://images.unsplash.com/photo-1506461883276-594543d0e225?w=200&q=80',
+                }]
+            };
+        });
+
+        return {
+            date: `DAY ${dayData.day}`,
+            label: dayData.region || `Day ${dayData.day} Exploration`,
+            timeRange: rows.length > 0 ? `${rows[0].time} – ${currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}` : '',
+            rows
+        };
+    });
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 interface ItineraryDetailViewProps {
@@ -489,7 +541,81 @@ interface ItineraryDetailViewProps {
 }
 
 export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps) {
-    const trip = getTripById(tripId);
+    const [trip, setTrip] = useState<Trip | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [itineraryDays, setItineraryDays] = useState<Day[]>([]);
+
+    useEffect(() => {
+        async function loadTrip() {
+            let loadedTrip: Trip | null = null;
+            try {
+                // 1. Try to fetch from backend
+                const data = await apiClient.getTripSummary(tripId);
+                if (data && data.trip_id) {
+                    loadedTrip = {
+                        id: data.trip_id,
+                        title: data.trip_name || data.trip_id,
+                        client: (data.families || []).join(', ') || 'Unknown',
+                        status: 'DRAFT', // Default or derived
+                        dateRange: [
+                            data.start_date ? new Date(data.start_date).toLocaleDateString() : '',
+                            data.end_date ? new Date(data.end_date).toLocaleDateString() : ''
+                        ].filter(Boolean).join(' – '),
+                        budget: data.summary?.estimated_cost ? `$${data.summary.estimated_cost}` : 'N/A',
+                        members: []
+                    };
+                }
+            } catch (err) {
+                console.warn('Backend fetch failed, falling back to local storage', err);
+            }
+
+            if (!loadedTrip) {
+                // 2. Try to fetch from MOCK_TRIPS via getTripById
+                const mockTrip = getTripById(tripId);
+                if (mockTrip) {
+                    loadedTrip = mockTrip;
+                }
+            }
+
+            if (!loadedTrip) {
+                // 3. Try to fetch from sessionStorage (like ItineraryOptimizerWindow does)
+                try {
+                    const builtTripsStr = sessionStorage.getItem('builtTrips');
+                    if (builtTripsStr) {
+                        const builtTrips = JSON.parse(builtTripsStr);
+                        const sessionTrip = builtTrips.find((t: any) => t.id === tripId);
+                        if (sessionTrip) {
+                            loadedTrip = sessionTrip;
+                        }
+                    }
+                } catch (e) { }
+            }
+
+            setTrip(loadedTrip);
+
+            // Fetch actual itinerary JSON if backend trip was found
+            if (loadedTrip) {
+                try {
+                    const itiData = await apiClient.getTripItinerary(tripId);
+                    if (itiData) {
+                        setItineraryDays(transformItinerary(itiData));
+                    } else {
+                        setItineraryDays(DAYS);
+                    }
+                } catch (err) {
+                    console.warn('Failed to load full itinerary JSON, falling back to mock Paris data');
+                    setItineraryDays(DAYS);
+                }
+            } else {
+                setItineraryDays(DAYS);
+            }
+
+            setIsLoading(false);
+        }
+
+        loadTrip();
+    }, [tripId]);
+
     const [aiOpen, setAiOpen] = useState(false);
     const [profitOpen, setProfitOpen] = useState(false);
     const [panelHovered, setPanelHovered] = useState(false);
@@ -504,6 +630,15 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
     // Demo: Current day index (0 = Day 1, 1 = Day 2, 2 = Day 3)
     // In production, this should come from backend based on actual trip progress
     const currentDayIndex = 1; // Day 2 has started, so Day 1 is fully completed
+
+    if (isLoading) {
+        return (
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
+                <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+                <p className="font-bold text-sm text-[var(--bp-text)]">Loading itinerary...</p>
+            </div>
+        );
+    }
 
     if (!trip) {
         return (
@@ -528,8 +663,8 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                 'flex-1 scrollbar-hide pb-28 bg-transparent',
                 panelHovered ? 'overflow-hidden' : 'overflow-auto',
             )}>
-                {/* All 3 days rendered sequentially — continuous scroll */}
-                {DAYS.map((day, dayIndex) => (
+                {/* All days rendered sequentially — continuous scroll */}
+                {itineraryDays.map((day, dayIndex) => (
                     <div key={day.date}>
                         {/* Per-day sticky header */}
                         <div className="sticky top-0 z-30 border-b border-gray-200 bg-gray-50 w-full">

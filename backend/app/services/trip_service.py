@@ -387,8 +387,8 @@ class TripService:
         """
         # Predefined baseline mappings
         baselines = {
-            "delhi_3day_skeleton": "ml_or/data/base_itinerary_final.json",
-            "delhi_3day": "ml_or/data/base_itinerary_final.json",
+            "delhi_3day_skeleton": "ml_or/data/base_itinerary_clustered.json",
+            "delhi_3day": "ml_or/data/base_itinerary_clustered.json",
             "delhi_5day": "ml_or/data/delhi_5day_skeleton.json",
             "mumbai_3day": "ml_or/data/mumbai_3day_skeleton.json",
         }

@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import activeGroupsData from '@/lib/agent-dashboard/data/active_groups.json';
-import upcomingGroupsData from '@/lib/agent-dashboard/data/upcoming_groups.json';
-import itineraryDataFile from '@/lib/agent-dashboard/data/itinerary_data.json';
+import { apiClient } from '@/services/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 /* ─── Destination meta per group ─── */
 const DESTINATION_META: Record<string, {
@@ -46,6 +45,7 @@ const STEPS = [
 
 const PreferenceBuilderInteractive = () => {
     const router = useRouter();
+    const { user, isLoading: authLoading } = useAuth();
     const [isLoading, setIsLoading] = useState(true);
     const [selected, setSelected] = useState<string[]>([]);
     const [familyName, setFamilyName] = useState('');
@@ -55,30 +55,28 @@ const PreferenceBuilderInteractive = () => {
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        const familyId = sessionStorage.getItem('familyId');
-        if (!familyId) { router.push('/customer-login'); return; }
+        if (authLoading) return;
+        if (!user) { router.push('/customer-login'); return; }
 
-        let foundFamily: any = null;
-        let foundGroupId: string | null = null;
-
-        for (const group of activeGroupsData.groups) {
-            const fam = group.families.find((f: any) => f.id === familyId);
-            if (fam) { foundFamily = fam; foundGroupId = group.id; break; }
-        }
-        if (!foundGroupId) {
-            for (const group of upcomingGroupsData.groups) {
-                const fam = group.families.find((f: any) => f.id === familyId);
-                if (fam) { foundFamily = fam; foundGroupId = group.id; break; }
+        const fetchFamily = async () => {
+            try {
+                const familyPrefs = await apiClient.getFamilyPreferences();
+                setFamilyName(familyPrefs.family_name || user.full_name || 'Family');
+                setItineraryName(familyPrefs.trip_name || 'Upcoming Trip');
+                // Could match DESTINATION_META based on backend data if desired; using default for now
+                setDestMeta(DESTINATION_META.DEFAULT);
+            } catch (err) {
+                console.error("Failed to load family data", err);
+                setFamilyName(user.full_name || 'Family');
+                setItineraryName('Upcoming Trip');
+                setDestMeta(DESTINATION_META.DEFAULT);
+            } finally {
+                setIsLoading(false);
             }
-        }
-        if (!foundFamily) { router.push('/customer-login'); return; }
+        };
 
-        const itin = itineraryDataFile.itineraries.find((i: any) => i.groupId === foundGroupId);
-        setFamilyName(foundFamily.family_name || 'Family');
-        setItineraryName(itin?.itineraryName || '');
-        setDestMeta(DESTINATION_META[foundGroupId ?? 'DEFAULT'] ?? DESTINATION_META.DEFAULT);
-        setIsLoading(false);
-    }, [router]);
+        fetchFamily();
+    }, [router, user, authLoading]);
 
     const toggle = (id: string) => {
         setSelected(prev => {
@@ -88,10 +86,20 @@ const PreferenceBuilderInteractive = () => {
         });
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (selected.length === MAX_SELECT) {
+            try {
+                setIsLoading(true);
+                await apiClient.updateFamilyPreferences({
+                    preference_updates: {
+                        selected_experience_ids: selected
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to save preferences to backend', err);
+            }
             sessionStorage.setItem('preferenceVectors', JSON.stringify(selected));
-            router.push('/customer-dashboard');
+            router.push('/customer-portal');
         }
     };
 

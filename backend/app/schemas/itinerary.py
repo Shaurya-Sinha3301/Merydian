@@ -48,7 +48,7 @@ class DayPlan(BaseModel):
 class Itinerary(BaseModel):
     """
     The Core Document. Stored as JSONB in Postgres and cached in Redis.
-    Structure mirrors 'base_itinerary_final.json'.
+    Structure mirrors 'base_itinerary_clustered.json'.
     """
     itinerary_id: str # Technical ID (e.g., 'FINAL_DELHI_GRAND_TOUR')
     city: str
