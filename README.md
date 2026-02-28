@@ -1,6 +1,6 @@
-# MeiliAi - Multi-Family Travel Coordination Platform
+# MerYDiaN - Multi-Family Travel Coordination Platform
 
-MeiliAi is an agentic travel coordination system designed to manage complex multi-family group trips. The platform combines real-time event handling, human-in-the-loop decision making, and automated booking execution to deliver adaptive travel experiences.
+MerYDiaN is an agentic travel coordination system designed to manage complex multi-family group trips. The platform combines real-time event handling, human-in-the-loop decision making, and automated booking execution to deliver adaptive travel experiences.
 
 ## Table of Contents
 
@@ -71,7 +71,7 @@ The system follows a three-tier architecture with an agentic middleware layer:
 ## Project Structure
 
 ```
-meiliai/
+MerYDiaN/
 ├── backend/
 │   ├── app/
 │   │   ├── api/                 # API route handlers
@@ -131,7 +131,7 @@ meiliai/
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.14+
 - Node.js 20+
 - npm or yarn
 
