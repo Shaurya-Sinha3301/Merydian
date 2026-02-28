@@ -78,6 +78,10 @@ export interface FamilyPreferences {
     id: string;
     family_code: string;
     family_name: string;
+    trip_name?: string;
+    destination?: string;
+    start_date?: string;
+    end_date?: string;
     preferences: Record<string, any>;
     members: any[];
 }
@@ -131,12 +135,24 @@ export class APIClient {
                 const error = await response.json().catch(() => ({
                     detail: `HTTP ${response.status}: ${response.statusText}`
                 }));
-                throw new Error(error.detail || `Request failed with status ${response.status}`);
+                let errMsg = error.detail;
+                if (Array.isArray(errMsg)) {
+                    errMsg = errMsg.map((e: any) => `${e.loc?.join('.')} ${e.msg}`).join(', ');
+                } else if (typeof errMsg === 'object' && errMsg !== null) {
+                    errMsg = JSON.stringify(errMsg);
+                }
+                const err = new Error(errMsg || `Request failed with status ${response.status}`);
+                (err as any).status = response.status;
+                throw err;
             }
 
             return response.json();
-        } catch (error) {
-            console.error(`API request failed: ${endpoint}`, error);
+        } catch (error: any) {
+            // Next.js intercepts console.error and displays a full-screen dev overlay.
+            // We suppress 401/403 logs here because AuthProvider handles them natively.
+            if (error.status !== 401 && error.status !== 403) {
+                console.error(`API request failed: ${endpoint}`, error);
+            }
             throw error;
         }
     }
@@ -207,7 +223,9 @@ export class APIClient {
         });
 
         if (!response.ok) {
-            throw new Error('Token refresh failed');
+            const err = new Error('Token refresh failed');
+            (err as any).status = response.status;
+            throw err;
         }
 
         return response.json();
@@ -246,10 +264,17 @@ export class APIClient {
     }
 
     /**
+     * Get current user profile
+     */
+    async getUserProfile(): Promise<any> {
+        return this.request<any>('/users/me');
+    }
+
+    /**
      * Get current itinerary for authenticated user
      */
-    async getCurrentItinerary(): Promise<Itinerary> {
-        return this.request<Itinerary>('/itinerary/current');
+    async getCurrentItinerary(): Promise<any> {
+        return this.request<any>('/itinerary/current');
     }
 
     /**
@@ -311,6 +336,35 @@ export class APIClient {
     }
 
     /**
+     * Register a customer and auto-create their family profile (agent action)
+     */
+    async registerCustomerByAgent(data: {
+        email: string;
+        members: number;
+        children: number;
+        initial_location?: string;
+    }): Promise<{ message: string; family_code: string; user_id: string; family_id: string }> {
+        return this.request('/agent/customers', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    /**
+     * Get detailed summary of a trip
+     */
+    async getTripSummary(tripId: string): Promise<any> {
+        return this.request<any>(`/trips/${encodeURIComponent(tripId)}/summary`);
+    }
+
+    /**
+     * Get the full actual itinerary JSON data of a trip
+     */
+    async getTripItinerary(tripId: string): Promise<any> {
+        return this.request<any>(`/trips/${encodeURIComponent(tripId)}/itinerary`);
+    }
+
+    /**
      * Approve an itinerary option (agent action)
      */
     async approveOption(optionId: string): Promise<{
@@ -352,6 +406,18 @@ export class APIClient {
         if (params?.status) query.set('trip_status', params.status);
         const qs = query.toString();
         return this.request(`/trips/${qs ? '?' + qs : ''}`);
+    }
+
+    /**
+     * Get trips associated with the currently authenticated customer's family
+     */
+    async getCustomerTrips(params?: { limit?: number; skip?: number; status?: string }): Promise<any> {
+        const query = new URLSearchParams();
+        if (params?.limit) query.set('limit', String(params.limit));
+        if (params?.skip) query.set('skip', String(params.skip));
+        if (params?.status) query.set('trip_status', params.status);
+        const qs = query.toString();
+        return this.request(`/trips/me${qs ? '?' + qs : ''}`);
     }
 
     /**

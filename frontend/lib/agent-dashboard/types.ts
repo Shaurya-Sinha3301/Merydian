@@ -106,4 +106,9 @@ export interface TripRequest {
     confidenceScore: number;
     submittedAt: string;
     bookings?: Booking[]; // New field for bookings
+    preferences?: {
+        pace: string;
+        interests: string[];
+        dietary: string[];
+    };
 }
