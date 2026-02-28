@@ -4,6 +4,12 @@ import { Radar as RadarIcon } from "lucide-react"
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, Legend, Tooltip, ResponsiveContainer, Pie, PieChart, Cell, Label, Sector } from "recharts"
 import { type PieSectorDataItem } from "recharts/types/polar/Pie"
 import * as React from "react"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
 
 export const description = "Analysis of Each Family Radar Chart"
 
@@ -111,71 +117,69 @@ const metricScaling = [
   },
 ]
 
-// Cost breakdown data for pie chart
+// Cost breakdown data for inner pie ring
+// Transport is the biggest cost driver; Stay is moderate; Flight is expensive relative to its profit
 const costBreakdownData = [
-  { category: "Transport", amount: 45200, percentage: 35, color: "#8B7355" },
-  { category: "Stay", amount: 38500, percentage: 30, color: "#6B8E7F" },
-  { category: "Meals", amount: 25800, percentage: 20, color: "#7B8FA3" },
-  { category: "Flight", amount: 12900, percentage: 10, color: "#A08B7A" },
-  { category: "Misc", amount: 6450, percentage: 5, color: "#9CA3AF" },
+  { category: "transport", cost: 52000, fill: "var(--color-transport)" },
+  { category: "stay", cost: 28500, fill: "var(--color-stay)" },
+  { category: "meals", cost: 22400, fill: "var(--color-meals)" },
+  { category: "flight", cost: 18600, fill: "var(--color-flight)" },
+  { category: "misc", cost: 7500, fill: "var(--color-misc)" },
 ]
 
-// Calculate total
-const totalCost = costBreakdownData.reduce((acc, curr) => acc + curr.amount, 0)
+// Profit breakdown data for outer pie ring
+// Stay yields highest profit despite lower cost; Transport yields low profit despite highest cost
+const profitBreakdownData = [
+  { category: "transport", profit: 8400, fill: "var(--color-transport)" },
+  { category: "stay", profit: 24800, fill: "var(--color-stay)" },
+  { category: "meals", profit: 12600, fill: "var(--color-meals)" },
+  { category: "flight", profit: 4200, fill: "var(--color-flight)" },
+  { category: "misc", profit: 3000, fill: "var(--color-misc)" },
+]
 
-// Custom label for pie chart center
-const renderCenterLabel = ({ viewBox }: any) => {
-  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-    return (
-      <text
-        x={viewBox.cx}
-        y={viewBox.cy}
-        textAnchor="middle"
-        dominantBaseline="middle"
-      >
-        <tspan
-          x={viewBox.cx}
-          y={viewBox.cy - 5}
-          className="fill-gray-900 text-[20px] font-bold font-mono"
-        >
-          ₹{(totalCost / 1000).toFixed(0)}k
-        </tspan>
-        <tspan
-          x={viewBox.cx}
-          y={viewBox.cy + 12}
-          className="fill-gray-400 text-[11px] uppercase tracking-wider"
-        >
-          Total Cost
-        </tspan>
-      </text>
-    )
-  }
-}
+// Chart config for shadcn ChartContainer
+const pieChartConfig = {
+  cost: {
+    label: "Cost",
+  },
+  profit: {
+    label: "Profit",
+  },
+  transport: {
+    label: "Transport",
+    color: "#8B7355",
+  },
+  stay: {
+    label: "Stay",
+    color: "#6B8E7F",
+  },
+  meals: {
+    label: "Meals",
+    color: "#7B8FA3",
+  },
+  flight: {
+    label: "Flight",
+    color: "#A08B7A",
+  },
+  misc: {
+    label: "Misc",
+    color: "#9CA3AF",
+  },
+} satisfies ChartConfig
 
-// Custom tooltip for pie chart
-const CustomPieTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload
-    return (
-      <div className="bg-white border border-gray-200 shadow-lg p-3 rounded">
-        <p className="text-[12px] font-bold text-gray-900 mb-1.5">
-          {data.category}
-        </p>
-        <div className="space-y-0.5 text-[11px]">
-          <div className="flex justify-between gap-3">
-            <span className="text-gray-600">Amount:</span>
-            <span className="font-mono font-bold text-gray-900">₹{data.amount.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between gap-3">
-            <span className="text-gray-600">Percentage:</span>
-            <span className="font-mono font-bold text-gray-900">{data.percentage}%</span>
-          </div>
-        </div>
-      </div>
-    )
+// Calculate totals
+const totalCost = costBreakdownData.reduce((acc, curr) => acc + curr.cost, 0)
+const totalProfit = profitBreakdownData.reduce((acc, curr) => acc + curr.profit, 0)
+
+// Build a lookup map for percentages
+const sectorPercentages = costBreakdownData.map((costItem, i) => {
+  const profitItem = profitBreakdownData[i]
+  return {
+    key: costItem.category,
+    costPct: ((costItem.cost / totalCost) * 100).toFixed(0),
+    profitPct: ((profitItem.profit / totalProfit) * 100).toFixed(0),
   }
-  return null
-}
+})
 
 // Family metadata matching dashboard aesthetic
 const families = [
@@ -223,15 +227,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function FamilyAnalysisRadarChart() {
-  const [activeIndex, setActiveIndex] = React.useState<number | undefined>(undefined)
-
-  const onPieEnter = (_: any, index: number) => {
-    setActiveIndex(index)
-  }
-
-  const onPieLeave = () => {
-    setActiveIndex(undefined)
-  }
 
   return (
     <div className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] relative">
@@ -314,75 +309,105 @@ export function FamilyAnalysisRadarChart() {
           </ResponsiveContainer>
         </div>
 
-        {/* Cost Breakdown Pie Chart */}
+        {/* Cost & Profit Breakdown — Double Pie Chart */}
         <div className="mt-4 pt-4 border-t-2 border-black">
           <div className="mb-3">
             <h4 className="text-[12px] font-bold uppercase text-black tracking-widest mb-1">
-              Global Cost Breakdown
+              Global Cost & Profit Breakdown
             </h4>
             <p className="text-[11px] text-gray-400 leading-relaxed font-mono">
-              Distribution of expenses across aggregate trip categories
+              Inner ring: Cost · Outer ring: Profit
             </p>
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Pie Chart */}
-            <div className="w-[140px] h-[140px] min-w-[140px]">
-              <ResponsiveContainer width="100%" height="100%">
+            {/* Double Pie Chart */}
+            <div className="w-[180px] h-[180px] min-w-[180px]">
+              <ChartContainer
+                config={pieChartConfig}
+                className="mx-auto aspect-square w-full h-full"
+              >
                 <PieChart>
-                  <Tooltip content={<CustomPieTooltip />} />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        labelKey="category"
+                        nameKey="category"
+                        indicator="line"
+                        labelFormatter={(_, payload) => {
+                          const dataKey = payload?.[0]?.dataKey as string
+                          return dataKey === "cost" ? "Cost Breakdown" : "Profit Breakdown"
+                        }}
+                      />
+                    }
+                  />
+                  {/* Inner ring — Cost */}
                   <Pie
                     data={costBreakdownData}
-                    dataKey="amount"
+                    dataKey="cost"
                     nameKey="category"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={65}
+                    outerRadius={50}
                     strokeWidth={2}
                     stroke="#fff"
-                    activeShape={({
-                      outerRadius = 0,
-                      ...props
-                    }: PieSectorDataItem) => (
-                      <Sector {...props} outerRadius={outerRadius + 8} />
-                    )}
-                    onMouseEnter={onPieEnter}
-                    onMouseLeave={onPieLeave}
-                  >
-                    {costBreakdownData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                      />
-                    ))}
-                    <Label
-                      content={renderCenterLabel}
-                      position="center"
-                    />
-                  </Pie>
+                  />
+                  {/* Outer ring — Profit */}
+                  <Pie
+                    data={profitBreakdownData}
+                    dataKey="profit"
+                    nameKey="category"
+                    innerRadius={58}
+                    outerRadius={80}
+                    strokeWidth={2}
+                    stroke="#fff"
+                  />
                 </PieChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             </div>
 
-            {/* Legend */}
-            <div className="flex-1 space-y-0.5">
-              {costBreakdownData.map((item, index) => (
-                <div key={index} className="flex items-center justify-between gap-1 px-1 py-0.5 hover:bg-gray-50 transition-colors rounded">
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                    <div
-                      className="w-2 h-2 rounded-sm shrink-0"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-[9px] font-semibold text-gray-900 truncate">
-                      {item.category}
-                    </span>
-                  </div>
-                  <span className="text-[8px] font-mono font-bold text-gray-900 bg-gray-100 px-1 py-0.5 border border-gray-200 rounded shrink-0">
-                    {item.percentage}%
-                  </span>
+            {/* Legend with percentage breakdown */}
+            <div className="flex-1 space-y-2">
+              {/* Header row */}
+              <div className="flex items-center gap-1 px-1 pb-1 border-b border-gray-200">
+                <span className="flex-1 text-[8px] font-bold uppercase tracking-widest text-gray-400">Sector</span>
+                <span className="w-[40px] text-right text-[8px] font-bold uppercase tracking-widest text-gray-400">Cost%</span>
+                <span className="w-[40px] text-right text-[8px] font-bold uppercase tracking-widest text-green-600">Profit%</span>
+              </div>
+              {/* Category rows */}
+              <div className="space-y-0.5">
+                {sectorPercentages.map((sector) => {
+                  const cfg = pieChartConfig[sector.key as keyof typeof pieChartConfig]
+                  return (
+                    <div key={sector.key} className="flex items-center gap-1 px-1 py-0.5 hover:bg-gray-50 transition-colors rounded">
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <div
+                          className="w-2 h-2 rounded-sm shrink-0"
+                          style={{ backgroundColor: 'color' in cfg ? cfg.color : undefined }}
+                        />
+                        <span className="text-[9px] font-semibold text-gray-900 truncate">
+                          {'label' in cfg ? cfg.label : sector.key}
+                        </span>
+                      </div>
+                      <span className="w-[40px] text-right text-[9px] font-mono font-bold text-gray-700">
+                        {sector.costPct}%
+                      </span>
+                      <span className="w-[40px] text-right text-[9px] font-mono font-bold text-green-700">
+                        {sector.profitPct}%
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+              {/* Totals */}
+              <div className="border-t border-gray-200 pt-1.5 space-y-0.5">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Total Cost</span>
+                  <span className="text-[10px] font-mono font-bold text-gray-900">₹{(totalCost / 1000).toFixed(0)}k</span>
                 </div>
-              ))}
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Total Profit</span>
+                  <span className="text-[10px] font-mono font-bold text-green-700">₹{(totalProfit / 1000).toFixed(1)}k</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
