@@ -445,6 +445,14 @@ export class APIClient {
     async getFamilyEvents(familyId: string, limit = 50): Promise<any[]> {
         return this.request<any[]>(`/events/?family_id=${encodeURIComponent(familyId)}&limit=${limit}`);
     }
+
+    /**
+     * Get hotel and flight bookings for the authenticated customer's family.
+     * Used by the customer dashboard Travel Vault section.
+     */
+    async getMyBookings(): Promise<{ hotels: any[]; flights: any[]; total: number }> {
+        return this.request('/bookings/me');
+    }
 }
 
 // Export singleton instance

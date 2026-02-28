@@ -1,0 +1,491 @@
+﻿{"timestamp": "2026-02-28T20:37:39.680361", "level": "INFO", "message": "[cached since 46.79s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:40,017 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:40.018126", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:37:40,390 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:40.390649", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:40,391 INFO sqlalchemy.engine.Engine SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at 
+FROM families 
+WHERE families.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:37:40.391091", "level": "INFO", "message": "SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at \nFROM families \nWHERE families.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:40,391 INFO sqlalchemy.engine.Engine [cached since 46.72s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:37:40.391191", "level": "INFO", "message": "[cached since 46.72s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:40,737 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:40.737440", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:37:41,114 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:41.114784", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:41,115 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.hashed_password, users.full_name, users.role, users.family_id, users.is_active, users.created_at, users.updated_at 
+FROM users 
+WHERE users.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T20:37:41.115078", "level": "INFO", "message": "SELECT users.id, users.email, users.hashed_password, users.full_name, users.role, users.family_id, users.is_active, users.created_at, users.updated_at \nFROM users \nWHERE users.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:41,115 INFO sqlalchemy.engine.Engine [cached since 29.48s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:37:41.115164", "level": "INFO", "message": "[cached since 29.48s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:41,458 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:41.458225", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:37:41.658319", "level": "INFO", "message": "Request: GET /api/v1/families/me Status: 200 Duration: 2.1528s", "module": "main", "funcName": "log_requests", "line": 41}
+{"timestamp": "2026-02-28T20:37:41.660557", "level": "INFO", "message": "WebSocket connected: user=02acc798-2c9e-40a2-95dd-6084a3851606 (total_users=1)", "module": "websocket", "funcName": "connect_user", "line": 52}
+{"timestamp": "2026-02-28T20:37:41.661574", "level": "INFO", "message": "WS sent to user=02acc798-2c9e-40a2-95dd-6084a3851606: type=connected", "module": "websocket", "funcName": "send_to_user", "line": 81}
+2026-02-28 20:37:41,869 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:41.869896", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:41,870 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:37:41.870610", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:41,870 INFO sqlalchemy.engine.Engine [cached since 48.98s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:37:41.870788", "level": "INFO", "message": "[cached since 48.98s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:42,271 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:42.271256", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:37:42,676 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:42.676570", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:42,677 INFO sqlalchemy.engine.Engine SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at 
+FROM itineraries 
+WHERE itineraries.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T20:37:42.677566", "level": "INFO", "message": "SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at \nFROM itineraries \nWHERE itineraries.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:42,677 INFO sqlalchemy.engine.Engine [generated in 0.00018s] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:37:42.677712", "level": "INFO", "message": "[generated in 0.00018s] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:43,094 INFO sqlalchemy.engine.Engine SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at 
+FROM booking_jobs 
+WHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)
+{"timestamp": "2026-02-28T20:37:43.094316", "level": "INFO", "message": "SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at \nFROM booking_jobs \nWHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:43,094 INFO sqlalchemy.engine.Engine [generated in 0.00057s] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}
+{"timestamp": "2026-02-28T20:37:43.094608", "level": "INFO", "message": "[generated in 0.00057s] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:43,291 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:43.291766", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:37:43.500751", "level": "INFO", "message": "Request: GET /api/v1/bookings/me Status: 200 Duration: 1.8433s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 20:37:43,704 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:43.704419", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:43,704 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:37:43.704818", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:43,704 INFO sqlalchemy.engine.Engine [cached since 50.81s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:37:43.704944", "level": "INFO", "message": "[cached since 50.81s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:44,077 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:44.078017", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:37:44.246790", "level": "INFO", "message": "Request: GET /api/v1/itinerary/current Status: 200 Duration: 0.7468s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 20:37:44,426 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:44.426623", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:44,427 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:37:44.427118", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:44,427 INFO sqlalchemy.engine.Engine [cached since 51.53s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:37:44.427279", "level": "INFO", "message": "[cached since 51.53s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:44,829 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:44.829801", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:37:45,203 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:45.203377", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:45,203 INFO sqlalchemy.engine.Engine SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at 
+FROM itineraries 
+WHERE itineraries.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T20:37:45.203758", "level": "INFO", "message": "SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at \nFROM itineraries \nWHERE itineraries.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:45,203 INFO sqlalchemy.engine.Engine [cached since 2.526s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:37:45.203845", "level": "INFO", "message": "[cached since 2.526s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:45,543 INFO sqlalchemy.engine.Engine SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at 
+FROM booking_jobs 
+WHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)
+{"timestamp": "2026-02-28T20:37:45.543143", "level": "INFO", "message": "SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at \nFROM booking_jobs \nWHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:45,543 INFO sqlalchemy.engine.Engine [cached since 2.449s ago] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}
+{"timestamp": "2026-02-28T20:37:45.543255", "level": "INFO", "message": "[cached since 2.449s ago] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:45,752 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:45.752248", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:37:45.956426", "level": "INFO", "message": "Request: GET /api/v1/bookings/me Status: 200 Duration: 1.7034s", "module": "main", "funcName": "log_requests", "line": 41}
+{"timestamp": "2026-02-28T20:37:47.949570", "level": "INFO", "message": "WebSocket disconnected: user=02acc798-2c9e-40a2-95dd-6084a3851606 (total_users=0)", "module": "websocket", "funcName": "disconnect_user", "line": 58}
+{"timestamp": "2026-02-28T20:37:47.949672", "level": "INFO", "message": "Traveller 02acc798-2c9e-40a2-95dd-6084a3851606 WebSocket disconnected", "module": "main", "funcName": "websocket_traveller_endpoint", "line": 163}
+2026-02-28 20:37:48,197 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:48.197945", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:48,198 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:37:48.198424", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:48,198 INFO sqlalchemy.engine.Engine [cached since 55.32s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:37:48.198582", "level": "INFO", "message": "[cached since 55.32s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:48,606 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:48.606262", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:37:49,014 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:49.014834", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:49,015 INFO sqlalchemy.engine.Engine SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at 
+FROM families 
+WHERE families.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:37:49.015188", "level": "INFO", "message": "SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at \nFROM families \nWHERE families.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:49,015 INFO sqlalchemy.engine.Engine [cached since 55.36s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:37:49.015307", "level": "INFO", "message": "[cached since 55.36s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:49,425 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:49.425810", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:37:49,796 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:49.796593", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:49,796 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.hashed_password, users.full_name, users.role, users.family_id, users.is_active, users.created_at, users.updated_at 
+FROM users 
+WHERE users.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T20:37:49.796902", "level": "INFO", "message": "SELECT users.id, users.email, users.hashed_password, users.full_name, users.role, users.family_id, users.is_active, users.created_at, users.updated_at \nFROM users \nWHERE users.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:49,796 INFO sqlalchemy.engine.Engine [cached since 38.17s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:37:49.797002", "level": "INFO", "message": "[cached since 38.17s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:50,143 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:50.143828", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:37:50.315324", "level": "INFO", "message": "Request: GET /api/v1/families/me Status: 200 Duration: 2.3579s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 20:37:50,498 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:50.498729", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:50,499 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:37:50.499396", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:50,499 INFO sqlalchemy.engine.Engine [cached since 57.62s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:37:50.499556", "level": "INFO", "message": "[cached since 57.62s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:50,957 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:50.957526", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:37:51,366 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:51.366203", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:51,366 INFO sqlalchemy.engine.Engine SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at 
+FROM families 
+WHERE families.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:37:51.366707", "level": "INFO", "message": "SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at \nFROM families \nWHERE families.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:51,366 INFO sqlalchemy.engine.Engine [cached since 57.71s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:37:51.366881", "level": "INFO", "message": "[cached since 57.71s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:51,776 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:51.776424", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:37:52,266 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:52.267213", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:52,267 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.hashed_password, users.full_name, users.role, users.family_id, users.is_active, users.created_at, users.updated_at 
+FROM users 
+WHERE users.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T20:37:52.267868", "level": "INFO", "message": "SELECT users.id, users.email, users.hashed_password, users.full_name, users.role, users.family_id, users.is_active, users.created_at, users.updated_at \nFROM users \nWHERE users.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:52,267 INFO sqlalchemy.engine.Engine [cached since 40.64s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:37:52.268060", "level": "INFO", "message": "[cached since 40.64s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:52,609 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:52.609765", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:37:52.801068", "level": "INFO", "message": "Request: GET /api/v1/families/me Status: 200 Duration: 2.4790s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 20:37:53,004 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:53.004249", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:53,004 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:37:53.004769", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:53,004 INFO sqlalchemy.engine.Engine [cached since 60.12s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:37:53.004938", "level": "INFO", "message": "[cached since 60.12s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:53,417 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:53.418021", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:37:53.624148", "level": "INFO", "message": "WebSocket connected: user=02acc798-2c9e-40a2-95dd-6084a3851606 (total_users=1)", "module": "websocket", "funcName": "connect_user", "line": 52}
+{"timestamp": "2026-02-28T20:37:53.624248", "level": "INFO", "message": "Request: GET /api/v1/itinerary/current Status: 200 Duration: 0.8241s", "module": "main", "funcName": "log_requests", "line": 41}
+{"timestamp": "2026-02-28T20:37:53.624954", "level": "INFO", "message": "WS sent to user=02acc798-2c9e-40a2-95dd-6084a3851606: type=connected", "module": "websocket", "funcName": "send_to_user", "line": 81}
+2026-02-28 20:37:53,827 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:37:53.827411", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:37:53,828 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:37:53.828140", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:37:53,828 INFO sqlalchemy.engine.Engine [cached since 60.95s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:37:53.828237", "level": "INFO", "message": "[cached since 60.95s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:37:54,337 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:37:54.337243", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:37:54.542940", "level": "INFO", "message": "Request: GET /api/v1/itinerary/current Status: 200 Duration: 0.9164s", "module": "main", "funcName": "log_requests", "line": 41}
+{"timestamp": "2026-02-28T20:38:17.880928", "level": "INFO", "message": "WebSocket connected: user=02acc798-2c9e-40a2-95dd-6084a3851606 (total_users=1)", "module": "websocket", "funcName": "connect_user", "line": 52}
+{"timestamp": "2026-02-28T20:38:17.883010", "level": "INFO", "message": "WS sent to user=02acc798-2c9e-40a2-95dd-6084a3851606: type=connected", "module": "websocket", "funcName": "send_to_user", "line": 81}
+2026-02-28 20:38:18,099 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:18.100042", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:18,100 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:38:18.101145", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:18,101 INFO sqlalchemy.engine.Engine [cached since 85.22s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:38:18.101403", "level": "INFO", "message": "[cached since 85.22s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:18,511 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:18.511524", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:18,920 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:18.921015", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:18,921 INFO sqlalchemy.engine.Engine SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at 
+FROM families 
+WHERE families.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:38:18.921441", "level": "INFO", "message": "SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at \nFROM families \nWHERE families.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:18,921 INFO sqlalchemy.engine.Engine [cached since 85.26s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:38:18.921548", "level": "INFO", "message": "[cached since 85.26s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:19,435 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:19.435638", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:19,807 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:19.807402", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:19,807 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.hashed_password, users.full_name, users.role, users.family_id, users.is_active, users.created_at, users.updated_at 
+FROM users 
+WHERE users.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T20:38:19.807914", "level": "INFO", "message": "SELECT users.id, users.email, users.hashed_password, users.full_name, users.role, users.family_id, users.is_active, users.created_at, users.updated_at \nFROM users \nWHERE users.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:19,808 INFO sqlalchemy.engine.Engine [cached since 68.18s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:38:19.808072", "level": "INFO", "message": "[cached since 68.18s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:20,151 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:20.151931", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:38:20.357808", "level": "INFO", "message": "Request: GET /api/v1/families/me Status: 200 Duration: 2.4783s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 20:38:20,561 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:20.561903", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:20,562 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:38:20.562285", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:20,562 INFO sqlalchemy.engine.Engine [cached since 87.68s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:38:20.562381", "level": "INFO", "message": "[cached since 87.68s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:20,972 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:20.972257", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:21,346 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:21.346977", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:21,347 INFO sqlalchemy.engine.Engine SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at 
+FROM families 
+WHERE families.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:38:21.347394", "level": "INFO", "message": "SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at \nFROM families \nWHERE families.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:21,347 INFO sqlalchemy.engine.Engine [cached since 87.69s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:38:21.347536", "level": "INFO", "message": "[cached since 87.69s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:21,690 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:21.690853", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:22,099 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:22.100123", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:22,100 INFO sqlalchemy.engine.Engine SELECT users.id, users.email, users.hashed_password, users.full_name, users.role, users.family_id, users.is_active, users.created_at, users.updated_at 
+FROM users 
+WHERE users.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T20:38:22.100510", "level": "INFO", "message": "SELECT users.id, users.email, users.hashed_password, users.full_name, users.role, users.family_id, users.is_active, users.created_at, users.updated_at \nFROM users \nWHERE users.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:22,100 INFO sqlalchemy.engine.Engine [cached since 70.47s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:38:22.100635", "level": "INFO", "message": "[cached since 70.47s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:22,509 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:22.510126", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:38:22.715974", "level": "INFO", "message": "Request: GET /api/v1/families/me Status: 200 Duration: 2.3526s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 20:38:22,920 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:22.920268", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:22,920 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:38:22.920600", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:22,920 INFO sqlalchemy.engine.Engine [cached since 90.04s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:38:22.920722", "level": "INFO", "message": "[cached since 90.04s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:23,332 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:23.332295", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:23,740 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:23.740865", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:23,741 INFO sqlalchemy.engine.Engine SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at 
+FROM families 
+WHERE families.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:38:23.741216", "level": "INFO", "message": "SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at \nFROM families \nWHERE families.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:23,741 INFO sqlalchemy.engine.Engine [cached since 90.08s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:38:23.741317", "level": "INFO", "message": "[cached since 90.08s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:24,152 INFO sqlalchemy.engine.Engine SELECT itineraries.id AS itineraries_id, itineraries.family_id AS itineraries_family_id, itineraries.version AS itineraries_version, itineraries.data AS itineraries_data, itineraries.created_reason AS itineraries_created_reason, itineraries.created_by AS itineraries_created_by, itineraries.total_cost AS itineraries_total_cost, itineraries.total_satisfaction AS itineraries_total_satisfaction, itineraries.duration_days AS itineraries_duration_days, itineraries.created_at AS itineraries_created_at 
+FROM itineraries 
+WHERE itineraries.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:38:24.152543", "level": "INFO", "message": "SELECT itineraries.id AS itineraries_id, itineraries.family_id AS itineraries_family_id, itineraries.version AS itineraries_version, itineraries.data AS itineraries_data, itineraries.created_reason AS itineraries_created_reason, itineraries.created_by AS itineraries_created_by, itineraries.total_cost AS itineraries_total_cost, itineraries.total_satisfaction AS itineraries_total_satisfaction, itineraries.duration_days AS itineraries_duration_days, itineraries.created_at AS itineraries_created_at \nFROM itineraries \nWHERE itineraries.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:24,152 INFO sqlalchemy.engine.Engine [cached since 68.52s ago] {'pk_1': UUID('cf3e9b54-6f95-46dd-9f22-5105e3d4f890')}
+{"timestamp": "2026-02-28T20:38:24.152654", "level": "INFO", "message": "[cached since 68.52s ago] {'pk_1': UUID('cf3e9b54-6f95-46dd-9f22-5105e3d4f890')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:24,357 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:24.357590", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:24,766 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:24.767040", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:24,767 INFO sqlalchemy.engine.Engine SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at 
+FROM families 
+WHERE families.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:38:24.767726", "level": "INFO", "message": "SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at \nFROM families \nWHERE families.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:24,767 INFO sqlalchemy.engine.Engine [cached since 91.11s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:38:24.768074", "level": "INFO", "message": "[cached since 91.11s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:25,178 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:25.178291", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:38:25.487335", "level": "INFO", "message": "WebSocket connected: user=02acc798-2c9e-40a2-95dd-6084a3851606 (total_users=1)", "module": "websocket", "funcName": "connect_user", "line": 52}
+{"timestamp": "2026-02-28T20:38:25.488070", "level": "INFO", "message": "Request: GET /api/v1/itinerary/current Status: 200 Duration: 2.7714s", "module": "main", "funcName": "log_requests", "line": 41}
+{"timestamp": "2026-02-28T20:38:25.488537", "level": "INFO", "message": "WS sent to user=02acc798-2c9e-40a2-95dd-6084a3851606: type=connected", "module": "websocket", "funcName": "send_to_user", "line": 81}
+2026-02-28 20:38:25,660 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:25.661076", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:25,661 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:38:25.661447", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:25,661 INFO sqlalchemy.engine.Engine [cached since 92.78s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:38:25.661538", "level": "INFO", "message": "[cached since 92.78s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:26,021 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:26.021867", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:38:26.192165", "level": "INFO", "message": "Request: GET /api/v1/itinerary/current Status: 200 Duration: 0.7008s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 20:38:26,369 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:26.369783", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:26,370 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:38:26.370341", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:26,370 INFO sqlalchemy.engine.Engine [cached since 93.49s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:38:26.370436", "level": "INFO", "message": "[cached since 93.49s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:26,819 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:26.819388", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:27,377 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:27.377986", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:27,378 INFO sqlalchemy.engine.Engine SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at 
+FROM itineraries 
+WHERE itineraries.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T20:38:27.378447", "level": "INFO", "message": "SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at \nFROM itineraries \nWHERE itineraries.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:27,378 INFO sqlalchemy.engine.Engine [cached since 44.71s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:38:27.378559", "level": "INFO", "message": "[cached since 44.71s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:27,719 INFO sqlalchemy.engine.Engine SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at 
+FROM booking_jobs 
+WHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)
+{"timestamp": "2026-02-28T20:38:27.719291", "level": "INFO", "message": "SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at \nFROM booking_jobs \nWHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:27,719 INFO sqlalchemy.engine.Engine [cached since 44.63s ago] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}
+{"timestamp": "2026-02-28T20:38:27.719484", "level": "INFO", "message": "[cached since 44.63s ago] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:27,889 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:27.889902", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:38:28.058601", "level": "INFO", "message": "Request: GET /api/v1/bookings/me Status: 200 Duration: 1.8672s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 20:38:28,252 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:28.252720", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:28,253 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:38:28.253093", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:28,253 INFO sqlalchemy.engine.Engine [cached since 95.37s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:38:28.253219", "level": "INFO", "message": "[cached since 95.37s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:28,663 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:28.663313", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:29,075 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:29.075277", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:29,075 INFO sqlalchemy.engine.Engine SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at 
+FROM itineraries 
+WHERE itineraries.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T20:38:29.075520", "level": "INFO", "message": "SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at \nFROM itineraries \nWHERE itineraries.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:29,075 INFO sqlalchemy.engine.Engine [cached since 46.41s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:38:29.075579", "level": "INFO", "message": "[cached since 46.41s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:29,603 INFO sqlalchemy.engine.Engine SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at 
+FROM booking_jobs 
+WHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)
+{"timestamp": "2026-02-28T20:38:29.603877", "level": "INFO", "message": "SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at \nFROM booking_jobs \nWHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:29,603 INFO sqlalchemy.engine.Engine [cached since 46.52s ago] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}
+{"timestamp": "2026-02-28T20:38:29.603979", "level": "INFO", "message": "[cached since 46.52s ago] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:29,791 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:29.791571", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:38:29.996284", "level": "INFO", "message": "Request: GET /api/v1/bookings/me Status: 200 Duration: 1.9335s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 20:38:39,109 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:39.109535", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:39,109 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T20:38:39.109964", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:39,110 INFO sqlalchemy.engine.Engine [cached since 106.2s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}
+{"timestamp": "2026-02-28T20:38:39.110082", "level": "INFO", "message": "[cached since 106.2s ago] {'jti_1': 'c6f219f6-4a49-4595-9ccb-7a718f6da01f'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:39,481 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:39.481895", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:39,824 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:39.824952", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:39,825 INFO sqlalchemy.engine.Engine SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at 
+FROM families 
+WHERE families.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:38:39.825438", "level": "INFO", "message": "SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at \nFROM families \nWHERE families.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:39,825 INFO sqlalchemy.engine.Engine [cached since 106.2s ago] {'pk_1': '8114043d-30af-4547-85d4-2786bf2947cd'}
+{"timestamp": "2026-02-28T20:38:39.825541", "level": "INFO", "message": "[cached since 106.2s ago] {'pk_1': '8114043d-30af-4547-85d4-2786bf2947cd'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:40,171 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:40.171364", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:40,508 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:40.508851", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:40,509 INFO sqlalchemy.engine.Engine SELECT trip_sessions.id, trip_sessions.trip_id, trip_sessions.destination, trip_sessions.start_date, trip_sessions.end_date, trip_sessions.family_ids, trip_sessions.baseline_itinerary_path, trip_sessions.latest_itinerary_path, trip_sessions.iteration_count, trip_sessions.last_optimization_at, trip_sessions.initial_preferences, trip_sessions.current_preferences, trip_sessions.feedback_history, trip_sessions.preference_history, trip_sessions.trip_name, trip_sessions.status, trip_sessions.session_storage_dir, trip_sessions.output_dir, trip_sessions.created_at, trip_sessions.updated_at 
+FROM trip_sessions 
+WHERE CAST(trip_sessions.family_ids AS JSONB) @> %(param_1)s::JSONB ORDER BY trip_sessions.created_at DESC
+{"timestamp": "2026-02-28T20:38:40.509407", "level": "INFO", "message": "SELECT trip_sessions.id, trip_sessions.trip_id, trip_sessions.destination, trip_sessions.start_date, trip_sessions.end_date, trip_sessions.family_ids, trip_sessions.baseline_itinerary_path, trip_sessions.latest_itinerary_path, trip_sessions.iteration_count, trip_sessions.last_optimization_at, trip_sessions.initial_preferences, trip_sessions.current_preferences, trip_sessions.feedback_history, trip_sessions.preference_history, trip_sessions.trip_name, trip_sessions.status, trip_sessions.session_storage_dir, trip_sessions.output_dir, trip_sessions.created_at, trip_sessions.updated_at \nFROM trip_sessions \nWHERE CAST(trip_sessions.family_ids AS JSONB) @> %(param_1)s::JSONB ORDER BY trip_sessions.created_at DESC", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:40,509 INFO sqlalchemy.engine.Engine [cached since 106s ago] {'param_1': '["698199C3"]'}
+{"timestamp": "2026-02-28T20:38:40.509516", "level": "INFO", "message": "[cached since 106s ago] {'param_1': '[\"698199C3\"]'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+{"timestamp": "2026-02-28T20:38:40.959463", "level": "INFO", "message": "Found active trip kolkata_20260228_9653 for family 698199C3", "module": "trip_service", "funcName": "get_active_trip_for_family", "line": 720}
+2026-02-28 20:38:40,959 INFO sqlalchemy.engine.Engine COMMIT
+{"timestamp": "2026-02-28T20:38:40.959811", "level": "INFO", "message": "COMMIT", "module": "base", "funcName": "_commit_impl", "line": 1143}
+[Agent Feedback API] Processing: 'remove red fort' for family 698199C3, trip kolkata_20260228_9653
+{"timestamp": "2026-02-28T20:38:41.151355", "level": "INFO", "message": "Processing feedback for trip kolkata_20260228_9653, family 698199C3", "module": "optimizer_service", "funcName": "process_feedback_with_agents", "line": 361}
+2026-02-28 20:38:41,358 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:41.358963", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:41,359 INFO sqlalchemy.engine.Engine SELECT trip_sessions.id AS trip_sessions_id, trip_sessions.trip_id AS trip_sessions_trip_id, trip_sessions.destination AS trip_sessions_destination, trip_sessions.start_date AS trip_sessions_start_date, trip_sessions.end_date AS trip_sessions_end_date, trip_sessions.family_ids AS trip_sessions_family_ids, trip_sessions.baseline_itinerary_path AS trip_sessions_baseline_itinerary_path, trip_sessions.latest_itinerary_path AS trip_sessions_latest_itinerary_path, trip_sessions.iteration_count AS trip_sessions_iteration_count, trip_sessions.last_optimization_at AS trip_sessions_last_optimization_at, trip_sessions.initial_preferences AS trip_sessions_initial_preferences, trip_sessions.current_preferences AS trip_sessions_current_preferences, trip_sessions.feedback_history AS trip_sessions_feedback_history, trip_sessions.preference_history AS trip_sessions_preference_history, trip_sessions.trip_name AS trip_sessions_trip_name, trip_sessions.status AS trip_sessions_status, trip_sessions.session_storage_dir AS trip_sessions_session_storage_dir, trip_sessions.output_dir AS trip_sessions_output_dir, trip_sessions.created_at AS trip_sessions_created_at, trip_sessions.updated_at AS trip_sessions_updated_at 
+FROM trip_sessions 
+WHERE trip_sessions.trip_id = %(trip_id_1)s 
+ LIMIT %(param_1)s
+{"timestamp": "2026-02-28T20:38:41.359375", "level": "INFO", "message": "SELECT trip_sessions.id AS trip_sessions_id, trip_sessions.trip_id AS trip_sessions_trip_id, trip_sessions.destination AS trip_sessions_destination, trip_sessions.start_date AS trip_sessions_start_date, trip_sessions.end_date AS trip_sessions_end_date, trip_sessions.family_ids AS trip_sessions_family_ids, trip_sessions.baseline_itinerary_path AS trip_sessions_baseline_itinerary_path, trip_sessions.latest_itinerary_path AS trip_sessions_latest_itinerary_path, trip_sessions.iteration_count AS trip_sessions_iteration_count, trip_sessions.last_optimization_at AS trip_sessions_last_optimization_at, trip_sessions.initial_preferences AS trip_sessions_initial_preferences, trip_sessions.current_preferences AS trip_sessions_current_preferences, trip_sessions.feedback_history AS trip_sessions_feedback_history, trip_sessions.preference_history AS trip_sessions_preference_history, trip_sessions.trip_name AS trip_sessions_trip_name, trip_sessions.status AS trip_sessions_status, trip_sessions.session_storage_dir AS trip_sessions_session_storage_dir, trip_sessions.output_dir AS trip_sessions_output_dir, trip_sessions.created_at AS trip_sessions_created_at, trip_sessions.updated_at AS trip_sessions_updated_at \nFROM trip_sessions \nWHERE trip_sessions.trip_id = %(trip_id_1)s \n LIMIT %(param_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:41,359 INFO sqlalchemy.engine.Engine [cached since 106.1s ago] {'trip_id_1': 'kolkata_20260228_9653', 'param_1': 1}
+{"timestamp": "2026-02-28T20:38:41.359473", "level": "INFO", "message": "[cached since 106.1s ago] {'trip_id_1': 'kolkata_20260228_9653', 'param_1': 1}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:41,732 INFO sqlalchemy.engine.Engine COMMIT
+{"timestamp": "2026-02-28T20:38:41.733082", "level": "INFO", "message": "COMMIT", "module": "base", "funcName": "_commit_impl", "line": 1143}
+2026-02-28 20:38:42,074 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:42.075025", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:42,075 INFO sqlalchemy.engine.Engine SELECT families.id, families.family_code, families.family_name, families.current_itinerary_version, families.trip_name, families.destination, families.start_date, families.end_date, families.preferences, families.is_active, families.created_at, families.updated_at 
+FROM families 
+WHERE families.family_code = %(family_code_1)s
+{"timestamp": "2026-02-28T20:38:42.075499", "level": "INFO", "message": "SELECT families.id, families.family_code, families.family_name, families.current_itinerary_version, families.trip_name, families.destination, families.start_date, families.end_date, families.preferences, families.is_active, families.created_at, families.updated_at \nFROM families \nWHERE families.family_code = %(family_code_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:42,075 INFO sqlalchemy.engine.Engine [cached since 106s ago] {'family_code_1': '698199C3'}
+{"timestamp": "2026-02-28T20:38:42.075607", "level": "INFO", "message": "[cached since 106s ago] {'family_code_1': '698199C3'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:42,485 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:42.485126", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:42,893 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:42.894071", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:42,894 INFO sqlalchemy.engine.Engine SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at 
+FROM itineraries 
+WHERE itineraries.family_id = %(family_id_1)s::UUID ORDER BY itineraries.version DESC 
+ LIMIT %(param_1)s
+{"timestamp": "2026-02-28T20:38:42.894754", "level": "INFO", "message": "SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at \nFROM itineraries \nWHERE itineraries.family_id = %(family_id_1)s::UUID ORDER BY itineraries.version DESC \n LIMIT %(param_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:42,894 INFO sqlalchemy.engine.Engine [cached since 106.1s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd'), 'param_1': 1}
+{"timestamp": "2026-02-28T20:38:42.894873", "level": "INFO", "message": "[cached since 106.1s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd'), 'param_1': 1}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:43,306 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:43.306764", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:38:44.532131", "level": "WARNING", "message": "Gemini LLM call failed: All Gemini models failed", "module": "feedback_processor", "funcName": "_call_llm", "line": 50}
+{"timestamp": "2026-02-28T20:38:44.779345", "level": "INFO", "message": "HTTP Request: POST https://api.groq.com/openai/v1/chat/completions \"HTTP/1.1 200 OK\"", "module": "_client", "funcName": "_send_single_request", "line": 1025}
+2026-02-28 20:38:44,949 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:44.949724", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:44,950 INFO sqlalchemy.engine.Engine INSERT INTO preferences (id, family_id, poi_id, poi_name, preference_type, strength, reason, created_by, event_id, is_active, created_at, expires_at) VALUES (%(id)s::UUID, %(family_id)s::UUID, %(poi_id)s, %(poi_name)s, %(preference_type)s, %(strength)s, %(reason)s, %(created_by)s, %(event_id)s::UUID, %(is_active)s, %(created_at)s, %(expires_at)s)
+{"timestamp": "2026-02-28T20:38:44.950519", "level": "INFO", "message": "INSERT INTO preferences (id, family_id, poi_id, poi_name, preference_type, strength, reason, created_by, event_id, is_active, created_at, expires_at) VALUES (%(id)s::UUID, %(family_id)s::UUID, %(poi_id)s, %(poi_name)s, %(preference_type)s, %(strength)s, %(reason)s, %(created_by)s, %(event_id)s::UUID, %(is_active)s, %(created_at)s, %(expires_at)s)", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:44,950 INFO sqlalchemy.engine.Engine [cached since 105.2s ago] {'id': UUID('2102ca5f-dc60-4607-b67e-722c887b1320'), 'family_id': UUID('8114043d-30af-4547-85d4-2786bf2947cd'), 'poi_id': 'LOC_001', 'poi_name': 'Red Fort', 'preference_type': 'NEVER_VISIT', 'strength': 1.0, 'reason': 'remove red fort', 'created_by': None, 'event_id': None, 'is_active': True, 'created_at': datetime.datetime(2026, 2, 28, 20, 38, 44, 781995), 'expires_at': None}
+{"timestamp": "2026-02-28T20:38:44.950703", "level": "INFO", "message": "[cached since 105.2s ago] {'id': UUID('2102ca5f-dc60-4607-b67e-722c887b1320'), 'family_id': UUID('8114043d-30af-4547-85d4-2786bf2947cd'), 'poi_id': 'LOC_001', 'poi_name': 'Red Fort', 'preference_type': 'NEVER_VISIT', 'strength': 1.0, 'reason': 'remove red fort', 'created_by': None, 'event_id': None, 'is_active': True, 'created_at': datetime.datetime(2026, 2, 28, 20, 38, 44, 781995), 'expires_at': None}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:45,312 INFO sqlalchemy.engine.Engine COMMIT
+{"timestamp": "2026-02-28T20:38:45.312716", "level": "INFO", "message": "COMMIT", "module": "base", "funcName": "_commit_impl", "line": 1143}
+2026-02-28 20:38:45,656 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:45.656501", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:45,658 INFO sqlalchemy.engine.Engine SELECT preferences.id, preferences.family_id, preferences.poi_id, preferences.poi_name, preferences.preference_type, preferences.strength, preferences.reason, preferences.created_by, preferences.event_id, preferences.is_active, preferences.created_at, preferences.expires_at 
+FROM preferences 
+WHERE preferences.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:38:45.658190", "level": "INFO", "message": "SELECT preferences.id, preferences.family_id, preferences.poi_id, preferences.poi_name, preferences.preference_type, preferences.strength, preferences.reason, preferences.created_by, preferences.event_id, preferences.is_active, preferences.created_at, preferences.expires_at \nFROM preferences \nWHERE preferences.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:45,658 INFO sqlalchemy.engine.Engine [cached since 105.1s ago] {'pk_1': UUID('2102ca5f-dc60-4607-b67e-722c887b1320')}
+{"timestamp": "2026-02-28T20:38:45.658295", "level": "INFO", "message": "[cached since 105.1s ago] {'pk_1': UUID('2102ca5f-dc60-4607-b67e-722c887b1320')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:46,064 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:46.064296", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:46,466 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:46.466574", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:46,467 INFO sqlalchemy.engine.Engine SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at 
+FROM families 
+WHERE families.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:38:46.467130", "level": "INFO", "message": "SELECT families.id AS families_id, families.family_code AS families_family_code, families.family_name AS families_family_name, families.current_itinerary_version AS families_current_itinerary_version, families.trip_name AS families_trip_name, families.destination AS families_destination, families.start_date AS families_start_date, families.end_date AS families_end_date, families.preferences AS families_preferences, families.is_active AS families_is_active, families.created_at AS families_created_at, families.updated_at AS families_updated_at \nFROM families \nWHERE families.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:46,467 INFO sqlalchemy.engine.Engine [cached since 112.8s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T20:38:46.467287", "level": "INFO", "message": "[cached since 112.8s ago] {'pk_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:46,903 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:46.903666", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:47,282 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:47.282154", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:47,282 INFO sqlalchemy.engine.Engine SELECT preferences.id, preferences.family_id, preferences.poi_id, preferences.poi_name, preferences.preference_type, preferences.strength, preferences.reason, preferences.created_by, preferences.event_id, preferences.is_active, preferences.created_at, preferences.expires_at 
+FROM preferences 
+WHERE preferences.family_id = %(family_id_1)s::UUID AND preferences.preference_type = %(preference_type_1)s AND preferences.is_active = true
+{"timestamp": "2026-02-28T20:38:47.282459", "level": "INFO", "message": "SELECT preferences.id, preferences.family_id, preferences.poi_id, preferences.poi_name, preferences.preference_type, preferences.strength, preferences.reason, preferences.created_by, preferences.event_id, preferences.is_active, preferences.created_at, preferences.expires_at \nFROM preferences \nWHERE preferences.family_id = %(family_id_1)s::UUID AND preferences.preference_type = %(preference_type_1)s AND preferences.is_active = true", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:47,282 INFO sqlalchemy.engine.Engine [cached since 105.2s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd'), 'preference_type_1': 'MUST_VISIT'}
+{"timestamp": "2026-02-28T20:38:47.282547", "level": "INFO", "message": "[cached since 105.2s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd'), 'preference_type_1': 'MUST_VISIT'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:47,869 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:47.869747", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 20:38:48,305 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:48.305934", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:48,306 INFO sqlalchemy.engine.Engine SELECT preferences.id, preferences.family_id, preferences.poi_id, preferences.poi_name, preferences.preference_type, preferences.strength, preferences.reason, preferences.created_by, preferences.event_id, preferences.is_active, preferences.created_at, preferences.expires_at 
+FROM preferences 
+WHERE preferences.family_id = %(family_id_1)s::UUID AND preferences.preference_type = %(preference_type_1)s AND preferences.is_active = true
+{"timestamp": "2026-02-28T20:38:48.306400", "level": "INFO", "message": "SELECT preferences.id, preferences.family_id, preferences.poi_id, preferences.poi_name, preferences.preference_type, preferences.strength, preferences.reason, preferences.created_by, preferences.event_id, preferences.is_active, preferences.created_at, preferences.expires_at \nFROM preferences \nWHERE preferences.family_id = %(family_id_1)s::UUID AND preferences.preference_type = %(preference_type_1)s AND preferences.is_active = true", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:48,306 INFO sqlalchemy.engine.Engine [cached since 106.2s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd'), 'preference_type_1': 'NEVER_VISIT'}
+{"timestamp": "2026-02-28T20:38:48.306541", "level": "INFO", "message": "[cached since 106.2s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd'), 'preference_type_1': 'NEVER_VISIT'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:48,722 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T20:38:48.722437", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T20:38:48.956667", "level": "ERROR", "message": "FeedbackProcessor.run_optimizer failed: ItineraryOptimizer.optimize_trip() missing 1 required positional argument: 'family_ids'", "module": "feedback_processor", "funcName": "run_optimizer", "line": 280}
+{"timestamp": "2026-02-28T20:38:48.964292", "level": "WARNING", "message": "DiffEngine failed ('families'), using empty diffs", "module": "feedback_processor", "funcName": "process_feedback", "line": 356}
+{"timestamp": "2026-02-28T20:38:48.964388", "level": "INFO", "message": "No diffs found between old and new itinerary for trip kolkata_20260228_9653", "module": "feedback_processor", "funcName": "process_feedback", "line": 360}
+2026-02-28 20:38:49,133 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:49.133385", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:49,133 INFO sqlalchemy.engine.Engine SELECT trip_sessions.id AS trip_sessions_id, trip_sessions.trip_id AS trip_sessions_trip_id, trip_sessions.destination AS trip_sessions_destination, trip_sessions.start_date AS trip_sessions_start_date, trip_sessions.end_date AS trip_sessions_end_date, trip_sessions.family_ids AS trip_sessions_family_ids, trip_sessions.baseline_itinerary_path AS trip_sessions_baseline_itinerary_path, trip_sessions.latest_itinerary_path AS trip_sessions_latest_itinerary_path, trip_sessions.iteration_count AS trip_sessions_iteration_count, trip_sessions.last_optimization_at AS trip_sessions_last_optimization_at, trip_sessions.initial_preferences AS trip_sessions_initial_preferences, trip_sessions.current_preferences AS trip_sessions_current_preferences, trip_sessions.feedback_history AS trip_sessions_feedback_history, trip_sessions.preference_history AS trip_sessions_preference_history, trip_sessions.trip_name AS trip_sessions_trip_name, trip_sessions.status AS trip_sessions_status, trip_sessions.session_storage_dir AS trip_sessions_session_storage_dir, trip_sessions.output_dir AS trip_sessions_output_dir, trip_sessions.created_at AS trip_sessions_created_at, trip_sessions.updated_at AS trip_sessions_updated_at 
+FROM trip_sessions 
+WHERE trip_sessions.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:38:49.133808", "level": "INFO", "message": "SELECT trip_sessions.id AS trip_sessions_id, trip_sessions.trip_id AS trip_sessions_trip_id, trip_sessions.destination AS trip_sessions_destination, trip_sessions.start_date AS trip_sessions_start_date, trip_sessions.end_date AS trip_sessions_end_date, trip_sessions.family_ids AS trip_sessions_family_ids, trip_sessions.baseline_itinerary_path AS trip_sessions_baseline_itinerary_path, trip_sessions.latest_itinerary_path AS trip_sessions_latest_itinerary_path, trip_sessions.iteration_count AS trip_sessions_iteration_count, trip_sessions.last_optimization_at AS trip_sessions_last_optimization_at, trip_sessions.initial_preferences AS trip_sessions_initial_preferences, trip_sessions.current_preferences AS trip_sessions_current_preferences, trip_sessions.feedback_history AS trip_sessions_feedback_history, trip_sessions.preference_history AS trip_sessions_preference_history, trip_sessions.trip_name AS trip_sessions_trip_name, trip_sessions.status AS trip_sessions_status, trip_sessions.session_storage_dir AS trip_sessions_session_storage_dir, trip_sessions.output_dir AS trip_sessions_output_dir, trip_sessions.created_at AS trip_sessions_created_at, trip_sessions.updated_at AS trip_sessions_updated_at \nFROM trip_sessions \nWHERE trip_sessions.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:49,133 INFO sqlalchemy.engine.Engine [cached since 104.4s ago] {'pk_1': UUID('45c8ba83-3c84-4c76-a6ff-3c97c87decd6')}
+{"timestamp": "2026-02-28T20:38:49.133934", "level": "INFO", "message": "[cached since 104.4s ago] {'pk_1': UUID('45c8ba83-3c84-4c76-a6ff-3c97c87decd6')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:49,542 INFO sqlalchemy.engine.Engine UPDATE trip_sessions SET feedback_history=%(feedback_history)s::JSONB, updated_at=%(updated_at)s WHERE trip_sessions.id = %(trip_sessions_id)s::UUID
+{"timestamp": "2026-02-28T20:38:49.542557", "level": "INFO", "message": "UPDATE trip_sessions SET feedback_history=%(feedback_history)s::JSONB, updated_at=%(updated_at)s WHERE trip_sessions.id = %(trip_sessions_id)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:49,542 INFO sqlalchemy.engine.Engine [cached since 104.5s ago] {'feedback_history': '[{"action": "NO_CHANGES_DETECTED", "message": "hi", "family_id": "698199C3", "iteration": 0, "timestamp": "2026-02-28T20:20:45.184255", "event_type": ... (781 characters truncated) ... y_id": "698199C3", "message": "remove red fort", "event_type": "EXPLAINABILITY_PROCESSED", "action": "NO_CHANGES_DETECTED", "explanations_count": 0}]', 'updated_at': datetime.datetime(2026, 2, 28, 20, 38, 48, 964455), 'trip_sessions_id': UUID('45c8ba83-3c84-4c76-a6ff-3c97c87decd6')}
+{"timestamp": "2026-02-28T20:38:49.542696", "level": "INFO", "message": "[cached since 104.5s ago] {'feedback_history': '[{\"action\": \"NO_CHANGES_DETECTED\", \"message\": \"hi\", \"family_id\": \"698199C3\", \"iteration\": 0, \"timestamp\": \"2026-02-28T20:20:45.184255\", \"event_type\": ... (781 characters truncated) ... y_id\": \"698199C3\", \"message\": \"remove red fort\", \"event_type\": \"EXPLAINABILITY_PROCESSED\", \"action\": \"NO_CHANGES_DETECTED\", \"explanations_count\": 0}]', 'updated_at': datetime.datetime(2026, 2, 28, 20, 38, 48, 964455), 'trip_sessions_id': UUID('45c8ba83-3c84-4c76-a6ff-3c97c87decd6')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:49,745 INFO sqlalchemy.engine.Engine COMMIT
+{"timestamp": "2026-02-28T20:38:49.745491", "level": "INFO", "message": "COMMIT", "module": "base", "funcName": "_commit_impl", "line": 1143}
+2026-02-28 20:38:50,154 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T20:38:50.154333", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 20:38:50,154 INFO sqlalchemy.engine.Engine SELECT trip_sessions.id, trip_sessions.trip_id, trip_sessions.destination, trip_sessions.start_date, trip_sessions.end_date, trip_sessions.family_ids, trip_sessions.baseline_itinerary_path, trip_sessions.latest_itinerary_path, trip_sessions.iteration_count, trip_sessions.last_optimization_at, trip_sessions.initial_preferences, trip_sessions.current_preferences, trip_sessions.feedback_history, trip_sessions.preference_history, trip_sessions.trip_name, trip_sessions.status, trip_sessions.session_storage_dir, trip_sessions.output_dir, trip_sessions.created_at, trip_sessions.updated_at 
+FROM trip_sessions 
+WHERE trip_sessions.id = %(pk_1)s::UUID
+{"timestamp": "2026-02-28T20:38:50.154735", "level": "INFO", "message": "SELECT trip_sessions.id, trip_sessions.trip_id, trip_sessions.destination, trip_sessions.start_date, trip_sessions.end_date, trip_sessions.family_ids, trip_sessions.baseline_itinerary_path, trip_sessions.latest_itinerary_path, trip_sessions.iteration_count, trip_sessions.last_optimization_at, trip_sessions.initial_preferences, trip_sessions.current_preferences, trip_sessions.feedback_history, trip_sessions.preference_history, trip_sessions.trip_name, trip_sessions.status, trip_sessions.session_storage_dir, trip_sessions.output_dir, trip_sessions.created_at, trip_sessions.updated_at \nFROM trip_sessions \nWHERE trip_sessions.id = %(pk_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 20:38:50,154 INFO sqlalchemy.engine.Engine [cached since 104.5s ago] {'pk_1': UUID('45c8ba83-3c84-4c76-a6ff-3c97c87decd6')}
+{"timestamp": "2026-02-28T20:38:50.154834", "level": "INFO", "message": "[cached since 104.5s ago] {'pk_1': UUID('45c8ba83-3c84-4c76-a6ff-3c97c87decd6')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 20:38:50,565 INFO sqlalchemy.engine.Engine COMMIT
+{"timestamp": "2026-02-28T20:38:50.565429", "level": "INFO", "message": "COMMIT", "module": "base", "funcName": "_commit_impl", "line": 1143}
+[Agent Feedback API] Result: NO_CHANGES_DETECTED, Updated: False
+{"timestamp": "2026-02-28T20:38:50.769804", "level": "INFO", "message": "Request: POST /api/v1/itinerary/feedback/agent Status: 200 Duration: 11.8535s", "module": "main", "funcName": "log_requests", "line": 41}

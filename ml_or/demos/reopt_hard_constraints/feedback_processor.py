@@ -236,6 +236,7 @@ class FeedbackProcessor:
         baseline_path: str,
         preferences_path: str,
         output_dir: str,
+        family_ids: List[str],
     ) -> Dict[str, Any]:
         """
         Run the CP-SAT ItineraryOptimizer on the given baseline + preferences files.
@@ -263,7 +264,7 @@ class FeedbackProcessor:
                 optimized_backbone_file=str(data_dir / "optimized_backbone.json"),
             )
 
-            result = optimizer.optimize_trip()  # full multi-family, multi-day solve
+            result = optimizer.optimize_trip(family_ids=family_ids)  # full multi-family, multi-day solve
             output_path = Path(output_dir) / "optimized_itinerary.json"
             output_path.parent.mkdir(parents=True, exist_ok=True)
             with open(output_path, "w") as f:

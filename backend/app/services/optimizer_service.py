@@ -183,7 +183,51 @@ class OptimizerService:
             f"Saved preferences for trip {trip_id}, iteration {trip_session.iteration_count}"
         )
 
-    
+    @staticmethod
+    def _get_expanded_family_preferences(family_id: str, db_prefs: Optional[dict] = None) -> dict:
+        """
+        Merge fallback preferences (from JSON) with dynamic DB preferences.
+        Expected properties for FamilyPreference: members, children, budget_sensitivity, energy_level, interest_vector
+        """
+        import os
+        from pathlib import Path
+        import json
+        
+        # 1. Base default fallback
+        merged = {
+            "family_id": family_id,
+            "members": 2,
+            "children": 0,
+            "budget_sensitivity": 0.5,
+            "energy_level": 0.5,
+            "interest_vector": {},
+            "must_visit_locations": [],
+            "never_visit_locations": []
+        }
+        
+        # 2. Extract from JSON file
+        try:
+            fallback_path = Path(__file__).parent.parent.parent.parent / "ml_or" / "data" / "family_preferences_3fam_strict.json"
+            if fallback_path.exists():
+                with open(fallback_path, 'r') as f:
+                    fallback_data = json.load(f)
+                    for fam in fallback_data:
+                        if fam.get("family_id") == family_id:
+                            for key in ["members", "children", "budget_sensitivity", "energy_level", "interest_vector", "must_visit_locations", "never_visit_locations"]:
+                                if key in fam:
+                                    merged[key] = fam[key]
+                            break
+        except Exception as e:
+            logger.warning(f"Could not load fallback preferences: {e}")
+            
+        # 3. Override with database preferences if any
+        if db_prefs:
+            for key in ["members", "children", "budget_sensitivity", "energy_level", "interest_vector", "must_visit_locations", "never_visit_locations"]:
+                if key in db_prefs:
+                    merged[key] = db_prefs[key]
+                    
+        return merged
+
     @staticmethod
     def run_initial_optimization(
         trip_id: str,
@@ -233,10 +277,18 @@ class OptimizerService:
             # Convert preferences dict to the list format the optimizer expects
             pref_list = []
             for fam_id, fam_prefs in preferences.items():
-                entry = {"family_id": fam_id}
-                entry["must_visit"] = fam_prefs.get("must_visit_locations", [])
-                entry["never_visit"] = fam_prefs.get("never_visit_locations", [])
-                entry["interest_vector"] = fam_prefs.get("interest_vector", {})
+                expanded = OptimizerService._get_expanded_family_preferences(fam_id, fam_prefs)
+                
+                entry = {
+                    "family_id": fam_id,
+                    "members": expanded.get("members", 2),
+                    "children": expanded.get("children", 0),
+                    "budget_sensitivity": expanded.get("budget_sensitivity", 0.5),
+                    "energy_level": expanded.get("energy_level", 0.5),
+                    "interest_vector": expanded.get("interest_vector", {}),
+                    "must_visit_locations": fam_prefs.get("must_visit_locations", expanded.get("must_visit_locations", [])),
+                    "never_visit_locations": fam_prefs.get("never_visit_locations", expanded.get("never_visit_locations", []))
+                }
                 pref_list.append(entry)
 
             # Write preferences file for the optimizer
@@ -246,10 +298,12 @@ class OptimizerService:
 
             # Run optimizer via FeedbackProcessor
             processor = FeedbackProcessor()
+            family_ids = list(preferences.keys())
             result = processor.run_optimizer(
                 baseline_path=str(baseline_path),
                 preferences_path=str(prefs_file),
                 output_dir=str(output_dir),
+                family_ids=family_ids,
             )
 
             optimized_path = output_dir / "optimized_itinerary.json"
@@ -385,16 +439,43 @@ class OptimizerService:
                     with open(base_path, "w") as f:
                         json.dump(old_itinerary, f)
                         
-                    family_prefs = [{
-                        "family_id": family_id,
-                        "members": 2, # Defaults if full profile not loaded here
-                        "must_visit_locations": PreferenceService.get_must_visit_pois(family_uuid),
-                        "never_visit_locations": PreferenceService.get_never_visit_pois(family_uuid)
-                    }]
+                    family_ids = trip_session.family_ids or [family_id]
+                    family_prefs = []
+
+                    from sqlmodel import Session, select
+                    from app.models.family import Family
+                    from app.core.db import engine
+
+                    with Session(engine) as session:
+                        for fid in family_ids:
+                            # Try to get the UUID for the family code to fetch dynamic DB preferences
+                            stmt = select(Family).where(Family.family_code == fid)
+                            fam_rec = session.exec(stmt).first()
+                            
+                            fam_uuid_loop = fam_rec.id if fam_rec else None
+                            db_fam_prefs = fam_rec.preferences if fam_rec and fam_rec.preferences else {}
+                            
+                            expanded = OptimizerService._get_expanded_family_preferences(fid, db_fam_prefs)
+                            
+                            must_visit = PreferenceService.get_must_visit_pois(fam_uuid_loop) if fam_uuid_loop else []
+                            never_visit = PreferenceService.get_never_visit_pois(fam_uuid_loop) if fam_uuid_loop else []
+
+                            family_prefs.append({
+                                "family_id": fid,
+                                "members": expanded.get("members", 2),
+                                "children": expanded.get("children", 0),
+                                "budget_sensitivity": expanded.get("budget_sensitivity", 0.5),
+                                "energy_level": expanded.get("energy_level", 0.5),
+                                "interest_vector": expanded.get("interest_vector", {}),
+                                "must_visit_locations": must_visit,
+                                "never_visit_locations": never_visit,
+                            })
+
                     with open(prefs_path, "w") as f:
                         json.dump(family_prefs, f)
                     
-                    opt_result = processor.run_optimizer(base_path, prefs_path, temp_dir)
+                    family_ids = trip_session.family_ids or [family_id]
+                    opt_result = processor.run_optimizer(base_path, prefs_path, temp_dir, family_ids=family_ids)
                     if opt_result.get("optimizer_ran") and opt_result.get("optimized_itinerary"):
                         new_itinerary = opt_result["optimized_itinerary"]
                         optimization_ran = True

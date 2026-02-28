@@ -16,7 +16,7 @@ from typing import Any, List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from app.core.dependencies import get_current_agent
+from app.core.dependencies import get_current_agent, get_current_user
 from app.schemas.auth import TokenPayload
 from app.schemas.booking import (
     BookingExecuteRequest,
@@ -40,6 +40,99 @@ from app.models.booking_job import JobStatus
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+@router.get("/me")
+async def get_my_bookings(
+    current_user: TokenPayload = Depends(get_current_user),
+) -> Any:
+    """
+    Get all bookings for the authenticated customer's family.
+    Returns hotel and flight bookings grouped by type.
+    Available to travellers (customers) as well as agents.
+    """
+    from sqlmodel import Session, select
+    from app.core.db import engine
+    from app.models.hotel_booking import HotelBooking
+    from app.models.flight_booking import FlightBooking
+    from app.models.itinerary import Itinerary
+    from app.models.booking_job import BookingJob
+    from uuid import UUID
+
+    family_id_str = current_user.family_id
+    if not family_id_str:
+        return {"hotels": [], "flights": [], "total": 0}
+
+    try:
+        family_uuid = UUID(family_id_str)
+    except ValueError:
+        return {"hotels": [], "flights": [], "total": 0}
+
+    with Session(engine) as session:
+        # 1. Get all itinerary IDs for this family
+        itineraries = session.exec(
+            select(Itinerary).where(Itinerary.family_id == family_uuid)
+        ).all()
+        itinerary_ids = [str(itin.id) for itin in itineraries]
+
+        if not itinerary_ids:
+            return {"hotels": [], "flights": [], "total": 0}
+
+        # 2. Get all booking job IDs for these itineraries
+        jobs = session.exec(
+            select(BookingJob).where(BookingJob.itinerary_id.in_(itinerary_ids))
+        ).all()
+        job_ids = [job.id for job in jobs]
+
+        if not job_ids:
+            return {"hotels": [], "flights": [], "total": 0}
+
+        # 3. Get hotel and flight bookings for these jobs
+        hotels = session.exec(
+            select(HotelBooking).where(HotelBooking.job_id.in_(job_ids))
+        ).all()
+
+        flights = session.exec(
+            select(FlightBooking).where(FlightBooking.job_id.in_(job_ids))
+        ).all()
+
+    hotel_list = [
+        {
+            "id": str(h.id),
+            "type": "hotel",
+            "icon": "\U0001f3e8",
+            "code": h.hotel_name or "Hotel",
+            "detail": f"{h.room_name or 'Room'} · Check-in {h.checkin}",
+            "status": (h.status or "confirmed").upper(),
+            "confirmation_no": h.confirmation_no,
+            "total_fare": h.total_fare,
+            "currency": h.currency,
+            "checkin": str(h.checkin) if h.checkin else None,
+            "checkout": str(h.checkout) if h.checkout else None,
+        }
+        for h in hotels
+    ]
+
+    flight_list = [
+        {
+            "id": str(f.id),
+            "type": "flight",
+            "icon": "\u2708",
+            "code": f.flight_number or "Flight",
+            "detail": f"{f.origin or ''} → {f.destination or ''} · {f.cabin_class or 'Economy'}",
+            "status": (f.status or "confirmed").upper(),
+            "confirmation_no": f.booking_reference,
+            "departure_date": str(f.departure_date) if f.departure_date else None,
+        }
+        for f in flights
+    ]
+
+    return {
+        "hotels": hotel_list,
+        "flights": flight_list,
+        "total": len(hotel_list) + len(flight_list),
+    }
+
 
 
 @router.post("/execute", response_model=BookingExecuteResponse)

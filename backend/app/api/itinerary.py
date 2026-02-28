@@ -48,6 +48,133 @@ class FeedbackResponse(BaseModel):
 
 from app.core.redis import get_redis
 import json
+from datetime import datetime, timedelta
+
+
+def _transform_optimizer_to_frontend(raw: dict) -> dict:
+    """
+    Transform optimizer-format itinerary to the frontend timeline format.
+
+    Optimizer format:
+        { city, itinerary_id, days: [{ day, region, pois: [{ comment, location_id,
+          planned_visit_time_min, sequence, role }] }] }
+
+    Frontend format:
+        { days: [{ date, title, timelineEvents: [{ id, type, startTime, endTime,
+          title, description, status, image }] }] }
+
+    If the data is already in frontend format (has timelineEvents) it is returned
+    unchanged.
+    """
+    if not isinstance(raw, dict):
+        return raw
+
+    # Already in timeline format — nothing to do
+    first_day = raw.get("days", [{}])[0] if raw.get("days") else {}
+    if "timelineEvents" in first_day:
+        return raw
+
+    # Not in timeline format — check for optimizer pois format
+    pois_in_day = "pois" in first_day
+    activities_in_day = "activities" in first_day
+
+    if not (pois_in_day or activities_in_day):
+        # Unknown format — return as-is and let frontend deal with it
+        return raw
+
+    city = raw.get("city", "Your Destination")
+    assumptions = raw.get("assumptions", {})
+    day_start = assumptions.get("day_start_time", "09:00")
+
+    # Use a base date — ideally from family/trip but fall back to tomorrow
+    base_date_str = raw.get("start_date")
+    try:
+        base_date = datetime.strptime(base_date_str, "%Y-%m-%d") if base_date_str else datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    except Exception:
+        base_date = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    frontend_days = []
+    for day_obj in raw.get("days", []):
+        day_num = day_obj.get("day", 1)
+        region = day_obj.get("region", city)
+        day_date = base_date + timedelta(days=day_num - 1)
+        day_date_str = day_date.strftime("%Y-%m-%dT00:00:00")
+
+        # Parse current time cursor
+        try:
+            h, m = map(int, day_start.split(":"))
+        except Exception:
+            h, m = 9, 0
+        cursor = day_date.replace(hour=h, minute=m, second=0, microsecond=0)
+
+        timeline_events = []
+
+        # Handle pois format (optimizer skeleton)
+        pois = day_obj.get("pois") or []
+        if not pois:
+            # Fall back to activities list if present
+            pois = [
+                {
+                    "comment": a.get("title", a.get("name", "Activity")),
+                    "planned_visit_time_min": a.get("duration", 60),
+                    "location_id": a.get("poi_id", ""),
+                    "role": "ACTIVITY",
+                }
+                for a in (day_obj.get("activities") or [])
+            ]
+
+        for idx, poi in enumerate(pois):
+            name = poi.get("comment") or poi.get("name") or poi.get("title") or f"Activity {idx + 1}"
+            duration_min = poi.get("planned_visit_time_min") or poi.get("duration") or 60
+            loc_id = poi.get("location_id") or poi.get("poi_id") or f"poi_{idx}"
+            role = (poi.get("role") or "activity").upper()
+
+            start_time = cursor
+            end_time = cursor + timedelta(minutes=int(duration_min))
+
+            # Infer event type from role
+            if role in ("FLIGHT",):
+                evt_type = "transport"
+            elif role in ("HOTEL", "ACCOMMODATION", "STAY"):
+                evt_type = "accommodation"
+            elif role in ("MEAL", "LUNCH", "DINNER", "BREAKFAST"):
+                evt_type = "meal"
+            else:
+                evt_type = "activity"
+
+            timeline_events.append({
+                "id": f"{loc_id}_{day_num}_{idx}",
+                "type": evt_type,
+                "startTime": start_time.isoformat(),
+                "endTime": end_time.isoformat(),
+                "title": name,
+                "description": f"{name} · {region}",
+                "status": "confirmed",
+                "image": None,
+            })
+
+            # Advance cursor (+15 min travel buffer between activities)
+            cursor = end_time + timedelta(minutes=15)
+
+        frontend_days.append({
+            "day": day_num,
+            "date": day_date_str,
+            "title": region,
+            "timelineEvents": timeline_events,
+            "total_day_cost": day_obj.get("total_cost", 0),
+        })
+
+    return {
+        "id": raw.get("itinerary_id", str(uuid_lib.uuid4())),
+        "destination": city,
+        "startDate": base_date.isoformat(),
+        "endDate": (base_date + timedelta(days=len(frontend_days) - 1)).isoformat(),
+        "itineraryName": f"{city} Trip",
+        "status": "confirmed",
+        "version": raw.get("version", 1),
+        "days": frontend_days,
+    }
+
 
 @router.get("/current", response_model=Dict[str, Any])
 async def get_current_itinerary(
@@ -79,6 +206,18 @@ async def get_current_itinerary(
 
         # Get current itinerary from database
         itinerary_data = ItineraryService.get_current_itinerary(family_id)
+
+        if itinerary_data:
+            # Enrich with family travel dates so the transform uses the right start date
+            from sqlmodel import Session, select
+            from app.core.db import engine
+            from app.models.family import Family
+            with Session(engine) as db_session:
+                family_rec = db_session.get(Family, family_id)
+                if family_rec and family_rec.start_date and "start_date" not in itinerary_data:
+                    itinerary_data["start_date"] = family_rec.start_date.strftime("%Y-%m-%d")
+            # Convert optimizer format → frontend timeline format
+            itinerary_data = _transform_optimizer_to_frontend(itinerary_data)
         
         if not itinerary_data:
             print(f"[Itinerary API] No active itinerary found for {family_id}. Returning Delhi fallback.")
@@ -337,7 +476,15 @@ async def process_agent_feedback(
             family_id = "FAM_A"
             print(f"[Agent Feedback API] Using default test family: {family_id}")
         else:
-            family_id = current_user.family_id
+            from sqlmodel import Session
+            from app.core.db import engine
+            from app.models.family import Family
+            
+            with Session(engine) as session:
+                family_rec = session.get(Family, current_user.family_id)
+                if not family_rec:
+                    raise HTTPException(status_code=404, detail="Family not found")
+                family_id = family_rec.family_code
         
         # Get active trip for this family (instead of requiring trip_id in request)
         trip_session = TripService.get_active_trip_for_family(family_id)

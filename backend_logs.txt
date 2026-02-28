@@ -1,0 +1,211 @@
+﻿docker : 
+At line:1 char:1
++ docker logs --tail 200 meiliai_backend 2>&1 | Out-File -Encoding utf8 ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/usr/local/lib/python3.10/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/cors.py", line 95, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/cors.py", line 153, in simple_response
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/local/lib/python3.10/contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.10/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "/app/app/main.py", line 38, in log_requests
+    response = await call_next(request)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/local/lib/python3.10/contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.10/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "/app/app/main.py", line 33, in rate_limit_middleware
+    return await call_next(request)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.10/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/fastapi/routing.py", line 119, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.10/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.10/site-packages/fastapi/routing.py", line 105, in app
+    response = await f(request)
+  File "/usr/local/lib/python3.10/site-packages/fastapi/routing.py", line 421, in app
+    solved_result = await solve_dependencies(
+  File "/usr/local/lib/python3.10/site-packages/fastapi/dependencies/utils.py", line 645, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "/app/app/core/dependencies.py", line 29, in get_current_user
+    payload = TokenManager.verify_token(token, token_type="access")
+  File "/app/app/core/auth.py", line 128, in verify_token
+    if jti and TokenManager.is_token_blacklisted(jti):
+  File "/app/app/core/auth.py", line 146, in is_token_blacklisted
+    result = session.exec(statement).first()
+  File "/usr/local/lib/python3.10/site-packages/sqlmodel/orm/session.py", line 75, in exec
+    results = super().execute(
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+  File "<string>", line 2, in _connection_for_bind
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2448, in 
+_handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 837, in get_connection
+    self.__connect()
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/engine/create.py", line 661, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/usr/local/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/usr/local/lib/python3.10/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not translate host name 
+"aws-1-ap-northeast-1.pooler.supabase.com" to address: Name or service not known
+
+{"timestamp": "2026-02-28T21:15:21.777242", "level": "INFO", "message": "WebSocket connected: user=02acc798-2c9e-40a2-95dd-6084a3851606 (total_users=1)", "module": "websocket", "funcName": "connect_user", "line": 52}
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+INFO:     172.19.0.1:45940 - "WebSocket /ws/traveller/02acc798-2c9e-40a2-95dd-6084a3851606?token=eyJhbGciOiJIUzI1NiIsInR5cCI6
+IkpXVCJ9.eyJzdWIiOiIwMmFjYzc5OC0yYzllLTQwYTItOTVkZC02MDg0YTM4NTE2MDYiLCJyb2xlIjoidHJhdmVsbGVyIiwiZmFtaWx5X2lkIjoiODExNDA0M2Qt
+MzBhZi00NTQ3LTg1ZDQtMjc4NmJmMjk0N2NkIiwianRpIjoiYTg5NDRjMmEtNDUxZS00ZDE0LWJiZjQtZWM1ZTk3MWYzMWIyIiwidHlwZSI6ImFjY2VzcyIsImV4c
+CI6MTc3MjMxNTEwMCwiaWF0IjoxNzcyMzEzMzAwfQ.uNy65a3CqSzaApdlok_9IDDbSLyoYvm8mBZ5b5ZJsMI" [accepted]
+INFO:     connection open
+{"timestamp": "2026-02-28T21:15:21.779079", "level": "INFO", "message": "WS sent to user=02acc798-2c9e-40a2-95dd-6084a3851606: type=connected", "module": "websocket", "funcName": "send_to_user", "line": 81}
+2026-02-28 21:15:23,423 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T21:15:23.424404", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 21:15:23,428 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T21:15:23.428637", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 21:15:23,429 INFO sqlalchemy.engine.Engine [cached since 33.01s ago] {'jti_1': 'a8944c2a-451e-4d14-bbf4-ec5e971f31b2'}
+{"timestamp": "2026-02-28T21:15:23.429834", "level": "INFO", "message": "[cached since 33.01s ago] {'jti_1': 'a8944c2a-451e-4d14-bbf4-ec5e971f31b2'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 21:15:23,823 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T21:15:23.825962", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T21:15:24.012365", "level": "INFO", "message": "Request: GET /api/v1/itinerary/current Status: 200 Duration: 2.2382s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 21:15:24,226 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T21:15:24.228246", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 21:15:24,233 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T21:15:24.234422", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 21:15:24,236 INFO sqlalchemy.engine.Engine [cached since 33.82s ago] {'jti_1': 'a8944c2a-451e-4d14-bbf4-ec5e971f31b2'}
+{"timestamp": "2026-02-28T21:15:24.237643", "level": "INFO", "message": "[cached since 33.82s ago] {'jti_1': 'a8944c2a-451e-4d14-bbf4-ec5e971f31b2'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 21:15:24,597 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T21:15:24.597352", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 21:15:24,946 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T21:15:24.946647", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 21:15:24,948 INFO sqlalchemy.engine.Engine SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at 
+FROM itineraries 
+WHERE itineraries.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T21:15:24.948299", "level": "INFO", "message": "SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at \nFROM itineraries \nWHERE itineraries.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 21:15:24,948 INFO sqlalchemy.engine.Engine [generated in 0.00039s] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T21:15:24.948494", "level": "INFO", "message": "[generated in 0.00039s] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 21:15:25,311 INFO sqlalchemy.engine.Engine SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at 
+FROM booking_jobs 
+WHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)
+{"timestamp": "2026-02-28T21:15:25.311272", "level": "INFO", "message": "SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at \nFROM booking_jobs \nWHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 21:15:25,311 INFO sqlalchemy.engine.Engine [generated in 0.00078s] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}
+{"timestamp": "2026-02-28T21:15:25.311449", "level": "INFO", "message": "[generated in 0.00078s] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 21:15:25,512 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T21:15:25.514228", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T21:15:25.694689", "level": "INFO", "message": "Request: GET /api/v1/bookings/me Status: 200 Duration: 1.6769s", "module": "main", "funcName": "log_requests", "line": 41}
+2026-02-28 21:15:25,891 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T21:15:25.893467", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 21:15:25,897 INFO sqlalchemy.engine.Engine SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at 
+FROM token_blacklist 
+WHERE token_blacklist.jti = %(jti_1)s
+{"timestamp": "2026-02-28T21:15:25.899342", "level": "INFO", "message": "SELECT token_blacklist.id, token_blacklist.jti, token_blacklist.token_type, token_blacklist.user_id, token_blacklist.revoked_at, token_blacklist.reason, token_blacklist.expires_at \nFROM token_blacklist \nWHERE token_blacklist.jti = %(jti_1)s", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 21:15:25,903 INFO sqlalchemy.engine.Engine [cached since 35.48s ago] {'jti_1': 'a8944c2a-451e-4d14-bbf4-ec5e971f31b2'}
+{"timestamp": "2026-02-28T21:15:25.905566", "level": "INFO", "message": "[cached since 35.48s ago] {'jti_1': 'a8944c2a-451e-4d14-bbf4-ec5e971f31b2'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 21:15:26,269 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T21:15:26.269398", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+2026-02-28 21:15:26,617 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+{"timestamp": "2026-02-28T21:15:26.617222", "level": "INFO", "message": "BEGIN (implicit)", "module": "base", "funcName": "_begin_impl", "line": 1094}
+2026-02-28 21:15:26,617 INFO sqlalchemy.engine.Engine SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at 
+FROM itineraries 
+WHERE itineraries.family_id = %(family_id_1)s::UUID
+{"timestamp": "2026-02-28T21:15:26.617549", "level": "INFO", "message": "SELECT itineraries.id, itineraries.family_id, itineraries.version, itineraries.data, itineraries.created_reason, itineraries.created_by, itineraries.total_cost, itineraries.total_satisfaction, itineraries.duration_days, itineraries.created_at \nFROM itineraries \nWHERE itineraries.family_id = %(family_id_1)s::UUID", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 21:15:26,617 INFO sqlalchemy.engine.Engine [cached since 1.67s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}
+{"timestamp": "2026-02-28T21:15:26.617645", "level": "INFO", "message": "[cached since 1.67s ago] {'family_id_1': UUID('8114043d-30af-4547-85d4-2786bf2947cd')}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 21:15:26,968 INFO sqlalchemy.engine.Engine SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at 
+FROM booking_jobs 
+WHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)
+{"timestamp": "2026-02-28T21:15:26.968835", "level": "INFO", "message": "SELECT booking_jobs.id, booking_jobs.itinerary_id, booking_jobs.agent_id, booking_jobs.status, booking_jobs.items_requested, booking_jobs.items_completed, booking_jobs.error_message, booking_jobs.celery_task_id, booking_jobs.created_at, booking_jobs.updated_at \nFROM booking_jobs \nWHERE booking_jobs.itinerary_id IN (%(itinerary_id_1_1)s, %(itinerary_id_1_2)s)", "module": "base", "funcName": "_exec_single_context", "line": 1899}
+2026-02-28 21:15:26,968 INFO sqlalchemy.engine.Engine [cached since 1.658s ago] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}
+{"timestamp": "2026-02-28T21:15:26.968929", "level": "INFO", "message": "[cached since 1.658s ago] {'itinerary_id_1_1': 'e7ffb3eb-dfca-4dcf-b216-49833e06e7bb', 'itinerary_id_1_2': 'cf3e9b54-6f95-46dd-9f22-5105e3d4f890'}", "module": "base", "funcName": "_exec_single_context", "line": 1904}
+2026-02-28 21:15:27,142 INFO sqlalchemy.engine.Engine ROLLBACK
+{"timestamp": "2026-02-28T21:15:27.142930", "level": "INFO", "message": "ROLLBACK", "module": "base", "funcName": "_rollback_impl", "line": 1126}
+{"timestamp": "2026-02-28T21:15:27.316261", "level": "INFO", "message": "Request: GET /api/v1/bookings/me Status: 200 Duration: 1.6119s", "module": "main", "funcName": "log_requests", "line": 41}
