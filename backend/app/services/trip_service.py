@@ -9,6 +9,7 @@ This service manages the initial setup of trips, including:
 """
 
 import logging
+import json
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 from datetime import datetime
@@ -583,6 +584,39 @@ class TripService:
         # otherwise fall back to the static skeleton lookup.
         if custom_baseline:
             logger.info("Using custom baseline from Activity Architect (%d days)", len(custom_baseline.get("days", [])))
+
+            # --- Resolve activity names to real location IDs ---
+            # The optimizer only knows IDs from locations.json (LOC_001, etc.).
+            # The frontend sends human-readable names in `comment`, so we
+            # build a case-insensitive index and replace custom IDs with real ones.
+            try:
+                locations_file = Path("ml_or/data/locations.json")
+                if locations_file.exists():
+                    with open(locations_file, "r") as lf:
+                        all_locations = json.load(lf)
+                    # Build name → location_id lookup (lowercase, stripped)
+                    name_to_id = {}
+                    for loc in all_locations:
+                        loc_name = loc.get("name", "").strip().lower()
+                        if loc_name:
+                            name_to_id[loc_name] = loc.get("location_id")
+                    
+                    resolved_count = 0
+                    for day_data in custom_baseline.get("days", []):
+                        for poi in day_data.get("pois", []):
+                            comment = (poi.get("comment") or "").strip().lower()
+                            if comment and comment in name_to_id:
+                                old_id = poi["location_id"]
+                                poi["location_id"] = name_to_id[comment]
+                                resolved_count += 1
+                                logger.info("Resolved '%s' → %s (was %s)", poi.get("comment"), poi["location_id"], old_id)
+                    
+                    logger.info("Resolved %d/%d POIs to real location IDs",
+                                resolved_count,
+                                sum(len(d.get("pois", [])) for d in custom_baseline.get("days", [])))
+            except Exception as e:
+                logger.warning("Could not resolve activity names to location IDs: %s", e)
+
             from pathlib import Path as _Path
             custom_dir = _Path(settings.OPTIMIZER_OUTPUT_DIR) / trip_id
             custom_dir.mkdir(parents=True, exist_ok=True)
@@ -590,6 +624,7 @@ class TripService:
             with open(custom_path, "w") as _f:
                 json.dump(custom_baseline, _f, indent=2)
             baseline_path = str(custom_path)
+            baseline_name = custom_baseline.get("itinerary_id", "custom_baseline")
         else:
             baseline_map = {
                 "delhi": "delhi_3day_skeleton",
