@@ -286,7 +286,17 @@ class FeedbackProcessor:
                 optimized_backbone_file=str(backbone_path),
             )
 
-            result = optimizer.optimize_trip()  # full multi-family, multi-day solve
+            # Extract family_ids and num_days from the loaded data
+            family_ids = list(optimizer.family_prefs.keys())
+            num_days = len(optimizer.base_itinerary.get("days", []))
+            if num_days == 0:
+                num_days = 3  # sensible default
+            logger.info("ItineraryOptimizer: optimizing %d days for families %s", num_days, family_ids)
+
+            result = optimizer.optimize_trip(
+                family_ids=family_ids,
+                num_days=num_days,
+            )
             output_path = Path(output_dir) / "optimized_itinerary.json"
             output_path.parent.mkdir(parents=True, exist_ok=True)
             with open(output_path, "w") as f:
@@ -300,7 +310,8 @@ class FeedbackProcessor:
             }
 
         except Exception as e:
-            logger.error("FeedbackProcessor.run_optimizer failed: %s", e)
+            import traceback
+            logger.error("FeedbackProcessor.run_optimizer failed: %s\n%s", e, traceback.format_exc())
             return {"optimized_itinerary": None, "optimizer_ran": False, "output_path": None}
 
     def process_feedback(
