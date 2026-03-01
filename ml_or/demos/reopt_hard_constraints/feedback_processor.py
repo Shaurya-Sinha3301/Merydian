@@ -252,6 +252,29 @@ class FeedbackProcessor:
             ml_or_root = Path(__file__).parent.parent.parent  # ml_or/
             data_dir   = ml_or_root / "data"
 
+            # Step 0: Run HotelSkeletonOptimizer to produce a fresh backbone
+            # (hotel assignments, skeleton routes, restaurant selections)
+            from ml_or.hotel_optimizer import HotelSkeletonOptimizer
+
+            backbone_path = Path(output_dir) / "optimized_backbone.json"
+            logger.info("Running HotelSkeletonOptimizer (Step 0)...")
+            hotel_opt = HotelSkeletonOptimizer(
+                locations_file=str(data_dir / "locations.json"),
+                hotels_file=str(data_dir / "hotels.json"),
+                base_itinerary_file=baseline_path,
+                family_prefs_file=preferences_path,
+            )
+            hotel_result = hotel_opt.optimize(output_file=str(backbone_path))
+            if hotel_result:
+                logger.info("HotelSkeletonOptimizer completed — backbone saved to %s", backbone_path)
+            else:
+                logger.warning("HotelSkeletonOptimizer returned no solution, using empty backbone")
+                # Create empty backbone so ItineraryOptimizer doesn't crash
+                backbone_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(backbone_path, "w") as bf:
+                    json.dump({"hotel_assignments": {}, "skeleton_routes": {}, "daily_restaurants": {}}, bf)
+
+            # Step 1: Run ItineraryOptimizer with the fresh backbone
             from ml_or.itinerary_optimizer import ItineraryOptimizer
 
             optimizer = ItineraryOptimizer(
@@ -260,7 +283,7 @@ class FeedbackProcessor:
                 transport_file=str(data_dir / "transport_graph.json"),
                 base_itinerary_file=baseline_path,
                 family_prefs_file=preferences_path,
-                optimized_backbone_file=str(data_dir / "optimized_backbone.json"),
+                optimized_backbone_file=str(backbone_path),
             )
 
             result = optimizer.optimize_trip()  # full multi-family, multi-day solve
