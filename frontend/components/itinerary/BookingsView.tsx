@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Plane, Hotel, Utensils, Bus,
     Calendar, TrendingUp, Minimize2,
-    Hash, Clock
+    Hash, Clock, Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-// Trip data fetched dynamically — no static lookup needed
+import { apiClient } from '@/services/api';
 import VoyageurAIPanel from './VoyageurAIPanel';
 
-// ─── Types & Mock Data ─────────────────────────────────────────────────────────
+// ─── Types ──────────────────────────────────────────────────────────────────────
 
 type BookingType = 'flight' | 'stay' | 'dining' | 'transport';
 type BookingStatus = 'confirmed' | 'pending' | 'cancelled' | 'delayed';
@@ -44,397 +44,70 @@ interface DayGroup {
 }
 
 // ─── Family tag colour map — matches ItineraryDetailView ─────────────────────
-const FAM_COLORS: Record<string, string> = {
-    'FAM A': 'bg-black text-white border-black',
-    'FAM B': 'bg-[#2C4C3B] text-white border-[#2C4C3B]',
-    'FAM C': 'bg-[#C5A059] text-white border-[#C5A059]',
-    'All': 'bg-white text-black border-black/20',
-};
-
-const ALL_FAMILIES = [
-    { label: 'FAM A', color: FAM_COLORS['FAM A'] },
-    { label: 'FAM B', color: FAM_COLORS['FAM B'] },
-    { label: 'FAM C', color: FAM_COLORS['FAM C'] },
+const FAM_COLOR_PALETTE = [
+    { key: 'FAM A', style: 'bg-black text-white border-black' },
+    { key: 'FAM B', style: 'bg-[#2C4C3B] text-white border-[#2C4C3B]' },
+    { key: 'FAM C', style: 'bg-[#C5A059] text-white border-[#C5A059]' },
+    { key: 'FAM D', style: 'bg-[#5B3A8C] text-white border-[#5B3A8C]' },
+    { key: 'FAM E', style: 'bg-[#1A6B6A] text-white border-[#1A6B6A]' },
 ];
 
-const BOOKINGS_DATA: DayGroup[] = [
-    {
-        day: 1,
-        title: 'Day 1: Paris Sightseeing',
-        date: 'OCT 12',
-        timeRange: '08:00 – 17:30',
-        rows: [
-            {
-                id: 'row-1-flight',
-                bookings: [
-                    {
-                        id: 'AI-142',
-                        type: 'flight',
-                        status: 'confirmed',
-                        title: 'Air India AI-142',
-                        description: 'DEL → CDG · Charles de Gaulle, Terminal 2E',
-                        date: 'OCT 12',
-                        time: '02:15 UTC+1',
-                        location: 'CDG T2E',
-                        price: '₹2,85,000',
-                        metaPrimary: 'AI-142',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-            {
-                id: 'row-1-transfer',
-                bookings: [
-                    {
-                        id: 'TRN-CDG-01',
-                        type: 'transport',
-                        status: 'confirmed',
-                        title: 'Private Coach Transfer',
-                        description: 'CDG → Hôtel Le Marais · Luggage pre-loaded',
-                        date: 'OCT 12',
-                        time: '08:30 UTC+1',
-                        price: 'Included',
-                        metaPrimary: 'TRN-CDG-01',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-            {
-                id: 'row-1-hotel-a',
-                bookings: [
-                    {
-                        id: 'HTL-LM-01',
-                        type: 'stay',
-                        status: 'confirmed',
-                        title: 'Hôtel Le Marais',
-                        description: '8× Deluxe Rooms · Classic Parisian Wing',
-                        date: 'OCT 12',
-                        location: 'Paris 3e, Le Marais',
-                        price: '₹3,84,000',
-                        metaPrimary: 'HTL-LM-01',
-                        metaSecondary: '3 Nights',
-                        participants: [
-                            { label: 'FAM A', color: FAM_COLORS['FAM A'] },
-                            { label: 'FAM B', color: FAM_COLORS['FAM B'] },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: 'row-1-hotel-b',
-                bookings: [
-                    {
-                        id: 'HTL-VD-01',
-                        type: 'stay',
-                        status: 'pending',
-                        title: 'Villa des Artistes',
-                        description: '4× Superior Suite · Garden View',
-                        date: 'OCT 12',
-                        location: 'Paris 6e, Saint-Germain',
-                        price: '₹1,44,000',
-                        metaPrimary: 'HTL-VD-01',
-                        metaSecondary: '3 Nights',
-                        participants: [
-                            { label: 'FAM C', color: FAM_COLORS['FAM C'] },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: 'row-1-breakfast',
-                bookings: [
-                    {
-                        id: 'DIN-CDF-01',
-                        type: 'dining',
-                        status: 'confirmed',
-                        title: 'Breakfast at Café de Flore',
-                        description: 'Croissants, café au lait · Full group sync',
-                        date: 'OCT 12',
-                        time: '08:00 UTC+1',
-                        price: '₹18,000',
-                        metaPrimary: 'DIN-CDF-01',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-            {
-                id: 'row-1-dinner',
-                bookings: [
-                    {
-                        id: 'DIN-BL-01',
-                        type: 'dining',
-                        status: 'confirmed',
-                        title: 'Dinner at Brasserie Lipp',
-                        description: 'Prix-fixe menu · Wine pairings · Full group reunion',
-                        date: 'OCT 12',
-                        time: '19:30 UTC+1',
-                        location: 'Paris 6e',
-                        price: '₹54,000',
-                        metaPrimary: 'DIN-BL-01',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-        ],
-    },
-    {
-        day: 2,
-        title: 'Day 2: Versailles & Montmartre',
-        date: 'OCT 13',
-        timeRange: '09:00 – 21:00',
-        rows: [
-            {
-                id: 'row-2-train-out',
-                bookings: [
-                    {
-                        id: 'TRN-RERC-01',
-                        type: 'transport',
-                        status: 'confirmed',
-                        title: 'RER C to Versailles',
-                        description: 'Gare Saint-Lazare · Reserved carriages · Validate tickets',
-                        date: 'OCT 13',
-                        time: '09:00 UTC+1',
-                        price: '₹4,500',
-                        metaPrimary: 'TRN-RERC-01',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-            {
-                id: 'row-2-palace',
-                bookings: [
-                    {
-                        id: 'ACT-VER-PAL',
-                        type: 'dining',
-                        status: 'confirmed',
-                        title: 'Palace of Versailles',
-                        description: 'Guided interior · Hall of Mirrors · Audio included',
-                        date: 'OCT 13',
-                        time: '10:00 UTC+1',
-                        location: 'VER_PAL',
-                        price: '₹28,000',
-                        metaPrimary: 'ACT-501',
-                        participants: [
-                            { label: 'FAM A', color: FAM_COLORS['FAM A'] },
-                            { label: 'FAM C', color: FAM_COLORS['FAM C'] },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: 'row-2-gardens',
-                bookings: [
-                    {
-                        id: 'ACT-VER-GDN',
-                        type: 'dining',
-                        status: 'confirmed',
-                        title: 'Versailles Gardens',
-                        description: 'Grand Canal · Fountain show 11:00 · Bicycle rental',
-                        date: 'OCT 13',
-                        time: '10:00 UTC+1',
-                        location: 'VER_GDN',
-                        price: '₹9,000',
-                        metaPrimary: 'ACT-502',
-                        participants: [
-                            { label: 'FAM B', color: FAM_COLORS['FAM B'] },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: 'row-2-picnic',
-                bookings: [
-                    {
-                        id: 'DIN-PIC-01',
-                        type: 'dining',
-                        status: 'confirmed',
-                        title: 'Garden Picnic Lunch',
-                        description: 'Catered baskets · Cheese, charcuterie, baguettes',
-                        date: 'OCT 13',
-                        time: '13:30 UTC+1',
-                        location: 'VER_GDN',
-                        price: '₹36,000',
-                        metaPrimary: 'DIN-PIC-01',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-            {
-                id: 'row-2-train-back',
-                bookings: [
-                    {
-                        id: 'TRN-RERC-02',
-                        type: 'transport',
-                        status: 'confirmed',
-                        title: 'RER C Return to Paris',
-                        description: 'Versailles-Château → Gare Saint-Lazare',
-                        date: 'OCT 13',
-                        time: '15:30 UTC+1',
-                        price: '₹4,500',
-                        metaPrimary: 'TRN-RERC-02',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-            {
-                id: 'row-2-dinner',
-                bookings: [
-                    {
-                        id: 'DIN-RB-01',
-                        type: 'dining',
-                        status: 'confirmed',
-                        title: 'Dinner at Le Relais de la Butte',
-                        description: 'Onion soup · Duck confit · Rooftop terrace',
-                        date: 'OCT 13',
-                        time: '19:30 UTC+1',
-                        location: 'Paris 18e',
-                        price: '₹45,000',
-                        metaPrimary: 'DIN-RB-01',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-        ],
-    },
-    {
-        day: 3,
-        title: 'Day 3: Food & Departure',
-        date: 'OCT 14',
-        timeRange: '08:30 – 16:00',
-        rows: [
-            {
-                id: 'row-3-market',
-                bookings: [
-                    {
-                        id: 'ACT-MAR-01',
-                        type: 'dining',
-                        status: 'confirmed',
-                        title: "Marché d'Aligre",
-                        description: 'Flea & Food Market · Fresh produce · Chef-guided',
-                        date: 'OCT 14',
-                        time: '08:30 UTC+1',
-                        location: 'PARIS_05',
-                        price: '₹6,000',
-                        metaPrimary: 'ACT-601',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-            {
-                id: 'row-3-cooking',
-                bookings: [
-                    {
-                        id: 'ACT-COOK-01',
-                        type: 'dining',
-                        status: 'confirmed',
-                        title: 'French Cooking Class',
-                        description: 'Le Cordon Bleu pop-up · Coq au vin + soufflé',
-                        date: 'OCT 14',
-                        time: '10:30 UTC+1',
-                        location: 'PARIS_11',
-                        price: '₹40,000',
-                        metaPrimary: 'ACT-610',
-                        participants: [
-                            { label: 'FAM A', color: FAM_COLORS['FAM A'] },
-                            { label: 'FAM B', color: FAM_COLORS['FAM B'] },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: 'row-3-pastry',
-                bookings: [
-                    {
-                        id: 'ACT-PAST-01',
-                        type: 'dining',
-                        status: 'pending',
-                        title: 'Pâtisserie Workshop',
-                        description: 'Ladurée Atelier · Macaron & éclair · Kid-friendly',
-                        date: 'OCT 14',
-                        time: '10:30 UTC+1',
-                        location: 'PARIS_02',
-                        price: '₹16,000',
-                        metaPrimary: 'ACT-611',
-                        participants: [
-                            { label: 'FAM C', color: FAM_COLORS['FAM C'] },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: 'row-3-farewell',
-                bookings: [
-                    {
-                        id: 'DIN-JV-01',
-                        type: 'dining',
-                        status: 'confirmed',
-                        title: 'Farewell Lunch – Jules Verne',
-                        description: 'Eiffel Tower 2F · Tasting menu · Champagne toast',
-                        date: 'OCT 14',
-                        time: '13:00 UTC+1',
-                        location: 'PARIS_08',
-                        price: '₹1,44,000',
-                        metaPrimary: 'DIN-JV-01',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-            {
-                id: 'row-3-checkout',
-                bookings: [
-                    {
-                        id: 'CHECKOUT-01',
-                        type: 'stay',
-                        status: 'confirmed',
-                        title: 'Hotel Checkout',
-                        description: 'Check-out from respective Paris hotels',
-                        date: 'OCT 14',
-                        time: '12:00 UTC+1',
-                        price: 'Settled',
-                        metaPrimary: 'CHECKOUT-01',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-            {
-                id: 'row-3-transfer-cdg',
-                bookings: [
-                    {
-                        id: 'TRN-CDG-02',
-                        type: 'transport',
-                        status: 'confirmed',
-                        title: 'Transfer to CDG Airport',
-                        description: 'Private coach · Luggage pre-loaded · 2h30m buffer',
-                        date: 'OCT 14',
-                        time: '15:30 UTC+1',
-                        location: 'CDG T2',
-                        price: 'Included',
-                        metaPrimary: 'TRN-301',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-            {
-                id: 'row-3-flight-return',
-                bookings: [
-                    {
-                        id: 'AI-143',
-                        type: 'flight',
-                        status: 'confirmed',
-                        title: 'Air India AI-143',
-                        description: 'CDG → DEL · Return flight',
-                        date: 'OCT 14',
-                        time: '18:45 UTC+1',
-                        location: 'CDG T2E',
-                        price: '₹2,85,000',
-                        metaPrimary: 'AI-143',
-                        participants: ALL_FAMILIES,
-                    },
-                ],
-            },
-        ],
-    },
-];
+/** Map raw family IDs to labelled chips. */
+function buildFamilyMap(familyIds: string[]): Record<string, { label: string; color: string }> {
+    const map: Record<string, { label: string; color: string }> = {};
+    familyIds.forEach((fid, idx) => {
+        const palette = FAM_COLOR_PALETTE[idx % FAM_COLOR_PALETTE.length];
+        map[fid] = { label: palette.key, color: palette.style };
+    });
+    return map;
+}
+
+/** Format a number as ₹X,XXX */
+function formatINR(n: number): string {
+    if (n === 0) return '–';
+    return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+}
+
+/** Transform API response into the DayGroup[] structure used by the rendering code. */
+function transformApiBookings(apiData: any): { days: DayGroup[]; totalCost: number } {
+    if (!apiData || !apiData.days) return { days: [], totalCost: 0 };
+
+    const familyMap = buildFamilyMap(apiData.families || []);
+
+    const days: DayGroup[] = apiData.days.map((dayObj: any) => {
+        const rows: BookingRow[] = (dayObj.rows || []).map((row: any) => {
+            const participants = (row.families || []).map((fid: string) =>
+                familyMap[fid] || { label: fid.slice(0, 6), color: 'bg-gray-200 text-gray-700 border-gray-300' }
+            );
+
+            const booking: Booking = {
+                id: row.id,
+                type: row.type as BookingType,
+                status: (row.status || 'pending') as BookingStatus,
+                title: row.title,
+                description: row.description || '',
+                date: row.date || '',
+                time: row.time || undefined,
+                price: row.price ? formatINR(row.price) : '–',
+                metaPrimary: row.ref_id || undefined,
+                metaSecondary: row.meta_secondary || undefined,
+                participants,
+            };
+
+            return { id: row.id, bookings: [booking] } as BookingRow;
+        });
+
+        return {
+            day: dayObj.day,
+            title: dayObj.title,
+            date: dayObj.date,
+            timeRange: dayObj.time_range || '',
+            rows,
+        } as DayGroup;
+    });
+
+    return { days, totalCost: apiData.total_cost || 0 };
+}
 
 const FILTERS = [
     { id: 'all', label: 'All', materialIcon: 'apps' },
@@ -445,9 +118,9 @@ const FILTERS = [
 ] as const;
 
 const AI_ALERTS = [
-    { level: 'critical', dot: 'bg-red-500', text: <><span className="text-red-700 font-bold">CAUTION:</span> FAM C hotel pending — chase confirmation before OCT 11.</> },
-    { level: 'info', dot: 'bg-blue-500', text: <>Upgrade available at Hôtel Le Marais: Junior Suite +₹8k/night.</> },
-    { level: 'warn', dot: 'bg-amber-500', text: <>Jules Verne farewell lunch is near capacity — confirm headcount today.</> },
+    { level: 'critical', dot: 'bg-red-500', text: <><span className="text-red-700 font-bold">CAUTION:</span> Pending hotel — chase confirmation before trip date.</> },
+    { level: 'info', dot: 'bg-blue-500', text: <>Upgrade opportunities may be available. Check with vendor.</> },
+    { level: 'warn', dot: 'bg-amber-500', text: <>Dining venue near capacity — confirm headcount today.</> },
 ];
 
 const ACTIVE_INTELLIGENCE = [
@@ -459,7 +132,7 @@ const ACTIVE_INTELLIGENCE = [
         icon: 'error',
         label: 'PENDING',
         time: 'T-48h',
-        message: 'Villa des Artistes [HTL-VD-01] confirmation outstanding.',
+        message: 'Hotel confirmation outstanding for one or more families.',
         action: 'Send chase email?',
     },
     {
@@ -470,7 +143,7 @@ const ACTIVE_INTELLIGENCE = [
         icon: 'lightbulb',
         label: 'UPGRADE',
         time: null,
-        message: 'Junior Suite upgrade at Le Marais available for ₹16k total (2 nights × 2 rooms).',
+        message: 'Room upgrade available — check vendor pricing.',
         action: null,
     },
     {
@@ -481,7 +154,7 @@ const ACTIVE_INTELLIGENCE = [
         icon: 'warning',
         label: 'CAPACITY',
         time: null,
-        message: 'Jules Verne (DIN-JV-01) seating at 90% capacity. Confirm final PAX count.',
+        message: 'Dining venue at high capacity. Confirm final PAX count.',
         action: null,
     },
 ];
@@ -525,6 +198,36 @@ export default function BookingsView({ tripId }: { tripId: string }) {
     const [commandQuery, setCommandQuery] = useState('');
     const [profitOpen, setProfitOpen] = useState(false);
 
+    // ── Data fetching ────────────────────────────────────────────────────────
+    const [bookingsData, setBookingsData] = useState<DayGroup[]>([]);
+    const [totalCost, setTotalCost] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
+        setError(null);
+
+        apiClient.getTripBookings(tripId)
+            .then((data) => {
+                if (cancelled) return;
+                const { days, totalCost: tc } = transformApiBookings(data);
+                setBookingsData(days);
+                setTotalCost(tc);
+            })
+            .catch((err) => {
+                if (cancelled) return;
+                console.error('Failed to fetch bookings:', err);
+                setError(err.message || 'Failed to load bookings');
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+
+        return () => { cancelled = true; };
+    }, [tripId]);
+
     return (
         <div className="flex-1 flex overflow-hidden h-full bp-grid-bg bg-white">
 
@@ -557,13 +260,41 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                     {/* Total Cost */}
                     <div className="flex flex-col items-end shrink-0">
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total Manifest Cost</span>
-                        <span className="text-xl font-medium text-gray-900 font-mono tracking-tight">₹11,22,000</span>
+                        <span className="text-xl font-medium text-gray-900 font-mono tracking-tight">{formatINR(totalCost)}</span>
                     </div>
                 </div>
 
                 {/* ── Scrollable Booking List ──────────────────────────────────────── */}
                 <div className="flex-1 overflow-auto pb-32 p-8 bg-transparent scrollbar-hide">
-                    {BOOKINGS_DATA.map((group) => (
+                    {/* Loading State */}
+                    {loading && (
+                        <div className="flex flex-col items-center justify-center h-64 gap-3">
+                            <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                            <span className="text-xs font-mono text-gray-400 uppercase tracking-widest">Loading booking manifest…</span>
+                        </div>
+                    )}
+
+                    {/* Error State */}
+                    {error && !loading && (
+                        <div className="flex flex-col items-center justify-center h-64 gap-3">
+                            <span className="material-symbols-outlined text-red-400 text-3xl">error</span>
+                            <span className="text-xs text-red-500 font-mono">{error}</span>
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="mt-2 px-4 py-1.5 border border-gray-300 text-xs font-mono uppercase tracking-wider hover:bg-gray-50 transition-colors"
+                            >Retry</button>
+                        </div>
+                    )}
+
+                    {/* Empty State */}
+                    {!loading && !error && bookingsData.length === 0 && (
+                        <div className="flex flex-col items-center justify-center h-64 gap-3">
+                            <span className="material-symbols-outlined text-gray-300 text-3xl">event_busy</span>
+                            <span className="text-xs text-gray-400 font-mono uppercase tracking-widest">No bookable items found</span>
+                        </div>
+                    )}
+
+                    {!loading && !error && bookingsData.map((group) => (
                         <div key={group.day} className="mb-10 relative z-0">
 
                             {/* Sticky Day Header — matches ItineraryDetailView's per-day sticky header */}
@@ -745,7 +476,6 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                         </div>
                     ))}
                 </div>
-
 
             </div>
 
@@ -937,7 +667,7 @@ export default function BookingsView({ tripId }: { tripId: string }) {
                     </ul>
                 }
                 inputPlaceholder="Query booking manifest..."
-                seedMessage="Paris booking manifest loaded. 3 alerts detected. Ask me anything about this trip."
+                seedMessage="Booking manifest loaded. Ask me anything about this trip's bookings."
                 getAIReply={(text) => `Analyzing: "${text}". Checking booking conflicts and availability across all families.`}
             />
         </div>

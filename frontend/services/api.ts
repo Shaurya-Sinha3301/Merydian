@@ -386,6 +386,14 @@ export class APIClient {
     }
 
     /**
+     * Get extracted booking manifest (hotels, dining, CAB transport) for a trip
+     */
+    async getTripBookings(tripId: string): Promise<any> {
+        return this.request<any>(`/trips/${encodeURIComponent(tripId)}/bookings`);
+    }
+
+
+    /**
      * Approve an itinerary option (agent action)
      */
     async approveOption(optionId: string): Promise<{

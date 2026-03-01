@@ -584,6 +584,65 @@ async def get_trip_itinerary(trip_id: str):
         )
 
 
+@router.get("/{trip_id}/bookings")
+async def get_trip_bookings(trip_id: str):
+    """
+    Extract bookable items (hotels, dining, CAB/CAB_FALLBACK transport) from
+    the optimizer output files and return a day-grouped booking manifest.
+
+    Data sources:
+      - optimized_backbone.json  → hotel_assignments, daily_restaurants
+      - optimized_itinerary.json → CAB/CAB_FALLBACK transport, restaurant POI names & times
+    """
+    import os
+    import json
+    from pathlib import Path
+    from app.services.optimizer_service import OptimizerService
+    from app.services.booking_extraction_service import BookingExtractionService
+
+    try:
+        session = OptimizerService.get_trip_session(trip_id)
+        if not session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Trip session for ID {trip_id} not found",
+            )
+
+        itinerary_path = session.latest_itinerary_path or session.baseline_itinerary_path
+        if not itinerary_path or not os.path.exists(itinerary_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Itinerary file not found at: {itinerary_path}",
+            )
+
+        # Derive backbone path (same directory, different filename)
+        backbone_path = str(Path(itinerary_path).parent / "optimized_backbone.json")
+
+        with open(itinerary_path, "r") as f:
+            itinerary_data = json.load(f)
+
+        backbone_data = {}
+        if os.path.exists(backbone_path):
+            with open(backbone_path, "r") as f:
+                backbone_data = json.load(f)
+
+        # Resolve start_date from session
+        start_date = session.start_date.isoformat() if session.start_date else "2026-01-01"
+
+        result = BookingExtractionService.extract(
+            itinerary=itinerary_data,
+            backbone=backbone_data,
+            start_date=start_date,
+        )
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to extract bookings: {str(e)}",
+        )
 
 
 @router.patch("/{trip_id}/families/{family_id}/preferences")
