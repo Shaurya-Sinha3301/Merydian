@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getTripById } from '@/lib/trips';
+import { getTripById, Trip } from '@/lib/trips';
+import { apiClient } from '@/services/api';
 
 // ─── Tab config ────────────────────────────────────────────────────────────────
 const TABS = [
@@ -18,8 +20,31 @@ const TABS = [
 export default function TripDetailNavbar({ tripId }: { tripId: string }) {
     const router = useRouter();
     const pathname = usePathname();
-    const trip = getTripById(tripId);
     const basePath = `/agent-dashboard/itinerary-management/${tripId}`;
+
+    // Try static data first, then fetch from API
+    const staticTrip = getTripById(tripId);
+    const [tripInfo, setTripInfo] = useState<{ title: string; client: string; dateRange: string } | null>(
+        staticTrip ? { title: staticTrip.title, client: staticTrip.client, dateRange: staticTrip.dateRange } : null
+    );
+
+    useEffect(() => {
+        if (staticTrip) return; // Already have static data
+        let cancelled = false;
+        apiClient.getTripSummary(tripId).then((summary: any) => {
+            if (cancelled) return;
+            setTripInfo({
+                title: summary.trip_name || tripId,
+                client: summary.family_ids?.join(', ') || 'Families',
+                dateRange: [summary.start_date, summary.end_date].filter(Boolean).join(' – ') || '',
+            });
+        }).catch(() => {
+            if (cancelled) return;
+            // Fallback: use tripId as title
+            setTripInfo({ title: tripId.replace(/_/g, ' '), client: '', dateRange: '' });
+        });
+        return () => { cancelled = true; };
+    }, [tripId, staticTrip]);
 
     // Determine active tab from URL
     const activeTab = pathname.endsWith('/intelligence')
@@ -30,7 +55,8 @@ export default function TripDetailNavbar({ tripId }: { tripId: string }) {
                 ? 'groups'
                 : 'optimization';
 
-    if (!trip) return null;
+    const title = tripInfo?.title || tripId;
+    const subtitle = [tripInfo?.client, tripInfo?.dateRange].filter(Boolean).join(' · ');
 
     return (
         /* Matches ItineraryOptimizerWindow header container */
@@ -50,11 +76,13 @@ export default function TripDetailNavbar({ tripId }: { tripId: string }) {
                     <div className="min-w-0">
                         {/* Large light title — same weight/tracking as Optimizer h1 */}
                         <h2 className="text-2xl md:text-3xl font-[300] tracking-[-0.02em] text-black leading-tight truncate">
-                            {trip.title}
+                            {title}
                         </h2>
-                        <p className="text-[var(--bp-muted)] mt-0.5 font-light text-xs tracking-wide truncate">
-                            Client: {trip.client} · {trip.dateRange}
-                        </p>
+                        {subtitle && (
+                            <p className="text-[var(--bp-muted)] mt-0.5 font-light text-xs tracking-wide truncate">
+                                {subtitle}
+                            </p>
+                        )}
                     </div>
                 </div>
 

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getTripById } from '@/lib/trips';
+import { apiClient } from '@/services/api';
 import VoyageurAIPanel from './VoyageurAIPanel';
 
 // ─── Types & Mock Data ─────────────────────────────────────────────────────────
@@ -137,7 +138,19 @@ function SentimentDot({ sentiment }: { sentiment: Sentiment }) {
 // ─── Main Component ────────────────────────────────────────────────────────────
 
 export default function GroupsView({ tripId }: { tripId: string }) {
-    const trip = getTripById(tripId);
+    const staticTrip = getTripById(tripId);
+    const [tripInfo, setTripInfo] = useState<{ dateRange: string } | null>(
+        staticTrip ? { dateRange: staticTrip.dateRange } : null
+    );
+
+    useEffect(() => {
+        if (staticTrip) return;
+        apiClient.getTripSummary(tripId).then((s: any) => {
+            setTripInfo({
+                dateRange: [s.start_date, s.end_date].filter(Boolean).join(' – ') || 'N/A',
+            });
+        }).catch(() => setTripInfo({ dateRange: 'N/A' }));
+    }, [tripId, staticTrip]);
 
     const [familyFilter, setFamilyFilter] = useState<FamilyFilter>('all');
     const [search, setSearch] = useState('');
@@ -209,7 +222,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
 
     const activeFamily = FAMILIES.find(f => f.id === activeFamilyId);
 
-    if (!trip) return <div className="p-8 text-center text-stone-500">Trip not found</div>;
+    const tripDateRange = tripInfo?.dateRange || 'Loading...';
 
     // Wait until mounted on client to prevent hydration mismatch from browser extension injected attributes
     if (!mounted) return <div className="flex-1 flex overflow-hidden h-full relative bp-grid-bg bg-white" />;
@@ -568,7 +581,7 @@ export default function GroupsView({ tripId }: { tripId: string }) {
                     </div>
                     <div className="space-y-3">
                         {[
-                            { label: 'Dates', value: trip.dateRange },
+                            { label: 'Dates', value: tripDateRange },
                             { label: 'Guests', valueNode: <div className="flex gap-1"><span className="text-stone-900 font-black bg-stone-100 px-1.5 py-0.5 rounded text-[10px] border border-stone-200 uppercase tracking-wider">2 ADT</span><span className="text-stone-900 font-black bg-stone-100 px-1.5 py-0.5 rounded text-[10px] border border-stone-200 uppercase tracking-wider">2 CHD</span></div> },
                             { label: 'Package', value: 'PREMIUM ALL-INC', mono: true },
                         ].map(({ label, value, valueNode, mono }) => (

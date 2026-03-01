@@ -1,26 +1,117 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Clock, MapPin, Car, Plane } from 'lucide-react';
+import { Clock, MapPin, Car, Plane, MessageCircle } from 'lucide-react';
 import { CustomerSidebar } from '@/app/components/CustomerSidebar';
 import { apiClient } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
+import EnhancedAgentChatModal from './EnhancedAgentChatModal';
+import { wsService } from '@/services/websocket.service';
 
 /* ─────────── helpers ─────────── */
 const formatTime = (iso: string) => {
+  if (!iso) return '--:--';
   const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso; // already "HH:MM" string
   return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 };
 const formatDayTitle = (iso: string) => {
+  if (!iso) return '';
   const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 };
 const durationMins = (start: string, end: string) => {
-  const mins = (new Date(end).getTime() - new Date(start).getTime()) / 60000;
+  if (!start || !end) return '--';
+  const s = new Date(start);
+  const e = new Date(end);
+  if (isNaN(s.getTime()) || isNaN(e.getTime())) return '--';
+  const mins = (e.getTime() - s.getTime()) / 60000;
+  if (mins <= 0) return '--';
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   return h > 0 ? `${h}h ${m > 0 ? m + 'm' : ''}`.trim() : `${m}m`;
+};
+
+/**
+ * Transform the backend itinerary + trip data into the shape this portal expects.
+ * Backend shape:  { city, days: [{ day, pois: [{sequence, comment, planned_visit_time_min, location_id}], region }] }
+ * Trip shape:     { destination, start_date, end_date }
+ * Portal expects: { destination, startDate, endDate, itineraryName, days: [{ date, title, timelineEvents: [{id, type, title, description, startTime, endTime, status}] }] }
+ */
+const transformItinerary = (rawItin: any, trip: any) => {
+  if (!rawItin || !rawItin.days) return rawItin;
+
+  // rawItin.city = actual trip destination (e.g. "Delhi")
+  // rawItin.destination = enriched from city or trip_name
+  // trip?.destination = traveller's departure/home city — NOT the trip destination
+  const destination = rawItin.destination || rawItin.city || trip?.trip_name || 'Your Journey';
+  const startDate = rawItin.start_date || rawItin.startDate || trip?.start_date || trip?.startDate || null;
+  const endDate = rawItin.end_date || rawItin.endDate || trip?.end_date || trip?.endDate || null;
+  const dayStartHour = rawItin.assumptions?.day_start_time || '09:00';
+  const baseHour = parseInt(dayStartHour.split(':')[0], 10) || 9;
+
+  const transformedDays = rawItin.days.map((day: any, idx: number) => {
+    // Compute date for this day from trip start_date
+    let dayDate = '';
+    if (startDate) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + idx);
+      dayDate = d.toISOString().split('T')[0];
+    }
+
+    // Transform pois → timelineEvents
+    const pois = day.pois || day.activities || [];
+    let currentMinutes = baseHour * 60; // start at day_start_time
+    const timelineEvents = pois.map((poi: any, pIdx: number) => {
+      const visitMin = poi.planned_visit_time_min || poi.duration || 60;
+      const startH = Math.floor(currentMinutes / 60);
+      const startM = currentMinutes % 60;
+      const endMinutes = currentMinutes + visitMin;
+      const endH = Math.floor(endMinutes / 60);
+      const endM = endMinutes % 60;
+
+      const startTime = dayDate
+        ? `${dayDate}T${String(startH).padStart(2, '0')}:${String(startM).padStart(2, '0')}:00`
+        : `${String(startH).padStart(2, '0')}:${String(startM).padStart(2, '0')}`;
+      const endTime = dayDate
+        ? `${dayDate}T${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:00`
+        : `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+
+      // Add 30min gap between activities for transit
+      currentMinutes = endMinutes + 30;
+
+      return {
+        id: poi.location_id || poi.poi_id || `poi_${idx}_${pIdx}`,
+        type: 'activity' as const,
+        title: poi.comment || poi.title || poi.name || `Activity ${pIdx + 1}`,
+        description: poi.description || `Visit ${poi.comment || poi.title || 'this location'} in ${day.region || destination}. Approx. ${visitMin} minutes.`,
+        startTime,
+        endTime,
+        status: 'confirmed',
+        activity: {
+          activityType: day.region || 'Sightseeing',
+          description: poi.description || '',
+        },
+      };
+    });
+
+    return {
+      date: dayDate || `Day ${day.day || idx + 1}`,
+      title: day.region || destination,
+      timelineEvents,
+    };
+  });
+
+  return {
+    ...rawItin,
+    destination,
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
+    itineraryName: `${destination} Itinerary`,
+    days: transformedDays,
+  };
 };
 
 const EVENT_IMAGES: Record<string, string> = {
@@ -66,6 +157,39 @@ const EnhancedCustomerPortalInteractive = () => {
   const [whyModal, setWhyModal] = useState<{ title: string; reason: string; originalCost: string; newCost: string; efficiency: number; whyText: string } | null>(null);
   const [acceptedPois, setAcceptedPois] = useState<string[]>([]);
   const [declinedPois, setDeclinedPois] = useState<string[]>([]);
+  const [showChat, setShowChat] = useState(false);
+  const [wsNotification, setWsNotification] = useState<string | null>(null);
+
+  // Callback to refresh itinerary after chat changes
+  const refreshItinerary = useCallback(async () => {
+    try {
+      const [rawItin, tripsResp] = await Promise.all([
+        apiClient.getCurrentItinerary().catch(() => null),
+        apiClient.getCustomerTrips().catch(() => null),
+      ]);
+      const trips = tripsResp?.items || tripsResp || [];
+      const tripData = Array.isArray(trips) && trips.length > 0 ? trips[0] : null;
+      const transformed = rawItin ? transformItinerary(rawItin, tripData) : null;
+      setItinerary(transformed);
+      setWsNotification('Your itinerary has been updated!');
+      setTimeout(() => setWsNotification(null), 5000);
+    } catch (err) {
+      console.error('Failed to refresh itinerary', err);
+    }
+  }, []);
+
+  // WebSocket: listen for real-time itinerary updates
+  useEffect(() => {
+    if (!user?.id) return;
+    wsService.connect('traveller', user.id);
+    const unsub = wsService.on('itinerary_updated', () => {
+      refreshItinerary();
+    });
+    return () => {
+      unsub();
+      wsService.disconnect();
+    };
+  }, [user?.id, refreshItinerary]);
 
   /* ── AI-suggested POI additions per day ── */
   const AI_POIS: Record<number, { id: string; time: string; title: string; subtitle: string; image: string; badge: string; originalCost: string; newCost: string; efficiency: number; whyReason: string; whyText: string }[]> = {
@@ -114,12 +238,32 @@ const EnhancedCustomerPortalInteractive = () => {
           setFamilyName(user.full_name || 'Family');
         }
 
+        // Fetch trip data (for dates/destination) and itinerary in parallel
+        let tripData: any = null;
+        let rawItin: any = null;
+
         try {
-          const itin = await apiClient.getCurrentItinerary();
-          setItinerary(itin || null);
+          const tripsResp = await apiClient.getCustomerTrips();
+          const trips = tripsResp?.items || tripsResp || [];
+          if (Array.isArray(trips) && trips.length > 0) {
+            // Use the most recent active trip
+            tripData = trips[0];
+          }
+        } catch (tripErr) {
+          console.error("Failed to load trip data", tripErr);
+        }
+
+        try {
+          rawItin = await apiClient.getCurrentItinerary();
         } catch (itinErr) {
           console.error("No active itinerary found", itinErr);
-          // Backend returns 404 when no itinerary is found, just set null
+        }
+
+        if (rawItin) {
+          // Transform backend format → portal display format
+          const transformed = transformItinerary(rawItin, tripData);
+          setItinerary(transformed);
+        } else {
           setItinerary(null);
         }
       } catch (err) {
@@ -209,14 +353,16 @@ const EnhancedCustomerPortalInteractive = () => {
               <div style={{ textAlign: 'right' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#717171', margin: '0 0 4px' }}>DESTINATION</p>
                 <p style={{ fontSize: 13, fontWeight: 500, margin: 0 }}>
-                  {activeDay?.title || 'Your Journey'}
+                  {itinerary?.destination || activeDay?.title || 'Your Journey'}
                 </p>
               </div>
               <div style={{ width: 1, height: 32, background: '#e5e5e5' }} />
               <div style={{ textAlign: 'right' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#717171', margin: '0 0 4px' }}>DATES</p>
                 <p style={{ fontSize: 13, fontWeight: 500, margin: 0 }}>
-                  {itinerary ? `${new Date(itinerary.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${new Date(itinerary.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : '—'}
+                  {itinerary?.startDate && itinerary?.endDate
+                    ? `${new Date(itinerary.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${new Date(itinerary.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : itinerary?.days?.length ? `${itinerary.days.length} days` : '—'}
                 </p>
               </div>
               <button
@@ -743,7 +889,7 @@ const EnhancedCustomerPortalInteractive = () => {
                       <div>
                         <h4 style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1a1a1a', margin: '0 0 8px' }}>DAY SUMMARY</h4>
                         <p style={{ fontSize: 13, color: '#555', margin: 0 }}>
-                          {events.length} events · {activeDay.title}
+                          {events.length} events · {activeDay?.title || itinerary?.destination || ''}
                         </p>
                       </div>
                       <div style={{ display: 'flex', gap: 12 }}>
@@ -853,10 +999,50 @@ const EnhancedCustomerPortalInteractive = () => {
         )
       }
 
+      {/* Floating Chat Button */}
+      <button
+        onClick={() => setShowChat(true)}
+        style={{
+          position: 'fixed', bottom: 28, right: 28, zIndex: 40,
+          width: 60, height: 60, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #0d9488, #14b8a6)',
+          color: '#fff', border: 'none', cursor: 'pointer',
+          boxShadow: '0 4px 20px rgba(13,148,136,0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'transform 0.2s, box-shadow 0.2s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 6px 28px rgba(13,148,136,0.5)'; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(13,148,136,0.4)'; }}
+      >
+        <MessageCircle size={26} />
+      </button>
+
+      {/* Chat Modal */}
+      {showChat && (
+        <EnhancedAgentChatModal
+          onClose={() => setShowChat(false)}
+          onItineraryUpdated={refreshItinerary}
+        />
+      )}
+
+      {/* WS Notification Toast */}
+      {wsNotification && (
+        <div style={{
+          position: 'fixed', top: 20, right: 20, zIndex: 60,
+          background: '#065f46', color: '#fff', padding: '14px 22px',
+          borderRadius: 12, fontSize: 14, fontWeight: 600,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+          animation: 'slideInRight 0.3s ease',
+        }}>
+          {wsNotification}
+        </div>
+      )}
+
       {/* CSS keyframes for spin */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400&display=swap');
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideInRight { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; }

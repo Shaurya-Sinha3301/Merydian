@@ -175,97 +175,38 @@ export default function ItineraryBuilderView() {
 
         setIsSaving(true);
         try {
-            // 1. Register all families and collect their codes
-            const familyCodes = [];
-            const familyPrefObjects = []; // For initialize
-
-            const fallbackPrefsTemplate = [
-                {
-                    children: 2, budget_sensitivity: 0.9, energy_level: 0.6, pace_preference: "relaxed",
-                    interest_vector: { history: 0.9, architecture: 0.8, food: 0.4, nature: 0.5, nightlife: 0.1, shopping: 0.3, religious: 0.9 },
-                    must_visit_locations: ["LOC_008", "LOC_016"], never_visit_locations: ["LOC_001"],
-                    notes: "Budget sensitive. History buff. HATES Red Fort. LOVES Akshardham."
-                },
-                {
-                    children: 0, budget_sensitivity: 0.2, energy_level: 0.9, pace_preference: "fast",
-                    interest_vector: { history: 0.3, architecture: 0.5, food: 0.9, nature: 0.2, nightlife: 1.0, shopping: 0.8, religious: 0.1 },
-                    must_visit_locations: ["LOC_001"], never_visit_locations: ["LOC_006"],
-                    notes: "Time sensitive. Loves Nightlife. Must Red Fort. Hates Akshardham."
-                },
-                {
-                    children: 1, budget_sensitivity: 0.5, energy_level: 0.7, pace_preference: "moderate",
-                    interest_vector: { history: 0.5, architecture: 0.5, food: 0.6, nature: 0.5, nightlife: 0.5, shopping: 0.5, religious: 0.5 },
-                    must_visit_locations: [], never_visit_locations: [],
-                    notes: "Neutral family. Consenting to whatever."
-                }
-            ];
-
-            for (let i = 0; i < families.length; i++) {
-                const fam = families[i];
-                const fallbackPref = fallbackPrefsTemplate[i % fallbackPrefsTemplate.length];
-
-                const result = await apiClient.registerCustomerByAgent({
-                    email: fam.email,
-                    members: fam.members,
-                    children: fallbackPref.children,
-                    initial_location: fam.location
-                });
-
-                familyCodes.push(result.family_code);
-
-                familyPrefObjects.push({
-                    family_id: result.family_code,
-                    members: fam.members,
-                    children: fallbackPref.children,
-                    budget_sensitivity: fallbackPref.budget_sensitivity,
-                    energy_level: fallbackPref.energy_level,
-                    pace_preference: fallbackPref.pace_preference,
-                    interest_vector: fallbackPref.interest_vector,
-                    must_visit_locations: fallbackPref.must_visit_locations,
-                    never_visit_locations: fallbackPref.never_visit_locations,
-                    notes: fallbackPref.notes
-                });
-            }
-
-            const dest = families[0]?.location || 'Delhi'; // Fallback
+            const dest = families[0]?.location || 'Delhi';
             const startDt = startDate ? new Date(startDate) : new Date();
             const endDt = new Date(startDt.getTime() + (days.length * 24 * 60 * 60 * 1000));
 
-            const commonPayload = {
+            // Build traveller_emails from the families added in the UI.
+            // The backend will auto-register these emails, create families,
+            // run the optimizer, and auto-approve — all in one call.
+            const travellerEmails = families.map(f => ({
+                email: f.email,
+                full_name: f.email.split('@')[0],
+                members: f.members,
+                children: 0,
+            }));
+
+            const payload = {
                 trip_name: projectName || 'Untitled Trip',
                 destination: dest,
                 start_date: startDt.toISOString().split('T')[0],
                 end_date: endDt.toISOString().split('T')[0],
-                family_ids: familyCodes,
-                num_travellers: families.reduce((acc, f) => acc + f.members, 0)
+                traveller_emails: travellerEmails,
+                num_travellers: families.reduce((acc, f) => acc + f.members, 0),
+                auto_approve: true,
             };
 
-            // 2. Initialize Trip
-            console.log("Calling initialize...");
-            const initResult = await apiClient.initializeTrip({
-                trip_name: commonPayload.trip_name,
-                destination: commonPayload.destination,
-                start_date: commonPayload.start_date,
-                end_date: commonPayload.end_date,
-                families: familyPrefObjects,
-                baseline_itinerary: 'delhi_3day_skeleton'
-            });
-            console.log("Initialize result:", initResult);
-
-            // 3. Initialize Trip with Optimization
-            console.log("Calling initializeWithOptimization...");
-            const optiResult = await apiClient.initializeTripWithOptimization(commonPayload);
+            console.log("Calling initializeTripWithOptimization (auto_approve=true)...", payload);
+            const optiResult = await apiClient.initializeTripWithOptimization(payload);
             console.log("Initialize with Optimization result:", optiResult);
 
-            if (optiResult.success && optiResult.option_id) {
-                // 4. Auto-Approve Optional
-                console.log("Calling approveOption...");
-                const approveResult = await apiClient.approveOption(optiResult.option_id);
-                console.log("Approve option result:", approveResult);
-
+            if (optiResult.success) {
                 router.push('/agent-dashboard/itinerary-management');
             } else {
-                alert("Failed to initialize trip with optimization: " + (optiResult.message || JSON.stringify(optiResult)));
+                alert("Failed to initialize trip: " + (optiResult.message || JSON.stringify(optiResult)));
                 setIsSaving(false);
             }
         } catch (error: any) {

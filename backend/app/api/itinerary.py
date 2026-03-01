@@ -80,6 +80,43 @@ async def get_current_itinerary(
         # Get current itinerary from database
         itinerary_data = ItineraryService.get_current_itinerary(family_id)
         
+        if itinerary_data:
+            # Enrich with trip metadata (dates, departure city) if not present.
+            # The optimizer skeleton stores city (= actual destination) and pois, but
+            # no dates.  Pull start_date / end_date from TripSession.
+            # NOTE: TripSession.destination is the traveller's *departure* city (for
+            # future flight-booking), NOT the trip destination.  The real destination
+            # lives in itinerary_data["city"] or TripSession.trip_name.
+            if not itinerary_data.get("start_date"):
+                try:
+                    from app.services.family_service import FamilyService
+                    from app.models.trip_session import TripSession
+                    from sqlmodel import Session as DBSession, select, col
+                    from sqlalchemy.dialects.postgresql import JSONB
+                    from app.core.db import engine as db_engine
+
+                    family_obj = FamilyService.get_family(family_id)
+                    if family_obj and family_obj.family_code:
+                        with DBSession(db_engine) as sess:
+                            trip = sess.exec(
+                                select(TripSession)
+                                .where(col(TripSession.family_ids).cast(JSONB).contains([family_obj.family_code]))
+                                .order_by(TripSession.created_at.desc())
+                            ).first()
+                            if trip:
+                                if not itinerary_data.get("start_date") and trip.start_date:
+                                    itinerary_data["start_date"] = trip.start_date.isoformat()
+                                if not itinerary_data.get("end_date") and trip.end_date:
+                                    itinerary_data["end_date"] = trip.end_date.isoformat()
+                                # departure_city is the family's home city, for bookings
+                                if not itinerary_data.get("departure_city") and trip.destination:
+                                    itinerary_data["departure_city"] = trip.destination
+                                # Use trip_name as a fallback destination label
+                                if not itinerary_data.get("destination"):
+                                    itinerary_data["destination"] = itinerary_data.get("city") or trip.trip_name
+                except Exception as enrich_err:
+                    print(f"[Itinerary API] Could not enrich with trip metadata: {enrich_err}")
+
         if not itinerary_data:
             print(f"[Itinerary API] No active itinerary found for {family_id}. Returning Delhi fallback.")
             
@@ -307,6 +344,7 @@ class AgentFeedbackResponse(BaseModel):
     itinerary_updated: bool
     iteration: int
     cost_analysis: Optional[Dict[str, Any]] = None
+    auto_approved: bool = False
 
 
 @router.post("/feedback/agent", response_model=AgentFeedbackResponse)
@@ -322,6 +360,8 @@ async def process_agent_feedback(
     - DecisionPolicyAgent determines action
     - OptimizerAgent runs ML optimizer if needed
     - ExplainabilityAgent generates explanations
+    - Auto-approves and publishes updated itinerary
+    - Sends WebSocket notifications to agent + customer
     
     Returns optimized itinerary + explanations + cost analysis.
     
@@ -335,9 +375,11 @@ async def process_agent_feedback(
         if not current_user or not current_user.family_id:
             # Default test family for demo/testing
             family_id = "FAM_A"
+            user_id_str = None
             print(f"[Agent Feedback API] Using default test family: {family_id}")
         else:
             family_id = current_user.family_id
+            user_id_str = current_user.sub
         
         # Get active trip for this family (instead of requiring trip_id in request)
         trip_session = TripService.get_active_trip_for_family(family_id)
@@ -365,6 +407,117 @@ async def process_agent_feedback(
         
         print(f"[Agent Feedback API] Result: {result['action_taken']}, Updated: {result['itinerary_updated']}")
         
+        # --- Auto-approve and publish if itinerary was updated ---
+        auto_approved = False
+        if result["itinerary_updated"]:
+            try:
+                from app.services.itinerary_service import ItineraryService
+                from app.services.itinerary_option_service import ItineraryOptionService
+
+                # Resolve family UUID
+                family_uuid = None
+                try:
+                    family_uuid = uuid_lib.UUID(family_id)
+                except (ValueError, AttributeError):
+                    from sqlmodel import Session, select
+                    from app.models.family import Family
+                    from app.core.db import engine
+                    with Session(engine) as session:
+                        fam = session.exec(
+                            select(Family).where(Family.family_code == family_id)
+                        ).first()
+                        if fam:
+                            family_uuid = fam.id
+
+                if family_uuid:
+                    latest_itinerary = ItineraryService.get_latest_version(family_uuid)
+                    if latest_itinerary:
+                        # Create an ItineraryOption record for this feedback change
+                        event_id = f"feedback_{trip_id}_{result['iteration']}"
+                        option = ItineraryOptionService.create_option(
+                            event_id=event_id,
+                            trip_id=trip_id,
+                            summary=f"Re-optimized itinerary after feedback: '{feedback.message[:80]}'",
+                            cost=latest_itinerary.total_cost or 0.0,
+                            satisfaction=latest_itinerary.total_satisfaction or 0.0,
+                            details={
+                                "itinerary": latest_itinerary.data,
+                                "type": "feedback_reoptimization",
+                                "family_ids": trip_session.family_ids,
+                                "trigger_message": feedback.message,
+                            },
+                        )
+
+                        # Auto-approve
+                        system_agent_id = uuid_lib.UUID("00000000-0000-0000-0000-000000000001")
+                        ItineraryOptionService.approve_option(
+                            option_id=option.id,
+                            agent_id=system_agent_id,
+                        )
+
+                        # Publish to all families in trip
+                        if latest_itinerary.data:
+                            ItineraryService.publish_base_itinerary(
+                                trip_id=trip_id,
+                                family_ids=trip_session.family_ids,
+                                itinerary_data=latest_itinerary.data,
+                                created_reason=f"Re-optimized itinerary auto-approved (feedback: {feedback.message[:50]})",
+                            )
+
+                        auto_approved = True
+                        print(f"[Agent Feedback API] Auto-approved and published for trip {trip_id}")
+
+                        # --- WebSocket notifications to both sides ---
+                        try:
+                            from app.core.websocket import ws_manager
+
+                            ws_payload = {
+                                "type": "itinerary_updated",
+                                "trip_id": trip_id,
+                                "iteration": result["iteration"],
+                                "action": result["action_taken"],
+                                "explanations": result["explanations"],
+                                "cost_analysis": result.get("cost_analysis"),
+                                "message": f"Itinerary updated: {result['explanations'][0] if result['explanations'] else 'Changes applied'}",
+                                "auto_approved": True,
+                            }
+
+                            # Notify agents
+                            await ws_manager.broadcast(ws_payload)
+
+                            # Notify travellers
+                            if user_id_str:
+                                await ws_manager.send_to_user(user_id_str, ws_payload)
+
+                            from sqlmodel import Session as SqlSession, select as sql_select
+                            from app.models.user import User
+                            from app.models.family import Family as Fam
+                            from app.core.db import engine as db_eng
+                            with SqlSession(db_eng) as db_s:
+                                for fam_code in trip_session.family_ids:
+                                    fm = db_s.exec(
+                                        sql_select(Fam).where(Fam.family_code == fam_code)
+                                    ).first()
+                                    if fm:
+                                        users = db_s.exec(
+                                            sql_select(User).where(User.family_id == fm.id)
+                                        ).all()
+                                        for u in users:
+                                            await ws_manager.send_to_user(str(u.id), ws_payload)
+                        except Exception as ws_err:
+                            print(f"[Agent Feedback API] WebSocket error (non-blocking): {ws_err}")
+
+                        # Invalidate Redis cache
+                        try:
+                            from app.core.redis import get_redis
+                            redis = await get_redis()
+                            await redis.delete(f"itinerary:current:{family_uuid}")
+                        except Exception:
+                            pass
+
+            except Exception as approve_err:
+                print(f"[Agent Feedback API] Auto-approve error (non-blocking): {approve_err}")
+        
         return AgentFeedbackResponse(
             success=result["success"],
             event_type=result["event_type"],
@@ -372,7 +525,8 @@ async def process_agent_feedback(
             explanations=result["explanations"],
             itinerary_updated=result["itinerary_updated"],
             iteration=result["iteration"],
-            cost_analysis=result.get("cost_analysis")
+            cost_analysis=result.get("cost_analysis"),
+            auto_approved=auto_approved,
         )
         
     except ImportError as e:

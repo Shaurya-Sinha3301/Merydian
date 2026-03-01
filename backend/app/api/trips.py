@@ -152,6 +152,14 @@ class InitializeTripResponse(BaseModel):
 
 # ---------- New: Initialize with optimizer ----------
 
+class TravellerEmailEntry(BaseModel):
+    """Email entry for a traveller to be registered during trip init."""
+    email: str = Field(..., description="Email address of the traveller")
+    full_name: Optional[str] = Field(None, description="Full name of the traveller")
+    members: int = Field(default=2, ge=1, description="Number of family members")
+    children: int = Field(default=0, ge=0, description="Number of children")
+
+
 class InitializeTripWithOptiRequest(BaseModel):
     """Simplified request — only basics + family IDs. Preferences auto-fetched from DB."""
 
@@ -160,10 +168,18 @@ class InitializeTripWithOptiRequest(BaseModel):
     start_date: str = Field(..., description="Start date (YYYY-MM-DD)")
     end_date: str = Field(..., description="End date (YYYY-MM-DD)")
     family_ids: List[str] = Field(
-        ..., min_items=1, description="Family codes (e.g. ['FAM_A', 'FAM_B'])"
+        default_factory=list, description="Family codes (e.g. ['FAM_A', 'FAM_B']). Can be empty if emails are provided."
+    )
+    traveller_emails: List[TravellerEmailEntry] = Field(
+        default_factory=list,
+        description="List of traveller emails to auto-register. Creates users + families if they don't exist."
     )
     num_travellers: Optional[int] = Field(
         default=None, ge=1, description="Total traveller count (informational)"
+    )
+    auto_approve: bool = Field(
+        default=False,
+        description="If true, automatically approve the generated itinerary without agent review"
     )
 
     @validator("end_date")
@@ -193,6 +209,15 @@ class OptiSummary(BaseModel):
     predicted_satisfaction: float
 
 
+class RegisteredFamilyInfo(BaseModel):
+    """Info about a registered family from email."""
+    family_code: str
+    user_id: str
+    family_id: str
+    email: str
+    status: str  # "existing" or "created"
+
+
 class InitializeTripWithOptiResponse(BaseModel):
     """Response after optimizer-backed trip initialization"""
     success: bool
@@ -203,21 +228,26 @@ class InitializeTripWithOptiResponse(BaseModel):
     optimizer_ran: bool
     message: str
     summary: OptiSummary
+    registered_families: List[RegisteredFamilyInfo] = Field(default_factory=list)
+    auto_approved: bool = False
 
 
 class TripDetailResponse(BaseModel):
     """Detailed trip information"""
     trip_id: str
-    trip_name: Optional[str]
-    destination: Optional[str]
-    start_date: Optional[str]
-    end_date: Optional[str]
-    families: List[str]
-    iteration_count: int
-    initial_preferences: Dict[str, Any]
-    current_preferences: Dict[str, Any]
-    feedback_count: int
-    last_updated: Optional[str]
+    trip_name: Optional[str] = None
+    destination: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    families: List[str] = Field(default_factory=list)
+    iteration_count: int = 0
+    initial_preferences: Dict[str, Any] = Field(default_factory=dict)
+    current_preferences: Dict[str, Any] = Field(default_factory=dict)
+    feedback_count: int = 0
+    last_updated: Optional[str] = None
+    status: Optional[str] = None
+    latest_itinerary_path: Optional[str] = None
+    created_at: Optional[str] = None
 
 
 class PreferenceUpdateRequest(BaseModel):
@@ -232,13 +262,13 @@ class PreferenceUpdateRequest(BaseModel):
 # Endpoints
 # ============================================================================
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, get_optional_user
 from app.schemas.auth import TokenPayload
 
 @router.post("/initialize", response_model=InitializeTripResponse, status_code=status.HTTP_201_CREATED)
 async def initialize_trip(
     request: InitializeTripRequest,
-    current_user: Optional[TokenPayload] = Depends(lambda: None)  # Make auth optional for testing
+    current_user: Optional[TokenPayload] = Depends(get_optional_user),
 ):
     """
     Initialize a new trip with family preferences.
@@ -318,28 +348,145 @@ async def initialize_trip(
 )
 async def initialize_trip_with_optimization(
     request: InitializeTripWithOptiRequest,
-    current_user: Optional[TokenPayload] = Depends(lambda: None),
+    current_user: Optional[TokenPayload] = Depends(get_optional_user),
 ):
     """
     Initialize a trip with automatic optimizer run.
 
     This endpoint:
-    1. Auto-fetches family preferences from the database
-    2. Creates a TripSession
-    3. Runs the ML optimizer iteration 0 (falls back to baseline if unavailable)
-    4. Creates an ItineraryOption for the agent to review/approve
+    1. Auto-registers traveller emails as users (creates families for each)
+    2. Auto-fetches family preferences from the database
+    3. Creates a TripSession
+    4. Runs the ML optimizer iteration 0 (falls back to baseline if unavailable)
+    5. Creates an ItineraryOption for the agent to review/approve
+    6. If auto_approve=true, automatically approves and publishes the itinerary
 
-    The agent can then approve the option via `POST /agent/itinerary/approve`.
+    The agent can also approve the option via `POST /agent/itinerary/approve`.
     """
     try:
+        # Step 1: Auto-register traveller emails and collect family_ids
+        registered_families = []
+        if request.traveller_emails:
+            from app.services.user_service import UserService
+            from app.services.family_service import FamilyService
+
+            for entry in request.traveller_emails:
+                try:
+                    existing_user = UserService.get_user_by_email(entry.email)
+                    if existing_user:
+                        if existing_user.family_id:
+                            fam = FamilyService.get_family(existing_user.family_id)
+                            if fam:
+                                registered_families.append({
+                                    "family_code": fam.family_code,
+                                    "user_id": str(existing_user.id),
+                                    "family_id": str(fam.id),
+                                    "email": entry.email,
+                                    "status": "existing"
+                                })
+                    else:
+                        default_password = "VoyageurDefault2026!"
+                        full_name = entry.full_name or entry.email.split("@")[0]
+                        new_user = UserService.create_user(
+                            email=entry.email,
+                            password=default_password,
+                            role="traveller",
+                            full_name=full_name
+                        )
+                        fam = FamilyService.get_family(new_user.family_id)
+                        if fam:
+                            # Update family with member info
+                            prefs = fam.preferences or {}
+                            prefs["members"] = entry.members
+                            prefs["children"] = entry.children
+                            FamilyService.update_preferences(fam.id, prefs)
+
+                            registered_families.append({
+                                "family_code": fam.family_code,
+                                "user_id": str(new_user.id),
+                                "family_id": str(fam.id),
+                                "email": entry.email,
+                                "status": "created"
+                            })
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).warning(f"Failed to register {entry.email}: {e}")
+
+        # Merge registered family codes with any explicit family_ids
+        all_family_ids = list(request.family_ids)
+        for rf in registered_families:
+            if rf["family_code"] not in all_family_ids:
+                all_family_ids.append(rf["family_code"])
+
+        if not all_family_ids:
+            raise ValueError("No families to initialize. Provide family_ids or traveller_emails.")
+
+        # Step 2: Initialize trip with optimization
         result = TripService.initialize_trip_with_optimization(
             trip_name=request.trip_name,
             destination=request.destination,
             start_date=request.start_date,
             end_date=request.end_date,
-            family_ids=request.family_ids,
+            family_ids=all_family_ids,
             num_travellers=request.num_travellers,
         )
+
+        # Include registered families info in result
+        result["registered_families"] = registered_families
+
+        # Step 3: Auto-approve if requested
+        if request.auto_approve and result.get("option_id"):
+            try:
+                from app.services.itinerary_option_service import ItineraryOptionService
+                from app.services.itinerary_service import ItineraryService
+                from uuid import UUID
+
+                option_uuid = UUID(result["option_id"])
+                # Use the calling agent's ID if available, else system agent
+                if current_user and current_user.sub:
+                    agent_id = UUID(current_user.sub)
+                else:
+                    agent_id = UUID("00000000-0000-0000-0000-000000000001")
+
+                approved_option = ItineraryOptionService.approve_option(
+                    option_id=option_uuid,
+                    agent_id=agent_id,
+                )
+
+                # Publish itinerary to customer tables
+                option_details = approved_option.details or {}
+                itinerary_data = option_details.get("itinerary", {})
+                if itinerary_data:
+                    ItineraryService.publish_base_itinerary(
+                        trip_id=result["trip_id"],
+                        family_ids=all_family_ids,
+                        itinerary_data=itinerary_data,
+                        created_reason="Base itinerary auto-approved by agent",
+                    )
+
+                result["auto_approved"] = True
+                result["message"] = (
+                    f"Trip initialized, optimized, and auto-approved. "
+                    f"Itinerary published to {len(all_family_ids)} families."
+                )
+
+                # Send WebSocket notification to all registered travellers
+                try:
+                    from app.core.websocket import ws_manager
+                    import asyncio
+                    for rf in registered_families:
+                        await ws_manager.send_to_user(rf["user_id"], {
+                            "type": "itinerary_published",
+                            "trip_id": result["trip_id"],
+                            "message": "Your itinerary is ready! Check your dashboard.",
+                        })
+                except Exception:
+                    pass  # Non-blocking
+
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Auto-approve failed: {e}")
+                result["auto_approved"] = False
 
         return InitializeTripWithOptiResponse(**result)
 
@@ -506,16 +653,22 @@ async def get_my_trips(
         )
 
     try:
-        # Currently the TripService list_trips doesn't filter by family_id efficiently in its signature.
-        # But we can reuse TripService._get_... or manually query here.
-        from sqlmodel import select, func, col
+        # Resolve the user's family UUID → family_code, because trip_sessions
+        # stores family_codes (e.g. "698199C3") not family UUIDs in family_ids.
+        from app.services.family_service import FamilyService
+        family = FamilyService.get_family(current_user.family_id)
+        if not family:
+            return PaginatedResponse(items=[], total=0, skip=pagination.skip, limit=pagination.limit)
+        family_code = family.family_code
+
+        from sqlmodel import select, func, col, Session as DBSession
         from sqlalchemy.dialects.postgresql import JSONB
-        from app.core.db import get_db_session
-        from app.models.trip import TripSession
+        from app.core.db import engine
+        from app.models.trip_session import TripSession
         
-        with get_db_session() as session:
+        with DBSession(engine) as session:
             statement = select(TripSession).where(
-                col(TripSession.family_ids).cast(JSONB).contains([current_user.family_id])
+                col(TripSession.family_ids).cast(JSONB).contains([family_code])
             ).order_by(TripSession.created_at.desc())
 
             if trip_status:
@@ -523,7 +676,7 @@ async def get_my_trips(
 
             # Counter
             count_stmt = select(func.count()).select_from(TripSession).where(
-                col(TripSession.family_ids).cast(JSONB).contains([current_user.family_id])
+                col(TripSession.family_ids).cast(JSONB).contains([family_code])
             )
             if trip_status:
                 count_stmt = count_stmt.where(TripSession.status == trip_status)

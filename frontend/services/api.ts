@@ -22,6 +22,7 @@ export interface AgentFeedbackResponse {
             reason: string;
         }>;
     };
+    auto_approved?: boolean;
 }
 
 export interface Itinerary {
@@ -37,13 +38,30 @@ export interface Itinerary {
     }>;
 }
 
+export interface TravellerEmailEntry {
+    email: string;
+    full_name?: string;
+    members?: number;
+    children?: number;
+}
+
 export interface InitializeTripWithOptimizationRequest {
     trip_name: string;
     destination: string;
     start_date: string;
     end_date: string;
-    family_ids: string[];
+    family_ids?: string[];
+    traveller_emails?: TravellerEmailEntry[];
     num_travellers?: number;
+    auto_approve?: boolean;
+}
+
+export interface RegisteredFamilyInfo {
+    family_code: string;
+    user_id: string;
+    family_id: string;
+    email: string;
+    status: 'existing' | 'created';
 }
 
 export interface TripWithOptimizationResponse {
@@ -63,6 +81,8 @@ export interface TripWithOptimizationResponse {
         estimated_cost: number;
         predicted_satisfaction: number;
     };
+    registered_families?: RegisteredFamilyInfo[];
+    auto_approved?: boolean;
 }
 
 export interface ItineraryOption {

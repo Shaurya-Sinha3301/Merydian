@@ -7,7 +7,7 @@ import {
     Hash, Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getTripById } from '@/lib/trips';
+// Trip data fetched dynamically — no static lookup needed
 import VoyageurAIPanel from './VoyageurAIPanel';
 
 // ─── Types & Mock Data ─────────────────────────────────────────────────────────
@@ -520,13 +520,10 @@ function getLucideTypeIcon(type: BookingType) {
 // ─── Component ─────────────────────────────────────────────────────────────────
 
 export default function BookingsView({ tripId }: { tripId: string }) {
-    const trip = getTripById(tripId);
     const [activeFilter, setActiveFilter] = useState<string>('all');
     const [activePanel, setActivePanel] = useState<'profit' | 'ai' | null>(null);
     const [commandQuery, setCommandQuery] = useState('');
     const [profitOpen, setProfitOpen] = useState(false);
-
-    if (!trip) return <div className="p-8 text-center text-muted-foreground font-mono text-sm">Trip not found.</div>;
 
     return (
         <div className="flex-1 flex overflow-hidden h-full bp-grid-bg bg-white">

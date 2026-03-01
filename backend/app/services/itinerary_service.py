@@ -137,6 +137,28 @@ class ItineraryService:
             return session.exec(statement).first()
 
     @staticmethod
+    def create_version(family_id: UUID, itinerary_data: dict) -> Itinerary:
+        """
+        Convenience alias for create_itinerary — creates a new versioned itinerary.
+
+        Used by the optimizer pipeline after re-optimization.
+
+        Args:
+            family_id: Family UUID
+            itinerary_data: Complete itinerary data dict
+
+        Returns:
+            Created Itinerary record
+        """
+        return ItineraryService.create_itinerary(
+            family_id=family_id,
+            itinerary_data=itinerary_data,
+            created_reason="Re-optimized itinerary",
+            created_by="optimizer",
+            set_as_current=True,
+        )
+
+    @staticmethod
     def publish_base_itinerary(
         trip_id: str,
         family_ids: List[str],

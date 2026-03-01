@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { apiClient, AgentFeedbackResponse } from '@/services/api';
 
 interface Message {
   id: string;
@@ -8,20 +9,27 @@ interface Message {
   text: string;
   timestamp: string;
   suggestions?: string[];
+  metadata?: {
+    event_type?: string;
+    itinerary_updated?: boolean;
+    auto_approved?: boolean;
+    cost_analysis?: AgentFeedbackResponse['cost_analysis'];
+  };
 }
 
 interface AgentChatModalProps {
   onClose: () => void;
+  onItineraryUpdated?: () => void;
 }
 
-const EnhancedAgentChatModal = ({ onClose }: AgentChatModalProps) => {
+const EnhancedAgentChatModal = ({ onClose, onItineraryUpdated }: AgentChatModalProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'm1',
       sender: 'agent',
-      text: '👋 Hi! I\'m your AI travel assistant. I can help you with bookings, itinerary changes, or any questions about your trip!',
+      text: 'Hi! I\'m your AI travel assistant. I can modify your itinerary, add or remove locations, and optimize your trip. Just tell me what you\'d like to change!',
       timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      suggestions: ['Reschedule my lunch', 'Find better hotel', 'Delay activities', 'Check weather']
+      suggestions: ['Add Red Fort to my trip', 'Remove Lotus Temple', 'I want more food experiences', 'Show budget-friendly options']
     }
   ]);
   const [inputText, setInputText] = useState('');
@@ -36,55 +44,76 @@ const EnhancedAgentChatModal = ({ onClose }: AgentChatModalProps) => {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const handleSendMessage = (text?: string) => {
+  const handleSendMessage = async (text?: string) => {
     const messageText = text || inputText;
-    if (!messageText.trim()) return;
+    if (!messageText.trim() || isTyping) return;
 
     const newMessage: Message = {
-      id: `m${messages.length + 1}`,
+      id: `m${Date.now()}`,
       sender: 'customer',
       text: messageText,
       timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, newMessage]);
     setInputText('');
     setIsTyping(true);
 
-    // Simulate AI thinking and response
-    setTimeout(() => {
-      setIsTyping(false);
-      
-      // Context-aware responses
-      let responseText = '';
-      let responseSuggestions: string[] = [];
+    try {
+      // Call real backend API: POST /api/v1/itinerary/feedback/agent
+      const response: AgentFeedbackResponse = await apiClient.submitFeedbackMessage(messageText);
 
-      if (messageText.toLowerCase().includes('reschedule') || messageText.toLowerCase().includes('lunch')) {
-        responseText = '🍽️ I can help you reschedule your lunch reservation. I see you have a booking at "Coastal Spice" at 1:00 PM. Would you like to move it to 2:00 PM or 3:00 PM?';
-        responseSuggestions = ['Move to 2:00 PM', 'Move to 3:00 PM', 'Cancel reservation'];
-      } else if (messageText.toLowerCase().includes('hotel') || messageText.toLowerCase().includes('accommodation')) {
-        responseText = '🏨 I found 3 premium hotels near your current location with availability. Would you like to see options with better amenities or closer to your activities?';
-        responseSuggestions = ['Show better amenities', 'Show closer options', 'Keep current hotel'];
-      } else if (messageText.toLowerCase().includes('delay') || messageText.toLowerCase().includes('activities')) {
-        responseText = '⏰ I can adjust your activity schedule. Which activities would you like to delay? I\'ll make sure everything still fits in your itinerary.';
-        responseSuggestions = ['Delay beach visit', 'Delay museum tour', 'Delay all activities'];
-      } else if (messageText.toLowerCase().includes('weather')) {
-        responseText = '🌤️ The weather looks great! Sunny with temperatures around 28°C. Perfect for your beach activities. I\'ll send you an alert if anything changes.';
-        responseSuggestions = ['View 7-day forecast', 'Set weather alerts', 'Suggest indoor alternatives'];
-      } else {
-        responseText = '✨ I\'m analyzing your request. I can help you modify bookings, adjust your itinerary, or provide recommendations. What would you like to do?';
-        responseSuggestions = ['Modify booking', 'Change itinerary', 'Get recommendations', 'Report an issue'];
+      const explanationText = response.explanations?.length
+        ? response.explanations.join('\n\n')
+        : 'Your feedback has been acknowledged.';
+
+      let statusLine = '';
+      if (response.itinerary_updated && response.auto_approved) {
+        statusLine = '\n\n✅ Changes have been applied and your itinerary has been updated automatically!';
+        // Trigger refresh of itinerary in parent
+        onItineraryUpdated?.();
+      } else if (response.itinerary_updated) {
+        statusLine = '\n\n🔄 Your itinerary has been updated. The agent will review the changes shortly.';
       }
 
+      let costLine = '';
+      if (response.cost_analysis) {
+        const delta = response.cost_analysis.total_cost_change;
+        if (delta !== 0) {
+          costLine = `\n\n💰 Cost impact: ${delta > 0 ? '+' : ''}₹${delta.toFixed(0)}`;
+        }
+      }
+
+      const suggestions = response.itinerary_updated
+        ? ['View updated itinerary', 'Make another change', 'I\'m happy with this']
+        : ['Try a different request', 'Add a specific location', 'Remove a location'];
+
       const agentResponse: Message = {
-        id: `m${messages.length + 2}`,
+        id: `m${Date.now() + 1}`,
         sender: 'agent',
-        text: responseText,
+        text: explanationText + statusLine + costLine,
         timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        suggestions: responseSuggestions
+        suggestions,
+        metadata: {
+          event_type: response.event_type,
+          itinerary_updated: response.itinerary_updated,
+          auto_approved: response.auto_approved,
+          cost_analysis: response.cost_analysis,
+        },
       };
-      setMessages((prev) => [...prev, agentResponse]);
-    }, 1500);
+      setMessages(prev => [...prev, agentResponse]);
+    } catch (error: any) {
+      const errorResponse: Message = {
+        id: `m${Date.now() + 1}`,
+        sender: 'agent',
+        text: `Sorry, I encountered an error: ${error.message || 'Unknown error'}. Please try again.`,
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        suggestions: ['Try again', 'Report issue'],
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
