@@ -487,48 +487,123 @@ function transformItinerary(data: any): Day[] {
     if (!data || !data.days || !Array.isArray(data.days)) return DAYS; // Fallback to Paris
 
     return data.days.map((dayData: any, idx: number) => {
+        // ── Extract POIs ─────────────────────────────────────────────────
+        // Baseline format:   dayData.pois = [{ sequence, location_id, comment, planned_visit_time_min }]
+        // Optimizer format:  dayData.families.{familyId}.pois = [{ sequence, location_id, location_name, arrival_time, departure_time, visit_duration_min, satisfaction_score }]
+        let pois: any[] = dayData.pois || [];
+        let familyIds: string[] = [];
+
+        if ((!pois || pois.length === 0) && dayData.families && typeof dayData.families === 'object') {
+            familyIds = Object.keys(dayData.families);
+            // Pick the first family's POIs as the "shared" view
+            if (familyIds.length > 0) {
+                const firstFamily = dayData.families[familyIds[0]];
+                pois = firstFamily?.pois || [];
+            }
+        }
+
+        const isOptimizerFormat = pois.length > 0 && pois[0].arrival_time !== undefined;
+
         let currentTime = new Date();
-        currentTime.setHours(9, 0, 0, 0); // Start at 9:00 AM
+        currentTime.setHours(9, 0, 0, 0);
 
-        const rows: TimeRow[] = (dayData.pois || []).map((poi: any, poiIdx: number) => {
-            const timeStr = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        const rows: TimeRow[] = pois.map((poi: any, poiIdx: number) => {
+            // Use real arrival_time from optimizer, or calculate from visit duration
+            let timeStr: string;
+            if (isOptimizerFormat && poi.arrival_time) {
+                timeStr = poi.arrival_time;
+            } else {
+                timeStr = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
 
-            // Increment time for next POI based on duration
-            const durationMins = poi.planned_visit_time_min || 60;
-            const nextTime = new Date(currentTime.getTime() + durationMins * 60000 + 30 * 60000); // +30m transit
-            currentTime = nextTime;
+            const durationMins = poi.visit_duration_min || poi.planned_visit_time_min || 60;
+            if (!isOptimizerFormat) {
+                currentTime = new Date(currentTime.getTime() + durationMins * 60000 + 30 * 60000);
+            }
 
             const durationHrs = Math.floor(durationMins / 60);
             const durationRemMins = durationMins % 60;
             const durationLabel = `${durationHrs}H ${durationRemMins.toString().padStart(2, '0')}M`;
+
+            const title = poi.location_name || poi.comment || 'Activity';
+            const locationCode = poi.location_id || '';
+            const satisfaction = poi.satisfaction_score ? ` · Score: ${poi.satisfaction_score.toFixed(2)}` : '';
+            const description = isOptimizerFormat
+                ? `${poi.arrival_time} – ${poi.departure_time}${satisfaction}`
+                : `Sequence ${poi.sequence}: Scheduled visit to ${poi.comment}.`;
+
+            // Determine category based on location_id
+            const isRestaurant = locationCode.includes('DINNER') || locationCode.includes('LUNCH');
+            const category = isRestaurant ? 'Dining' : 'Activity';
+            const catBorder = isRestaurant ? 'border-orange-200' : 'border-blue-200';
+            const catBg = isRestaurant ? 'bg-orange-50' : 'bg-blue-50';
+            const catText = isRestaurant ? 'text-orange-700' : 'text-blue-700';
+            const durColor = isRestaurant ? 'text-orange-600' : 'text-blue-600';
+
+            // Build participants from family IDs
+            const participants = familyIds.length > 0
+                ? familyIds.map((fid, i) => ({ code: `FAM ${String.fromCharCode(65 + i)}`, color: '' }))
+                : [{ code: 'ALL', color: '' }];
 
             return {
                 time: timeStr,
                 period: 'UTC+1',
                 cards: [{
                     id: `d${dayData.day}-poi${poiIdx}`,
-                    evtId: `EVT-${poi.location_id}`,
-                    category: 'Activity',
-                    categoryBorder: 'border-blue-200',
-                    categoryBg: 'bg-blue-50',
-                    categoryText: 'text-blue-700',
-                    locationCode: poi.location_id,
+                    evtId: `EVT-${locationCode}`,
+                    category,
+                    categoryBorder: catBorder,
+                    categoryBg: catBg,
+                    categoryText: catText,
+                    locationCode,
                     durationLabel,
-                    durationColor: 'text-blue-600',
-                    title: poi.comment || 'Activity',
-                    description: `Sequence ${poi.sequence}: Scheduled visit to ${poi.comment}.`,
-                    participants: [{ code: 'ALL', color: '' }],
+                    durationColor: durColor,
+                    title,
+                    description,
+                    participants,
                     statusLabel: 'Confirmed',
-                    statusIcon: 'confirmed',
-                    imageUrl: 'https://images.unsplash.com/photo-1506461883276-594543d0e225?w=200&q=80',
+                    statusIcon: 'confirmed' as const,
+                    imageUrl: `https://source.unsplash.com/200x200/?${encodeURIComponent(title)},travel`,
                 }]
             };
         });
 
+        // ── Hotel card ────────────────────────────────────────────────────
+        if (dayData.hotel_assignments && familyIds.length > 0) {
+            const hotel = dayData.hotel_assignments[familyIds[0]];
+            if (hotel && hotel.hotel_name) {
+                rows.push({
+                    time: '22:00',
+                    period: 'UTC+1' as any,
+                    cards: [{
+                        id: `d${dayData.day}-hotel`,
+                        evtId: `HTL-${hotel.hotel_id || ''}`,
+                        category: 'Hotel',
+                        categoryBorder: 'border-purple-200',
+                        categoryBg: 'bg-purple-50',
+                        categoryText: 'text-purple-700',
+                        locationCode: hotel.hotel_id || '',
+                        durationLabel: 'OVERNIGHT',
+                        durationColor: 'text-purple-600',
+                        title: hotel.hotel_name,
+                        description: `₹${hotel.cost?.toLocaleString() || 'N/A'} per night`,
+                        participants: familyIds.map((fid, i) => ({ code: `FAM ${String.fromCharCode(65 + i)}`, color: '' })),
+                        statusLabel: 'Confirmed',
+                        statusIcon: 'confirmed' as const,
+                        imageUrl: `https://source.unsplash.com/200x200/?hotel,room`,
+                    }]
+                });
+            }
+        }
+
+        // ── Time range ────────────────────────────────────────────────────
+        const firstTime = rows.length > 0 ? rows[0].time : '09:00';
+        const lastTime = rows.length > 0 ? rows[rows.length - 1].time : '22:00';
+
         return {
             date: `DAY ${dayData.day}`,
             label: dayData.region || `Day ${dayData.day} Exploration`,
-            timeRange: rows.length > 0 ? `${rows[0].time} – ${currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}` : '',
+            timeRange: `${rows.length} SLOTS · ${firstTime} – ${lastTime}`,
             rows
         };
     });
@@ -676,7 +751,7 @@ export default function ItineraryDetailView({ tripId }: ItineraryDetailViewProps
                                     <span className="text-black text-xl font-bold normal-case tracking-normal">{day.label}</span>
                                 </div>
                                 <div className="text-[10px] uppercase tracking-wider text-gray-500">
-                                    {day.rows.length} SLOTS · {day.timeRange}
+                                    {day.timeRange}
                                 </div>
                             </div>
                         </div>
