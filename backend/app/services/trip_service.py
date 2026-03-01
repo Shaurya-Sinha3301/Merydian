@@ -666,6 +666,15 @@ class TripService:
         satisfaction = opti_result["satisfaction"]
         optimizer_ran = opti_result["optimizer_ran"]
 
+        # Update the session so GET /trips/{id}/itinerary returns the optimized result
+        if optimizer_ran:
+            optimized_path = str(Path(settings.OPTIMIZER_OUTPUT_DIR) / trip_id / "iteration_0" / "optimized_itinerary.json")
+            trip_session.latest_itinerary_path = optimized_path
+            logger.info("Set latest_itinerary_path → %s", optimized_path)
+        else:
+            trip_session.latest_itinerary_path = baseline_path
+        OptimizerService.update_trip_session(trip_session)
+
         # -------------------------------------------------------------------
         # 5. Create ItineraryOptionDB entry for agent review
         # -------------------------------------------------------------------
