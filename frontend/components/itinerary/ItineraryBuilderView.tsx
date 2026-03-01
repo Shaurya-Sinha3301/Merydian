@@ -189,6 +189,39 @@ export default function ItineraryBuilderView() {
                 children: 0,
             }));
 
+            // Convert Activity Architect timeline into the optimizer's
+            // base itinerary format so custom activities flow to the backend.
+            const totalActivities = days.reduce((sum, d) => sum + d.activities.length, 0);
+            let customBaseline: Record<string, any> | undefined;
+
+            if (totalActivities > 0) {
+                const parseDuration = (dur: string): number => {
+                    const match = dur.match(/(\d+)/);
+                    return match ? parseInt(match[1], 10) * 60 : 60; // default 60 min
+                };
+
+                customBaseline = {
+                    itinerary_id: `CUSTOM_${Date.now().toString(36).toUpperCase()}`,
+                    city: dest,
+                    assumptions: {
+                        day_start_time: "09:00",
+                        day_end_time: "22:00",
+                        poi_transport_separation: true,
+                    },
+                    days: days.map((d, dayIdx) => ({
+                        day: dayIdx + 1,
+                        region: d.title || `Day ${dayIdx + 1}`,
+                        pois: d.activities.map((act, actIdx) => ({
+                            sequence: actIdx + 1,
+                            location_id: `LOC_CUSTOM_${act.name.toUpperCase().replace(/\s+/g, '_').slice(0, 30)}`,
+                            role: "SKELETON",
+                            planned_visit_time_min: parseDuration(act.duration),
+                            comment: act.name,
+                        })),
+                    })),
+                };
+            }
+
             const payload = {
                 trip_name: projectName || 'Untitled Trip',
                 destination: dest,
@@ -197,6 +230,7 @@ export default function ItineraryBuilderView() {
                 traveller_emails: travellerEmails,
                 num_travellers: families.reduce((acc, f) => acc + f.members, 0),
                 auto_approve: true,
+                ...(customBaseline && { custom_baseline: customBaseline }),
             };
 
             console.log("Calling initializeTripWithOptimization (auto_approve=true)...", payload);

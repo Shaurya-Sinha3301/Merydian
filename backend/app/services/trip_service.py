@@ -500,6 +500,7 @@ class TripService:
         end_date: str,
         family_ids: List[str],
         num_travellers: Optional[int] = None,
+        custom_baseline: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Initialize a trip, auto-fetch family preferences, run optimizer iteration 0,
@@ -578,14 +579,25 @@ class TripService:
         trip_id = TripService._generate_trip_id(destination, start_date)
         optimizer_prefs = TripService._convert_to_optimizer_format(families_data)
 
-        # Auto-resolve baseline based on destination
-        baseline_map = {
-            "delhi": "delhi_3day_skeleton",
-            "mumbai": "mumbai_3day",
-        }
-        dest_key = destination.lower().split(",")[0].strip()
-        baseline_name = baseline_map.get(dest_key, "delhi_3day_skeleton")
-        baseline_path = TripService._resolve_baseline_path(baseline_name)
+        # Use custom baseline from Activity Architect if provided,
+        # otherwise fall back to the static skeleton lookup.
+        if custom_baseline:
+            logger.info("Using custom baseline from Activity Architect (%d days)", len(custom_baseline.get("days", [])))
+            from pathlib import Path as _Path
+            custom_dir = _Path(settings.OPTIMIZER_OUTPUT_DIR) / trip_id
+            custom_dir.mkdir(parents=True, exist_ok=True)
+            custom_path = custom_dir / "custom_baseline.json"
+            with open(custom_path, "w") as _f:
+                json.dump(custom_baseline, _f, indent=2)
+            baseline_path = str(custom_path)
+        else:
+            baseline_map = {
+                "delhi": "delhi_3day_skeleton",
+                "mumbai": "mumbai_3day",
+            }
+            dest_key = destination.lower().split(",")[0].strip()
+            baseline_name = baseline_map.get(dest_key, "delhi_3day_skeleton")
+            baseline_path = TripService._resolve_baseline_path(baseline_name)
 
         # -------------------------------------------------------------------
         # 3. Create TripSession

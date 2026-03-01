@@ -181,6 +181,11 @@ class InitializeTripWithOptiRequest(BaseModel):
         default=False,
         description="If true, automatically approve the generated itinerary without agent review"
     )
+    custom_baseline: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Optional custom baseline itinerary built by the agent in Activity Architect. "
+                    "When provided, this overrides the default static skeleton lookup."
+    )
 
     @validator("end_date")
     def validate_dates(cls, v, values):
@@ -429,6 +434,7 @@ async def initialize_trip_with_optimization(
             end_date=request.end_date,
             family_ids=all_family_ids,
             num_travellers=request.num_travellers,
+            custom_baseline=request.custom_baseline,
         )
 
         # Include registered families info in result

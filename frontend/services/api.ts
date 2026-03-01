@@ -54,6 +54,7 @@ export interface InitializeTripWithOptimizationRequest {
     traveller_emails?: TravellerEmailEntry[];
     num_travellers?: number;
     auto_approve?: boolean;
+    custom_baseline?: Record<string, any>;
 }
 
 export interface RegisteredFamilyInfo {

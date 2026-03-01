@@ -230,13 +230,22 @@ class OptimizerService:
             output_dir = Path(settings.OPTIMIZER_OUTPUT_DIR) / trip_id / "iteration_0"
             output_dir.mkdir(parents=True, exist_ok=True)
 
-            # Convert preferences dict to the list format the optimizer expects
+            # Convert preferences dict to the list format the optimizer expects.
+            # Keys must match what HotelSkeletonOptimizer + ItineraryOptimizer read.
             pref_list = []
             for fam_id, fam_prefs in preferences.items():
-                entry = {"family_id": fam_id}
-                entry["must_visit"] = fam_prefs.get("must_visit_locations", [])
-                entry["never_visit"] = fam_prefs.get("never_visit_locations", [])
-                entry["interest_vector"] = fam_prefs.get("interest_vector", {})
+                entry = {
+                    "family_id": fam_id,
+                    "members": fam_prefs.get("members", 2),
+                    "children": fam_prefs.get("children", 0),
+                    "budget_sensitivity": fam_prefs.get("budget_sensitivity", 0.5),
+                    "energy_level": fam_prefs.get("energy_level", 0.5),
+                    "pace_preference": fam_prefs.get("pace_preference", "moderate"),
+                    "interest_vector": fam_prefs.get("interest_vector", {}),
+                    # Correct keys expected by both optimizers
+                    "must_visit_locations": fam_prefs.get("must_visit_locations", []),
+                    "never_visit_locations": fam_prefs.get("never_visit_locations", []),
+                }
                 pref_list.append(entry)
 
             # Write preferences file for the optimizer

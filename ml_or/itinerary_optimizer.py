@@ -2122,8 +2122,20 @@ class ItineraryOptimizer:
                 'transport': family_transport
             }
         
+        # Pull hotel and restaurant data from backbone, keyed by day (1-indexed)
+        day_num = day_index + 1
+        day_hotel_assignments = {
+            fid: next(
+                (p for p in self.hotel_assignments.get(fid, []) if p.get("day") == day_num),
+                None,
+            )
+            for fid in family_ids
+        }
+        # daily_restaurants keys may be int or string depending on JSON parse
+        day_restaurant = self.daily_restaurants.get(day_num) or self.daily_restaurants.get(str(day_num), {})
+
         solution = {
-            'day': day_index + 1,
+            'day': day_num,
             'objective_value': solver.ObjectiveValue(),
             'solve_time_seconds': solver.WallTime(),
             'shared_poi_order': visited_pois,
@@ -2131,7 +2143,10 @@ class ItineraryOptimizer:
             'total_transport_time_min': total_transport_time,
             'transport': [], # Consolidated transport replaced by family-specific
             'families': families_data,
-            'num_families': len(family_ids)
+            'num_families': len(family_ids),
+            # Hotel and restaurant data from backbone optimizer
+            'hotel_assignments': day_hotel_assignments,
+            'restaurant': day_restaurant,
         }
         
         print(f"[OK] Multi-family solution extracted for {len(family_ids)} families")
