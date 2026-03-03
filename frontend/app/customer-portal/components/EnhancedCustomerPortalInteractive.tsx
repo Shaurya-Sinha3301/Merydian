@@ -3,10 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Clock, MapPin, Car, Plane } from 'lucide-react';
-import activeGroupsData from '@/lib/agent-dashboard/data/active_groups.json';
-import upcomingGroupsData from '@/lib/agent-dashboard/data/upcoming_groups.json';
-import itineraryDataFile from '@/lib/agent-dashboard/data/itinerary_data.json';
 import { CustomerSidebar } from '@/app/components/CustomerSidebar';
+import { apiClient } from '@/services/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 /* ─────────── helpers ─────────── */
 const formatTime = (iso: string) => {
@@ -58,6 +57,7 @@ const getStatus = (evt: any) => {
 ──────────────────────────────── */
 const EnhancedCustomerPortalInteractive = () => {
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [familyName, setFamilyName] = useState('');
   const [itinerary, setItinerary] = useState<any>(null);
@@ -99,31 +99,39 @@ const EnhancedCustomerPortalInteractive = () => {
   };
 
   useEffect(() => {
-    const familyId = sessionStorage.getItem('familyId');
-    if (!familyId) { router.push('/customer-login'); return; }
-
-    let foundFamily: any = null;
-    let foundGroupId: string | null = null;
-
-    for (const group of activeGroupsData.groups) {
-      const fam = group.families.find((f: any) => f.id === familyId);
-      if (fam) { foundFamily = fam; foundGroupId = group.id; break; }
+    if (authLoading) return;
+    if (!user) {
+      router.push('/customer-login');
+      return;
     }
-    if (!foundGroupId) {
-      for (const group of upcomingGroupsData.groups) {
-        const fam = group.families.find((f: any) => f.id === familyId);
-        if (fam) { foundFamily = fam; foundGroupId = group.id; break; }
+
+    const fetchData = async () => {
+      try {
+        const familyPrefs = await apiClient.getFamilyPreferences();
+        if (familyPrefs && familyPrefs.family_name) {
+          setFamilyName(familyPrefs.family_name);
+        } else {
+          setFamilyName(user.full_name || 'Family');
+        }
+
+        try {
+          const itin = await apiClient.getCurrentItinerary();
+          setItinerary(itin || null);
+        } catch (itinErr) {
+          console.error("No active itinerary found", itinErr);
+          // Backend returns 404 when no itinerary is found, just set null
+          setItinerary(null);
+        }
+      } catch (err) {
+        console.error("Failed to load family portal data", err);
+      } finally {
+        setActiveDayIdx(0);
+        setIsLoading(false);
       }
-    }
+    };
 
-    if (!foundFamily) { router.push('/customer-login'); return; }
-
-    const itin = itineraryDataFile.itineraries.find((i: any) => i.groupId === foundGroupId);
-    setFamilyName(foundFamily.family_name || 'Family');
-    setItinerary(itin || null);
-    setActiveDayIdx(0);
-    setIsLoading(false);
-  }, [router]);
+    fetchData();
+  }, [router, user, authLoading]);
 
   /* ── loading ── */
   if (isLoading) {

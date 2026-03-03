@@ -3,39 +3,39 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CustomerLoginInteractive = () => {
   const router = useRouter();
-  const [familyId, setFamilyId] = useState('');
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Validate family ID format (FAM followed by 3 digits)
-    const familyIdPattern = /^FAM\d{3}$/i;
-    if (!familyIdPattern.test(familyId.toUpperCase())) {
-      setError('Invalid Family ID format. Use format: FAM001');
+    if (!email) {
+      setError('Please enter your email address');
       setIsLoading(false);
       return;
     }
 
-    // For now, accept any password
     if (!password) {
-      setError('Please enter a password');
+      setError('Please enter your password');
       setIsLoading(false);
       return;
     }
 
-    // Store family ID in session storage and redirect
-    setTimeout(() => {
-      sessionStorage.setItem('familyId', familyId.toUpperCase());
-      router.push('/customer-preference');
-    }, 1000);
+    try {
+      await login(email, password);
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -66,7 +66,7 @@ const CustomerLoginInteractive = () => {
             Customer Portal
           </h1>
           <p className="text-sm font-medium tracking-[0.1em] text-[var(--bp-muted)] uppercase">
-            Login with your Family ID
+            Login with your Email
           </p>
         </div>
 
@@ -75,18 +75,15 @@ const CustomerLoginInteractive = () => {
           <div className="group">
             <div className="flex justify-between items-end mb-2">
               <label className="bp-label mb-0 block">
-                FAMILY ID
+                EMAIL ADDRESS
               </label>
-              <span className="text-[9px] font-mono text-[var(--bp-muted)] uppercase tracking-widest block pt-0.5">
-                EX: FAM001
-              </span>
             </div>
             <input
-              type="text"
-              value={familyId}
-              onChange={(e) => setFamilyId(e.target.value)}
-              placeholder="ENTER ID"
-              className="w-full py-2 bg-transparent text-black text-sm border-b border-[var(--bp-border)] focus:border-black outline-none transition-colors placeholder:text-gray-300 placeholder:tracking-widest uppercase tracking-wide"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ENTER EMAIL"
+              className="w-full py-2 bg-transparent text-black text-sm border-b border-[var(--bp-border)] focus:border-black outline-none transition-colors placeholder:text-gray-300 placeholder:tracking-widest"
             />
           </div>
 
@@ -130,7 +127,7 @@ const CustomerLoginInteractive = () => {
         {/* Footer metadata */}
         <div className="mt-12 pt-6 border-t border-[var(--bp-border)]/50 text-center flex flex-col gap-4">
           <p className="text-[8px] font-mono tracking-[0.1em] text-[var(--bp-muted)] uppercase">
-            Don't know your Family ID? <a href="#" className="text-black hover:underline">Contact your travel agent.</a>
+            Don't have an account? <Link href="/signup" className="text-black hover:underline">Sign up here.</Link>
           </p>
           <div className="flex justify-center">
             <Link

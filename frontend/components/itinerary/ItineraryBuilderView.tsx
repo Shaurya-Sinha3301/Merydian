@@ -8,6 +8,65 @@ import {
     Users, Mail, UserPlus, Clock, X, Calendar, MapPin
 } from 'lucide-react';
 import VoyageurAIPanel from './VoyageurAIPanel';
+import { apiClient } from '@/services/api';
+
+// ─── Types ──────────────────────────────────────────────────────────────────────
+
+interface Family {
+    id: string;
+    email: string;
+    members: number;
+    location: string;
+}
+
+interface Activity {
+    id: string;
+    name: string;
+    time: string;
+    duration: string;
+    tag: string;
+}
+
+interface Day {
+    id: string;
+    title: string;
+    activities: Activity[];
+}
+
+// ─── Predefined Activity Tags ───────────────────────────────────────────────────
+
+const ACTIVITY_TAGS = [
+    'HISTORICAL',
+    'ACTIVITY',
+    'ADVENTURE',
+    'FUN',
+    'CULTURAL',
+    'DINING',
+    'NATURE',
+    'OTHER',
+];
+
+// ─── ID Generators ──────────────────────────────────────────────────────────────
+
+function generateFamilyId(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const suffix = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    return `FAM-${suffix}`;
+}
+
+let activityCounter = 0;
+function generateActivityId(): string {
+    activityCounter++;
+    return `ACT-${activityCounter}-${Date.now().toString(36).slice(-4)}`;
+}
+
+let dayCounter = 0;
+function generateDayId(): string {
+    dayCounter++;
+    return `DAY-${dayCounter}-${Date.now().toString(36).slice(-4)}`;
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────────
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -72,6 +131,11 @@ export default function ItineraryBuilderView() {
 
     const [aiOpen, setAiOpen] = useState(false);
     const [mapExpanded, setMapExpanded] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Trip Parameters — empty by default
+    const [projectName, setProjectName] = useState('');
+    const [startDate, setStartDate] = useState('');
 
     // Trip Parameters — empty by default
     const [projectName, setProjectName] = useState('');
@@ -173,10 +237,167 @@ export default function ItineraryBuilderView() {
             status: 'DRAFT',
             dateRange: startDate ? `${startDate} – TBD` : 'TBD',
         };
-        const existing = JSON.parse(sessionStorage.getItem('builtTrips') || '[]');
-        existing.push(builtTrip);
-        sessionStorage.setItem('builtTrips', JSON.stringify(existing));
-        router.push('/agent-dashboard/itinerary-management');
+        setFamilies(prev => [...prev, newFamily]);
+        setNewEmail('');
+        setNewMembers('');
+        setNewLocation('');
+        setAddingFamily(false);
+    }, [newEmail, newMembers, newLocation]);
+
+    const handleRemoveFamily = useCallback((famId: string) => {
+        setFamilies(prev => prev.filter(f => f.id !== famId));
+    }, []);
+
+    const handleAddActivity = useCallback((dayId: string) => {
+        if (!newActivityName.trim()) return;
+        const newAct: Activity = {
+            id: generateActivityId(),
+            name: newActivityName.trim(),
+            time: newActivityTime || '09:00',
+            duration: newActivityDuration || '1 Hour',
+            tag: newActivityTag || 'OTHER',
+        };
+        setDays(prev => prev.map(d =>
+            d.id === dayId ? { ...d, activities: [...d.activities, newAct] } : d
+        ));
+        setNewActivityName('');
+        setNewActivityTime('');
+        setNewActivityDuration('');
+        setNewActivityTag(ACTIVITY_TAGS[0]);
+        setAddingActivityDayId(null);
+    }, [newActivityName, newActivityTime, newActivityDuration, newActivityTag]);
+
+    const handleRemoveActivity = useCallback((dayId: string, actId: string) => {
+        setDays(prev => prev.map(d =>
+            d.id === dayId ? { ...d, activities: d.activities.filter(a => a.id !== actId) } : d
+        ));
+    }, []);
+
+    const handleAddDay = useCallback(() => {
+        const newDay: Day = {
+            id: generateDayId(),
+            title: '',
+            activities: [],
+        };
+        setDays(prev => [...prev, newDay]);
+    }, []);
+
+    const handleRemoveDay = useCallback((dayId: string) => {
+        setDays(prev => prev.filter(d => d.id !== dayId));
+    }, []);
+
+    const handleUpdateDayTitle = useCallback((dayId: string, title: string) => {
+        setDays(prev => prev.map(d =>
+            d.id === dayId ? { ...d, title } : d
+        ));
+    }, []);
+
+    const handleSave = async () => {
+        if (families.length === 0) {
+            alert("Please add at least one family to the trip.");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            // 1. Register all families and collect their codes
+            const familyCodes = [];
+            const familyPrefObjects = []; // For initialize
+
+            const fallbackPrefsTemplate = [
+                {
+                    children: 2, budget_sensitivity: 0.9, energy_level: 0.6, pace_preference: "relaxed",
+                    interest_vector: { history: 0.9, architecture: 0.8, food: 0.4, nature: 0.5, nightlife: 0.1, shopping: 0.3, religious: 0.9 },
+                    must_visit_locations: ["LOC_008", "LOC_016"], never_visit_locations: ["LOC_001"],
+                    notes: "Budget sensitive. History buff. HATES Red Fort. LOVES Akshardham."
+                },
+                {
+                    children: 0, budget_sensitivity: 0.2, energy_level: 0.9, pace_preference: "fast",
+                    interest_vector: { history: 0.3, architecture: 0.5, food: 0.9, nature: 0.2, nightlife: 1.0, shopping: 0.8, religious: 0.1 },
+                    must_visit_locations: ["LOC_001"], never_visit_locations: ["LOC_006"],
+                    notes: "Time sensitive. Loves Nightlife. Must Red Fort. Hates Akshardham."
+                },
+                {
+                    children: 1, budget_sensitivity: 0.5, energy_level: 0.7, pace_preference: "moderate",
+                    interest_vector: { history: 0.5, architecture: 0.5, food: 0.6, nature: 0.5, nightlife: 0.5, shopping: 0.5, religious: 0.5 },
+                    must_visit_locations: [], never_visit_locations: [],
+                    notes: "Neutral family. Consenting to whatever."
+                }
+            ];
+
+            for (let i = 0; i < families.length; i++) {
+                const fam = families[i];
+                const fallbackPref = fallbackPrefsTemplate[i % fallbackPrefsTemplate.length];
+
+                const result = await apiClient.registerCustomerByAgent({
+                    email: fam.email,
+                    members: fam.members,
+                    children: fallbackPref.children,
+                    initial_location: fam.location
+                });
+
+                familyCodes.push(result.family_code);
+
+                familyPrefObjects.push({
+                    family_id: result.family_code,
+                    members: fam.members,
+                    children: fallbackPref.children,
+                    budget_sensitivity: fallbackPref.budget_sensitivity,
+                    energy_level: fallbackPref.energy_level,
+                    pace_preference: fallbackPref.pace_preference,
+                    interest_vector: fallbackPref.interest_vector,
+                    must_visit_locations: fallbackPref.must_visit_locations,
+                    never_visit_locations: fallbackPref.never_visit_locations,
+                    notes: fallbackPref.notes
+                });
+            }
+
+            const dest = families[0]?.location || 'Delhi'; // Fallback
+            const startDt = startDate ? new Date(startDate) : new Date();
+            const endDt = new Date(startDt.getTime() + (days.length * 24 * 60 * 60 * 1000));
+
+            const commonPayload = {
+                trip_name: projectName || 'Untitled Trip',
+                destination: dest,
+                start_date: startDt.toISOString().split('T')[0],
+                end_date: endDt.toISOString().split('T')[0],
+                family_ids: familyCodes,
+                num_travellers: families.reduce((acc, f) => acc + f.members, 0)
+            };
+
+            // 2. Initialize Trip
+            console.log("Calling initialize...");
+            const initResult = await apiClient.initializeTrip({
+                trip_name: commonPayload.trip_name,
+                destination: commonPayload.destination,
+                start_date: commonPayload.start_date,
+                end_date: commonPayload.end_date,
+                families: familyPrefObjects,
+                baseline_itinerary: 'delhi_3day_skeleton'
+            });
+            console.log("Initialize result:", initResult);
+
+            // 3. Initialize Trip with Optimization
+            console.log("Calling initializeWithOptimization...");
+            const optiResult = await apiClient.initializeTripWithOptimization(commonPayload);
+            console.log("Initialize with Optimization result:", optiResult);
+
+            if (optiResult.success && optiResult.option_id) {
+                // 4. Auto-Approve Optional
+                console.log("Calling approveOption...");
+                const approveResult = await apiClient.approveOption(optiResult.option_id);
+                console.log("Approve option result:", approveResult);
+
+                router.push('/agent-dashboard/itinerary-management');
+            } else {
+                alert("Failed to initialize trip with optimization: " + (optiResult.message || JSON.stringify(optiResult)));
+                setIsSaving(false);
+            }
+        } catch (error: any) {
+            console.error(error);
+            alert("An error occurred while saving the itinerary: " + (error.message || "Unknown error"));
+            setIsSaving(false);
+        }
     };
 
     // ── Render ────────────────────────────────────────────────────────────────

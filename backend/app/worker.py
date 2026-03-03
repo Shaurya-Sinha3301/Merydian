@@ -387,7 +387,240 @@ def _process_single_hotel(
     }
 
 
-def _process_single_flight(\r\n    job_uuid: UUID,\r\n    agent_id: str,\r\n    job_id: str,\r\n    flight_params: dict,\r\n    search_params: dict,\r\n) -> dict:\r\n    """\r\n    Process a single flight booking through TBO Air API pipeline.\r\n\r\n    Pipeline: Search → FareQuote → Book\r\n    Returns dict with flight booking result details.\r\n    """\r\n    tbo_air = TBOAirClient()\r\n\r\n    origin = flight_params.get("origin")\r\n    destination = flight_params.get("destination")\r\n    departure_date = flight_params.get("departure_date")\r\n    return_date = flight_params.get("return_date")\r\n    adults = search_params.get("adults", 1)\r\n    children = search_params.get("children", 0)\r\n    cabin_class = flight_params.get("cabin_class", 1)\r\n    preferred_airlines = flight_params.get("preferred_airlines")\r\n    direct_flight = flight_params.get("direct_only", False)\r\n    guest_details = search_params.get("guest_details", [])\r\n\r\n    if not origin or not destination or not departure_date:\r\n        raise ValueError("origin, destination, and departure_date are required for flight booking")\r\n\r\n    # --- Step 1: Create flight booking record ---\r\n    from sqlmodel import Session\r\n    from app.core.db import engine\r\n\r\n    flight_booking = FlightBooking(\r\n        job_id=job_uuid,\r\n        origin=origin,\r\n        destination=destination,\r\n        status=FlightBookingStatus.SEARCHING.value,\r\n        journey_type="return" if return_date else "oneway",\r\n        cabin_class=str(cabin_class),\r\n        passenger_details={"passengers": guest_details},\r\n    )\r\n    with Session(engine) as session:\r\n        session.add(flight_booking)\r\n        session.commit()\r\n        session.refresh(flight_booking)\r\n    booking_id = flight_booking.id\r\n\r\n    # --- Step 2: Search flights ---\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "flight_search",\r\n        "status": "in_progress",\r\n        "message": f"Searching flights {origin} → {destination} ({departure_date})...",\r\n    })\r\n\r\n    search_data = tbo_air.search_flights(\r\n        origin=origin,\r\n        destination=destination,\r\n        departure_date=departure_date,\r\n        return_date=return_date,\r\n        adults=adults,\r\n        children=children,\r\n        cabin_class=cabin_class,\r\n        preferred_airlines=preferred_airlines,\r\n        direct_flight=direct_flight,\r\n    )\r\n\r\n    response = search_data.get("Response", {})\r\n    trace_id = response.get("TraceId")\r\n    results_array = response.get("Results", [[]])\r\n\r\n    # Flatten results\r\n    all_flights = []\r\n    for group in results_array:\r\n        if isinstance(group, list):\r\n            all_flights.extend(group)\r\n\r\n    if not all_flights:\r\n        with Session(engine) as session:\r\n            fb = session.get(FlightBooking, booking_id)\r\n            fb.status = FlightBookingStatus.FAILED.value\r\n            fb.error_message = "No flights found"\r\n            fb.search_response = search_data\r\n            session.add(fb)\r\n            session.commit()\r\n        raise ValueError("No flights found")\r\n\r\n    # Pick best (cheapest) flight\r\n    selected = min(all_flights, key=lambda r: (r.get("Fare", {}).get("PublishedFare") or 999999))\r\n    result_index = selected.get("ResultIndex", "")\r\n    fare_info = selected.get("Fare", {})\r\n    airline = selected.get("ValidatingAirline", "")\r\n    is_lcc = selected.get("IsLCC", False)\r\n\r\n    with Session(engine) as session:\r\n        fb = session.get(FlightBooking, booking_id)\r\n        fb.trace_id = trace_id\r\n        fb.result_index = result_index\r\n        fb.airline = airline\r\n        fb.is_lcc = is_lcc\r\n        fb.total_fare = fare_info.get("PublishedFare")\r\n        fb.currency = fare_info.get("Currency", "USD")\r\n        fb.search_response = search_data\r\n        session.add(fb)\r\n        session.commit()\r\n\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "flight_search",\r\n        "status": "completed",\r\n        "message": f"Found flight: {airline} | Fare: {fare_info.get('PublishedFare')} {fare_info.get('Currency', 'USD')}",\r\n        "airline": airline,\r\n        "total_fare": fare_info.get("PublishedFare"),\r\n    })\r\n\r\n    # --- Step 3: Fare Quote ---\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "fare_quote",\r\n        "status": "in_progress",\r\n        "message": "Getting exact fare quote...",\r\n    })\r\n\r\n    fq_data = tbo_air.get_fare_quote(trace_id=trace_id, result_index=result_index)\r\n    fq_response = fq_data.get("Response", {})\r\n    fq_results = fq_response.get("Results", {})\r\n\r\n    with Session(engine) as session:\r\n        fb = session.get(FlightBooking, booking_id)\r\n        fb.status = FlightBookingStatus.FARE_QUOTED.value\r\n        fb.fare_quote_response = fq_data\r\n        session.add(fb)\r\n        session.commit()\r\n\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "fare_quote",\r\n        "status": "completed",\r\n        "message": "Fare quote confirmed",\r\n    })\r\n\r\n    # --- Step 4: Book flight ---\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "flight_book",\r\n        "status": "in_progress",\r\n        "message": "Creating flight booking (PNR)...",\r\n    })\r\n\r\n    # Build passenger list for TBO\r\n    tbo_passengers = []\r\n    for i, g in enumerate(guest_details):\r\n        tbo_passengers.append({\r\n            "PaxId": i,\r\n            "Title": g.get("Title", "Mr"),\r\n            "FirstName": g.get("FirstName", "Test"),\r\n            "LastName": g.get("LastName", "User"),\r\n            "DateOfBirth": g.get("DateOfBirth", "1990-01-01"),\r\n            "Gender": g.get("Gender", 1),\r\n            "ContactNo": g.get("Phoneno", "9999999999"),\r\n            "Email": g.get("Email", "test@meili.ai"),\r\n            "Nationality": g.get("Nationality", "IN"),\r\n            "Country": g.get("Country", "IN"),\r\n            "City": g.get("City", ""),\r\n            "Address1": g.get("Address", ""),\r\n            "PaxType": 1,\r\n            "LeadPassenger": i == 0,\r\n            "Fare_BE": fq_results.get("Fare", {}),\r\n            "IdDetails": None,\r\n        })\r\n\r\n    if not tbo_passengers:\r\n        tbo_passengers = [{\r\n            "PaxId": 0,\r\n            "Title": "Mr", "FirstName": "Test", "LastName": "User",\r\n            "DateOfBirth": "1990-01-01", "Gender": 1,\r\n            "ContactNo": "9999999999", "Email": "test@meili.ai",\r\n            "Nationality": "IN", "Country": "IN", "City": "", "Address1": "",\r\n            "PaxType": 1, "LeadPassenger": True,\r\n            "Fare_BE": fq_results.get("Fare", {}),\r\n            "IdDetails": None,\r\n        }]\r\n\r\n    book_data = tbo_air.book_flight(\r\n        result_index=result_index,\r\n        trace_id=trace_id,\r\n        passengers=tbo_passengers,\r\n        segments_be=fq_results.get("Segments", []),\r\n        fare_rules=fq_results.get("FareRules", []),\r\n        fare=fq_results.get("Fare", {}),\r\n        mini_fare_rules=fq_results.get("MiniFareRules"),\r\n        fare_classification=fq_results.get("FareClassification"),\r\n        is_lcc=is_lcc,\r\n    )\r\n\r\n    book_response = book_data.get("Response", book_data)\r\n    pnr = book_response.get("PNR", "")\r\n    tbo_booking_id = str(book_response.get("BookingId", ""))\r\n\r\n    final_status = FlightBookingStatus.BOOKED if pnr else FlightBookingStatus.FAILED\r\n\r\n    with Session(engine) as session:\r\n        fb = session.get(FlightBooking, booking_id)\r\n        fb.pnr = pnr\r\n        fb.booking_id = tbo_booking_id\r\n        fb.status = final_status.value\r\n        fb.booking_response = book_data\r\n        fb.updated_at = datetime.utcnow()\r\n        session.add(fb)\r\n        session.commit()\r\n\r\n    notify_agent(agent_id, {\r\n        "type": "booking_step",\r\n        "job_id": job_id,\r\n        "step": "flight_book",\r\n        "status": "completed" if pnr else "failed",\r\n        "message": f"Flight booking {final_status.value} | PNR: {pnr}" if pnr else "Flight booking failed",\r\n        "pnr": pnr,\r\n        "booking_id": tbo_booking_id,\r\n    })\r\n\r\n    return {\r\n        "status": final_status.value,\r\n        "origin": origin,\r\n        "destination": destination,\r\n        "airline": airline,\r\n        "pnr": pnr,\r\n        "booking_id": tbo_booking_id,\r\n        "total_fare": fare_info.get("PublishedFare"),\r\n        "currency": fare_info.get("Currency", "USD"),\r\n    }\r\n\r\n\r\n@celery_app.task(name="app.worker.process_event_task", bind=True, max_retries=3)
+def _process_single_flight(
+    job_uuid: UUID,
+    agent_id: str,
+    job_id: str,
+    flight_params: dict,
+    search_params: dict,
+) -> dict:
+    """
+    Process a single flight booking through TBO Air API pipeline.
+
+    Pipeline: Search -> FareQuote -> Book
+    Returns dict with flight booking result details.
+    """
+    tbo_air = TBOAirClient()
+
+    origin = flight_params.get("origin")
+    destination = flight_params.get("destination")
+    departure_date = flight_params.get("departure_date")
+    return_date = flight_params.get("return_date")
+    adults = search_params.get("adults", 1)
+    children = search_params.get("children", 0)
+    cabin_class = flight_params.get("cabin_class", 1)
+    preferred_airlines = flight_params.get("preferred_airlines")
+    direct_flight = flight_params.get("direct_only", False)
+    guest_details = search_params.get("guest_details", [])
+
+    if not origin or not destination or not departure_date:
+        raise ValueError("origin, destination, and departure_date are required for flight booking")
+
+    # --- Step 1: Create flight booking record ---
+    from sqlmodel import Session
+    from app.core.db import engine
+
+    flight_booking = FlightBooking(
+        job_id=job_uuid,
+        origin=origin,
+        destination=destination,
+        status=FlightBookingStatus.SEARCHING.value,
+        journey_type="return" if return_date else "oneway",
+        cabin_class=str(cabin_class),
+        passenger_details={"passengers": guest_details},
+    )
+    with Session(engine) as session:
+        session.add(flight_booking)
+        session.commit()
+        session.refresh(flight_booking)
+    booking_id = flight_booking.id
+
+    # --- Step 2: Search flights ---
+    notify_agent(agent_id, {
+        "type": "booking_step",
+        "job_id": job_id,
+        "step": "flight_search",
+        "status": "in_progress",
+        "message": f"Searching flights {origin} to {destination} ({departure_date})...",
+    })
+
+    search_data = tbo_air.search_flights(
+        origin=origin,
+        destination=destination,
+        departure_date=departure_date,
+        return_date=return_date,
+        adults=adults,
+        children=children,
+        cabin_class=cabin_class,
+        preferred_airlines=preferred_airlines,
+        direct_flight=direct_flight,
+    )
+
+    response = search_data.get("Response", {})
+    trace_id = response.get("TraceId")
+    results_array = response.get("Results", [[]])
+
+    all_flights = []
+    for group in results_array:
+        if isinstance(group, list):
+            all_flights.extend(group)
+
+    if not all_flights:
+        with Session(engine) as session:
+            fb = session.get(FlightBooking, booking_id)
+            fb.status = FlightBookingStatus.FAILED.value
+            fb.error_message = "No flights found"
+            fb.search_response = search_data
+            session.add(fb)
+            session.commit()
+        raise ValueError("No flights found")
+
+    selected = min(all_flights, key=lambda r: (r.get("Fare", {}).get("PublishedFare") or 999999))
+    result_index = selected.get("ResultIndex", "")
+    fare_info = selected.get("Fare", {})
+    airline = selected.get("ValidatingAirline", "")
+    is_lcc = selected.get("IsLCC", False)
+
+    with Session(engine) as session:
+        fb = session.get(FlightBooking, booking_id)
+        fb.trace_id = trace_id
+        fb.result_index = result_index
+        fb.airline = airline
+        fb.is_lcc = is_lcc
+        fb.total_fare = fare_info.get("PublishedFare")
+        fb.currency = fare_info.get("Currency", "USD")
+        fb.search_response = search_data
+        session.add(fb)
+        session.commit()
+
+    notify_agent(agent_id, {
+        "type": "booking_step",
+        "job_id": job_id,
+        "step": "flight_search",
+        "status": "completed",
+        "message": f"Found flight: {airline} | Fare: {fare_info.get('PublishedFare')} {fare_info.get('Currency', 'USD')}",
+        "airline": airline,
+        "total_fare": fare_info.get("PublishedFare"),
+    })
+
+    # --- Step 3: Fare Quote ---
+    notify_agent(agent_id, {
+        "type": "booking_step",
+        "job_id": job_id,
+        "step": "fare_quote",
+        "status": "in_progress",
+        "message": "Getting exact fare quote...",
+    })
+
+    fq_data = tbo_air.get_fare_quote(trace_id=trace_id, result_index=result_index)
+    fq_response = fq_data.get("Response", {})
+    fq_results = fq_response.get("Results", {})
+
+    with Session(engine) as session:
+        fb = session.get(FlightBooking, booking_id)
+        fb.status = FlightBookingStatus.FARE_QUOTED.value
+        fb.fare_quote_response = fq_data
+        session.add(fb)
+        session.commit()
+
+    notify_agent(agent_id, {
+        "type": "booking_step",
+        "job_id": job_id,
+        "step": "fare_quote",
+        "status": "completed",
+        "message": "Fare quote confirmed",
+    })
+
+    # --- Step 4: Book flight ---
+    notify_agent(agent_id, {
+        "type": "booking_step",
+        "job_id": job_id,
+        "step": "flight_book",
+        "status": "in_progress",
+        "message": "Creating flight booking (PNR)...",
+    })
+
+    tbo_passengers = []
+    for i, g in enumerate(guest_details):
+        tbo_passengers.append({
+            "PaxId": i,
+            "Title": g.get("Title", "Mr"),
+            "FirstName": g.get("FirstName", "Test"),
+            "LastName": g.get("LastName", "User"),
+            "DateOfBirth": g.get("DateOfBirth", "1990-01-01"),
+            "Gender": g.get("Gender", 1),
+            "ContactNo": g.get("Phoneno", "9999999999"),
+            "Email": g.get("Email", "test@meili.ai"),
+            "Nationality": g.get("Nationality", "IN"),
+            "Country": g.get("Country", "IN"),
+            "City": g.get("City", ""),
+            "Address1": g.get("Address", ""),
+            "PaxType": 1,
+            "LeadPassenger": i == 0,
+            "Fare_BE": fq_results.get("Fare", {}),
+            "IdDetails": None,
+        })
+
+    if not tbo_passengers:
+        tbo_passengers = [{
+            "PaxId": 0,
+            "Title": "Mr", "FirstName": "Test", "LastName": "User",
+            "DateOfBirth": "1990-01-01", "Gender": 1,
+            "ContactNo": "9999999999", "Email": "test@meili.ai",
+            "Nationality": "IN", "Country": "IN", "City": "", "Address1": "",
+            "PaxType": 1, "LeadPassenger": True,
+            "Fare_BE": fq_results.get("Fare", {}),
+            "IdDetails": None,
+        }]
+
+    book_data = tbo_air.book_flight(
+        result_index=result_index,
+        trace_id=trace_id,
+        passengers=tbo_passengers,
+        segments_be=fq_results.get("Segments", []),
+        fare_rules=fq_results.get("FareRules", []),
+        fare=fq_results.get("Fare", {}),
+        mini_fare_rules=fq_results.get("MiniFareRules"),
+        fare_classification=fq_results.get("FareClassification"),
+        is_lcc=is_lcc,
+    )
+
+    book_response = book_data.get("Response", book_data)
+    pnr = book_response.get("PNR", "")
+    tbo_booking_id = str(book_response.get("BookingId", ""))
+    final_status = FlightBookingStatus.BOOKED if pnr else FlightBookingStatus.FAILED
+
+    with Session(engine) as session:
+        fb = session.get(FlightBooking, booking_id)
+        fb.pnr = pnr
+        fb.booking_id = tbo_booking_id
+        fb.status = final_status.value
+        fb.booking_response = book_data
+        fb.updated_at = datetime.utcnow()
+        session.add(fb)
+        session.commit()
+
+    notify_agent(agent_id, {
+        "type": "booking_step",
+        "job_id": job_id,
+        "step": "flight_book",
+        "status": "completed" if pnr else "failed",
+        "message": f"Flight booking {final_status.value} | PNR: {pnr}" if pnr else "Flight booking failed",
+        "pnr": pnr,
+        "booking_id": tbo_booking_id,
+    })
+
+    return {
+        "status": final_status.value,
+        "origin": origin,
+        "destination": destination,
+        "airline": airline,
+        "pnr": pnr,
+        "booking_id": tbo_booking_id,
+        "total_fare": fare_info.get("PublishedFare"),
+        "currency": fare_info.get("Currency", "USD"),
+    }
+
 def process_event_task(self, event_id: str):
     """
     Async task to process a system event (e.g., feedback, POI request).

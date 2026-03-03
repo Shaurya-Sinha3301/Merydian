@@ -2,8 +2,9 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 from enum import Enum
 import uuid as uuid_lib
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from app.core.dependencies import get_current_user, get_optional_user
 from app.schemas.auth import TokenPayload
@@ -11,6 +12,7 @@ from app.schemas.events import EventCreate, EventType, EventResponse
 from app.services.itinerary_service import ItineraryService
 from app.services.event_service import EventService
 from app.services.preference_service import PreferenceService
+from app.services.explanation_service import ExplanationService
 from app.models.preference import PreferenceType
 from app.models.event import EventType as ModelEventType
 
@@ -44,7 +46,7 @@ class FeedbackResponse(BaseModel):
     message: str
     event_created: EventResponse
 
-from app.core.redis import RedisManager
+from app.core.redis import get_redis
 import json
 
 @router.get("/current", response_model=Dict[str, Any])
@@ -65,7 +67,7 @@ async def get_current_itinerary(
         family_id = uuid_lib.UUID(current_user.family_id)
         
         # Check Cache
-        redis = await RedisManager.get_redis()
+        redis = await get_redis()
         cache_key = f"itinerary:current:{family_id}"
         cached_data = await redis.get(cache_key)
         
@@ -79,10 +81,112 @@ async def get_current_itinerary(
         itinerary_data = ItineraryService.get_current_itinerary(family_id)
         
         if not itinerary_data:
-            raise HTTPException(
-                status_code=404,
-                detail="No active itinerary found for this family"
-            )
+            print(f"[Itinerary API] No active itinerary found for {family_id}. Returning Delhi fallback.")
+            
+            # Base Delhi itinerary fallback
+            itinerary_data = {
+                "id": str(uuid_lib.uuid4()),
+                "trip_id": str(uuid_lib.uuid4()),
+                "family_id": str(family_id),
+                "destination": "Delhi, India",
+                "start_date": "2026-03-15",
+                "end_date": "2026-03-18",
+                "status": "draft",
+                "version": 1,
+                "days": [
+                    {
+                        "day_number": 1,
+                        "date": "2026-03-15",
+                        "total_day_cost": 50.0,
+                        "activities": [
+                            {
+                                "poi_id": "POI_RED_FORT",
+                                "time": "09:00",
+                                "title": "Red Fort",
+                                "location": "Netaji Subhash Marg, Chandni Chowk, New Delhi",
+                                "description": "Historic fort complex built by Mughal Emperor Shah Jahan.",
+                                "duration": 120,
+                                "cost": 10.0,
+                                "image": "https://images.unsplash.com/photo-1587474260584-136574528ed5",
+                                "alt": "Red Fort, Delhi",
+                                "is_must_visit": True,
+                                "travel_time": "30 mins",
+                                "highlights": ["Mughal Architecture", "History", "Photography"]
+                            },
+                            {
+                                "poi_id": "POI_JAMA_MASJID",
+                                "time": "11:30",
+                                "title": "Jama Masjid",
+                                "location": "Jama Masjid Rd, Jama Masjid, Chandni Chowk, New Delhi",
+                                "description": "One of the largest mosques in India.",
+                                "duration": 60,
+                                "cost": 0.0,
+                                "image": "https://images.unsplash.com/photo-1701336049285-d867c29beaba",
+                                "alt": "Jama Masjid, Delhi",
+                                "is_must_visit": False,
+                                "travel_time": "15 mins",
+                                "highlights": ["Islamic Architecture", "Culture"]
+                            }
+                        ]
+                    },
+                    {
+                        "day_number": 2,
+                        "date": "2026-03-16",
+                        "total_day_cost": 80.0,
+                        "activities": [
+                            {
+                                "poi_id": "POI_QUTUB_MINAR",
+                                "time": "10:00",
+                                "title": "Qutub Minar",
+                                "location": "Seth Sarai, Mehrauli, New Delhi",
+                                "description": "UNESCO World Heritage Site and the tallest brick minaret in the world.",
+                                "duration": 90,
+                                "cost": 15.0,
+                                "image": "https://images.unsplash.com/photo-1563851508210-b9cc65882cd8",
+                                "alt": "Qutub Minar, Delhi",
+                                "is_must_visit": True,
+                                "travel_time": "45 mins",
+                                "highlights": ["Ancient Architecture", "History"]
+                            },
+                             {
+                                "poi_id": "POI_LOTUS_TEMPLE",
+                                "time": "14:00",
+                                "title": "Lotus Temple",
+                                "location": "Lotus Temple Rd, Bahapur, Shambhu Dayal Bagh, Kalkaji, New Delhi",
+                                "description": "Bahá'í House of Worship notable for its flowerlike shape.",
+                                "duration": 60,
+                                "cost": 0.0,
+                                "image": "https://images.unsplash.com/photo-1598324789736-4861f89564a9",
+                                "alt": "Lotus Temple, Delhi",
+                                "is_must_visit": False,
+                                "travel_time": "30 mins",
+                                "highlights": ["Modern Architecture", "Peaceful"]
+                            }
+                        ]
+                    },
+                    {
+                        "day_number": 3,
+                        "date": "2026-03-17",
+                        "total_day_cost": 30.0,
+                        "activities": [
+                           {
+                                "poi_id": "POI_INDIA_GATE",
+                                "time": "17:00",
+                                "title": "India Gate & Rajpath",
+                                "location": "Kartavya Path, India Gate, New Delhi",
+                                "description": "War memorial located astride the Rajpath.",
+                                "duration": 90,
+                                "cost": 0.0,
+                                "image": "https://images.unsplash.com/photo-1585084335487-f653d0859c14",
+                                "alt": "India Gate, Delhi",
+                                "is_must_visit": True,
+                                "travel_time": "20 mins",
+                                "highlights": ["Monument", "Evening Walk", "Photography"]
+                            }
+                        ]
+                    }
+                ]
+            }
         
         # Set Cache (expire in 60 seconds)
         try:
@@ -371,3 +475,98 @@ async def submit_poi_request(
             status_code=500,
             detail=f"Failed to process POI request: {str(e)}"
         )
+
+
+# ---------------------------------------------------------------------------
+#  Explainability endpoints
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/explanations/{itinerary_id}",
+    summary="Get LLM explanations for an itinerary version",
+    tags=["Explanations"],
+)
+async def get_itinerary_explanations(
+    itinerary_id: UUID,
+    family_id: Optional[UUID] = Query(default=None, description="Filter by family UUID"),
+    current_user: TokenPayload = Depends(get_current_user),
+):
+    """
+    Return all per-POI explanations stored for the given itinerary version.
+    Each entry describes why a POI was added, removed, or rerouted.
+
+    Grouped output: {"by_day": {"1": [...], "2": [...]}, "total": N}
+    """
+    try:
+        records = ExplanationService.get_explanations(
+            itinerary_id=itinerary_id,
+            family_id=family_id,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    by_day: Dict[str, List[Dict]] = {}
+    for rec in records:
+        day_key = str(rec.day_number)
+        by_day.setdefault(day_key, []).append({
+            "id": str(rec.id),
+            "family_id": str(rec.family_id),
+            "poi_id": rec.poi_id,
+            "poi_name": rec.poi_name,
+            "change_type": rec.change_type,
+            "causal_tags": rec.causal_tags or [],
+            "cost_delta": rec.cost_delta or {},
+            "satisfaction_delta": rec.satisfaction_delta or {},
+            "explanation": rec.llm_explanation,
+            "trigger_message": rec.trigger_message,
+            "created_at": rec.created_at.isoformat() if rec.created_at else None,
+        })
+
+    return {"itinerary_id": str(itinerary_id), "by_day": by_day, "total": len(records)}
+
+
+@router.get(
+    "/explanations/trip/{trip_id}",
+    summary="Get all LLM explanations for a trip",
+    tags=["Explanations"],
+)
+async def get_trip_explanations(
+    trip_id: str,
+    family_id: Optional[UUID] = Query(default=None, description="Filter by family UUID"),
+    current_user: TokenPayload = Depends(get_current_user),
+):
+    """
+    Return all stored explanations for a trip across all itinerary versions,
+    ordered most-recent first.
+    """
+    try:
+        records = ExplanationService.get_trip_explanations(
+            trip_id=trip_id,
+            family_id=family_id,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {
+        "trip_id": trip_id,
+        "explanations": [
+            {
+                "id": str(rec.id),
+                "itinerary_id": str(rec.itinerary_id),
+                "prev_itinerary_id": str(rec.prev_itinerary_id) if rec.prev_itinerary_id else None,
+                "family_id": str(rec.family_id),
+                "day": rec.day_number,
+                "poi_id": rec.poi_id,
+                "poi_name": rec.poi_name,
+                "change_type": rec.change_type,
+                "causal_tags": rec.causal_tags or [],
+                "cost_delta": rec.cost_delta or {},
+                "satisfaction_delta": rec.satisfaction_delta or {},
+                "explanation": rec.llm_explanation,
+                "trigger_message": rec.trigger_message,
+                "created_at": rec.created_at.isoformat() if rec.created_at else None,
+            }
+            for rec in records
+        ],
+        "total": len(records),
+    }

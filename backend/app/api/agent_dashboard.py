@@ -43,6 +43,20 @@ class ApproveResponse(BaseModel):
     communication_agent_triggered: bool = Field(..., description="Whether Communication Agent was triggered")
 
 
+class CustomerRegistrationRequest(BaseModel):
+    email: str = Field(..., description="Email address for the family's primary contact")
+    members: int = Field(default=1, description="Number of members in the family")
+    children: int = Field(default=0, description="Number of children in the family")
+    initial_location: str = Field(default="", description="Initial location of the family")
+
+
+class CustomerRegistrationResponse(BaseModel):
+    message: str = Field(..., description="Registration result message")
+    family_code: str = Field(..., description="Auto-generated family code")
+    user_id: str = Field(..., description="Created user ID")
+    family_id: str = Field(..., description="Created family ID")
+
+
 # --------------- Endpoints ---------------
 
 @router.get("/itinerary/options", response_model=ItineraryOptionsResponse)
@@ -200,4 +214,75 @@ async def approve_itinerary_option(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to approve option: {str(e)}"
+        )
+
+
+@router.post("/customers", response_model=CustomerRegistrationResponse)
+async def register_customer(
+    request: CustomerRegistrationRequest,
+    current_agent: TokenPayload = Depends(get_current_agent)
+) -> Any:
+    """
+    Register a new customer (Traveller) and automatically create their family profile.
+    Only accessible by travel agents.
+    """
+    try:
+        from app.services.user_service import UserService
+        
+        # Check if user already exists
+        existing_user = UserService.get_user_by_email(request.email)
+        if existing_user:
+            # If user exists, just return their underlying family code
+            if not existing_user.family_id:
+                raise HTTPException(status_code=400, detail="User exists but has no family associated.")
+            
+            from app.services.family_service import FamilyService
+            fam = FamilyService.get_family(existing_user.family_id)
+            if not fam:
+                raise HTTPException(status_code=404, detail="Family not found for existing user")
+                
+            return CustomerRegistrationResponse(
+                message="User already registered",
+                family_code=fam.family_code,
+                user_id=str(existing_user.id),
+                family_id=str(fam.id)
+            )
+
+        # Default password for auto-generated customers
+        default_password = "VoyageurDefault2026!"
+        
+        # Create user (this auto-creates the Family because role = "traveller")
+        new_user = UserService.create_user(
+            email=request.email,
+            password=default_password,
+            role="traveller",
+            full_name=request.email.split("@")[0]  # simple default name
+        )
+        
+        from app.services.family_service import FamilyService
+        fam = FamilyService.get_family(new_user.family_id)
+        
+        # We optionally save extra info (like family members) into preferences
+        if fam:
+            prefs = fam.preferences or {}
+            prefs["members"] = request.members
+            prefs["children"] = request.children
+            if request.initial_location:
+                prefs["initial_location"] = request.initial_location
+            FamilyService.update_preferences(fam.id, prefs)
+
+        return CustomerRegistrationResponse(
+            message="Customer registered successfully",
+            family_code=fam.family_code,
+            user_id=str(new_user.id),
+            family_id=str(fam.id)
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to register customer: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to register customer: {str(e)}"
         )

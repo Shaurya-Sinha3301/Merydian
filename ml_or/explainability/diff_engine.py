@@ -71,7 +71,7 @@ class ItineraryDiffEngine:
             if day_num not in baseline_days or day_num not in new_days:
                 continue  # Skip if day doesn't exist in both solutions
             
-            day_idx = day_num - 1  # Convert to 0-indexed for internal use
+            day_idx = int(day_num) - 1  # Convert to 0-indexed for internal use
             baseline_day = baseline_days[day_num]
             new_day = new_days[day_num]
             
