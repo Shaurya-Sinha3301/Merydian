@@ -24,7 +24,7 @@ export function FloatingNavbar({ className }: { className?: string }) {
                         M
                     </div>
                     <span className="font-heading font-bold text-xl text-primary tracking-tight">
-                        Meili.ai
+                        Merydian.ai
                     </span>
                 </Link>
 

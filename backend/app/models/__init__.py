@@ -1,7 +1,7 @@
 """
 Database Models Package
 
-This package contains all SQLModel database models for the MeiliAI backend.
+This package contains all SQLModel database models for the Merydian backend.
 """
 
 from .user import User
