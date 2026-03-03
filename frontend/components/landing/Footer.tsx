@@ -74,7 +74,7 @@ export default function Footer() {
         </div>
 
         {/* BIG FOOTER TEXT */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
@@ -82,13 +82,13 @@ export default function Footer() {
           className="w-full overflow-hidden border-t border-white/10 pt-10"
         >
           <h1 className="font-serif text-[clamp(4rem,18vw,20rem)] leading-none text-center tracking-tighter text-white opacity-90 select-none">
-            MEILI AI
+            MERYDIAN
           </h1>
         </motion.div>
 
         {/* BOTTOM UTILS */}
         <div className="flex flex-col md:flex-row justify-between items-center mt-10 text-[10px] text-white/40 font-sans uppercase tracking-widest">
-          <p>© 2026 Meili AI</p>
+          <p>© 2026 Merydian</p>
           <div className="flex gap-8 mt-4 md:mt-0">
             <span className="cursor-pointer hover:text-white transition-colors">Privacy Policy</span>
             <span className="cursor-pointer hover:text-white transition-colors">Terms</span>

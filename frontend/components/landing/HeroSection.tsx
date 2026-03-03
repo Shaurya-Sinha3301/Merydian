@@ -23,10 +23,14 @@ export default function HeroSection() {
 
     drawFrame(0);
 
+    // 82% of scroll drives frame animation; last 18% freezes on final frame
+    const ANIMATION_FRACTION = 0.82;
+
     const handleResize = () => {
       const st = ScrollTrigger.getById('hero-scroll');
       if (st) {
-        drawFrame(st.progress * 383);
+        const clampedProgress = Math.min(st.progress / ANIMATION_FRACTION, 1);
+        drawFrame(clampedProgress * 383);
       }
     };
     window.addEventListener('resize', handleResize);
@@ -37,46 +41,47 @@ export default function HeroSection() {
         trigger: containerRef.current,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: 0,
+        scrub: 1.5,
         onUpdate: (self) => {
-          const frameIndex = Math.floor(self.progress * 383);
+          const clampedProgress = Math.min(self.progress / ANIMATION_FRACTION, 1);
+          const frameIndex = Math.floor(clampedProgress * 383);
           drawFrame(frameIndex);
         },
       },
     });
 
-    // Scene 1: AI-POWERED TRAVEL (0% - 20%) — 1st sequence exterior chalet
+    // Scene 1: AI-POWERED TRAVEL (0% – 15%)
     tl.fromTo(
       textRef1.current,
       { opacity: 0, scale: 0.9, y: 50 },
-      { opacity: 1, scale: 1, y: 0, ease: 'power2.out', duration: 0.08 },
+      { opacity: 1, scale: 1, y: 0, ease: 'power2.out', duration: 0.06 },
       0
     );
     tl.to(
       textRef1.current,
-      { opacity: 0, scale: 1.1, y: -50, ease: 'power2.in', duration: 0.05 },
-      0.15
+      { opacity: 0, scale: 1.1, y: -50, ease: 'power2.in', duration: 0.04 },
+      0.10
     );
 
-    // Scene 2: ELEVATED TRAVEL MANAGEMENT (25% - 48%) — 1st sequence zoom in
+    // Scene 2: ELEVATED TRAVEL MANAGEMENT (18% – 26%, vanishes earlier)
     tl.fromTo(
       textRef2.current,
       { opacity: 0, x: -50 },
-      { opacity: 1, x: 0, ease: 'power2.out', duration: 0.08 },
-      0.25
+      { opacity: 1, x: 0, ease: 'power2.out', duration: 0.06 },
+      0.18
     );
     tl.to(
       textRef2.current,
-      { opacity: 0, x: -50, ease: 'power2.in', duration: 0.05 },
-      0.45
+      { opacity: 0, x: -50, ease: 'power2.in', duration: 0.04 },
+      0.26
     );
 
-    // Scene 3: WHERE LUXURY MEETS INTELLIGENCE (55% - 100%) — 2nd sequence nightscape
+    // Scene 3: WHERE LUXURY MEETS INTELLIGENCE — appears right as last frame lands
     tl.fromTo(
       textRef3.current,
       { opacity: 0, scale: 0.9, y: 50 },
-      { opacity: 1, scale: 1, y: 0, ease: 'power2.out', duration: 0.1 },
-      0.55
+      { opacity: 1, scale: 1, y: 0, ease: 'power2.out', duration: 0.08 },
+      0.58
     );
 
     return () => {
@@ -96,7 +101,7 @@ export default function HeroSection() {
           className="text-center space-y-6"
         >
           <h1 className="font-serif text-3xl tracking-[0.3em] uppercase text-white">
-            Meili AI
+            Merydian
           </h1>
           <div className="w-64 h-px bg-white/10 overflow-hidden mx-auto">
             <motion.div
@@ -114,7 +119,7 @@ export default function HeroSection() {
   }
 
   return (
-    <div ref={containerRef} className="relative h-[300vh]">
+    <div ref={containerRef} className="relative h-[600vh]">
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <div className="relative w-full h-full bg-black">
           <canvas

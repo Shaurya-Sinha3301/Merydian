@@ -47,13 +47,11 @@ const AgentLoginInteractive = () => {
 
                 {/* Logo Section */}
                 <div className="flex flex-col items-center mt-2 mb-10">
-                    <div className="w-12 h-12 bg-black flex items-center justify-center mb-4 border border-[var(--bp-border)]">
-                        <span className="text-white text-xl font-light tracking-widest">V</span>
-                    </div>
-                    <div className="text-center flex flex-col gap-0.5">
-                        <span className="text-[9px] font-bold tracking-[0.3em] text-black">VOYAGEUR</span>
-                        <span className="text-[8px] font-medium tracking-[0.2em] text-[var(--bp-muted)]">PORTAL</span>
-                    </div>
+                    <img
+                        src="/logo-merydian.png"
+                        alt="MerYDiaN Logo"
+                        className="w-48 h-auto object-contain mb-4"
+                    />
                 </div>
 
                 {/* Title */}

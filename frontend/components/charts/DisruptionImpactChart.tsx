@@ -64,22 +64,32 @@ export function DisruptionImpactChart() {
     const currentPoint = chartData.find(d => d.time === "Day 3 (PM)") || chartData[3]
 
     return (
-        <div className="border border-gray-200 bg-white shadow-sm">
-            {/* Header matching dashboard style */}
-            <div className="border-b border-gray-200 px-5 py-3 flex justify-between items-center bg-gray-50/50">
-                <div className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
-                    <span className="text-[16px] font-bold text-gray-900 tracking-tight">
-                        Disruption Impact Simulator
-                    </span>
+        <div className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] relative">
+            {/* Decorative Blueprint Overlay */}
+            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+
+            {/* Header */}
+            <div className="border-b-2 border-black px-6 py-4 flex justify-between items-center bg-[#f8f9fa] relative z-10">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center bg-white shrink-0">
+                        <AlertCircle className="w-4 h-4 text-black" />
+                    </div>
+                    <div>
+                        <h2 className="text-[16px] font-bold uppercase tracking-widest text-black">
+                            Disruption Impact Simulator
+                        </h2>
+                        <p className="text-[12px] text-gray-500 tracking-wider mt-0.5 uppercase">
+                            Profit Recovery Timeline
+                        </p>
+                    </div>
                 </div>
-                <span className="text-[12px] font-mono text-gray-400 border border-gray-200 px-1.5 py-0.5 bg-white tracking-wider uppercase">
-                    Live Recovery
+                <span className="text-[12px] font-mono text-black border-2 border-black px-2 py-1 bg-[#e9ecef] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold">
+                    LIVE RECOVERY
                 </span>
             </div>
 
             {/* Analytics Summary Banner */}
-            <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-white">
+            <div className="px-6 py-3 border-b-2 border-black flex items-center justify-between bg-white relative z-10">
                 <div className="grid grid-cols-3 gap-6 w-full">
                     <div>
                         <p className="text-[11px] uppercase tracking-wider text-gray-400 font-bold mb-0.5">Planned Yield</p>
@@ -103,8 +113,8 @@ export function DisruptionImpactChart() {
             </div>
 
             {/* Chart Content */}
-            <div className="px-5 py-6">
-                <div className="w-full h-[240px] min-w-[200px] relative">
+            <div className="px-6 py-6 relative z-10">
+                <div className="w-full h-[200px] min-w-[200px] relative">
 
                     {/* Static Timeline Progress Indicator Label overlay */}
                     <div className="absolute top-0 right-0 flex items-center gap-2 bg-black text-white px-2 py-1 rounded text-[9px] font-mono shadow-md z-10">
@@ -112,7 +122,7 @@ export function DisruptionImpactChart() {
                         Disruption Point: {currentPoint.time}
                     </div>
 
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <LineChart
                             data={chartData}
                             margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
@@ -207,7 +217,7 @@ export function DisruptionImpactChart() {
             </div>
 
             {/* Footer Insight */}
-            <div className="bg-red-50/50 border-t border-red-100 px-5 py-3">
+            <div className="bg-[#f8f9fa] border-t-2 border-black px-6 py-3 relative z-10">
                 <div className="flex items-start gap-3">
                     <TrendingDown className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                     <p className="text-[13px] text-gray-700 leading-relaxed">

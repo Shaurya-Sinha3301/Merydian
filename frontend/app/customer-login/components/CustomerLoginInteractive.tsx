@@ -53,15 +53,11 @@ const CustomerLoginInteractive = () => {
 
         {/* Logo Section */}
         <div className="flex flex-col items-center mt-2 mb-10">
-          <div className="w-12 h-12 bg-black flex items-center justify-center mb-4 border border-[var(--bp-border)]">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-            </svg>
-          </div>
-          <div className="text-center flex flex-col gap-0.5">
-            <span className="text-[9px] font-bold tracking-[0.3em] text-black">VOYAGEUR</span>
-            <span className="text-[8px] font-medium tracking-[0.2em] text-[var(--bp-muted)]">STUDIOS</span>
-          </div>
+          <img
+            src="/logo-merydian.png"
+            alt="MerYDiaN Logo"
+            className="w-48 h-auto object-contain mb-4"
+          />
         </div>
 
         {/* Title */}
@@ -147,7 +143,7 @@ const CustomerLoginInteractive = () => {
         </div>
 
       </div>
-    </div>
+    </div >
   );
 };
 

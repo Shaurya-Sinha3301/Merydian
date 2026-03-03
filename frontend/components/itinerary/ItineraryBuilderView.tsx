@@ -68,12 +68,74 @@ function generateDayId(): string {
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
 
+// ─── Types ──────────────────────────────────────────────────────────────────────
+
+interface Family {
+    id: string;
+    email: string;
+    members: number;
+    location: string;
+}
+
+interface Activity {
+    id: string;
+    name: string;
+    time: string;
+    duration: string;
+    tag: string;
+}
+
+interface Day {
+    id: string;
+    title: string;
+    activities: Activity[];
+}
+
+// ─── Predefined Activity Tags ───────────────────────────────────────────────────
+
+const ACTIVITY_TAGS = [
+    'HISTORICAL',
+    'ACTIVITY',
+    'ADVENTURE',
+    'FUN',
+    'CULTURAL',
+    'DINING',
+    'NATURE',
+    'OTHER',
+];
+
+// ─── ID Generators ──────────────────────────────────────────────────────────────
+
+function generateFamilyId(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const suffix = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    return `FAM-${suffix}`;
+}
+
+let activityCounter = 0;
+function generateActivityId(): string {
+    activityCounter++;
+    return `ACT-${activityCounter}-${Date.now().toString(36).slice(-4)}`;
+}
+
+let dayCounter = 0;
+function generateDayId(): string {
+    dayCounter++;
+    return `DAY-${dayCounter}-${Date.now().toString(36).slice(-4)}`;
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────────
+
 export default function ItineraryBuilderView() {
     const router = useRouter();
 
     const [aiOpen, setAiOpen] = useState(false);
     const [mapExpanded, setMapExpanded] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+    // Trip Parameters — empty by default
+    const [projectName, setProjectName] = useState('');
+    const [startDate, setStartDate] = useState('');
 
     // Trip Parameters — empty by default
     const [projectName, setProjectName] = useState('');
@@ -111,6 +173,69 @@ export default function ItineraryBuilderView() {
             email: newEmail.trim(),
             members: memberCount,
             location: newLocation.trim() || 'Not specified',
+        };
+        setFamilies(prev => [...prev, newFamily]);
+        setNewEmail('');
+        setNewMembers('');
+        setNewLocation('');
+        setAddingFamily(false);
+    }, [newEmail, newMembers, newLocation]);
+
+    const handleRemoveFamily = useCallback((famId: string) => {
+        setFamilies(prev => prev.filter(f => f.id !== famId));
+    }, []);
+
+    const handleAddActivity = useCallback((dayId: string) => {
+        if (!newActivityName.trim()) return;
+        const newAct: Activity = {
+            id: generateActivityId(),
+            name: newActivityName.trim(),
+            time: newActivityTime || '09:00',
+            duration: newActivityDuration || '1 Hour',
+            tag: newActivityTag || 'OTHER',
+        };
+        setDays(prev => prev.map(d =>
+            d.id === dayId ? { ...d, activities: [...d.activities, newAct] } : d
+        ));
+        setNewActivityName('');
+        setNewActivityTime('');
+        setNewActivityDuration('');
+        setNewActivityTag(ACTIVITY_TAGS[0]);
+        setAddingActivityDayId(null);
+    }, [newActivityName, newActivityTime, newActivityDuration, newActivityTag]);
+
+    const handleRemoveActivity = useCallback((dayId: string, actId: string) => {
+        setDays(prev => prev.map(d =>
+            d.id === dayId ? { ...d, activities: d.activities.filter(a => a.id !== actId) } : d
+        ));
+    }, []);
+
+    const handleAddDay = useCallback(() => {
+        const newDay: Day = {
+            id: generateDayId(),
+            title: '',
+            activities: [],
+        };
+        setDays(prev => [...prev, newDay]);
+    }, []);
+
+    const handleRemoveDay = useCallback((dayId: string) => {
+        setDays(prev => prev.filter(d => d.id !== dayId));
+    }, []);
+
+    const handleUpdateDayTitle = useCallback((dayId: string, title: string) => {
+        setDays(prev => prev.map(d =>
+            d.id === dayId ? { ...d, title } : d
+        ));
+    }, []);
+
+    const handleSave = () => {
+        const builtTrip = {
+            id: 'TR-' + Math.floor(Math.random() * 9000 + 1000),
+            title: projectName || 'Untitled Trip',
+            client: families.map(f => f.email.split('@')[0]).join(', ') || 'Unknown',
+            status: 'DRAFT',
+            dateRange: startDate ? `${startDate} – TBD` : 'TBD',
         };
         setFamilies(prev => [...prev, newFamily]);
         setNewEmail('');
@@ -295,13 +420,9 @@ export default function ItineraryBuilderView() {
                         <div className="flex items-center gap-3 shrink-0">
                             <button
                                 onClick={handleSave}
-                                disabled={isSaving}
-                                className={`h-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border px-4 transition-colors ${isSaving
-                                    ? 'bg-gray-50 text-gray-400 border-[var(--bp-border)] cursor-not-allowed'
-                                    : 'border-[var(--bp-border)] text-[var(--bp-muted)] hover:border-black hover:text-black'
-                                    }`}
+                                className="h-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border border-[var(--bp-border)] px-4 text-[var(--bp-muted)] hover:border-black hover:text-black transition-colors"
                             >
-                                <Save className="w-3.5 h-3.5" /> {isSaving ? 'Saving...' : 'Save'}
+                                <Save className="w-3.5 h-3.5" /> Save
                             </button>
                             <button className="h-8 bg-black text-white px-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:bg-[var(--bp-sage)] transition-colors">
                                 <Download className="w-3.5 h-3.5" /> Export

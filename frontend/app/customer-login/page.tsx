@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import CustomerLoginInteractive from './components/CustomerLoginInteractive';
 
 export const metadata: Metadata = {
-  title: 'Customer Login - Voyageur',
+  title: 'Customer Login - MerYDiaN',
   description: 'Login to your family portal using your Family ID',
 };
 
