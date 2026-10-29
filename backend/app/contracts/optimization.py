@@ -211,7 +211,7 @@ class OptimizationResult(BaseModel):
     human_explanation: Optional[str] = Field(default=None, description="Human readable explanation from ExplainabilityService")
     
     # Existing fields
-    decision_traces: Dict[str, Any] = Field(default_factory=dict)
+    decision_traces: Dict[Any, Any] = Field(default_factory=dict)  # keyed by day index (int)
     enriched_diffs: Dict[str, Any] = Field(default_factory=dict)
     llm_payloads: List[Dict[str, Any]] = Field(default_factory=list)
     error: Optional[str] = None

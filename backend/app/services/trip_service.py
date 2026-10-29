@@ -9,6 +9,7 @@ This service manages the initial setup of trips, including:
 """
 
 import logging
+from uuid import UUID
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 from datetime import datetime
@@ -386,11 +387,12 @@ class TripService:
             ValueError: If baseline not found
         """
         # Predefined baseline mappings
+        data_dir = settings.ML_DATA_DIR
         baselines = {
-            "delhi_3day_skeleton": "ml_or/data/base_itinerary_clustered.json",
-            "delhi_3day": "ml_or/data/base_itinerary_clustered.json",
-            "delhi_5day": "ml_or/data/delhi_5day_skeleton.json",
-            "mumbai_3day": "ml_or/data/mumbai_3day_skeleton.json",
+            "delhi_3day_skeleton": f"{data_dir}/base_itinerary_clustered.json",
+            "delhi_3day": f"{data_dir}/base_itinerary_clustered.json",
+            "delhi_5day": f"{data_dir}/delhi_5day_skeleton.json",
+            "mumbai_3day": f"{data_dir}/mumbai_3day_skeleton.json",
         }
         
         # Check if it's a known baseline name
@@ -411,6 +413,40 @@ class TripService:
             f"Available: {list(baselines.keys())}"
         )
     
+    @staticmethod
+    def _is_uuid(value) -> bool:
+        try:
+            UUID(str(value))
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def itinerary_stats(trip) -> Dict[str, Any]:
+        """Headline numbers from the trip's current itinerary version (None when absent)."""
+        from app.models.itinerary import Itinerary
+
+        stats: Dict[str, Any] = {
+            # The API addresses families by UUID; trips may also list legacy family codes
+            "family_id": next((f for f in (trip.family_ids or []) if TripService._is_uuid(f)), None),
+            "current_version": None,
+            "total_cost": None,
+            "total_satisfaction": None,
+            "duration_days": None,
+            "feedback_history": trip.feedback_history or [],
+        }
+        if trip.current_itinerary_id:
+            with get_db_session() as session:
+                itin = session.get(Itinerary, trip.current_itinerary_id)
+                if itin:
+                    stats.update(
+                        current_version=itin.version,
+                        total_cost=itin.total_cost,
+                        total_satisfaction=itin.total_satisfaction,
+                        duration_days=itin.duration_days,
+                    )
+        return stats
+
     @staticmethod
     def get_trip_summary(trip_id: str) -> Dict[str, Any]:
         """
@@ -441,7 +477,9 @@ class TripService:
             "initial_preferences": trip_session.initial_preferences,
             "current_preferences": trip_session.current_preferences,
             "feedback_count": len(trip_session.feedback_history),
-            "last_updated": trip_session.updated_at.isoformat() if trip_session.updated_at else None
+            "last_updated": trip_session.updated_at.isoformat() if trip_session.updated_at else None,
+            "status": trip_session.status,
+            **TripService.itinerary_stats(trip_session),
         }
     
     @staticmethod
@@ -779,6 +817,8 @@ class TripService:
                     "current_preferences": trip.current_preferences,
                     "feedback_count": len(trip.feedback_history) if trip.feedback_history else 0,
                     "last_updated": trip.updated_at.isoformat() if trip.updated_at else None,
+                    "status": trip.status,
+                    **TripService.itinerary_stats(trip),
                 })
 
             return results, total

@@ -1,6 +1,8 @@
 import uuid
 import logging
 
+from celery.exceptions import Retry
+
 from app.workers.celery_app import celery_app
 from app.services.agent_job_service import AgentJobService
 from app.models.agent_job import JobType, JobStatus
@@ -12,6 +14,67 @@ from app.agent_runtime import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _record_feedback_outcome(job, trip_session, message: str) -> None:
+    """After a re-optimization: store per-POI explanations and the feedback history entry."""
+    from datetime import datetime
+    from sqlmodel import select
+    from app.core.db import engine
+    from sqlmodel import Session
+    from app.models.family import Family
+    from app.models.itinerary import Itinerary
+    from app.models.trip_session import TripSession
+    from app.services.explanation_service import ExplanationService
+
+    family_code = None
+    for entry in trip_session.family_ids or []:
+        try:
+            uuid.UUID(str(entry))
+        except ValueError:
+            family_code = str(entry)
+            break
+
+    with Session(engine) as session:
+        family = session.exec(select(Family).where(Family.family_code == family_code)).first() if family_code else None
+        if family:
+            versions = session.exec(
+                select(Itinerary).where(Itinerary.family_id == family.id).order_by(Itinerary.version.desc()).limit(2)
+            ).all()
+            if len(versions) == 2:
+                new_itin, old_itin = versions[0], versions[1]
+                try:
+                    from ml_or.demos.reopt_hard_constraints.feedback_processor import FeedbackProcessor
+                    result = FeedbackProcessor().process_feedback(
+                        trip_id=job.trip_id, family_id=family_code,
+                        old_itinerary=old_itin.data.get("raw_solution") or old_itin.data,
+                        new_itinerary=new_itin.data.get("raw_solution") or new_itin.data,
+                        user_message=message,
+                    )
+                    ExplanationService.save_explanations(
+                        trip_id=job.trip_id, family_id=family.id, itinerary_id=new_itin.id,
+                        prev_itinerary_id=old_itin.id, explanations=result.get("explanations", []),
+                        trigger_message=message,
+                    )
+                except Exception as exp_err:
+                    logger.error(f"Could not generate explanations: {exp_err}", exc_info=True)
+
+        trip = session.exec(select(TripSession).where(TripSession.trip_id == job.trip_id)).first()
+        if trip:
+            history = list(trip.feedback_history or [])
+            history.append({
+                "iteration": len(history) + 1,
+                "timestamp": datetime.utcnow().isoformat(),
+                "family_id": family_code,
+                "message": message,
+                "event_type": "FEEDBACK",
+                "action": "re-optimized",
+            })
+            trip.feedback_history = history
+            trip.last_optimization_at = datetime.utcnow()
+            session.add(trip)
+            session.commit()
+
 
 @celery_app.task(bind=True, max_retries=3)
 def execute_agent_job_task(self, job_id_str: str):
@@ -116,6 +179,7 @@ def execute_agent_job_task(self, job_id_str: str):
                                 )
                             
                             logger.info(f"Persisted optimization result to DB: {len(itinerary_ids)} itinerary records")
+                            _record_feedback_outcome(job, trip_session, job.input_payload.get("message") or "")
                     else:
                         logger.warning("Optimization result had no solution to persist")
                         
@@ -158,7 +222,7 @@ def execute_agent_job_task(self, job_id_str: str):
                 AgentJobService.fail_job(job_id, error_message=result.error)
                 raise RuntimeError(result.error)
                 
-    except self.retry.exc_class: # celery Retry exception
+    except Retry:  # celery retry signal: let it propagate
         raise
     except Exception as e:
         if not isinstance(e, RuntimeError): # If it wasn't already explicitly failed

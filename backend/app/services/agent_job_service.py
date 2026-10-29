@@ -112,11 +112,14 @@ class AgentJobService:
             job.status = JobStatus.COMPLETED
             job.completed_at = datetime.utcnow()
             job.updated_at = datetime.utcnow()
-            job.result_payload = result_payload or {}
+            # Agent results can contain datetimes/UUIDs; make them JSON-safe for JSONB
+            import json
+            safe_result = json.loads(json.dumps(result_payload or {}, default=str))
+            job.result_payload = safe_result
             
             AgentJobService._create_event(
                 session, job.id, "JOB_COMPLETED", previous_status=prev_status.value, 
-                new_status=job.status.value, payload={"result": result_payload}
+                new_status=job.status.value, payload={"result": safe_result}
             )
             
             session.commit()

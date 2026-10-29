@@ -62,6 +62,11 @@ class ExplanationDTO(BaseModel):
     affected_constraints: List[str] = []
     confidence: float
     human_explanation: str
+    change_type: Optional[str] = None
+    cost_delta: Optional[Dict[str, Any]] = None
+    satisfaction_delta: Optional[Dict[str, Any]] = None
+    trigger_message: Optional[str] = None
+    itinerary_id: Optional[str] = None
 
 # --- Diff API ---
 
@@ -82,3 +87,6 @@ class DiffDTO(BaseModel):
     time_changes: List[DiffItemDTO] = []
     hotel_changes: List[DiffItemDTO] = []
     transport_changes: List[DiffItemDTO] = []
+    summary: Optional[str] = None
+    cost_delta: Optional[float] = None
+    satisfaction_delta: Optional[float] = None

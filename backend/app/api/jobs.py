@@ -19,9 +19,43 @@ async def get_job_status(
     try:
         job_uuid = uuid.UUID(job_id)
         event = EventService.get_event(job_uuid)
-        
+
         if not event:
-            raise HTTPException(status_code=404, detail="Job not found")
+            from app.services.agent_job_service import AgentJobService
+            agent_job = AgentJobService.get_job(job_uuid)
+            if not agent_job:
+                raise HTTPException(status_code=404, detail="Job not found")
+
+            status_str = agent_job.status.value if hasattr(agent_job.status, "value") else str(agent_job.status)
+            stage_map = {
+                "CREATED": ("PENDING", 5),
+                "QUEUED": ("PENDING", 10),
+                "RUNNING": ("OPTIMIZING", 55),
+                "RETRYING": ("OPTIMIZING", 40),
+                "COMPLETED": ("COMPLETED", 100),
+                "FAILED": ("FAILED", 100),
+                "CANCELLED": ("FAILED", 100),
+            }
+            current_stage, progress_percentage = stage_map.get(status_str, ("UNKNOWN", 0))
+            description = agent_job.error_message or f"Agent job is {status_str}."
+            if status_str == "COMPLETED":
+                description = "Job completed successfully."
+            elif status_str in ("QUEUED", "CREATED"):
+                description = "Job is queued and waiting for an agent."
+            elif status_str == "RUNNING":
+                description = "Running ML optimizer / agent pipeline."
+
+            return JobDTO(
+                job_id=str(agent_job.id),
+                status=status_str,
+                current_stage=current_stage,
+                progress_percentage=progress_percentage,
+                description=description,
+                created_at=agent_job.created_at.isoformat() if agent_job.created_at else "",
+                updated_at=agent_job.updated_at.isoformat() if agent_job.updated_at else "",
+                estimated_remaining_seconds=None,
+                result_available=status_str == "COMPLETED",
+            )
         
         # Determine stages and percentages based on event status and payload
         # EventStatus: QUEUED, PROCESSING, COMPLETED, FAILED
