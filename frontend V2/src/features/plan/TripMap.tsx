@@ -39,7 +39,7 @@ export function TripMap({ points, ghosts = [], colors = {}, className = '', labe
 
   useEffect(() => {
     if (!el.current || map.current) return;
-    const m = L.map(el.current, { zoomControl: true, scrollWheelZoom: false, attributionControl: true }).setView(CENTER, 11);
+    const m = L.map(el.current, { zoomControl: true, zoomAnimation: false, fadeAnimation: false, scrollWheelZoom: false, attributionControl: true }).setView(CENTER, 11, { animate: false });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -77,7 +77,7 @@ export function TripMap({ points, ghosts = [], colors = {}, className = '', labe
       coords.push([s.lat, s.lng]);
       L.marker([s.lat, s.lng], { icon: marker('×', '#c4231a', '#ffffff'), title: `${p.title} (dropped)`, keyboard: false }).addTo(g);
     });
-    if (coords.length > 0) m.fitBounds(L.latLngBounds(coords), { padding: [36, 36], maxZoom: 14 });
+    if (coords.length > 0) m.fitBounds(L.latLngBounds(coords), { padding: [36, 36], maxZoom: 14, animate: false });
   }, [points, ghosts, colors]);
 
   return (

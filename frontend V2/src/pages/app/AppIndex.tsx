@@ -2,10 +2,9 @@ import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { useTrips } from '../../hooks/useTrips';
 import { ROUTES, tripPath } from '../../constants/routes';
-import { Empty, ErrorNote, Loading } from '../../ui/Surface';
-import { ButtonLink } from '../../ui/Button';
+import { ErrorNote, Loading } from '../../ui/Surface';
 
-/** Agents land on the overview; a traveller lands on their trip. */
+/** Agents land on the overview; a traveller lands on their trip, or on planning one when they have none. */
 export function AppIndex() {
   const isAgent = useAuthStore((s) => s.user?.role === 'agent');
   const { data, isLoading, error } = useTrips(10, 0);
@@ -15,14 +14,7 @@ export function AppIndex() {
   if (error) return <ErrorNote>Your trips could not be loaded. The server may still be waking up.</ErrorNote>;
 
   const first = data?.items[0];
-  if (first) return <Navigate to={tripPath(first.trip_id)} replace />;
-  return (
-    <Empty
-      title="Your account is ready"
-      action={<ButtonLink to={ROUTES.DEMO}>Explore a demo trip</ButtonLink>}
-    >
-      A travel agent sets up your trip and it appears here, with every change explained. Until then you can look around a
-      demo trip.
-    </Empty>
-  );
+  if (data && data.items.length === 1 && first) return <Navigate to={tripPath(first.trip_id)} replace />;
+  if (data && data.items.length > 1) return <Navigate to={ROUTES.TRIPS} replace />;
+  return <Navigate to={ROUTES.NEW_TRIP} replace />;
 }

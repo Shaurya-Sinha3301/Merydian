@@ -2,8 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { agentsService } from '../services/agents';
 import { queryKeys } from '../constants/queryKeys';
 
-export function useAgentJobs(limit: number = 50, offset: number = 0) {
+export function useAgentJobs(limit: number = 50, offset: number = 0, enabled: boolean = true) {
   return useQuery({
+    enabled,
     queryKey: [queryKeys.agentJobs, { limit, offset }],
     queryFn: () => agentsService.listJobs(limit, offset),
     refetchInterval: 15000,

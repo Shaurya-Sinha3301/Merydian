@@ -23,6 +23,7 @@ class UserCreate(BaseModel):
     full_name: str
     role: str = "traveller"
     user_type: str = "customer" # For frontend compatibility
+    agent_code: Optional[str] = None
 
 class LogoutRequest(BaseModel):
     """Request body for logout (optional, can be empty)"""

@@ -5,6 +5,7 @@ import type { CalendarEvent } from '../calendar/MonthGrid';
 import type { TripDetailResponse } from '../../types/dto/trip';
 import type { AgentJobDTO } from '../../types/dto/agent';
 import { tripPath } from '../../constants/routes';
+import { useAuthStore } from '../../stores/auth.store';
 
 /** "2026-03-15" as a local date, so a trip's first day lands on the right calendar cell. */
 export function parseDay(value?: string | null): Date | null {
@@ -16,7 +17,8 @@ export function parseDay(value?: string | null): Date | null {
 /** Everything the agent's pages derive from the trips and agent jobs, in one place. */
 export function useFleet() {
   const trips = useTrips(100, 0);
-  const jobs = useAgentJobs(100, 0);
+  const isAgent = useAuthStore((s) => s.user?.role === 'agent');
+  const jobs = useAgentJobs(100, 0, isAgent);
   const items: TripDetailResponse[] = trips.data?.items ?? [];
   const jobList: AgentJobDTO[] = jobs.data?.jobs ?? [];
 
@@ -40,8 +42,8 @@ export function useFleet() {
     waitingTrips,
     stats: { totalValue, rounds, avgFit, failed },
     nameOf,
-    isLoading: trips.isLoading || jobs.isLoading,
-    error: trips.error || jobs.error,
+    isLoading: trips.isLoading || (isAgent && jobs.isLoading),
+    error: trips.error || (isAgent ? jobs.error : null),
   };
 }
 

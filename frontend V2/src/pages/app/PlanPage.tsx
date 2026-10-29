@@ -1,4 +1,9 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAgentOptions, useApproveOption } from '../../hooks/useAgentJobs';
+import { useAuthStore } from '../../stores/auth.store';
+import { Button } from '../../ui/Button';
+import { queryKeys } from '../../constants/queryKeys';
 import { Link, useParams } from 'react-router-dom';
 import { DayTimeline, type TimelineStop } from '../../features/plan/DayTimeline';
 import { TripMap } from '../../features/plan/TripMap';
@@ -9,6 +14,49 @@ import { changesPath } from '../../constants/routes';
 import { clockLabel, planRange, toMinutes, type Stop } from '../../lib/plan';
 import { leadPhoto } from '../../lib/photos';
 import { formatMoney, formatSignedMoney } from '../../lib/format';
+
+/** A trip whose first plan has not been approved: the agent can approve it here, the traveller is told it is coming. */
+function NoPlanYet({ tripId }: { tripId: string }) {
+  const isAgent = useAuthStore((s) => s.user?.role === 'agent');
+  const qc = useQueryClient();
+  const options = useAgentOptions(isAgent ? `trip_init_${tripId}` : undefined);
+  const approve = useApproveOption();
+  const pending = options.data?.options.find((o) => o.status === 'PENDING');
+
+  if (!isAgent) {
+    return (
+      <Empty title="Your plan is with your travel agent">
+        The first plan for this trip has been built and is waiting for approval. It appears here as soon as your agent approves it.
+      </Empty>
+    );
+  }
+  return (
+    <Empty
+      title="The first plan is waiting for approval"
+      action={
+        pending ? (
+          <Button
+            variant="cyan"
+            loading={approve.isPending}
+            onClick={() =>
+              approve.mutate(pending.option_id, {
+                onSuccess: () => qc.invalidateQueries({ queryKey: [queryKeys.timeline, tripId] }),
+              })
+            }
+          >
+            Approve and publish
+          </Button>
+        ) : undefined
+      }
+    >
+      {pending
+        ? `Estimated cost ${formatMoney(pending.cost)}, predicted fit ${Math.round(pending.satisfaction * 100)}%. Nothing reaches the family until you approve it.`
+        : options.isLoading
+          ? 'Looking for the first plan.'
+          : 'No itinerary has been generated for this trip yet.'}
+    </Empty>
+  );
+}
 
 function pick(value: unknown, key: string): string | undefined {
   if (value && typeof value === 'object') {
@@ -52,7 +100,7 @@ export function PlanPage() {
   if (plan.isLoading) return <Loading label="Loading the plan" />;
   if (plan.error) return <ErrorNote>The plan could not be loaded. Check the server and try again.</ErrorNote>;
   if (plan.days.length === 0) {
-    return <Empty title="No plan yet">An itinerary has not been generated for this trip.</Empty>;
+    return <NoPlanYet tripId={tripId} />;
   }
 
   const active = picked ?? plan.days[0].day;

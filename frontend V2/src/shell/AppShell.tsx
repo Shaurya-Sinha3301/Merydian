@@ -11,7 +11,13 @@ const agentNav = [
   { to: ROUTES.DESK, label: 'Desk' },
   { to: ROUTES.CALENDAR, label: 'Calendar' },
   { to: ROUTES.TRIPS, label: 'Trips' },
+  { to: ROUTES.CUSTOMERS, label: 'Customers' },
   { to: ROUTES.ACTIVITY, label: 'Activity' },
+];
+
+const travellerNav = [
+  { to: ROUTES.TRIPS, label: 'My trips' },
+  { to: ROUTES.NEW_TRIP, label: 'Plan a trip' },
 ];
 
 export function AppShell() {
@@ -25,6 +31,7 @@ export function AppShell() {
   if (!token) return <Navigate to={ROUTES.LANDING} replace />;
 
   const isAgent = user?.role === 'agent';
+  const isDemo = (user?.email ?? '').endsWith('@demo.merydian.com');
 
   const leave = () => {
     logout();
@@ -44,9 +51,9 @@ export function AppShell() {
       <header className="border-b-2 border-ink bg-paper">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-x-8 gap-y-2 px-4 py-3 sm:px-6">
           <Logo to={ROUTES.APP} />
-          {isAgent && (
-            <nav aria-label="Agent" className="order-3 flex w-full gap-1 overflow-x-auto sm:order-none sm:w-auto">
-              {agentNav.map((n) => (
+          {(
+            <nav aria-label={isAgent ? 'Agent' : 'Traveller'} className="order-3 flex w-full gap-1 overflow-x-auto sm:order-none sm:w-auto">
+              {(isAgent ? agentNav : travellerNav).map((n) => (
                 <NavLink
                   key={n.to}
                   to={n.to}
@@ -63,7 +70,7 @@ export function AppShell() {
             <Tag>{isAgent ? 'Travel agent' : 'Traveller'}</Tag>
             <span className="hidden text-sm font-bold sm:inline">{user?.full_name}</span>
             <Button variant="quiet" onClick={leave}>
-              Leave demo
+              {isDemo ? 'Leave demo' : 'Sign out'}
             </Button>
           </div>
         </div>

@@ -60,6 +60,7 @@ class AgentJobStatusResponse(BaseModel):
 
 class CustomerRegistrationRequest(BaseModel):
     email: str = Field(..., description="Email address for the family's primary contact")
+    full_name: str = Field(default="", description="Name of the family's primary contact")
     members: int = Field(default=1, description="Number of members in the family")
     children: int = Field(default=0, description="Number of children in the family")
     initial_location: str = Field(default="", description="Initial location of the family")
@@ -70,6 +71,22 @@ class CustomerRegistrationResponse(BaseModel):
     family_code: str = Field(..., description="Auto-generated family code")
     user_id: str = Field(..., description="Created user ID")
     family_id: str = Field(..., description="Created family ID")
+    temporary_password: Optional[str] = Field(default=None, description="Shown once, for a newly created customer")
+
+
+class CustomerDTO(BaseModel):
+    user_id: str
+    email: str
+    full_name: Optional[str] = None
+    family_id: Optional[str] = None
+    family_code: Optional[str] = None
+    members: int = 1
+    children: int = 0
+    trip_count: int = 0
+
+
+class CustomerListResponse(BaseModel):
+    customers: List[CustomerDTO]
 
 
 # --------------- Endpoints ---------------
@@ -359,7 +376,7 @@ async def register_customer(
             email=request.email,
             password=default_password,
             role="traveller",
-            full_name=request.email.split("@")[0]  # simple default name
+            full_name=request.full_name.strip() or request.email.split("@")[0]
         )
         
         from app.services.family_service import FamilyService
@@ -378,7 +395,8 @@ async def register_customer(
             message="Customer registered successfully",
             family_code=fam.family_code,
             user_id=str(new_user.id),
-            family_id=str(fam.id)
+            family_id=str(fam.id),
+            temporary_password=default_password,
         )
 
     except HTTPException:
@@ -389,3 +407,42 @@ async def register_customer(
             status_code=500,
             detail=f"Failed to register customer: {str(e)}"
         )
+
+
+@router.get("/customers", response_model=CustomerListResponse)
+async def list_customers(current_agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    """Every traveller account with its family and how many trips it is on. Agents only."""
+    from sqlalchemy.dialects.postgresql import JSONB
+    from sqlmodel import Session, col, func, select
+
+    from app.core.db import engine
+    from app.models.family import Family
+    from app.models.trip_session import TripSession
+    from app.models.user import User
+
+    out: List[CustomerDTO] = []
+    with Session(engine) as session:
+        users = session.exec(select(User).where(User.role == "traveller").order_by(User.email)).all()
+        for u in users:
+            family = session.get(Family, u.family_id) if u.family_id else None
+            prefs = (family.preferences or {}) if family else {}
+            trips = 0
+            if family:
+                trips = session.exec(
+                    select(func.count()).select_from(TripSession).where(
+                        col(TripSession.family_ids).cast(JSONB).contains([str(family.id)])
+                    )
+                ).one()
+            out.append(
+                CustomerDTO(
+                    user_id=str(u.id),
+                    email=u.email,
+                    full_name=u.full_name,
+                    family_id=str(family.id) if family else None,
+                    family_code=family.family_code if family else None,
+                    members=int(prefs.get("members", 1) or 1),
+                    children=int(prefs.get("children", 0) or 0),
+                    trip_count=int(trips),
+                )
+            )
+    return CustomerListResponse(customers=out)

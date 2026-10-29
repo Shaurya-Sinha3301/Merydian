@@ -41,6 +41,10 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      - key: AGENT_SIGNUP_CODE
+        sync: false
+      - key: SELF_SERVE_AUTO_APPROVE
+        value: "true"
       - key: GROQ_MODEL
         value: openai/gpt-oss-20b
       - key: SEED_ON_START        # idempotent; also rewrites itinerary files on the ephemeral disk

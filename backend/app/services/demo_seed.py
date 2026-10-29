@@ -333,7 +333,7 @@ def _seed_persona(session: Session, persona: str, config: Dict[str, Any], agent:
     family.current_itinerary_version = it2.id
     session.add(family)
 
-    # Trip session (family_ids hold family UUIDs, as the access checks expect)
+    # Trip session: family_ids lists the family code (used by the optimizer pipeline) and the UUID (used by access checks)
     initial_prefs = {fam_cfg["family_id"]: fam_cfg}
     current_prefs = {fam_cfg["family_id"]: {
         **fam_cfg,
@@ -342,7 +342,7 @@ def _seed_persona(session: Session, persona: str, config: Dict[str, Any], agent:
     }}
     session.add(TripSession(
         trip_id=trip_id, trip_name=config["trip_name"], destination=config["destination"],
-        start_date=start, end_date=end, family_ids=[str(family.id)], current_itinerary_id=it2.id,
+        start_date=start, end_date=end, family_ids=[family.family_code, str(family.id)], current_itinerary_id=it2.id,
         baseline_itinerary_path=baseline_path, latest_itinerary_path=latest_path,
         iteration_count=2, last_optimization_at=created2, initial_preferences=initial_prefs,
         current_preferences=current_prefs,
@@ -517,7 +517,12 @@ def reset_all() -> None:
             # Sessions and blacklisted tokens accumulate as visitors enter the demo
             session.exec(delete(UserSession).where(UserSession.user_id.in_(user_ids)))
             session.exec(delete(TokenBlacklist).where(TokenBlacklist.user_id.in_(user_ids)))
-            session.exec(delete(AgentJob).where(AgentJob.created_by_user_id.in_(user_ids)))
+            # Jobs visitors started (feedback, approvals) hold job events of their own
+            leftover = [j.id for j in session.exec(
+                select(AgentJob).where(AgentJob.created_by_user_id.in_(user_ids))).all()]
+            if leftover:
+                session.exec(delete(AgentJobEvent).where(AgentJobEvent.job_id.in_(leftover)))
+                session.exec(delete(AgentJob).where(AgentJob.id.in_(leftover)))
         if family_ids:
             session.exec(delete(Family).where(Family.id.in_(family_ids)))
         for u in users:
