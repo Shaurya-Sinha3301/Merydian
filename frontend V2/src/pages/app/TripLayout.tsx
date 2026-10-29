@@ -49,8 +49,8 @@ export function TripLayout() {
       <header className="grid gap-4 border border-ink bg-paper sm:grid-cols-[14rem_1fr]">
         <Photo photo={cover} alt={cover ? `${cover.name}, Delhi` : ''} priority className="h-40 sm:h-full sm:min-h-40" />
         <div className="p-4 sm:py-4 sm:pl-0 sm:pr-5">
-          <p className="label">{trip.destination || 'Destination to be confirmed'}</p>
-          <h1 className="display mt-1 text-3xl sm:text-4xl">{trip.trip_name || 'Untitled trip'}</h1>
+          <h1 className="display text-3xl sm:text-4xl">{trip.trip_name || 'Untitled trip'}</h1>
+          <p className="mt-1 text-sm text-ink-2">{trip.destination || 'Destination to be confirmed'}</p>
           <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-rule pt-3 sm:grid-cols-4">
             <div>
               <dt className="label">Dates</dt>

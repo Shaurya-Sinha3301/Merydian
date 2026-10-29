@@ -38,10 +38,10 @@ export function OverviewPage() {
       {fleet.error && <ErrorNote>The desk could not be loaded. The server may still be waking up.</ErrorNote>}
 
       <dl className="mt-4 grid grid-cols-2 border border-ink bg-paper sm:grid-cols-3 lg:grid-cols-6 [&>div]:border-b [&>div]:border-rule lg:[&>div]:border-b-0 lg:[&>div]:border-r lg:[&>div:last-child]:border-r-0">
-        {kpis.map((k) => (
-          <div key={k.label} className="px-4 py-3">
-            <dt className="label">{k.label}</dt>
-            <dd className="mt-1 text-2xl font-bold tabular-nums">{k.value}</dd>
+        {kpis.map((k, i) => (
+          <div key={k.label} className={`px-4 py-3 ${i === 0 ? 'bg-ink text-paper' : ''}`}>
+            <dt className={`label ${i === 0 ? '!text-paper/80' : ''}`}>{k.label}</dt>
+            <dd className={`mt-1 font-bold tabular-nums ${i === 0 ? 'text-4xl' : 'text-xl text-ink-2'}`}>{k.value}</dd>
           </div>
         ))}
       </dl>
@@ -80,11 +80,11 @@ export function OverviewPage() {
                     {waitingJobs.map((j) => (
                       <tr key={j.job_id}>
                         <td className="min-w-[11rem] font-semibold">{fleet.nameOf(j.trip_id)}</td>
-                        <td className="max-w-[28rem] truncate text-ink-2">
+                        <td className="min-w-[12rem] text-ink-2">
                           {typeof j.result?.summary === 'string' ? j.result.summary : 'New request'}
                         </td>
                         <td className="whitespace-nowrap text-ink-3">{timeAgo(j.updated_at)}</td>
-                        <td className="text-right">
+                        <td className="whitespace-nowrap text-right">
                           <Tag tone="pending">Needs a decision</Tag>
                         </td>
                       </tr>

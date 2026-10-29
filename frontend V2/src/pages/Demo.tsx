@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
-import { Photo, Bands } from '../ui/Photo';
+import { Photo } from '../ui/Photo';
 import { ErrorNote, Loading } from '../ui/Surface';
 import { ROUTES } from '../constants/routes';
 import { useAuthStore } from '../stores/auth.store';
@@ -114,7 +114,6 @@ export function Demo() {
               priority
               className="min-h-64 rounded-3xl shadow-[var(--shadow-card)]"
             >
-              <Bands width="22%" />
               <div className="relative flex min-h-64 flex-wrap items-end justify-between gap-6 p-6 pr-[26%] text-paper sm:p-8 sm:pr-[26%]">
                 <div className="max-w-[40ch]">
                   <p className="text-sm font-bold opacity-90">Start here</p>

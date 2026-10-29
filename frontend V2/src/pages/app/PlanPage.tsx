@@ -10,6 +10,8 @@ import { TripMap } from '../../features/plan/TripMap';
 import { useTripChanges, useTripPlan } from '../../hooks/useTripData';
 import { Empty, ErrorNote, Loading } from '../../ui/Surface';
 import { Tag } from '../../ui/Tag';
+import { MonthGrid } from '../../features/calendar/MonthGrid';
+import { parseDay } from '../../features/agent/useFleet';
 import { changesPath } from '../../constants/routes';
 import { clockLabel, planRange, toMinutes, type Stop } from '../../lib/plan';
 import { leadPhoto } from '../../lib/photos';
@@ -117,6 +119,8 @@ export function PlanPage() {
   const first = day.stops[0]?.start;
   const last = day.stops[day.stops.length - 1]?.end;
   const newCount = stops.filter((s) => s.tone === 'added').length;
+  const tripStart = parseDay(changes.trip?.start_date);
+  const tripEnd = parseDay(changes.trip?.end_date);
   const colors: Record<string, string> = {};
   addedIds.forEach((id) => (colors[id] = '#3cb043'));
 
@@ -157,6 +161,49 @@ export function PlanPage() {
         <div className="mt-3">
           <DayTimeline stops={stops} lo={lo} hi={hi} />
         </div>
+
+        <section className="mt-6 border border-rule bg-paper" aria-labelledby="days">
+          <h3 id="days" className="title border-b-2 border-ink px-4 py-2.5 text-lg">
+            Day by day
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="ruled min-w-[28rem]">
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th className="num">Stops</th>
+                  <th>Runs</th>
+                  <th className="num">Hours out</th>
+                  <th>Version change</th>
+                </tr>
+              </thead>
+              <tbody>
+                {plan.days.map((d) => {
+                  const a = d.stops[0]?.start;
+                  const z = d.stops[d.stops.length - 1]?.end;
+                  const added = d.stops.filter((x) => addedNames.has(x.title)).length;
+                  const withdrawn = (droppedByDay[d.day] ?? []).length;
+                  return (
+                    <tr key={d.day} className={d.day === day.day ? 'bg-panel' : ''}>
+                      <td>
+                        <button type="button" onClick={() => setPicked(d.day)} className="font-semibold underline underline-offset-4 decoration-1 hover:decoration-2">
+                          Day {d.day}
+                        </button>
+                      </td>
+                      <td className="num">{d.stops.length}</td>
+                      <td className="whitespace-nowrap tabular-nums">{a != null && z != null ? `${clockLabel(a)} to ${clockLabel(z)}` : '—'}</td>
+                      <td className="num">{a != null && z != null ? ((z - a) / 60).toFixed(1) : '—'}</td>
+                      <td className="whitespace-nowrap">
+                        {added > 0 && <Tag tone="added">{added} added</Tag>} {withdrawn > 0 && <Tag tone="removed">{withdrawn} withdrawn</Tag>}
+                        {added === 0 && withdrawn === 0 && <span className="text-ink-3">Unchanged</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
 
       <aside className="min-w-0 lg:col-span-5">
@@ -192,9 +239,18 @@ export function PlanPage() {
               </div>
             </dl>
             <p className="border-t border-rule px-4 py-2.5 text-sm text-ink-2">
-              Day {day.day} has {day.stops.length} stops. Numbers show the stop order on the map.
+              Day {day.day} has {day.stops.length} stops. Numbers match the table; meals have no map position.
             </p>
           </section>
+
+          {tripStart && (
+            <MonthGrid
+              year={tripStart.getFullYear()}
+              month={tripStart.getMonth()}
+              compact
+              events={[{ id: tripId, label: changes.trip?.trip_name || 'Trip', start: tripStart, end: tripEnd ?? tripStart, tone: 'ai' }]}
+            />
+          )}
 
           {changes.previous && (
             <Link to={changesPath(tripId)} className="block border border-ink bg-paper p-4 hover:bg-panel">

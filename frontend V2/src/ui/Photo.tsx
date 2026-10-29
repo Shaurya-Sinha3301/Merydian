@@ -35,11 +35,6 @@ export function Photo({ photo, alt = '', className = '', scrim = false, priority
   );
 }
 
-/** The earlier identity's colour bands. The timetable world has none; kept as a no-op so callers compile. */
-export function Bands(_props: { side?: 'left' | 'right'; width?: string }) {
-  return null;
-}
-
 /** One short credit line for a photo, as its licence asks. */
 export function PhotoCaption({ photo, className = '' }: { photo?: PhotoCredit; className?: string }) {
   if (!photo) return null;

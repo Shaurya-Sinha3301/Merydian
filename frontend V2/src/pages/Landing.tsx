@@ -6,8 +6,6 @@ import { Photo, PhotoCaption } from '../ui/Photo';
 import { PlanPreview } from '../features/landing/PlanPreview';
 import { AgentPreview } from '../features/landing/AgentPreview';
 import { PlacesStrip } from '../features/landing/PlacesStrip';
-import { TripMap } from '../features/plan/TripMap';
-import { DELHI_STOPS } from '../lib/delhiStops';
 import { HERO_PHOTOS } from '../lib/photos';
 import { useLandingMotion } from '../lib/motion';
 import { ROUTES } from '../constants/routes';
@@ -28,8 +26,6 @@ const SPEC: Array<[string, string]> = [
   ['Cost and fit per version', 'Each version prints its cost and its fit against the one before.'],
   ['A person in the loop', 'The agent chooses between options. The system never books on its own.'],
 ];
-
-const FLEET = DELHI_STOPS.slice(0, 12).map((s) => ({ id: s.id, title: s.name }));
 
 export function Landing() {
   const root = useRef<HTMLDivElement>(null);
@@ -64,12 +60,9 @@ export function Landing() {
       </div>
 
       {/* Hero: the title page of a timetable, with a photograph plate and a real map */}
-      <section className="mx-auto grid max-w-[1240px] gap-x-8 gap-y-8 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:py-14">
+      <section className="mx-auto grid max-w-[1240px] gap-x-8 gap-y-6 px-4 py-8 sm:px-6 lg:grid-cols-12 lg:py-8">
         <div className="flex flex-col justify-center lg:col-span-7">
-          <p className="label" data-fade>
-            Group trip timetable · Delhi
-          </p>
-          <h1 className="display mt-3 text-[2.9rem] sm:text-[4.2rem] lg:text-[4.8rem]">
+          <h1 className="display text-[2.7rem] sm:text-[3.6rem] lg:text-[4.2rem]">
             <span className="block overflow-hidden pb-1">
               <span className="block" data-line>
                 Plans that explain
@@ -81,11 +74,11 @@ export function Landing() {
               </span>
             </span>
           </h1>
-          <p className="mt-6 max-w-[52ch] text-lg text-ink-2" data-fade>
+          <p className="mt-4 max-w-[52ch] text-lg text-ink-2" data-fade>
             Merydian re-plans a group trip when feedback arrives, then prints exactly what moved and why, in a timetable
             both the travellers and the travel agent can read.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3" data-fade>
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3" data-fade>
             <ButtonLink to={ROUTES.DEMO} size="lg">
               Explore the demo
             </ButtonLink>
@@ -98,47 +91,22 @@ export function Landing() {
           </p>
         </div>
 
-        <div className="grid grid-cols-5 gap-3 lg:col-span-5">
-          <figure className="col-span-5 border border-rule bg-paper p-1.5" data-unmask-host>
-            <div className="relative aspect-[16/10] overflow-hidden" data-unmask>
-              <div data-parallax="9" className="absolute inset-x-0 -top-[10%] h-[120%]">
-                <Photo photo={HERO_PHOTOS.fort} alt="The Red Fort in Delhi, seen across its lawn" priority className="h-full w-full" />
-              </div>
+        <figure className="self-center border border-rule bg-paper p-1.5 lg:col-span-5" data-unmask-host>
+          <div className="relative aspect-[16/8] overflow-hidden" data-unmask>
+            <div data-parallax="9" className="absolute inset-x-0 -top-[10%] h-[120%]">
+              <Photo photo={HERO_PHOTOS.fort} alt="The Red Fort in Delhi, seen across its lawn" priority className="h-full w-full" />
             </div>
-            <figcaption className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 text-[11px] text-ink-3">
-              <span className="font-semibold text-ink-2">Red Fort, Old Delhi</span>
-              <PhotoCaption photo={HERO_PHOTOS.fort} />
-            </figcaption>
-          </figure>
-          <TripMap
-            label="Map of twelve Delhi stops"
-            points={FLEET}
-            className="col-span-3 h-48 border border-rule"
-          />
-          <dl className="col-span-2 flex flex-col justify-between border border-rule bg-paper p-3">
-            <div>
-              <dt className="label">Delhi stops</dt>
-              <dd className="text-3xl font-bold tabular-nums" data-count={DELHI_STOPS.length}>
-                {DELHI_STOPS.length}
-              </dd>
-            </div>
-            <div>
-              <dt className="label">Demo trips</dt>
-              <dd className="text-3xl font-bold tabular-nums" data-count={5}>
-                5
-              </dd>
-            </div>
-          </dl>
-        </div>
+          </div>
+          <figcaption className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 text-[11px] text-ink-3">
+            <span className="font-semibold text-ink-2">Red Fort, Old Delhi</span>
+            <PhotoCaption photo={HERO_PHOTOS.fort} />
+          </figcaption>
+        </figure>
       </section>
 
       <section id="traveller" className="border-t-2 border-ink bg-paper">
-        <div className="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
-          <h2 className="title max-w-[26ch] text-3xl sm:text-4xl">The traveller reads one day at a time.</h2>
-          <p className="mt-2 max-w-[62ch] text-ink-2">
-            Times and stops in a ruled table, the route on a real map, and every correction printed with its reason.
-          </p>
-          <div className="mt-6" data-rise>
+        <div className="mx-auto max-w-[1240px] px-4 py-6 sm:px-6 sm:py-8">
+          <div data-rise>
             <PlanPreview />
           </div>
         </div>
@@ -163,8 +131,7 @@ export function Landing() {
           <ol className="mt-6 grid border-t-2 border-ink md:grid-cols-3 md:divide-x md:divide-rule">
             {STEPS.map((s) => (
               <li key={s.n} className="border-b border-rule py-5 md:border-b-0 md:px-6 md:first:pl-0" data-rise>
-                <p className="text-sm font-semibold text-ink-3">Step {s.n}</p>
-                <h3 className="title mt-1 text-2xl">{s.title}</h3>
+                <h3 className="title text-2xl">{s.n}. {s.title}</h3>
                 <p className="mt-2 max-w-[40ch] text-ink-2">{s.body}</p>
               </li>
             ))}
