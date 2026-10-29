@@ -1,5 +1,5 @@
 import { MapPin, Utensils } from 'lucide-react';
-import { RoutePlate } from '../plan/RoutePlate';
+import { TripMap } from '../plan/TripMap';
 import { Photo, PhotoCaption } from '../../ui/Photo';
 import { Tag } from '../../ui/Tag';
 import { photoForStop, HERO_PHOTOS } from '../../lib/photos';
@@ -90,15 +90,16 @@ export function PlanPreview() {
 
         {/* Map and numbers */}
         <aside className="flex flex-col gap-4 bg-panel p-4 sm:p-6 lg:col-span-4">
-          <figure className="overflow-hidden rounded-2xl bg-paper">
-            <RoutePlate
-              title="Route for day 3 across Delhi"
-              routes={[{ ids: ['LOC_008', 'LOC_019', 'LOC_010', 'LOC_013'], color: '#00a3e0', width: 10 }]}
-              labelled={['LOC_008', 'LOC_019']}
-              stopColors={{ LOC_019: '#3cb043', LOC_014: '#e4007c' }}
-              className="block w-full"
-            />
-          </figure>
+          <TripMap
+            label="Map of day 3 across Delhi"
+            points={[
+              { id: 'LOC_008', title: 'Raj Ghat' },
+              { id: 'LOC_019', title: 'Garden of Five Senses' },
+            ]}
+            ghosts={[{ id: 'LOC_014', title: 'National Museum' }]}
+            colors={{ LOC_019: '#3cb043' }}
+            className="h-72 rounded-2xl bg-paper"
+          />
           <section className="rounded-2xl bg-paper p-4" aria-label="What this version changed">
             <h3 className="title text-xl">This version</h3>
             <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
