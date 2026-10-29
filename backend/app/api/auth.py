@@ -105,10 +105,19 @@ async def signup(
             detail="Password must be at least 8 characters long"
         )
     
+    # Public signup creates a traveller; only the agency code grants agent access
+    role = "traveller"
+    if user_in.agent_code:
+        import secrets
+        configured = settings.AGENT_SIGNUP_CODE
+        if not configured or not secrets.compare_digest(user_in.agent_code.encode(), configured.encode()):
+            raise HTTPException(status_code=400, detail="That agency code is not valid")
+        role = "agent"
+
     user = UserService.create_user(
         email=user_in.email,
         password=user_in.password,
-        role="traveller",  # public signup never grants agent access
+        role=role,
         full_name=user_in.full_name,
     )
 

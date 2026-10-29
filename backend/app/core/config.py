@@ -56,6 +56,12 @@ class Settings(BaseSettings):
     # which keeps password login closed (visitors enter through /demo/load).
     DEMO_PASSWORD: str = ""
 
+    # REAL (NON-DEMO) USE
+    # Entering this code at sign-up creates a travel agent account; empty disables agent sign-up.
+    AGENT_SIGNUP_CODE: str = ""
+    # A traveller's own first plan is published straight away; every later change still needs an agent.
+    SELF_SERVE_AUTO_APPROVE: bool = True
+
     # TEST CREDENTIALS
     TEST_USER_EMAIL: str = "test@example.com"
     TEST_USER_PASSWORD: str = "testpassword123"

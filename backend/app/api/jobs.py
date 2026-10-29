@@ -38,8 +38,19 @@ async def get_job_status(
             }
             current_stage, progress_percentage = stage_map.get(status_str, ("UNKNOWN", 0))
             description = agent_job.error_message or f"Agent job is {status_str}."
+            result_available = status_str == "COMPLETED"
             if status_str == "COMPLETED":
                 description = "Job completed successfully."
+                # A feedback job can finish without producing a new plan; say what really happened
+                payload = agent_job.result_payload or {}
+                action = (payload.get("decision") or {}).get("action")
+                opt = payload.get("optimization_result") or {}
+                if action == "RUN_OPTIMIZER" and opt.get("success") is False:
+                    status_str, current_stage, result_available = "FAILED", "FAILED", False
+                    description = "The planner could not build a new plan from that request. Try rephrasing it."
+                elif action == "UPDATE_PREFERENCES_ONLY":
+                    result_available = False
+                    description = "Your preference was saved. The plan did not need to change."
             elif status_str in ("QUEUED", "CREATED"):
                 description = "Job is queued and waiting for an agent."
             elif status_str == "RUNNING":
@@ -54,7 +65,7 @@ async def get_job_status(
                 created_at=agent_job.created_at.isoformat() if agent_job.created_at else "",
                 updated_at=agent_job.updated_at.isoformat() if agent_job.updated_at else "",
                 estimated_remaining_seconds=None,
-                result_available=status_str == "COMPLETED",
+                result_available=result_available,
             )
         
         # Determine stages and percentages based on event status and payload

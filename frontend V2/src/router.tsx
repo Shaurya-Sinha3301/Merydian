@@ -12,6 +12,8 @@ import { ChangesPage } from './pages/app/ChangesPage';
 import { FeedbackPage } from './pages/app/FeedbackPage';
 import { OverviewPage } from './pages/app/OverviewPage';
 import { CalendarPage } from './pages/app/CalendarPage';
+import { CustomersPage } from './pages/app/CustomersPage';
+import { NewTripPage } from './pages/app/NewTripPage';
 import { DeskPage } from './pages/app/DeskPage';
 import { TripsPage } from './pages/app/TripsPage';
 import { ActivityPage } from './pages/app/ActivityPage';
@@ -57,6 +59,8 @@ export const router = createBrowserRouter([
       { path: 'overview', element: <OverviewPage /> },
       { path: 'desk', element: <DeskPage /> },
       { path: 'calendar', element: <CalendarPage /> },
+      { path: 'customers', element: <CustomersPage /> },
+      { path: 'new-trip', element: <NewTripPage /> },
       { path: 'trips', element: <TripsPage /> },
       { path: 'activity', element: <ActivityPage /> },
       {

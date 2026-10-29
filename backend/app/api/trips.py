@@ -245,7 +245,7 @@ class PreferenceUpdateRequest(BaseModel):
 # Endpoints
 # ============================================================================
 
-from app.core.dependencies import get_current_user, verify_trip_access
+from app.core.dependencies import get_current_agent, get_current_user, verify_trip_access
 from app.schemas.auth import TokenPayload
 
 @router.post("/initialize", response_model=InitializeTripResponse, status_code=status.HTTP_201_CREATED)
@@ -331,7 +331,7 @@ async def initialize_trip(
 )
 async def initialize_trip_with_optimization(
     request: InitializeTripWithOptiRequest,
-    current_user: Optional[TokenPayload] = Depends(lambda: None),
+    current_user: TokenPayload = Depends(get_current_agent),
 ):
     """
     Initialize a trip with automatic optimizer run.
@@ -634,3 +634,110 @@ async def delete_trip(trip_id: str, _: Any = Depends(verify_trip_access)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to archive trip: {str(e)}"
         )
+
+
+
+class TripRequest(BaseModel):
+    """A traveller asking for their own trip."""
+    trip_name: str = Field(..., min_length=2, max_length=120)
+    destination: str = "Delhi, India"
+    start_date: date
+    end_date: date
+    members: int = Field(default=2, ge=1, le=20)
+    children: int = Field(default=0, ge=0, le=20)
+    interests: Dict[str, float] = Field(default_factory=dict, description="Interest weights 0 to 1 by category")
+    pace: str = Field(default="moderate", description="relaxed, moderate or fast")
+    budget_sensitivity: float = Field(default=0.5, ge=0.0, le=1.0)
+    energy_level: float = Field(default=0.5, ge=0.0, le=1.0)
+    must_visit: List[str] = Field(default_factory=list)
+
+
+class TripRequestResponse(BaseModel):
+    trip_id: str
+    option_id: str
+    published: bool
+    message: str
+
+
+@router.post("/request", response_model=TripRequestResponse, status_code=status.HTTP_201_CREATED)
+async def request_trip(
+    body: TripRequest,
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
+):
+    """
+    A traveller plans their own trip: saves the family's preferences, runs the optimizer and, when
+    SELF_SERVE_AUTO_APPROVE is on, publishes the first plan so they can read it and send feedback.
+    Later changes still go to a travel agent for approval.
+    """
+    from uuid import UUID
+
+    from app.core.config import settings
+    from app.services.family_service import FamilyService
+    from app.services.itinerary_option_service import ItineraryOptionService
+    from app.services.itinerary_service import ItineraryService
+
+    if current_user.role != "traveller" or not current_user.family_id:
+        raise HTTPException(status_code=403, detail="Only travellers with a family can request a trip")
+    if body.end_date < body.start_date:
+        raise HTTPException(status_code=400, detail="The end date is before the start date")
+    if (body.end_date - body.start_date).days > 9:
+        raise HTTPException(status_code=400, detail="Trips are limited to 10 days")
+
+    family = FamilyService.get_family(UUID(current_user.family_id))
+    if not family:
+        raise HTTPException(status_code=404, detail="Family not found")
+
+    interests = {
+        "history": 0.5, "architecture": 0.5, "food": 0.5, "nature": 0.5,
+        "nightlife": 0.3, "shopping": 0.3, "religious": 0.3,
+    }
+    interests.update({k: max(0.0, min(1.0, float(v))) for k, v in body.interests.items()})
+    prefs = dict(family.preferences or {})
+    prefs.update(
+        members=body.members,
+        children=body.children,
+        interest_vector=interests,
+        pace_preference=body.pace,
+        budget_sensitivity=body.budget_sensitivity,
+        energy_level=body.energy_level,
+        must_visit_locations=body.must_visit,
+    )
+    FamilyService.update_preferences(family.id, prefs)
+
+    try:
+        result = TripService.initialize_trip_with_optimization(
+            trip_name=body.trip_name.strip(),
+            destination=body.destination,
+            start_date=body.start_date.isoformat(),
+            end_date=body.end_date.isoformat(),
+            family_ids=[family.family_code],
+            num_travellers=body.members,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Trip request failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="We could not build that plan. Please try again.")
+
+    published = False
+    if settings.SELF_SERVE_AUTO_APPROVE:
+        try:
+            option = ItineraryOptionService.approve_option(option_id=UUID(result["option_id"]), agent_id=None)
+            details = option.details or {}
+            if details.get("itinerary"):
+                ItineraryService.publish_base_itinerary(
+                    trip_id=option.trip_id,
+                    family_ids=details.get("family_ids", [family.family_code]),
+                    itinerary_data=details["itinerary"],
+                    created_reason="First plan published automatically for the traveller's own request",
+                )
+                published = True
+        except Exception as e:
+            logger.error(f"Auto-publish failed for {result['trip_id']}: {e}", exc_info=True)
+
+    return TripRequestResponse(
+        trip_id=result["trip_id"],
+        option_id=result["option_id"],
+        published=published,
+        message="Your plan is ready." if published else "Your plan is with a travel agent for approval.",
+    )

@@ -7,6 +7,8 @@ export const ROUTES = {
   OVERVIEW: '/app/overview',
   DESK: '/app/desk',
   CALENDAR: '/app/calendar',
+  CUSTOMERS: '/app/customers',
+  NEW_TRIP: '/app/new-trip',
   TRIPS: '/app/trips',
   ACTIVITY: '/app/activity',
 } as const;

@@ -23,6 +23,7 @@ export interface UserCreate {
   full_name: string;
   role: string;
   user_type: string;
+  agent_code?: string;
 }
 
 export type LogoutRequest = Record<string, never>;
