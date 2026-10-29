@@ -108,10 +108,10 @@ async def signup(
     user = UserService.create_user(
         email=user_in.email,
         password=user_in.password,
-        role=user_in.role,
+        role="traveller",  # public signup never grants agent access
         full_name=user_in.full_name,
     )
-    
+
     # Get device info for session tracking
     device_info = get_device_info(request)
     
