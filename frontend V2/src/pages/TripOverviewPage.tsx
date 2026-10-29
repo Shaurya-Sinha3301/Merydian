@@ -1,63 +1,78 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Breadcrumbs } from '../components/layout/Breadcrumbs';
 import { TripCard } from '../features/trips/TripCard';
 import { useTripSummary } from '../hooks/useTrips';
-import { Trip } from '../lib/types';
-import { TripDetailResponse } from '../types/dto/trip';
+import { useTripStore } from '../stores/trip.store';
 import { Button } from '../components/ui/Button';
+import { Card, CardHeader, CardTitle } from '../components/ui/Card';
 import { ROUTES } from '../constants/routes';
+import { timeAgo } from '../lib/format';
 
 export function TripOverviewPage() {
   const { tripId } = useParams();
   const navigate = useNavigate();
-  
-  const { data, isLoading, error } = useTripSummary(tripId || '');
+
+  const { data: trip, isLoading, error } = useTripSummary(tripId || '');
+  const setCurrentTripId = useTripStore((s) => s.setCurrentTripId);
+
+  useEffect(() => {
+    if (tripId) setCurrentTripId(tripId);
+  }, [tripId, setCurrentTripId]);
 
   if (!tripId) return <div className="p-8 text-red-500">Trip ID is missing.</div>;
-
   if (isLoading) return <div className="p-8">Loading trip details...</div>;
-  if (error || !data) return <div className="p-8 text-red-500">Failed to load trip details.</div>;
+  if (error || !trip) return <div className="p-8 text-red-500">Failed to load trip details.</div>;
 
-  const trip: Trip = {
-    id: data.trip_id,
-    name: data.trip_name,
-    destination: data.destination,
-    startDate: data.start_date || new Date().toISOString(),
-    endDate: data.end_date || new Date().toISOString(),
-    status: (data.status as any) || 'active',
-    travelers: [], 
-    budget: {
-      total: (data as any).total_cost || 0,
-      spent: 0,
-      currency: '$',
-      breakdown: { flights: 0, hotels: 0, activities: 0, meals: 0 }
-    },
-    optimizationHealth: (data as any).total_satisfaction ? Math.round((data as any).total_satisfaction * 10) : 0,
-    lastOptimizedAt: new Date().toISOString(),
-  };
+  const history = trip.feedback_history ?? [];
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <Breadcrumbs
         crumbs={[
           { label: 'Dashboard', onClick: () => navigate(ROUTES.DASHBOARD) },
-          { label: trip.name },
+          { label: trip.trip_name || 'Trip' },
         ]}
       />
 
       <TripCard trip={trip} />
 
-      <div className="flex items-center gap-4 mt-8">
-        <Button variant="primary" onClick={() => navigate(`/timeline`)}>
-          View Timeline
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="primary" onClick={() => navigate(ROUTES.TIMELINE)}>
+          View timeline
         </Button>
-        <Button variant="secondary" onClick={() => navigate(`/feedback`)}>
-          Provide Feedback
+        <Button variant="secondary" onClick={() => navigate(ROUTES.DIFF)} disabled={(trip.current_version ?? 0) < 2}>
+          Review changes
         </Button>
-        <Button variant="secondary" onClick={() => navigate(`/optimization`)}>
-          View Optimization Progress
+        <Button variant="secondary" onClick={() => navigate(ROUTES.EXPLAINABILITY)}>
+          Why did the AI change this?
+        </Button>
+        <Button variant="secondary" onClick={() => navigate(ROUTES.FEEDBACK)}>
+          Give feedback
         </Button>
       </div>
+
+      <Card padding="md">
+        <CardHeader>
+          <CardTitle>Feedback so far</CardTitle>
+        </CardHeader>
+        {history.length === 0 ? (
+          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+            No feedback yet. Tell the planner what you would change and it will re-optimize the itinerary.
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {history.map((h, i) => (
+              <li key={i} className="text-sm">
+                <p>“{h.message}”</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                  Round {h.iteration ?? i + 1}{h.timestamp ? ` · ${timeAgo(h.timestamp)}` : ''}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </div>
   );
 }

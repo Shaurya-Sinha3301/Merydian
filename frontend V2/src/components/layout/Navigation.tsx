@@ -102,10 +102,6 @@ export function Navigation({ darkMode, onToggleDark }: NavigationProps) {
               <path d="M8 1.5a5 5 0 015 5v2.5l1 2H2l1-2V6.5a5 5 0 015-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
               <path d="M6.5 13.5a1.5 1.5 0 003 0" stroke="currentColor" strokeWidth="1.5" />
             </svg>
-            <span
-              className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: 'var(--error)' }}
-            />
           </button>
           {notifOpen && (
             <div
@@ -114,22 +110,11 @@ export function Navigation({ darkMode, onToggleDark }: NavigationProps) {
             >
               <div className="px-4 py-2 flex items-center justify-between">
                 <span className="text-xs font-semibold">Notifications</span>
-                <button className="text-xs" style={{ color: 'var(--primary)' }}>Mark all read</button>
               </div>
               <div style={{ borderTop: '1px solid var(--border)' }} />
-              {[
-                { title: 'Optimization ready for review', time: '2m ago', dot: 'var(--warning)' },
-                { title: 'Rome trip approved', time: '1h ago', dot: 'var(--success)' },
-                { title: 'New feedback from Sarah Chen', time: '3h ago', dot: 'var(--primary)' },
-              ].map((n, i) => (
-                <div key={i} className="flex items-start gap-3 px-4 py-3 hover:bg-muted transition-colors duration-150 cursor-pointer">
-                  <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: n.dot }} />
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium leading-tight">{n.title}</p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>{n.time}</p>
-                  </div>
-                </div>
-              ))}
+              <p className="px-4 py-3 text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                You're all caught up. Updates about your trip show up here.
+              </p>
             </div>
           )}
         </div>
@@ -146,7 +131,7 @@ export function Navigation({ darkMode, onToggleDark }: NavigationProps) {
             >
               {user?.role === 'agent' ? 'AG' : 'CU'}
             </div>
-            <span className="text-xs font-medium">{user?.role === 'agent' ? 'Agent' : 'Customer'}</span>
+            <span className="text-xs font-medium">{user?.full_name || (user?.role === 'agent' ? 'Agent' : 'Traveller')}</span>
             <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--muted-foreground)' }}>
               <path d="M3 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

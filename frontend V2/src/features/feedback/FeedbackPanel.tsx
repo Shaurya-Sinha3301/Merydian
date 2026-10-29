@@ -1,39 +1,24 @@
-import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardMeta } from '../../components/ui/Card';
+import { Card, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useSubmitFeedback } from '../../hooks/useFeedback';
+import { useCurrentTrip } from '../../hooks/useCurrentTrip';
+import { useTripStore } from '../../stores/trip.store';
+import { timeAgo } from '../../lib/format';
 
 const feedbackSchema = z.object({
   rating: z.number().min(1).max(5),
-  comment: z.string().min(3, "Comment is too short"),
+  comment: z.string().min(3, 'Tell us a little more'),
 });
 type FeedbackFormData = z.infer<typeof feedbackSchema>;
 
-const SUGGESTIONS = [
-  {
-    id: 's1',
-    summary: 'Switch Florence–Venice train to 09:14 departure to avoid 2h overlap with hotel check-in.',
-    confidence: 94,
-    impact: '−€32 · +3h free time',
-    type: 'schedule',
-  },
-  {
-    id: 's2',
-    summary: 'Upgrade Rome hotel to Colosseum-view room — only €28 more per night given availability forecast.',
-    confidence: 81,
-    impact: '+€56 · Comfort +17pts',
-    type: 'upgrade',
-  },
-];
-
-const HISTORY = [
-  { date: '9 Jul 2024', action: 'Accepted', summary: 'JR Pass added for Tokyo trip', impact: '−€44' },
-  { date: '8 Jul 2024', action: 'Rejected', summary: 'Airline upgrade LHR→FCO Business class', impact: '+€480' },
-  { date: '7 Jul 2024', action: 'Accepted', summary: 'Colosseum tour rescheduled from 14:00 to 10:00', impact: 'No cost change' },
+const IDEAS = [
+  'Add more outdoor time and fewer museums',
+  'Keep it cheaper: free or low-cost places only',
+  'Lighter days, with fewer long walks',
+  'More food and markets',
 ];
 
 interface FeedbackPanelProps {
@@ -41,174 +26,128 @@ interface FeedbackPanelProps {
 }
 
 export function FeedbackPanel({ onNavigate }: FeedbackPanelProps) {
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const [prefs, setPrefs] = useState({ budgetPriority: 50, comfortVsCost: 60, pace: 35 });
+  const { trip, tripId, name } = useCurrentTrip();
+  const setLastJobId = useTripStore((s) => s.setLastJobId);
+  const { mutate: submitFeedback, isPending, isError, error } = useSubmitFeedback();
 
-  const { mutate: submitFeedback, isPending, isError, isSuccess } = useSubmitFeedback();
-  
-  const { register, handleSubmit, watch, formState: { errors }, reset } = useForm<FeedbackFormData>({
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+    reset,
+  } = useForm<FeedbackFormData>({
     resolver: zodResolver(feedbackSchema),
-    defaultValues: { rating: 5, comment: '' }
+    defaultValues: { rating: 4, comment: '' },
   });
-
-  const watchRating = watch('rating');
+  const rating = watch('rating');
 
   const onSubmit = (data: FeedbackFormData) => {
-    submitFeedback({
-      node_id: 'general', // Using general as default if no specific node is selected
-      rating: data.rating,
-      comment: data.comment
-    }, {
-      onSuccess: () => {
-        reset();
-      }
-    });
+    submitFeedback(
+      { node_id: 'general', rating: data.rating, comment: data.comment },
+      {
+        onSuccess: (result) => {
+          reset();
+          const jobId = (result as { job_id?: string }).job_id;
+          if (jobId) setLastJobId(jobId);
+          onNavigate(jobId ? `/optimization?job_id=${jobId}` : 'optimization-progress');
+        },
+      },
+    );
   };
 
+  const history = [...(trip?.feedback_history ?? [])].reverse();
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-3xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>Feedback</h1>
+        <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+          Feedback
+        </h1>
         <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
-          Review AI suggestions, set your optimization preferences, and provide feedback on your itinerary.
+          Tell the planner what to change in {name}. An AI agent turns your message into new constraints, the optimizer
+          re-plans, and your agent reviews the result.
         </p>
       </div>
 
-      {/* Provide Feedback Form */}
       <Card padding="md">
-        <h2 className="text-sm font-semibold mb-4" style={{ fontFamily: 'var(--font-display)' }}>Provide Feedback</h2>
+        <CardHeader>
+          <CardTitle>What would you change?</CardTitle>
+        </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-medium">Rating:</span>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <label key={star} className="cursor-pointer flex items-center">
-                <input
-                  type="radio"
-                  value={star}
-                  {...register('rating', { valueAsNumber: true })}
-                  className="hidden"
-                />
-                <span className={`text-xl ${watchRating >= star ? 'text-yellow-400' : 'text-gray-300'}`}>
-                  ★
-                </span>
-              </label>
-            ))}
-            {errors.rating && <p className="text-xs text-red-500 ml-2">{errors.rating.message}</p>}
-          </div>
-
           <div>
             <textarea
               {...register('comment')}
               className="w-full text-sm p-3 rounded"
-              rows={3}
-              placeholder="What did you think of this itinerary? Note: leave feedback for specific activities here if needed."
+              rows={4}
+              placeholder="For example: the kids are getting restless with museums. Can we swap in something outdoors?"
               style={{
                 backgroundColor: 'var(--background)',
                 border: '1px solid var(--border)',
-                color: 'var(--foreground)'
+                color: 'var(--foreground)',
               }}
             />
             {errors.comment && <p className="text-xs text-red-500 mt-1">{errors.comment.message}</p>}
+            <div className="flex flex-wrap gap-2 mt-3">
+              {IDEAS.map((idea) => (
+                <button
+                  key={idea}
+                  type="button"
+                  onClick={() => setValue('comment', idea, { shouldValidate: true })}
+                  className="text-[11px] px-2.5 py-1 rounded-full"
+                  style={{ border: '1px solid var(--border)', color: 'var(--muted-foreground)', backgroundColor: 'var(--muted)' }}
+                >
+                  {idea}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex justify-end">
-            <Button variant="primary" size="sm" type="submit" disabled={isPending}>
-              {isPending ? 'Submitting...' : 'Submit Feedback'}
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-medium">How is the current plan?</span>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <label key={star} className="cursor-pointer" aria-label={`${star} star${star > 1 ? 's' : ''}`}>
+                <input type="radio" value={star} {...register('rating', { valueAsNumber: true })} className="sr-only" />
+                <span className="text-xl" style={{ color: rating >= star ? 'var(--warning)' : 'var(--border)' }}>★</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-end gap-3">
+            {isError && (
+              <p className="text-xs text-red-500">
+                {(error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                  'Could not submit feedback. Please try again.'}
+              </p>
+            )}
+            <Button variant="primary" size="md" type="submit" loading={isPending} disabled={!tripId}>
+              Send to planner
             </Button>
           </div>
-          {isError && <p className="text-xs text-red-500 mt-2 text-right">Failed to submit feedback. Please try again.</p>}
-          {isSuccess && <p className="text-xs text-green-500 mt-2 text-right">Feedback submitted successfully!</p>}
         </form>
       </Card>
 
-      <div className="grid grid-cols-2 gap-8">
-        {/* Suggestions */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-semibold" style={{ fontFamily: 'var(--font-display)' }}>
-            Pending Suggestions ({SUGGESTIONS.filter(s => !dismissed.has(s.id)).length})
-          </h2>
-          {SUGGESTIONS.filter(s => !dismissed.has(s.id)).map(s => (
-            <Card key={s.id} ai padding="md">
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <Badge variant="ai">AI · {s.confidence}% confidence</Badge>
-                <span className="text-xs font-mono" style={{ color: 'var(--muted-foreground)' }}>{s.impact}</span>
-              </div>
-              <p className="text-sm leading-relaxed mb-4">{s.summary}</p>
-              <div className="flex gap-2">
-                <Button variant="primary" size="sm" onClick={() => onNavigate('explainability')}>
-                  Accept & Review
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => onNavigate('explainability')}>
-                  Explain
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setDismissed(p => new Set([...p, s.id]))}>
-                  Dismiss
-                </Button>
-              </div>
-            </Card>
-          ))}
-          {SUGGESTIONS.filter(s => !dismissed.has(s.id)).length === 0 && (
-            <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>No pending suggestions.</p>
-          )}
-        </div>
-
-        {/* Preferences */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-semibold" style={{ fontFamily: 'var(--font-display)' }}>Optimization Preferences</h2>
-          <Card padding="md">
-            <div className="space-y-6">
-              {[
-                { key: 'budgetPriority' as const, label: 'Budget priority', left: 'Flexible', right: 'Strict' },
-                { key: 'comfortVsCost' as const, label: 'Comfort vs cost', left: 'Cost first', right: 'Comfort first' },
-                { key: 'pace' as const, label: 'Travel pace', left: 'Relaxed', right: 'Packed' },
-              ].map(({ key, label, left, right }) => (
-                <div key={key}>
-                  <div className="flex justify-between text-xs mb-2">
-                    <span className="font-medium">{label}</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--muted-foreground)' }}>{prefs[key]}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={prefs[key]}
-                    onChange={e => setPrefs(p => ({ ...p, [key]: Number(e.target.value) }))}
-                    className="w-full"
-                    style={{ accentColor: 'var(--primary)' }}
-                  />
-                  <div className="flex justify-between text-[11px] mt-1" style={{ color: 'var(--muted-foreground)' }}>
-                    <span>{left}</span>
-                    <span>{right}</span>
-                  </div>
-                </div>
-              ))}
-              <Button variant="primary" size="md" className="w-full">
-                Save preferences
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </div>
-
-      {/* History */}
       <div>
-        <h2 className="text-sm font-semibold mb-4" style={{ fontFamily: 'var(--font-display)' }}>Feedback History</h2>
+        <h2 className="text-sm font-semibold mb-3" style={{ fontFamily: 'var(--font-display)' }}>
+          Feedback history
+        </h2>
         <Card padding="none">
-          {HISTORY.map((h, i) => (
+          {history.length === 0 && (
+            <p className="px-4 py-3 text-xs" style={{ color: 'var(--muted-foreground)' }}>
+              No feedback yet for this trip.
+            </p>
+          )}
+          {history.map((h, i) => (
             <div
               key={i}
               className="flex items-center gap-4 px-4 py-3 text-xs"
-              style={{ borderBottom: i < HISTORY.length - 1 ? '1px solid var(--border)' : undefined }}
+              style={{ borderBottom: i < history.length - 1 ? '1px solid var(--border)' : undefined }}
             >
-              <span style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>{h.date}</span>
-              <span
-                className="font-semibold shrink-0"
-                style={{ color: h.action === 'Accepted' ? 'var(--success)' : 'var(--error)' }}
-              >
-                {h.action}
+              <span style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                {h.timestamp ? timeAgo(h.timestamp) : `Round ${h.iteration ?? ''}`}
               </span>
-              <span className="flex-1 truncate">{h.summary}</span>
-              <span style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>{h.impact}</span>
+              <span className="flex-1">“{h.message}”</span>
             </div>
           ))}
         </Card>

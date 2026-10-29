@@ -1,6 +1,6 @@
 export interface DiffItemDTO {
-  before?: unknown;
-  after?: unknown;
+  before?: Record<string, unknown> | null;
+  after?: Record<string, unknown> | null;
   reason?: string;
   importance: string;
   affected_constraints: string[];
@@ -16,4 +16,7 @@ export interface DiffDTO {
   time_changes: DiffItemDTO[];
   hotel_changes: DiffItemDTO[];
   transport_changes: DiffItemDTO[];
+  summary?: string | null;
+  cost_delta?: number | null;
+  satisfaction_delta?: number | null;
 }

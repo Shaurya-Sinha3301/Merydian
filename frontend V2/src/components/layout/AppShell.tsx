@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Navigation } from './Navigation';
 import { Sidebar } from './Sidebar';
 
@@ -18,11 +19,12 @@ interface AppShellProps {
   onNavigate: (page: Page) => void;
   darkMode: boolean;
   onToggleDark: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
+  role?: 'customer' | 'agent';
 }
 
-export function AppShell({ currentPage, onNavigate, darkMode, onToggleDark, children }: AppShellProps) {
-  const role = currentPage === 'agent-dashboard' ? 'agent' : 'customer';
+export function AppShell({ currentPage, onNavigate, darkMode, onToggleDark, children, role: roleProp }: AppShellProps) {
+  const role = roleProp ?? (currentPage === 'agent-dashboard' ? 'agent' : 'customer');
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--background)' }}>

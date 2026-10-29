@@ -1,37 +1,44 @@
 import { useState } from 'react';
 import { TimelineActivity } from './TimelineActivity';
 import { Button } from '../../components/ui/Button';
-import type { TimelineDay } from '../../lib/types';
+import type { ActivityType, TimelineDay } from '../../lib/types';
 
 import { useTimeline } from '../../hooks/useTimeline';
-import { TimelineActivityDTO } from '../../types/dto/timeline';
+import { useCurrentTrip } from '../../hooks/useCurrentTrip';
+import { formatClock } from '../../lib/format';
 
+
+function toActivityType(category?: string): ActivityType {
+  const c = (category || '').toLowerCase();
+  return c === 'meal' || c === 'hotel' || c === 'transport' ? c : 'activity';
+}
 
 interface TimelineProps {
   onNavigate: (page: string) => void;
 }
 
 export function Timeline({ onNavigate }: TimelineProps) {
-  const { data: timelineDto, isLoading, error } = useTimeline();
+  const { tripId, name } = useCurrentTrip();
+  const { data: timelineDto, isLoading, error } = useTimeline(tripId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   // Map backend DTO to frontend types
-  const timelineData: TimelineDay[] = timelineDto?.days.map(d => ({
+  const timelineData: TimelineDay[] = (timelineDto?.days || []).map(d => ({
     date: `Day ${d.day}`, // Backend DTO has 'day: number', no 'date' string
     activities: d.activities.map(a => ({
       id: a.id,
-      type: (a.category.toLowerCase() as any) || 'activity',
+      type: toActivityType(a.category),
       title: a.title,
       location: a.location,
-      startTime: a.start_time ? new Date(a.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD',
-      endTime: a.end_time ? new Date(a.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD',
-      status: 'confirmed',
+      startTime: formatClock(a.start_time),
+      endTime: formatClock(a.end_time),
+      status: 'pending',
       notes: a.notes,
       warnings: a.warnings,
       provider: a.travel_mode ? `Travel by ${a.travel_mode}` : undefined,
     })),
-  })) || [];
+  }));
 
   const days = timelineData.filter(d => !selectedDay || d.date === selectedDay);
 
@@ -49,18 +56,18 @@ export function Timeline({ onNavigate }: TimelineProps) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-            Italy Family Trip — Timeline
+            {name}
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
-            Aug 12–24, 2024 · 13 days · 31 activities
+            Itinerary timeline · {timelineData.length} day{timelineData.length === 1 ? '' : 's'} · {timelineData.reduce((n, d) => n + d.activities.length, 0)} stops
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={() => onNavigate('diff-viewer')}>
             View Changes
           </Button>
-          <Button variant="primary" size="sm" onClick={() => onNavigate('optimization-progress')}>
-            Optimize
+          <Button variant="primary" size="sm" onClick={() => onNavigate('feedback')}>
+            Give feedback
           </Button>
         </div>
       </div>
@@ -94,7 +101,12 @@ export function Timeline({ onNavigate }: TimelineProps) {
         ))}
       </div>
 
-      {/* Timeline */}
+      {timelineData.length === 0 && (
+        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+          No itinerary has been generated for this trip yet.
+        </p>
+      )}
+
       <div className="space-y-8">
         {days.map(day => (
           <div key={day.date}>
@@ -150,12 +162,6 @@ export function Timeline({ onNavigate }: TimelineProps) {
           </div>
         ))}
 
-        {/* Load more */}
-        <div className="flex justify-center pt-4">
-          <Button variant="secondary" size="md">
-            Load 10 more days
-          </Button>
-        </div>
       </div>
     </div>
   );

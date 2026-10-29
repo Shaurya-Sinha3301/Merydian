@@ -3,7 +3,7 @@ import { ENV } from '../config/env';
 
 export const apiClient = axios.create({
   baseURL: ENV.API_URL,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -18,9 +18,11 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !String(error.config?.url || '').includes('/auth/login')) {
       // Handle unauthorized (e.g., redirect to login)
       localStorage.removeItem('token');
       window.dispatchEvent(new Event('unauthorized'));

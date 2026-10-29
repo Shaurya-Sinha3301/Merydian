@@ -1,4 +1,3 @@
-import { StatusBadge } from '../../components/ui/Badge';
 import type { TimelineActivity as ITimelineActivity } from '../../lib/types';
 
 interface TimelineActivityProps {
@@ -86,7 +85,6 @@ export function TimelineActivity({ activity, onExpand, expanded = false }: Timel
               <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: config.color }}>
                 {config.label}
               </span>
-              <StatusBadge status={activity.status === 'confirmed' ? 'approved' : activity.status === 'pending' ? 'pending' : 'failed'} />
             </div>
             <p className="text-sm font-semibold">{activity.title}</p>
             {activity.provider && (

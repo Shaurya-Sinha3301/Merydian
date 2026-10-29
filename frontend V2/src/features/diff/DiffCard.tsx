@@ -57,7 +57,7 @@ export function DiffCard({ change, onApprove, onReject, showActions = false }: D
                 color: costDelta < 0 ? 'var(--success)' : 'var(--error)',
               }}
             >
-              {costDelta < 0 ? '' : '+'}{change.impact.currency ?? '€'}{Math.abs(costDelta)}
+              {costDelta < 0 ? '' : '+'}{change.impact.currency ?? '₹'}{Math.abs(costDelta)}
             </span>
           )}
           {timeDelta != null && (
@@ -71,15 +71,6 @@ export function DiffCard({ change, onApprove, onReject, showActions = false }: D
               {timeDelta > 0 ? '+' : ''}{timeDelta}m
             </span>
           )}
-          <span
-            className="text-xs px-2 py-0.5 rounded font-medium"
-            style={{
-              backgroundColor: `color-mix(in srgb, var(--ai) 10%, transparent)`,
-              color: 'var(--ai)',
-            }}
-          >
-            {change.confidence}% confident
-          </span>
           {change.tags.map(tag => (
             <span
               key={tag}
