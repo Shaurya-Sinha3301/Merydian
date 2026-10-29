@@ -3,6 +3,7 @@ import { ProgressRing } from '../../components/ui/ProgressRing';
 import { Card, CardHeader, CardTitle } from '../../components/ui/Card';
 import { StatusBadge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { useJob } from '../../hooks/useJobs';
 import type { PipelineStage, LogEntry } from '../../lib/types';
 
@@ -14,8 +15,9 @@ interface OptimizationProgressProps {
 
 export function OptimizationProgress({ onNavigate }: OptimizationProgressProps) {
   // Try to grab job_id from URL search params, fallback to a mock/test job ID if none exists.
-  const jobId = new URLSearchParams(window.location.search).get('job_id') || 'mock-job-id';
-  const { data: job, isLoading } = useJob(jobId, 1000);
+  const searchJobId = new URLSearchParams(window.location.search).get('job_id');
+  const jobId = searchJobId || localStorage.getItem('last_job_id') || '';
+  const { data: job, isLoading, error } = useJob(jobId, 2000);
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
@@ -50,7 +52,25 @@ export function OptimizationProgress({ onNavigate }: OptimizationProgressProps) 
 
   const completedStages = uiStages.filter(s => s.status === 'completed').length;
 
+  if (!jobId) {
+    return (
+      <EmptyState
+        title="No optimization running"
+        description="Send feedback on your itinerary and the progress of the AI re-plan will appear here."
+        action={{ label: 'Give feedback', onClick: () => onNavigate('feedback') }}
+      />
+    );
+  }
   if (isLoading && !job) return <div className="p-8 text-center">Loading job status...</div>;
+  if (error && !job) {
+    return (
+      <EmptyState
+        title="Couldn't find that job"
+        description="It may belong to a previous session. Start a new one by sending feedback."
+        action={{ label: 'Give feedback', onClick: () => onNavigate('feedback') }}
+      />
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -61,7 +81,7 @@ export function OptimizationProgress({ onNavigate }: OptimizationProgressProps) 
             Optimization Progress
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
-            Job ID: {jobId}
+            Job {jobId.slice(0, 8)}
           </p>
         </div>
         <StatusBadge status={job?.status === 'COMPLETED' ? 'approved' : job?.status === 'FAILED' ? 'failed' : 'running'} />
@@ -88,12 +108,12 @@ export function OptimizationProgress({ onNavigate }: OptimizationProgressProps) 
                 </p>
                 <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
                   {completedStages} of {uiStages.length} stages complete
-                  {progress < 100 && ` · Est. ${estSeconds}s remaining`}
+                  {progress < 100 && estSeconds > 0 && ` · Est. ${estSeconds}s remaining`}
                 </p>
               </div>
               {progress >= 100 && (
-                <Button variant="primary" size="md" onClick={() => onNavigate('diff-viewer')}>
-                  Review changes →
+                <Button variant="primary" size="md" onClick={() => onNavigate(job?.status === 'FAILED' ? 'feedback' : 'diff-viewer')}>
+                  {job?.status === 'FAILED' ? 'Try again' : 'Review changes →'}
                 </Button>
               )}
             </div>
@@ -142,7 +162,7 @@ export function OptimizationProgress({ onNavigate }: OptimizationProgressProps) 
         <CardHeader className="px-4 pt-4 pb-3" style={{ borderBottom: '1px solid var(--border)' }}>
           <CardTitle>Optimization Log</CardTitle>
           <span className="text-[11px] font-mono" style={{ color: 'var(--muted-foreground)' }}>
-            {logs.length} entries · streaming
+            {logs.length} entries
           </span>
         </CardHeader>
         <div

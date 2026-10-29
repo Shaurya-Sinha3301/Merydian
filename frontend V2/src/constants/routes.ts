@@ -7,6 +7,9 @@ export const ROUTES = {
   TRIPS: '/trips',
   TIMELINE: '/timeline',
   FEEDBACK: '/feedback',
+  OPTIMIZATION: '/optimization',
+  DIFF: '/diff-viewer',
+  EXPLAINABILITY: '/explainability',
   SETTINGS: '/settings',
   NOT_FOUND: '*',
 } as const;

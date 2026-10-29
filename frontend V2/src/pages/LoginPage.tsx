@@ -44,24 +44,17 @@ export function LoginPage() {
 
         <div className="space-y-6">
           {[
-            { label: 'Optimization latency', value: '144ms median' },
-            { label: 'Quality improvement', value: '19.4% avg gain' },
-            { label: 'Agencies onboarded', value: '500+' },
+            { label: 'Explained', value: 'Every change comes with a reason' },
+            { label: 'Human in the loop', value: 'Agents approve before anything is final' },
           ].map(stat => (
             <div key={stat.label} style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }} className="pt-4">
-              <p className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>{stat.value}</p>
+              <p className="text-base font-semibold" style={{ fontFamily: 'var(--font-display)' }}>{stat.value}</p>
               <p className="text-xs mt-1" style={{ opacity: 0.5 }}>{stat.label}</p>
             </div>
           ))}
         </div>
 
-        <div className="flex items-center gap-2 text-xs" style={{ opacity: 0.4 }}>
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-            <rect x="3" y="7" width="10" height="8" rx="1" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          <span>SOC 2 Type II · GDPR compliant · 256-bit encryption</span>
-        </div>
+        <p className="text-xs" style={{ opacity: 0.4 }}>An academic project. Demo data only.</p>
       </div>
 
       {/* Right panel — form */}
@@ -83,8 +76,8 @@ export function LoginPage() {
               Sign in to your account
             </h2>
             <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
-              Don't have an account?{' '}
-              <button style={{ color: 'var(--primary)' }}>Request access</button>
+              No account?{' '}
+              <button type="button" onClick={() => navigate(ROUTES.DEMO)} style={{ color: 'var(--primary)' }}>Explore the demo</button>
             </p>
           </div>
 

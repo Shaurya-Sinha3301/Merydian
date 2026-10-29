@@ -1,4 +1,5 @@
 import { Breadcrumbs } from '../components/layout/Breadcrumbs';
+import { useCurrentTrip } from '../hooks/useCurrentTrip';
 import { FeedbackPanel } from '../features/feedback/FeedbackPanel';
 
 interface FeedbackPageProps {
@@ -6,13 +7,14 @@ interface FeedbackPageProps {
 }
 
 export function FeedbackPage({ onNavigate }: FeedbackPageProps) {
+  const { tripId, name } = useCurrentTrip();
   return (
     <>
       <div className="mb-6">
         <Breadcrumbs
           crumbs={[
             { label: 'Dashboard', onClick: () => onNavigate('customer-dashboard') },
-            { label: 'Italy Family Trip', onClick: () => onNavigate('trip-overview') },
+            { label: name, onClick: () => onNavigate(tripId ? `/trip-overview/${tripId}` : 'customer-dashboard') },
             { label: 'Feedback' },
           ]}
         />

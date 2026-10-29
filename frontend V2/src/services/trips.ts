@@ -2,9 +2,16 @@ import apiClient from './client';
 import type { PaginatedResponse, TripDetailResponse } from '../types/dto/trip';
 
 export const tripsService = {
-  getTrips: async (limit: number = 10, offset: number = 0): Promise<PaginatedResponse<TripDetailResponse>> => {
-    const response = await apiClient.get<PaginatedResponse<TripDetailResponse>>('/trips', {
-      params: { limit, offset }
+  getTrips: async (limit: number = 10, skip: number = 0): Promise<PaginatedResponse<TripDetailResponse>> => {
+    const response = await apiClient.get<PaginatedResponse<TripDetailResponse>>('/trips/', {
+      params: { limit, skip }
+    });
+    return response.data;
+  },
+
+  getMyTrips: async (limit: number = 10, skip: number = 0): Promise<PaginatedResponse<TripDetailResponse>> => {
+    const response = await apiClient.get<PaginatedResponse<TripDetailResponse>>('/trips/me', {
+      params: { limit, skip }
     });
     return response.data;
   },

@@ -67,7 +67,7 @@ export interface DiffChange {
     currency?: string;
   };
   tags: string[];
-  confidence: number;
+  confidence?: number;
 }
 
 export interface Constraint {

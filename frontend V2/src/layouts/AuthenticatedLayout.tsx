@@ -1,5 +1,6 @@
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth.store';
+import { useTripStore } from '../stores/trip.store';
 import { ROUTES } from '../constants/routes';
 import { AppShell } from '../components/layout/AppShell';
 import { useTheme } from '../providers/ThemeProvider';
@@ -19,18 +20,20 @@ type Page =
 
 export const AuthenticatedLayout = () => {
   const { token, user } = useAuthStore();
+  const currentTripId = useTripStore((s) => s.currentTripId);
+  const lastJobId = useTripStore((s) => s.lastJobId);
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   
   useWebSockets();
 
+
   if (!token) {
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
-  // Derive current page from location path or user role
-  let currentPage: Page = 'customer-dashboard';
+  let currentPage: Page = user?.role === 'agent' ? 'agent-dashboard' : 'customer-dashboard';
   if (location.pathname.includes('/timeline')) currentPage = 'timeline';
   else if (location.pathname.includes('/feedback')) currentPage = 'feedback';
   else if (location.pathname.includes('/settings')) currentPage = 'settings';
@@ -38,15 +41,35 @@ export const AuthenticatedLayout = () => {
   else if (location.pathname.includes('/diff')) currentPage = 'diff-viewer';
   else if (location.pathname.includes('/explainability')) currentPage = 'explainability';
   else if (location.pathname.includes('/trip')) currentPage = 'trip-overview';
-  else if (user?.role === 'agent') currentPage = 'agent-dashboard';
 
   const handleNavigate = (page: Page) => {
     switch (page) {
-      case 'settings': navigate(ROUTES.SETTINGS); break;
-      case 'timeline': navigate('/timeline'); break; 
-      case 'customer-dashboard': navigate(ROUTES.DASHBOARD); break;
-      case 'agent-dashboard': navigate(ROUTES.DASHBOARD); break;
-      default: navigate(ROUTES.DASHBOARD);
+      case 'settings':
+        navigate(ROUTES.SETTINGS);
+        break;
+      case 'timeline':
+        navigate(ROUTES.TIMELINE);
+        break;
+      case 'feedback':
+        navigate(ROUTES.FEEDBACK);
+        break;
+      case 'optimization-progress':
+        navigate(lastJobId ? `/optimization?job_id=${lastJobId}` : '/optimization');
+        break;
+      case 'diff-viewer':
+        navigate('/diff-viewer');
+        break;
+      case 'explainability':
+        navigate('/explainability');
+        break;
+      case 'trip-overview':
+        navigate(currentTripId ? `/trip-overview/${currentTripId}` : ROUTES.DASHBOARD);
+        break;
+      case 'customer-dashboard':
+      case 'agent-dashboard':
+      default:
+        navigate(ROUTES.DASHBOARD);
+        break;
     }
   };
 
@@ -56,6 +79,7 @@ export const AuthenticatedLayout = () => {
       onNavigate={handleNavigate}
       darkMode={theme === 'dark'}
       onToggleDark={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      role={user?.role === 'agent' ? 'agent' : 'customer'}
     >
       <Outlet />
     </AppShell>

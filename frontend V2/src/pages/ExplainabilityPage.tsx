@@ -1,4 +1,5 @@
 import { Breadcrumbs } from '../components/layout/Breadcrumbs';
+import { useCurrentTrip } from '../hooks/useCurrentTrip';
 import { ExplainabilityPanel } from '../features/explainability/ExplainabilityPanel';
 
 interface ExplainabilityPageProps {
@@ -6,22 +7,20 @@ interface ExplainabilityPageProps {
 }
 
 export function ExplainabilityPage({ onNavigate }: ExplainabilityPageProps) {
+  const { tripId, name } = useCurrentTrip();
   return (
     <>
       <div className="mb-6">
         <Breadcrumbs
           crumbs={[
             { label: 'Dashboard', onClick: () => onNavigate('customer-dashboard') },
-            { label: 'Italy Family Trip', onClick: () => onNavigate('trip-overview') },
+            { label: name, onClick: () => onNavigate(tripId ? `/trip-overview/${tripId}` : 'customer-dashboard') },
             { label: 'Change Review', onClick: () => onNavigate('diff-viewer') },
             { label: 'AI Explanation' },
           ]}
         />
       </div>
-      <ExplainabilityPanel
-        onApprove={() => onNavigate('customer-dashboard')}
-        onRequestChanges={() => onNavigate('diff-viewer')}
-      />
+      <ExplainabilityPanel onNavigate={onNavigate} />
     </>
   );
 }

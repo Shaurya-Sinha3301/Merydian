@@ -1,3 +1,4 @@
+import { useAuthStore } from '../../stores/auth.store';
 type Page =
   | 'login'
   | 'customer-dashboard'
@@ -196,6 +197,7 @@ const bottomNav: NavItem[] = [
 
 export function Sidebar({ currentPage, onNavigate, role }: SidebarProps) {
   const navItems = role === 'agent' ? agentNav : customerNav;
+  const fullName = useAuthStore((s) => s.user?.full_name);
 
   const renderItem = (item: NavItem) => {
     const isActive = currentPage === item.page;
@@ -249,12 +251,12 @@ export function Sidebar({ currentPage, onNavigate, role }: SidebarProps) {
             className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
             style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}
           >
-            JD
+            {(fullName || (role === 'agent' ? 'TA' : 'TR')).slice(0, 2).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium truncate">James Davidson</p>
+            <p className="text-xs font-medium truncate">{fullName || (role === 'agent' ? 'Travel agent' : 'Traveller')}</p>
             <p className="text-[10px] truncate" style={{ color: 'var(--muted-foreground)' }}>
-              {role === 'agent' ? 'Travel Agent' : 'Customer'}
+              {role === 'agent' ? 'Travel agent' : 'Traveller'}
             </p>
           </div>
         </div>

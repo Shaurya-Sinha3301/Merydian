@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import apiClient from '../services/client';
+import axios from 'axios';
 import { useAuthStore } from '../stores/auth.store';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../providers/ThemeProvider';
@@ -15,14 +15,15 @@ export const HealthCheck = () => {
 
   useEffect(() => {
     const start = performance.now();
-    apiClient.get('/health/live')
+    const health = axios.create({ baseURL: ENV.API_ORIGIN, timeout: 8000 });
+    health.get('/health/live')
       .then(() => {
         setApiLive('ok');
         setLatency(Math.round(performance.now() - start));
       })
       .catch(() => setApiLive('error'));
       
-    apiClient.get('/health/ready')
+    health.get('/health/ready')
       .then(() => setApiReady('ok'))
       .catch(() => setApiReady('error'));
   }, []);

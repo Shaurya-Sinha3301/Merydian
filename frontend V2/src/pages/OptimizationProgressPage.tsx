@@ -1,4 +1,5 @@
 import { Breadcrumbs } from '../components/layout/Breadcrumbs';
+import { useCurrentTrip } from '../hooks/useCurrentTrip';
 import { OptimizationProgress } from '../features/optimization/OptimizationProgress';
 
 interface OptimizationProgressPageProps {
@@ -6,13 +7,14 @@ interface OptimizationProgressPageProps {
 }
 
 export function OptimizationProgressPage({ onNavigate }: OptimizationProgressPageProps) {
+  const { tripId, name } = useCurrentTrip();
   return (
     <>
       <div className="mb-6">
         <Breadcrumbs
           crumbs={[
             { label: 'Dashboard', onClick: () => onNavigate('customer-dashboard') },
-            { label: 'Italy Family Trip', onClick: () => onNavigate('trip-overview') },
+            { label: name, onClick: () => onNavigate(tripId ? `/trip-overview/${tripId}` : 'customer-dashboard') },
             { label: 'Optimization Progress' },
           ]}
         />

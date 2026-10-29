@@ -1,188 +1,150 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
 import { ROUTES } from '../constants/routes';
 import { useAuthStore } from '../stores/auth.store';
-import { apiClient } from '../services/client';
+import { useTripStore } from '../stores/trip.store';
+import { demoService } from '../services/demo';
 
-const DEMO_PERSONAS = [
-  {
-    id: 'Family_Vacation',
-    icon: '👨‍👩‍👧',
-    name: 'Family Vacation',
-    travelers: 4,
-    destination: 'Delhi',
-    budget: 'Medium Budget',
-    description: 'A balanced trip with a mix of sightseeing, food, and family-friendly activities.',
-  },
-  {
-    id: 'Luxury_Couple',
-    icon: '🥂',
-    name: 'Luxury Couple',
-    travelers: 2,
-    destination: 'Delhi',
-    budget: 'High Budget',
-    description: 'A relaxed, premium experience focusing on fine dining, nightlife, and culture.',
-  },
-  {
-    id: 'Budget_Backpacker',
-    icon: '🎒',
-    name: 'Budget Backpacker',
-    travelers: 1,
-    destination: 'Delhi',
-    budget: 'Low Budget',
-    description: 'Fast-paced adventure hitting all major spots with high energy.',
-  },
-  {
-    id: 'Elderly_Travelers',
-    icon: '👴👵',
-    name: 'Elderly Travelers',
-    travelers: 2,
-    destination: 'Delhi',
-    budget: 'Medium Budget',
-    description: 'Relaxed golden years trip focusing on history, religion, and accessibility.',
-  },
-  {
-    id: 'Accessibility_Trip',
-    icon: '♿',
-    name: 'Accessibility Trip',
-    travelers: 3,
-    destination: 'Delhi',
-    budget: 'Medium Budget',
-    description: 'Tour focused on wheelchair-friendly locations with no stairs.',
-  },
-];
+const ICONS: Record<string, string> = {
+  Agent: '🧭',
+  Family_Vacation: '👨‍👩‍👧',
+  Luxury_Couple: '🥂',
+  Budget_Backpacker: '🎒',
+  Elderly_Travelers: '🌿',
+  Accessibility_Trip: '♿',
+};
+
+/** The hosted backend sleeps when idle; tell the visitor instead of leaving a dead page. */
+function useSlowHint(active: boolean): boolean {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (!active) return;
+    const t = window.setTimeout(() => setSlow(true), 4000);
+    return () => {
+      window.clearTimeout(t);
+      setSlow(false);
+    };
+  }, [active]);
+  return slow;
+}
 
 export function DemoLauncherPage() {
   const navigate = useNavigate();
-  const { setAuth } = useAuthStore();
-  const [loading, setLoading] = useState<string | null>(null);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const setCurrentTripId = useTripStore((s) => s.setCurrentTripId);
+  const setLastJobId = useTripStore((s) => s.setLastJobId);
+  const [entering, setEntering] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLaunch = async (personaId: string) => {
-    setLoading(personaId);
+  const personas = useQuery({ queryKey: ['demo-personas'], queryFn: demoService.listPersonas, retry: 2 });
+  const slow = useSlowHint(personas.isLoading || entering !== null);
+
+  const handleEnter = async (personaId: string) => {
+    setEntering(personaId);
     setError(null);
     try {
-      // Step 1: Call load demo
-      const res = await apiClient.post(`/demo/load/${personaId}`);
-      if (res.data.status === 'SUCCESS' && res.data.access_token) {
-        // Step 2: Set Auth
-        setAuth(res.data.user, res.data.access_token);
-        // Step 3: Navigate to Dashboard
-        navigate(ROUTES.DASHBOARD);
-      } else {
-        throw new Error('Failed to load demo session.');
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.detail || err.message || 'An error occurred.');
+      const session = await demoService.enter(personaId);
+      if (!session.access_token) throw new Error('The demo server did not return a session.');
+      // Start each visit from a clean slate so one persona's trip never leaks into another
+      setCurrentTripId(null);
+      setLastJobId(null);
+      setAuth(session.user, session.access_token);
+      navigate(ROUTES.DASHBOARD);
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string; detail?: string } }; message?: string };
+      setError(e.response?.data?.message || e.response?.data?.detail || e.message || 'Could not start the demo.');
     } finally {
-      setLoading(null);
+      setEntering(null);
     }
   };
 
-  const handleReset = async () => {
-    setLoading('reset');
-    setError(null);
-    try {
-      await apiClient.post('/demo/reset');
-      alert('Demo database reset successfully.');
-    } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.detail || err.message || 'An error occurred during reset.');
-    } finally {
-      setLoading(null);
-    }
-  };
+  const list = personas.data ?? [];
+  const agent = list.find((p) => p.role === 'agent');
+  const travellers = list.filter((p) => p.role === 'traveller');
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-background text-foreground p-6 md:p-8">
+      <div className="max-w-5xl mx-auto space-y-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
               Explore Merydian
             </h1>
-            <p className="text-muted-foreground mt-2">
-              Select a demo persona to experience the platform from different perspectives.
+            <p className="mt-2 max-w-xl" style={{ color: 'var(--muted-foreground)' }}>
+              Step into a seeded trip as a traveller to see how feedback re-plans an itinerary, or as the travel agent to
+              review what the AI agents did and approve their options.
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="secondary" onClick={() => navigate(ROUTES.LANDING)}>
-              Back
-            </Button>
-            <Button variant="secondary" onClick={handleReset} loading={loading === 'reset'}>
-              Reset Demo DB
-            </Button>
-          </div>
+          <Button variant="secondary" onClick={() => navigate(ROUTES.LANDING)}>
+            Back
+          </Button>
         </div>
-        
-        {error && (
-          <div className="p-4 bg-red-50 text-red-600 rounded border border-red-100">
-            {error}
+
+        {slow && (
+          <div className="p-4 rounded border text-sm" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--muted)' }}>
+            The demo server runs on a free plan and sleeps when idle. Waking it up can take up to a minute.
           </div>
         )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {DEMO_PERSONAS.map((p) => (
-            <Card key={p.id} padding="md" className="flex flex-col h-full">
-              <div className="text-4xl mb-4">{p.icon}</div>
-              <h3 className="text-xl font-bold mb-2" style={{ fontFamily: 'var(--font-display)' }}>
-                {p.name}
-              </h3>
-              <div className="text-sm text-muted-foreground space-y-1 mb-4 flex-1">
-                <p>👥 {p.travelers} Travelers</p>
-                <p>📍 {p.destination}</p>
-                <p>💰 {p.budget}</p>
-                <p className="mt-2 line-clamp-2">{p.description}</p>
-              </div>
-              <Button
-                variant="primary"
-                className="w-full"
-                loading={loading === p.id}
-                onClick={() => handleLaunch(p.id)}
-              >
-                Launch Demo
+        {(error || personas.isError) && (
+          <div className="p-4 rounded border text-sm" style={{ color: 'var(--error)', borderColor: 'var(--border)' }}>
+            {error || 'Could not reach the demo server. Try again in a moment.'}
+            {personas.isError && (
+              <Button variant="secondary" size="sm" className="ml-3" onClick={() => personas.refetch()}>
+                Retry
               </Button>
-            </Card>
-          ))}
-          
-          <Card padding="md" className="flex flex-col h-full bg-primary/5 border-primary/20">
-            <div className="text-4xl mb-4">🛠️</div>
-            <h3 className="text-xl font-bold mb-2 text-primary" style={{ fontFamily: 'var(--font-display)' }}>
-              Demo Administrator
-            </h3>
-            <div className="text-sm text-muted-foreground space-y-1 mb-4 flex-1">
-              <p>Monitor jobs, inspect backend, and oversee all trip sessions.</p>
+            )}
+          </div>
+        )}
+        {personas.isLoading && <p className="text-sm">Loading demo personas...</p>}
+
+        {agent && (
+          <Card ai padding="md">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">{ICONS[agent.id]}</div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-lg font-bold" style={{ fontFamily: 'var(--font-display)' }}>{agent.title}</h2>
+                    <Badge variant="ai">Start here</Badge>
+                  </div>
+                  <p className="text-sm max-w-lg" style={{ color: 'var(--muted-foreground)' }}>{agent.description}</p>
+                </div>
+              </div>
+              <Button variant="primary" loading={entering === agent.id} onClick={() => handleEnter(agent.id)}>
+                Enter as agent
+              </Button>
             </div>
-            <Button
-              variant="secondary"
-              className="w-full"
-              loading={loading === 'admin'}
-              onClick={async () => {
-                setLoading('admin');
-                try {
-                  // Admin is provisioned with a known password. We can just login directly using standard auth
-                  const params = new URLSearchParams();
-                  params.append('username', 'admin@demo.merydian.com');
-                  params.append('password', 'demo123');
-                  const res = await apiClient.post('/auth/login', params);
-                  if (res.data.access_token) {
-                    setAuth(res.data.user, res.data.access_token);
-                    navigate(ROUTES.DASHBOARD);
-                  }
-                } catch (err: any) {
-                  setError(err.message || 'Failed to login as admin.');
-                } finally {
-                  setLoading(null);
-                }
-              }}
-            >
-              Launch Admin
-            </Button>
           </Card>
-        </div>
+        )}
+
+        {travellers.length > 0 && (
+          <div>
+            <h2 className="text-sm font-semibold mb-4" style={{ fontFamily: 'var(--font-display)' }}>
+              Or follow a traveller
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {travellers.map((p) => (
+                <Card key={p.id} padding="md" className="flex flex-col h-full">
+                  <div className="text-3xl mb-3">{ICONS[p.id] ?? '🧳'}</div>
+                  <h3 className="text-base font-bold mb-2" style={{ fontFamily: 'var(--font-display)' }}>{p.title}</h3>
+                  <p className="text-sm flex-1 mb-4" style={{ color: 'var(--muted-foreground)' }}>{p.description}</p>
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    loading={entering === p.id}
+                    onClick={() => handleEnter(p.id)}
+                  >
+                    Enter as traveller
+                  </Button>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

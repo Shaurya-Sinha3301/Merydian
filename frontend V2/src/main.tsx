@@ -6,14 +6,25 @@ import { ThemeProvider } from './providers/ThemeProvider';
 import { QueryProvider } from './providers/QueryProvider';
 import { AuthProvider } from './providers/AuthProvider';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <QueryProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </QueryProvider>
-    </ThemeProvider>
-  </React.StrictMode>,
-);
+window.addEventListener('error', (event) => {
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+});
+
+const rootEl = document.getElementById('root');
+if (!rootEl) {
+  document.body.textContent = 'Missing #root';
+} else {
+  ReactDOM.createRoot(rootEl).render(
+    <React.StrictMode>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <QueryProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </QueryProvider>
+      </ThemeProvider>
+    </React.StrictMode>,
+  );
+}

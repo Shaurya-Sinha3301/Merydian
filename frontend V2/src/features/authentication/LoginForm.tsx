@@ -56,7 +56,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
           type="text"
           className="w-full h-8 px-3 text-sm rounded bg-transparent border transition-colors focus:outline-none focus:border-primary"
           style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-          placeholder="admin@merydian.com"
+          placeholder="you@example.com"
         />
         {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>}
       </div>

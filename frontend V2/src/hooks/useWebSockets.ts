@@ -11,11 +11,13 @@ export function useWebSockets() {
     if (!user || !token) return;
 
     // Use window.location.host for WS if API is on the same host, or derive from VITE_API_URL
-    const wsBaseUrl = import.meta.env.VITE_API_URL
-      ? import.meta.env.VITE_API_URL.replace('http', 'ws').replace('/api/v1', '')
-      : `ws://${window.location.host}`;
-      
-    const rolePath = user.role === 'agent' ? `agent/${user.id}` : `traveller/${user.id}`;
+    const origin = (import.meta.env.VITE_API_ORIGIN as string | undefined)
+      || (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/api\/v1\/?$/, '')
+      || window.location.origin;
+    const wsBaseUrl = origin.replace(/^http/, 'ws');
+    const userId = typeof user === 'object' && user && 'id' in user ? String(user.id) : '';
+    const role = typeof user === 'object' && user && 'role' in user ? String(user.role) : 'traveller';
+    const rolePath = role === 'agent' ? `agent/${userId}` : `traveller/${userId}`;
     const ws = new WebSocket(`${wsBaseUrl}/ws/${rolePath}`);
 
     ws.onopen = () => {

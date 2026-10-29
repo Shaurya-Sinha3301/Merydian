@@ -1,156 +1,124 @@
-import { Card, CardHeader, CardTitle, CardMeta } from '../../components/ui/Card';
+import { Card, CardHeader, CardTitle } from '../../components/ui/Card';
 import { MetricCard } from '../../components/ui/MetricCard';
-import { StatusBadge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/Button';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { JobProgressCard } from '../optimization/JobProgressCard';
-import type { AgentJob } from '../../lib/types';
+import { ApprovalCard } from '../explainability/ApprovalCard';
 import { useAgentJobs } from '../../hooks/useAgentJobs';
+import { useTrips } from '../../hooks/useTrips';
+import { useTripStore } from '../../stores/trip.store';
+import { formatMoney } from '../../lib/format';
+import type { AgentJobDTO } from '../../types/dto/agent';
 
 interface AgentDashboardProps {
   onNavigate: (page: string) => void;
 }
 
 export function AgentDashboard({ onNavigate }: AgentDashboardProps) {
-  const { data, isLoading } = useAgentJobs(50, 0);
+  const { data, isLoading } = useAgentJobs(100, 0);
+  const { data: tripsData } = useTrips(100, 0);
+  const setCurrentTripId = useTripStore((s) => s.setCurrentTripId);
 
-  const jobs: AgentJob[] = data?.jobs.map((j: any, idx: number) => ({
-    id: j.job_id,
-    tripId: j.result?.trip_id || j.job_id, // fallback
-    tripName: 'Trip ' + (j.result?.trip_id?.slice(0,4) || 'Unknown'),
-    customerName: 'Customer', // Would come from DB relations if populated
-    optimizationId: `opt-${j.job_id.slice(0, 4)}`,
-    status: j.status === 'RUNNING' ? 'running' : (j.status === 'CREATED' ? 'awaiting_approval' : 'completed'),
-    priority: idx % 3 === 0 ? 'high' : 'medium',
-    createdAt: j.created_at || new Date().toISOString(),
-    updatedAt: j.updated_at || new Date().toISOString(),
-    confidence: 90,
-  })) || [];
+  const jobs: AgentJobDTO[] = data?.jobs ?? [];
+  const trips = tripsData?.items ?? [];
+  const tripName = (id?: string | null) => trips.find((t) => t.trip_id === id)?.trip_name || id || 'Unknown trip';
 
-  const awaitingCount = jobs.filter(j => j.status === 'awaiting_approval').length;
-  const runningCount = jobs.filter(j => j.status === 'running').length;
-  const completedCount = jobs.filter(j => j.status === 'completed').length;
-  
-  // Aggregate customers from trips
-  const customersMap = new Map();
-  jobs.forEach(j => {
-    if (!customersMap.has(j.customerName)) {
-      customersMap.set(j.customerName, { name: j.customerName, trips: 0, pending: 0, status: j.status });
-    }
-    const c = customersMap.get(j.customerName);
-    c.trips += 1;
-    if (j.status === 'awaiting_approval') c.pending += 1;
-  });
-  const customers = Array.from(customersMap.values());
+  const awaiting = jobs.filter((j) => j.result?.awaiting_approval === true && typeof j.result?.event_id === 'string');
+  const running = jobs.filter((j) => j.status === 'RUNNING' || j.status === 'QUEUED' || j.status === 'RETRYING').length;
+  const failed = jobs.filter((j) => j.status === 'FAILED').length;
+  const retried = jobs.filter((j) => (j.attempt_count ?? 1) > 1).length;
 
-  const activity = jobs.slice(0, 4).map(j => ({
-    text: `Job for ${j.tripName} is ${j.status}`,
-    trip: j.tripName,
-    time: 'Recently',
-    color: j.status === 'awaiting_approval' ? 'var(--warning)' : 'var(--primary)'
-  }));
+  const openTrip = (id?: string | null) => {
+    if (!id) return;
+    setCurrentTripId(id);
+    onNavigate(`/trip-overview/${id}`);
+  };
+
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-
       <div>
         <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-          Agent Dashboard
+          Agent dashboard
         </h1>
         <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
-          Thursday, 10 July 2024 · 4 active jobs · 2 awaiting approval
+          {today} · {awaiting.length} awaiting your decision
         </p>
       </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-4 gap-4">
-        <MetricCard label="Awaiting Approval" value={awaitingCount} trend="neutral" deltaLabel="action required" />
-        <MetricCard label="Running Jobs" value={runningCount} trend="neutral" />
-        <MetricCard label="Completed" value={completedCount} trend="neutral" />
-        <MetricCard label="Active Customers" value={customers.length} trend="neutral" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard label="Awaiting approval" value={awaiting.length} trend="neutral" />
+        <MetricCard label="Running or queued" value={running} trend="neutral" />
+        <MetricCard label="Retried" value={retried} trend="neutral" />
+        <MetricCard label="Failed" value={failed} trend="neutral" />
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* Optimization Queue — main column */}
-        <div className="col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold" style={{ fontFamily: 'var(--font-display)' }}>
-              Optimization Queue
-            </h2>
-            <div className="flex items-center gap-2">
-              <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>Sort: Priority</span>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="text-sm font-semibold" style={{ fontFamily: 'var(--font-display)' }}>
+            Needs your decision
+          </h2>
+          {awaiting.length === 0 && !isLoading && (
+            <Card padding="md">
+              <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+                Nothing is waiting on you. When a traveller makes a request, the AI prepares options and they appear here.
+              </p>
+            </Card>
+          )}
+          {awaiting.map((job) => (
+            <ApprovalCard
+              key={job.job_id}
+              eventId={String(job.result?.event_id)}
+              tripName={tripName(job.trip_id)}
+              request={typeof job.result?.summary === 'string' ? job.result.summary : undefined}
+              onViewTrip={() => openTrip(job.trip_id)}
+            />
+          ))}
+
+          <h2 className="text-sm font-semibold pt-4" style={{ fontFamily: 'var(--font-display)' }}>
+            Agent activity
+          </h2>
           <Card padding="none">
             {isLoading ? (
-              <div className="p-8 text-center text-sm text-muted-foreground">Loading queue...</div>
+              <div className="p-8 text-center text-sm" style={{ color: 'var(--muted-foreground)' }}>Loading activity...</div>
             ) : jobs.length === 0 ? (
-              <div className="p-8 text-center text-sm text-muted-foreground">No jobs found.</div>
+              <EmptyState title="No agent activity yet" description="Jobs appear here as the AI agents process traveller requests." />
             ) : (
-              jobs.map(job => (
+              jobs.map((job) => (
                 <JobProgressCard
-                  key={job.id}
+                  key={job.job_id}
                   job={job}
-                  onQuickApprove={() => onNavigate('explainability')}
-                  onView={() => onNavigate('diff-viewer')}
+                  tripName={tripName(job.trip_id)}
+                  onView={() => openTrip(job.trip_id)}
                 />
               ))
             )}
           </Card>
         </div>
 
-        {/* Right column: customers + activity */}
         <div className="space-y-4">
           <Card padding="md">
             <CardHeader>
-              <CardTitle>Customers</CardTitle>
+              <CardTitle>Trips you oversee</CardTitle>
             </CardHeader>
             <div className="space-y-3">
-              {customers.map((c, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 pb-3"
-                  style={{ borderBottom: i < customers.length - 1 ? '1px solid var(--border)' : undefined }}
+              {trips.map((t, i) => (
+                <button
+                  key={t.trip_id}
+                  type="button"
+                  onClick={() => openTrip(t.trip_id)}
+                  className="w-full text-left flex items-center gap-3 pb-3"
+                  style={{ borderBottom: i < trips.length - 1 ? '1px solid var(--border)' : undefined }}
                 >
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-                    style={{ backgroundColor: `hsl(${i * 80} 30% 60%)`, color: '#fff' }}
-                  >
-                    {c.name.charAt(0)}
-                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{c.name}</p>
+                    <p className="text-xs font-medium truncate">{t.trip_name}</p>
                     <p className="text-[11px]" style={{ color: 'var(--muted-foreground)' }}>
-                      {c.trips} trip{c.trips !== 1 ? 's' : ''}
-                      {c.pending > 0 && ` · ${c.pending} pending`}
+                      {formatMoney(t.total_cost)} · v{t.current_version ?? 1} · {t.feedback_count ?? 0} feedback round{(t.feedback_count ?? 0) === 1 ? '' : 's'}
                     </p>
                   </div>
-                  <StatusBadge status={c.status} />
-                </div>
+                </button>
               ))}
-              {customers.length === 0 && !isLoading && (
-                <p className="text-sm text-muted-foreground">No customers found.</p>
-              )}
-            </div>
-          </Card>
-
-          <Card padding="md">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <div className="space-y-3">
-              {activity.map((a, i) => (
-                <div key={i} className="flex items-start gap-2 text-xs">
-                  <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: a.color }} />
-                  <div>
-                    <p className="leading-snug">{a.text}</p>
-                    <p className="mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
-                      {a.trip} · {a.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {activity.length === 0 && !isLoading && (
-                <p className="text-sm text-muted-foreground">No recent activity.</p>
-              )}
+              {trips.length === 0 && <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>No trips yet.</p>}
             </div>
           </Card>
         </div>
