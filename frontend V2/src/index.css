@@ -1,89 +1,232 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap');
-
+@import '@fontsource-variable/archivo/wdth.css';
 @import 'tailwindcss';
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-error: var(--error);
-  --color-ai: var(--ai);
-  --font-display: 'Plus Jakarta Sans', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'Geist Mono', monospace;
+/*
+  Merydian design tokens.
+  World: modular identity system. A 12-column grid on a 4px spacing scale, flat colour bars.
+  The four bar colours always mean something:
+    cyan    = action and AI
+    green   = added or approved
+    magenta = removed or needs attention
+    yellow  = shifted or pending
+*/
+@theme {
+  --font-sans: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+
+  --color-ground: #edf0f3;
+  --color-panel: #f6f8fa;
+  --color-paper: #ffffff;
+  --color-ink: #101418;
+  --color-ink-2: #3a444f;
+  --color-ink-3: #56606c;
+  --color-rule: #c6cdd5;
+
+  --color-cyan: #00a3e0;
+  --color-green: #3cb043;
+  --color-magenta: #e4007c;
+  --color-yellow: #ffd200;
+
+  /* Text-safe tints for coloured words on the grey ground */
+  --color-cyan-ink: #00668f;
+  --color-green-ink: #1c7524;
+  --color-magenta-ink: #b3005f;
+
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgb(16 20 24 / 0.06), 0 12px 32px rgb(16 20 24 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(16 20 24 / 0.08), 0 20px 48px rgb(16 20 24 / 0.16);
 }
 
-:root {
-  --background: #ffffff;
-  --foreground: #09090b;
-  --card: #fafafa;
-  --card-foreground: #09090b;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --border: #e4e4e7;
-  --primary: #2563eb;
-  --primary-foreground: #ffffff;
-  --success: #16a34a;
-  --warning: #ca8a04;
-  --error: #dc2626;
-  --ai: #7c3aed;
+@layer base {
+  html {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scrollbar-color: var(--color-ink) var(--color-ground);
+    scrollbar-width: thin;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--color-ground);
+    font-variant-numeric: tabular-nums;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--color-cyan);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  h1,
+  h2,
+  h3 {
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  ::placeholder {
+    color: var(--color-ink-3);
+    opacity: 1;
+  }
 }
 
-.dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #111113;
-  --card-foreground: #fafafa;
-  --muted: #1c1c1f;
-  --muted-foreground: #71717a;
-  --border: #27272a;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --success: #22c55e;
-  --warning: #eab308;
-  --error: #ef4444;
-  --ai: #a78bfa;
+@layer components {
+  /* Display type: heavy, tight, set big */
+  .display {
+    font-weight: 800;
+    font-stretch: 100%;
+    letter-spacing: -0.035em;
+    word-spacing: 0.06em;
+    line-height: 0.96;
+  }
+
+  .title {
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    word-spacing: 0.04em;
+    line-height: 1.05;
+  }
+
+  .label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--color-ink-3);
+  }
+
+  /* Words on a colour bar: the identity's signature type treatment */
+  .mark {
+    --bar: var(--color-cyan);
+    background: var(--bar);
+    color: var(--color-ink);
+    padding: 0.02em 0.14em 0.06em;
+    margin-inline: -0.04em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  .mark-cyan {
+    --bar: var(--color-cyan);
+  }
+  .mark-green {
+    --bar: var(--color-green);
+  }
+  .mark-magenta {
+    --bar: var(--color-magenta);
+    color: #fff;
+  }
+  .mark-yellow {
+    --bar: var(--color-yellow);
+  }
+
+  /* A bar: a block of unmixed colour sitting on the module grid */
+  .bar {
+    --bar: var(--color-cyan);
+    background: var(--bar);
+    color: var(--color-ink);
+  }
+
+  /* Overlaps of translucent bars make the secondary colours */
+  .blend {
+    mix-blend-mode: multiply;
+  }
+
+  .rule {
+    border-color: var(--color-rule);
+  }
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+/* Snap: a bar settling onto the module. The one motion the system uses. */
+@keyframes snap-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-html {
-  scroll-behavior: smooth;
+@keyframes fill-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
-body {
-  font-family: var(--font-body);
-  background-color: var(--background);
-  color: var(--foreground);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-size: 14px;
-  line-height: 1.5;
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translate3d(var(--dx, 6px), var(--dy, -8px), 0) rotate(calc(var(--r, 0deg) + 6deg));
+  }
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.snap-in {
+  animation: snap-in 420ms var(--ease-snap) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
 }
-::-webkit-scrollbar-track {
-  background: transparent;
+
+.fill-x {
+  transform-origin: left center;
+  animation: fill-x 700ms var(--ease-snap) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
 }
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
+
+.drift {
+  animation: drift 9s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * -1.3s);
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+
+@media (prefers-reduced-motion: reduce) {
+  .snap-in,
+  .fill-x,
+  .drift {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
 }
