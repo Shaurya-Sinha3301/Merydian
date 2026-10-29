@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Field';
 import { ErrorNote } from '../ui/Surface';
+import { RoleSwitch, type AccountRole } from '../ui/RoleSwitch';
 import { AuthLayout } from './AuthLayout';
 import { useSignup } from '../hooks/useAuth';
 import { ROUTES } from '../constants/routes';
@@ -18,7 +19,9 @@ export function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [touched, setTouched] = useState(false);
-  const [agency, setAgency] = useState(false);
+  const [params] = useSearchParams();
+  const [role, setRole] = useState<AccountRole>(params.get('as') === 'agent' ? 'agent' : 'traveller');
+  const agency = role === 'agent';
   const [code, setCode] = useState('');
 
   const errors = {
@@ -54,6 +57,7 @@ export function Signup() {
     >
       <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
         <h2 className="title text-3xl">Create an account</h2>
+        <RoleSwitch value={role} onChange={setRole} />
         <Input
           id="name"
           label="Your name"
@@ -84,17 +88,9 @@ export function Signup() {
           error={touched ? errors.password : ''}
           required
         />
-        <div>
-          <label className="flex items-center gap-2 text-sm font-semibold">
-            <input type="checkbox" checked={agency} onChange={(e) => setAgency(e.target.checked)} className="h-4 w-4 accent-[var(--color-ink)]" />
-            I work for a travel agency
-          </label>
-          {agency && (
-            <div className="mt-3">
-              <Input id="code" label="Agency code" value={code} onChange={(e) => setCode(e.target.value)} error={touched ? errors.code : ''} autoComplete="off" hint="Given to you by your agency. It creates a travel agent account." />
-            </div>
-          )}
-        </div>
+        {agency && (
+          <Input id="code" label="Agency code" value={code} onChange={(e) => setCode(e.target.value)} error={touched ? errors.code : ''} autoComplete="off" hint="Given to you by your agency. It creates a travel agent account." />
+        )}
         {signup.isError && (
           <ErrorNote>
             {exists ? 'An account with that email already exists. Try signing in.' : badCode ? 'That agency code is not valid.' : 'We could not create the account. Please try again.'}
