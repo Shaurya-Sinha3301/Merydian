@@ -26,7 +26,7 @@ function FieldShell({ label, hint, error, htmlFor, children }: FieldShellProps) 
 }
 
 const control =
-  'w-full rounded-xl bg-paper border-2 border-ink px-3 text-base text-ink focus-visible:outline-offset-0 focus-visible:border-cyan';
+  'w-full rounded-sm bg-paper border border-ink px-3 text-base text-ink focus-visible:outline-offset-0 focus-visible:border-cyan';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;

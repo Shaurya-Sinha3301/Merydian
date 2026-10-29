@@ -88,7 +88,7 @@ export function Demo() {
 
         <div className="mt-5 space-y-3" aria-live="polite">
           {slow && (
-            <p className="rounded-xl bg-yellow px-3 py-2 text-sm font-bold">
+            <p className="rounded-sm bg-yellow px-3 py-2 text-sm font-bold text-paper">
               The demo server runs on a free plan and sleeps when idle. Waking it can take up to a minute.
             </p>
           )}
@@ -136,7 +136,7 @@ export function Demo() {
             </h2>
             <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {travellers.map((p) => (
-                <li key={p.id} className="flex flex-col overflow-hidden rounded-2xl bg-paper shadow-[var(--shadow-card)]">
+                <li key={p.id} className="flex flex-col overflow-hidden border border-rule bg-paper">
                   <Photo photo={photoById(PHOTO_FOR[p.id])} alt="" className="h-40" />
                   <div className="flex flex-1 flex-col p-4">
                     <h3 className="text-xl font-extrabold">{p.title}</h3>

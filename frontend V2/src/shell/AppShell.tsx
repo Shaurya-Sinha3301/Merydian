@@ -7,7 +7,9 @@ import { Button } from '../ui/Button';
 import { Tag } from '../ui/Tag';
 
 const agentNav = [
+  { to: ROUTES.OVERVIEW, label: 'Overview' },
   { to: ROUTES.DESK, label: 'Desk' },
+  { to: ROUTES.CALENDAR, label: 'Calendar' },
   { to: ROUTES.TRIPS, label: 'Trips' },
   { to: ROUTES.ACTIVITY, label: 'Activity' },
 ];
@@ -32,15 +34,15 @@ export function AppShell() {
   };
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-dvh bg-ground">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:bg-ink focus:px-3 focus:py-2 focus:text-paper"
       >
         Skip to content
       </a>
-      <header className="border-b border-rule bg-ground">
-        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-8 gap-y-2 px-4 py-3 sm:px-6">
+      <header className="border-b-2 border-ink bg-paper">
+        <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-x-8 gap-y-2 px-4 py-3 sm:px-6">
           <Logo to={ROUTES.APP} />
           {isAgent && (
             <nav aria-label="Agent" className="order-3 flex w-full gap-1 overflow-x-auto sm:order-none sm:w-auto">
@@ -49,7 +51,7 @@ export function AppShell() {
                   key={n.to}
                   to={n.to}
                   className={({ isActive }) =>
-                    `h-9 shrink-0 rounded-xl px-4 text-sm font-extrabold leading-9 ${isActive ? 'bg-ink text-paper' : 'hover:bg-paper'}`
+                    `h-9 shrink-0 px-3 text-sm font-semibold leading-9 ${isActive ? 'border-b-2 border-magenta' : 'text-ink-2 hover:text-ink'}`
                   }
                 >
                   {n.label}
@@ -66,7 +68,7 @@ export function AppShell() {
           </div>
         </div>
       </header>
-      <main id="main" className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 sm:py-8">
+      <main id="main" className="mx-auto max-w-[1240px] px-4 py-6 sm:px-6 sm:py-8">
         <Outlet />
       </main>
     </div>

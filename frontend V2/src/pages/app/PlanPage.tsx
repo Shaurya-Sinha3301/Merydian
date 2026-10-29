@@ -4,10 +4,10 @@ import { DayTimeline, type TimelineStop } from '../../features/plan/DayTimeline'
 import { TripMap } from '../../features/plan/TripMap';
 import { useTripChanges, useTripPlan } from '../../hooks/useTripData';
 import { Empty, ErrorNote, Loading } from '../../ui/Surface';
-import { Photo, Bands, PhotoCaption } from '../../ui/Photo';
+import { Tag } from '../../ui/Tag';
 import { changesPath } from '../../constants/routes';
 import { clockLabel, planRange, toMinutes, type Stop } from '../../lib/plan';
-import { leadPhoto, photoForStop } from '../../lib/photos';
+import { leadPhoto } from '../../lib/photos';
 import { formatMoney, formatSignedMoney } from '../../lib/format';
 
 function pick(value: unknown, key: string): string | undefined {
@@ -73,97 +73,88 @@ export function PlanPage() {
   addedIds.forEach((id) => (colors[id] = '#3cb043'));
 
   return (
-    <div className="grid gap-x-8 gap-y-6 lg:grid-cols-12">
-      <div className="lg:col-span-7">
-        <div role="tablist" aria-label="Days" className="flex gap-2 overflow-x-auto pb-1">
+    <div className="grid gap-x-6 gap-y-6 lg:grid-cols-12">
+      <div className="min-w-0 lg:col-span-7">
+        <div role="tablist" aria-label="Days" className="flex overflow-x-auto border border-rule bg-paper">
           {plan.days.map((d) => (
             <button
               key={d.day}
               role="tab"
               aria-selected={d.day === day.day}
               onClick={() => setPicked(d.day)}
-              className={`shrink-0 rounded-xl px-4 py-2 text-sm font-extrabold ${
-                d.day === day.day ? 'bg-ink text-paper' : 'bg-paper text-ink shadow-[var(--shadow-card)] hover:bg-yellow'
+              className={`shrink-0 border-r border-rule px-4 py-2 text-sm font-semibold ${
+                d.day === day.day ? 'bg-ink text-paper' : 'text-ink-2 hover:bg-panel'
               }`}
             >
               Day {d.day}
-              <span className={`ml-2 text-xs font-bold ${d.day === day.day ? 'opacity-80' : 'text-ink-3'}`}>
-                {d.stops.length} stops
-              </span>
+              <span className={`ml-2 text-xs font-normal ${d.day === day.day ? 'text-paper/80' : 'text-ink-3'}`}>{d.stops.length} stops</span>
             </button>
           ))}
         </div>
 
-        <Photo photo={cover} alt={cover ? `${cover.name}, Delhi` : ''} scrim priority className="mt-4 h-44 rounded-3xl sm:h-52">
-          <Bands width="16%" />
-          <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-2 p-5 text-paper">
-            <div>
-              <p className="text-sm font-bold opacity-90">{cover ? `Starts near ${cover.name}` : 'Itinerary'}</p>
-              <h2 className="display text-5xl sm:text-6xl">Day {day.day}</h2>
-            </div>
-            <div className="flex flex-wrap gap-1.5 pr-[16%]">
-              {first != null && last != null && (
-                <span className="rounded-full bg-paper/90 px-2.5 py-1 text-xs font-bold text-ink">
-                  {clockLabel(first)} to {clockLabel(last)}
-                </span>
-              )}
-              {newCount > 0 && <span className="rounded-full bg-green px-2.5 py-1 text-xs font-bold text-ink">{newCount} new</span>}
-              {ghosts.length > 0 && (
-                <span className="rounded-full bg-magenta px-2.5 py-1 text-xs font-bold text-paper">{ghosts.length} dropped</span>
-              )}
-            </div>
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="display text-3xl">Day {day.day}</h2>
+            <p className="text-sm text-ink-2">
+              {first != null && last != null ? `${clockLabel(first)} to ${clockLabel(last)}` : 'Itinerary'}
+              {cover ? ` · starts near ${cover.name}` : ''}
+            </p>
           </div>
-        </Photo>
-        <PhotoCaption photo={cover} className="mt-1 text-ink-3" />
+          <div className="flex flex-wrap gap-1.5">
+            {newCount > 0 && <Tag tone="added">{newCount} added</Tag>}
+            {ghosts.length > 0 && <Tag tone="removed">{ghosts.length} withdrawn</Tag>}
+          </div>
+        </div>
 
-        <div className="mt-4">
+        <div className="mt-3">
           <DayTimeline stops={stops} lo={lo} hi={hi} />
         </div>
       </div>
 
-      <aside className="lg:col-span-5">
+      <aside className="min-w-0 lg:col-span-5">
         <div className="flex flex-col gap-4 lg:sticky lg:top-6">
           <TripMap
             label={`Map of day ${day.day}`}
             points={day.stops.map((s) => ({ id: s.id, title: s.title }))}
             ghosts={ghosts.map((g) => ({ id: g.id, title: g.title }))}
             colors={colors}
-            className="h-72 rounded-3xl shadow-[var(--shadow-card)] sm:h-80"
+            className="h-72 border border-rule sm:h-80"
           />
 
-          <section className="rounded-3xl bg-paper p-5 shadow-[var(--shadow-card)]" aria-label="This version">
-            <h3 className="title text-xl">This version</h3>
-            <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl bg-panel p-2">
+          <section className="border border-rule bg-paper" aria-label="This version">
+            <h3 className="title border-b-2 border-ink px-4 py-2.5 text-lg">This version</h3>
+            <dl className="grid grid-cols-3 divide-x divide-rule text-center">
+              <div className="p-3">
                 <dt className="label">Plan cost</dt>
-                <dd className="text-lg font-extrabold">{formatMoney(changes.trip?.total_cost)}</dd>
+                <dd className="mt-1 text-lg font-bold tabular-nums">{formatMoney(changes.trip?.total_cost)}</dd>
               </div>
-              <div className="rounded-xl bg-panel p-2">
+              <div className="p-3">
                 <dt className="label">vs last</dt>
-                <dd className="text-lg font-extrabold">
+                <dd className="mt-1 text-lg font-bold tabular-nums">
                   {changes.diff?.cost_delta != null ? formatSignedMoney(changes.diff.cost_delta) : '—'}
                 </dd>
               </div>
-              <div className="rounded-xl bg-panel p-2">
+              <div className="p-3">
                 <dt className="label">Fit</dt>
-                <dd className="text-lg font-extrabold">
+                <dd className="mt-1 text-lg font-bold tabular-nums">
                   {changes.diff?.satisfaction_delta != null
                     ? `${changes.diff.satisfaction_delta >= 0 ? '+' : ''}${changes.diff.satisfaction_delta.toFixed(2)}`
                     : '—'}
                 </dd>
               </div>
             </dl>
-            <p className="mt-3 text-sm text-ink-2">
-              Day {day.day} has {day.stops.length} stops. {photoForStop(day.stops[0]?.id) ? '' : ''}
-              Numbers show the stop order on the map.
+            <p className="border-t border-rule px-4 py-2.5 text-sm text-ink-2">
+              Day {day.day} has {day.stops.length} stops. Numbers show the stop order on the map.
             </p>
           </section>
 
           {changes.previous && (
-            <Link to={changesPath(tripId)} className="block rounded-3xl bg-cyan p-5 text-ink hover:bg-ink hover:text-paper">
-              <p className="title text-2xl">Version {changes.current} changed this plan</p>
-              <p className="mt-1 font-bold">{addedIds.size} new stops and {Object.values(droppedByDay).flat().length} dropped.</p>
-              <p className="mt-3 text-sm font-bold underline underline-offset-4 decoration-2">See what changed and why</p>
+            <Link to={changesPath(tripId)} className="block border border-ink bg-paper p-4 hover:bg-panel">
+              <p className="title text-lg">Version {changes.current} corrected this plan</p>
+              <p className="mt-1 text-sm text-ink-2">
+                {addedIds.size} added and {Object.values(droppedByDay).flat().length} withdrawn.
+              </p>
+              <p className="mt-2 text-sm font-semibold underline underline-offset-4">See what changed and why</p>
             </Link>
           )}
         </div>

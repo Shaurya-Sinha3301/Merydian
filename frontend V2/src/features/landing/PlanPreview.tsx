@@ -1,95 +1,114 @@
-import { MapPin, Utensils } from 'lucide-react';
 import { TripMap } from '../plan/TripMap';
-import { Photo, PhotoCaption } from '../../ui/Photo';
+import { MonthGrid } from '../calendar/MonthGrid';
+import { Plate } from '../../ui/Photo';
 import { Tag } from '../../ui/Tag';
-import { photoForStop, HERO_PHOTOS } from '../../lib/photos';
+import { HERO_PHOTOS } from '../../lib/photos';
 import { tagWords } from '../changes/ChangeRow';
 
 /*
   A sample of the traveller's plan view, using the seeded Family Vacation demo trip.
   It is sample data, labelled as such, and shows what the real screens do.
 */
-interface SampleStop {
+interface Row {
   time: string;
-  name: string;
-  detail: string;
-  kind: 'sight' | 'meal';
-  state?: 'added' | 'removed';
+  stop: string;
+  length: string;
+  note?: 'withdrawn' | 'added';
+  meal?: boolean;
 }
 
-const DAY3: SampleStop[] = [
-  { time: '09:00', name: 'Raj Ghat', detail: '45 min', kind: 'sight' },
-  { time: '12:30', name: 'Connaught Place Restaurants (Lunch)', detail: '1 h', kind: 'meal' },
-  { time: '14:00', name: 'National Museum', detail: '2 h', kind: 'sight', state: 'removed' },
-  { time: '14:00', name: 'Garden of Five Senses', detail: '1 h 30 min', kind: 'sight', state: 'added' },
-  { time: '19:00', name: 'Evening Fine Dining (Dinner)', detail: '1 h 30 min', kind: 'meal' },
+const DAY3: Row[] = [
+  { time: '09:00', stop: 'Raj Ghat', length: '45 min' },
+  { time: '12:30', stop: 'Connaught Place Restaurants', length: '1 h', meal: true },
+  { time: '14:00', stop: 'National Museum', length: '2 h', note: 'withdrawn' },
+  { time: '14:00', stop: 'Garden of Five Senses', length: '1 h 30', note: 'added' },
+  { time: '19:00', stop: 'Evening Fine Dining', length: '1 h 30', meal: true },
 ];
 
-function Thumb({ stop }: { stop: SampleStop }) {
-  const photo = photoForStop(stop.name);
-  if (photo) return <Photo photo={photo} alt="" className="h-16 w-20 shrink-0 rounded-lg" />;
-  const Icon = stop.kind === 'meal' ? Utensils : MapPin;
-  const bg = stop.state === 'added' ? 'bg-green' : stop.kind === 'meal' ? 'bg-ink text-paper' : 'bg-cyan';
-  return (
-    <div className={`flex h-16 w-20 shrink-0 items-center justify-center rounded-lg ${bg}`}>
-      <Icon aria-hidden size={22} strokeWidth={2.2} />
-    </div>
-  );
-}
+const CORRECTIONS = [
+  {
+    tone: 'removed' as const,
+    head: 'Withdrawn: National Museum',
+    why: 'Two hours indoors with two children, when this family rates outdoor time highest.',
+    tags: ['CHILD_FRIENDLY', 'INTEREST_VECTOR_DOMINANCE'],
+  },
+  {
+    tone: 'added' as const,
+    head: 'Added: Garden of Five Senses',
+    why: 'Open space and interactive exhibits, which fits their nature and adventure interests.',
+    tags: ['CHILD_FRIENDLY', 'INTEREST_VECTOR_DOMINANCE'],
+  },
+];
 
 export function PlanPreview() {
   return (
-    <div className="overflow-hidden rounded-3xl bg-paper shadow-[var(--shadow-lift)]">
-      <div className="grid lg:grid-cols-12">
-        {/* Day list */}
-        <nav aria-label="Days (sample)" className="hidden border-r border-rule p-4 lg:col-span-2 lg:block">
-          <p className="label mb-2">Family Vacation in Delhi</p>
-          <ul className="flex flex-col gap-1 text-sm font-bold">
-            {['Day 1', 'Day 2', 'Day 3', 'Day 4'].map((d) => (
-              <li key={d} className={`rounded-lg px-3 py-2 ${d === 'Day 3' ? 'bg-ink text-paper' : 'text-ink-2'}`}>
-                {d}
-              </li>
-            ))}
-          </ul>
-        </nav>
+    <div className="border border-ink bg-paper">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b-2 border-ink px-4 py-3">
+        <p className="title text-xl">Family Vacation in Delhi</p>
+        <p className="flex flex-wrap items-center gap-2 text-sm text-ink-2">
+          <span className="tabular-nums">15 to 18 March 2026</span>
+          <Tag tone="ai">Version 2</Tag>
+          <Tag>Sample, synthetic data</Tag>
+        </p>
+      </div>
 
-        {/* Timeline */}
-        <div className="p-4 sm:p-6 lg:col-span-6">
-          <Photo photo={HERO_PHOTOS.tomb} alt="Humayun's Tomb in Delhi" scrim className="h-40 rounded-2xl sm:h-48">
-            <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-2 p-4 text-paper">
-              <div>
-                <p className="text-sm font-bold opacity-90">Version 2</p>
-                <p className="display text-4xl">Day 3</p>
-              </div>
-              <div className="flex gap-1.5">
-                <span className="rounded-full bg-paper/90 px-2.5 py-1 text-xs font-bold text-ink">4 stops</span>
-                <span className="rounded-full bg-green px-2.5 py-1 text-xs font-bold text-ink">1 new</span>
-                <span className="rounded-full bg-magenta px-2.5 py-1 text-xs font-bold text-paper">1 dropped</span>
-              </div>
-            </div>
-          </Photo>
-          <ol className="mt-4 flex flex-col gap-2">
-            {DAY3.map((s) => (
-              <li key={s.time + s.name} className="flex items-center gap-3 rounded-xl p-1.5 odd:bg-panel">
-                <Thumb stop={s} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold tabular-nums text-ink-3">
-                    {s.time} · {s.detail}
-                  </p>
-                  <p className={`text-sm font-extrabold leading-snug sm:text-base ${s.state === 'removed' ? 'line-through decoration-2' : ''}`}>
-                    {s.name}
-                  </p>
-                </div>
-                {s.state === 'added' && <Tag tone="added">New</Tag>}
-                {s.state === 'removed' && <Tag tone="removed">Dropped</Tag>}
-              </li>
+      <div className="grid lg:grid-cols-12">
+        <div className="min-w-0 border-b border-rule lg:col-span-7 lg:border-b-0 lg:border-r">
+          <div className="flex gap-px border-b border-rule bg-rule text-sm font-semibold">
+            {['Day 1', 'Day 2', 'Day 3', 'Day 4'].map((d) => (
+              <p key={d} className={`flex-1 px-3 py-2 text-center ${d === 'Day 3' ? 'bg-ink text-paper' : 'bg-panel text-ink-2'}`}>
+                {d}
+              </p>
             ))}
-          </ol>
-          <p className="mt-3 text-xs text-ink-3">Sample from the Family Vacation demo trip, synthetic data.</p>
+          </div>
+          <div className="overflow-x-auto"><table className="ruled">
+            <caption className="sr-only">Day 3 timetable, version 2</caption>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Stop</th>
+                <th>Length</th>
+                <th>Version 2</th>
+              </tr>
+            </thead>
+            <tbody>
+              {DAY3.map((r) => (
+                <tr key={r.time + r.stop} data-row>
+                  <td className="font-semibold tabular-nums">{r.time}</td>
+                  <td className={r.note === 'withdrawn' ? 'text-ink-3 line-through decoration-magenta decoration-2' : 'font-semibold'}>
+                    {r.stop}
+                    {r.meal && <span className="ml-2 text-xs font-normal text-ink-3">meal</span>}
+                  </td>
+                  <td className="tabular-nums text-ink-2">{r.length}</td>
+                  <td>{r.note === 'withdrawn' ? <Tag tone="removed">Withdrawn</Tag> : r.note === 'added' ? <Tag tone="added">Added</Tag> : null}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table></div>
+
+          <div className="border-t-2 border-ink px-4 pb-5 pt-3">
+            <h3 className="title text-lg">Corrections, with reasons</h3>
+            <ul className="mt-2 divide-y divide-rule">
+              {CORRECTIONS.map((c) => (
+                <li key={c.head} className="grid gap-x-4 gap-y-1 py-3 sm:grid-cols-[11rem_1fr]" data-row>
+                  <p className={`text-sm font-bold ${c.tone === 'removed' ? 'text-magenta' : 'text-green'}`}>{c.head}</p>
+                  <div>
+                    <p className="text-ink-2">{c.why}</p>
+                    <ul className="mt-2 flex flex-wrap gap-1.5">
+                      {c.tags.map((t) => (
+                        <li key={t}>
+                          <Tag>{tagWords(t)}</Tag>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        {/* Map and numbers */}
-        <aside className="flex flex-col gap-4 bg-panel p-4 sm:p-6 lg:col-span-4">
+        <aside className="flex min-w-0 flex-col gap-3 bg-panel p-3 lg:col-span-5">
           <TripMap
             label="Map of day 3 across Delhi"
             points={[
@@ -97,60 +116,28 @@ export function PlanPreview() {
               { id: 'LOC_019', title: 'Garden of Five Senses' },
             ]}
             ghosts={[{ id: 'LOC_014', title: 'National Museum' }]}
-            colors={{ LOC_019: '#3cb043' }}
-            className="h-72 rounded-2xl bg-paper"
+            colors={{ LOC_019: '#1f6b35' }}
+            className="h-72 border border-rule"
           />
-          <section className="rounded-2xl bg-paper p-4" aria-label="What this version changed">
-            <h3 className="title text-xl">This version</h3>
-            <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl bg-panel p-2">
-                <dt className="label">Plan cost</dt>
-                <dd className="text-lg font-extrabold">₹3,440</dd>
-              </div>
-              <div className="rounded-xl bg-panel p-2">
-                <dt className="label">vs v1</dt>
-                <dd className="text-lg font-extrabold text-green-ink">−₹3,800</dd>
-              </div>
-              <div className="rounded-xl bg-panel p-2">
-                <dt className="label">Fit</dt>
-                <dd className="text-lg font-extrabold">+0.19</dd>
-              </div>
+          <div className="grid grid-cols-[1fr_9rem] gap-3">
+            <Plate photo={HERO_PHOTOS.gardens} alt="Lodhi Gardens" imgClassName="aspect-[4/3]" />
+            <dl className="border border-rule bg-paper p-3 text-sm">
+              <dt className="label">Plan cost</dt>
+              <dd className="text-lg font-bold tabular-nums">₹3,440</dd>
+              <dt className="label mt-2">vs v1</dt>
+              <dd className="text-lg font-bold tabular-nums text-green">−₹3,800</dd>
+              <dt className="label mt-2">Fit</dt>
+              <dd className="text-lg font-bold tabular-nums">+0.19</dd>
             </dl>
-          </section>
+          </div>
+          <MonthGrid
+            year={2026}
+            month={2}
+            compact
+            events={[{ id: 'trip', label: 'Family Vacation', start: new Date(2026, 2, 15), end: new Date(2026, 2, 18), tone: 'ai' }]}
+          />
         </aside>
       </div>
-
-      {/* Why this plan: reasoning in the margin */}
-      <section className="border-t border-rule bg-paper p-4 sm:p-6" aria-labelledby="why">
-        <h3 id="why" className="title text-2xl">
-          Why this plan?
-        </h3>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <article className="rounded-2xl border-2 border-magenta p-4">
-            <p className="text-sm font-extrabold text-magenta-ink">Dropped: National Museum</p>
-            <p className="mt-1 text-ink-2">Two hours indoors with two children, when this family rates outdoor time highest.</p>
-            <ul className="mt-3 flex flex-wrap gap-1.5">
-              {['CHILD_FRIENDLY', 'INTEREST_VECTOR_DOMINANCE'].map((t) => (
-                <li key={t}>
-                  <Tag>{tagWords(t)}</Tag>
-                </li>
-              ))}
-            </ul>
-          </article>
-          <article className="rounded-2xl border-2 border-green p-4">
-            <p className="text-sm font-extrabold text-green-ink">New: Garden of Five Senses</p>
-            <p className="mt-1 text-ink-2">Open space and interactive exhibits, which fits their nature and adventure interests.</p>
-            <ul className="mt-3 flex flex-wrap gap-1.5">
-              {['CHILD_FRIENDLY', 'INTEREST_VECTOR_DOMINANCE'].map((t) => (
-                <li key={t}>
-                  <Tag>{tagWords(t)}</Tag>
-                </li>
-              ))}
-            </ul>
-          </article>
-        </div>
-        <PhotoCaption photo={HERO_PHOTOS.tomb} className="mt-3 text-ink-3" />
-      </section>
     </div>
   );
 }

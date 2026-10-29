@@ -5,12 +5,12 @@ import { ROUTES, tripPath } from '../../constants/routes';
 import { Empty, ErrorNote, Loading } from '../../ui/Surface';
 import { ButtonLink } from '../../ui/Button';
 
-/** Agents land on the desk; a traveller lands on their trip. */
+/** Agents land on the overview; a traveller lands on their trip. */
 export function AppIndex() {
   const isAgent = useAuthStore((s) => s.user?.role === 'agent');
   const { data, isLoading, error } = useTrips(10, 0);
 
-  if (isAgent) return <Navigate to={ROUTES.DESK} replace />;
+  if (isAgent) return <Navigate to={ROUTES.OVERVIEW} replace />;
   if (isLoading) return <Loading label="Finding your trip" />;
   if (error) return <ErrorNote>Your trips could not be loaded. The server may still be waking up.</ErrorNote>;
 

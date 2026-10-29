@@ -51,10 +51,10 @@ export function SwapCard({ day, before, after, reason, costDelta, tags = [], ind
     );
 
   return (
-    <article className="snap-in overflow-hidden rounded-2xl bg-paper shadow-[var(--shadow-card)]" style={{ ['--i' as string]: index }}>
+    <article className="snap-in overflow-hidden border border-rule bg-paper" style={{ ['--i' as string]: index }}>
       <div className="grid grid-cols-2 text-sm font-extrabold">
         <p className="bg-magenta px-4 py-1.5 text-paper">{before ? 'Dropped' : 'Nothing dropped'}</p>
-        <p className="flex items-center justify-between bg-green px-4 py-1.5 text-ink">
+        <p className="flex items-center justify-between bg-green px-4 py-1.5 text-paper">
           <span>{after ? 'New' : 'Nothing added'}</span>
           {costDelta != null && costDelta !== 0 && <span className="tabular-nums">{formatSignedMoney(costDelta)}</span>}
         </p>

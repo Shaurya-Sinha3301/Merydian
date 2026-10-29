@@ -3,39 +3,50 @@
 
 /*
   Merydian design tokens.
-  World: modular identity system. A 12-column grid on a 4px spacing scale, flat colour bars.
-  The four bar colours always mean something:
-    cyan    = action and AI
-    green   = added or approved
-    magenta = removed or needs attention
-    yellow  = shifted or pending
+  World: the printed timetable. White paper, ink, hairline rules, near-square corners, no shadows.
+  Four signals always mean something (the names are kept from the earlier system):
+    cyan    = navy   : action and AI
+    green   = forest : added or approved
+    magenta = red    : withdrawn or needs attention
+    yellow  = amber  : pending
 */
 @theme {
   --font-sans: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
 
-  --color-ground: #edf0f3;
-  --color-panel: #f6f8fa;
+  --color-ground: #f2f4f6;
+  --color-panel: #f7f8fa;
   --color-paper: #ffffff;
-  --color-ink: #101418;
-  --color-ink-2: #3a444f;
+  --color-ink: #14181d;
+  --color-ink-2: #39424c;
   --color-ink-3: #56606c;
-  --color-rule: #c6cdd5;
+  --color-rule: #c9cfd6;
 
-  --color-cyan: #00a3e0;
-  --color-green: #3cb043;
-  --color-magenta: #e4007c;
-  --color-yellow: #ffd200;
+  --color-cyan: #17407f;
+  --color-green: #1f6b35;
+  --color-magenta: #c4231a;
+  --color-yellow: #8a5a00;
 
-  /* Text-safe tints for coloured words on the grey ground */
-  --color-cyan-ink: #00668f;
-  --color-green-ink: #1c7524;
-  --color-magenta-ink: #b3005f;
+  --color-cyan-ink: #17407f;
+  --color-green-ink: #1f6b35;
+  --color-magenta-ink: #c4231a;
+
+  --color-navy-tint: #e8eef8;
+  --color-green-tint: #e5f2e9;
+  --color-red-tint: #fbebe9;
+  --color-amber-tint: #fbf1d9;
 
   --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
 
-  --radius-card: 1rem;
-  --shadow-card: 0 1px 2px rgb(16 20 24 / 0.06), 0 12px 32px rgb(16 20 24 / 0.08);
-  --shadow-lift: 0 2px 4px rgb(16 20 24 / 0.08), 0 20px 48px rgb(16 20 24 / 0.16);
+  /* Near-square corners everywhere; pills keep rounded-full */
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
+  --radius-2xl: 3px;
+  --radius-3xl: 3px;
+  --radius-card: 3px;
+
+  --shadow-card: none;
+  --shadow-lift: 0 1px 0 rgb(20 24 29 / 0.06), 0 8px 24px rgb(20 24 29 / 0.10);
 }
 
 @layer base {
@@ -63,12 +74,12 @@
   }
 
   ::selection {
-    background: var(--color-cyan);
+    background: #cfdcf2;
     color: var(--color-ink);
   }
 
   :focus-visible {
-    outline: 3px solid var(--color-ink);
+    outline: 2px solid var(--color-cyan);
     outline-offset: 2px;
   }
 
@@ -108,39 +119,36 @@
 }
 
 @layer components {
-  /* Display type: heavy, tight, set big */
+  /* Display type: set plainly, like a timetable's title */
   .display {
-    font-weight: 800;
+    font-weight: 700;
     font-stretch: 100%;
-    letter-spacing: -0.035em;
-    word-spacing: 0.06em;
-    line-height: 0.96;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
   }
 
   .title {
-    font-weight: 800;
-    letter-spacing: -0.025em;
-    word-spacing: 0.04em;
-    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: -0.012em;
+    line-height: 1.1;
   }
 
   .label {
     font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    text-transform: none;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     color: var(--color-ink-3);
   }
 
-  /* Words on a colour bar: the identity's signature type treatment */
+  /* Emphasis in a timetable is a ruled underline, never a highlight */
   .mark {
     --bar: var(--color-cyan);
-    background: var(--bar);
-    color: var(--color-ink);
-    padding: 0.02em 0.14em 0.06em;
-    margin-inline: -0.04em;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--bar);
+    text-decoration-thickness: 0.07em;
+    text-underline-offset: 0.12em;
   }
   .mark-cyan {
     --bar: var(--color-cyan);
@@ -150,10 +158,39 @@
   }
   .mark-magenta {
     --bar: var(--color-magenta);
-    color: #fff;
   }
   .mark-yellow {
     --bar: var(--color-yellow);
+  }
+
+  /* Ruled table: header on a 2px ink rule, rows on hairlines */
+  .ruled {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  .ruled th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+    padding: 0.5rem 0.75rem;
+    border-bottom: 2px solid var(--color-ink);
+    white-space: nowrap;
+  }
+  .ruled td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--color-rule);
+    vertical-align: middle;
+  }
+  .ruled tbody tr:hover td {
+    background: var(--color-panel);
+  }
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
   }
 
   /* A bar: a block of unmixed colour sitting on the module grid */

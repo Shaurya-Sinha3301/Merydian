@@ -5,13 +5,13 @@ type Variant = 'ink' | 'cyan' | 'quiet' | 'outline';
 type Size = 'md' | 'lg';
 
 const base =
-  'rounded-xl inline-flex items-center justify-center gap-2 font-bold whitespace-nowrap select-none transition-colors duration-150 disabled:pointer-events-none';
+  'rounded-sm inline-flex items-center justify-center gap-2 font-semibold whitespace-nowrap select-none transition-colors duration-150 disabled:pointer-events-none';
 
 const variants: Record<Variant, string> = {
-  ink: 'bg-ink text-paper hover:bg-cyan hover:text-ink disabled:bg-rule disabled:text-ink-2',
-  cyan: 'bg-cyan text-ink hover:bg-ink hover:text-paper disabled:bg-rule disabled:text-ink-2',
-  quiet: 'bg-transparent text-ink underline underline-offset-4 decoration-2 decoration-ink hover:decoration-cyan disabled:text-ink-3',
-  outline: 'bg-paper text-ink border-2 border-ink hover:bg-yellow disabled:border-rule disabled:text-ink-3',
+  ink: 'bg-ink text-paper hover:bg-ink-2 disabled:bg-rule disabled:text-ink-2',
+  cyan: 'bg-cyan text-paper hover:bg-ink disabled:bg-rule disabled:text-ink-2',
+  quiet: 'bg-transparent text-ink underline underline-offset-4 decoration-1 decoration-ink hover:decoration-2 disabled:text-ink-3',
+  outline: 'bg-paper text-ink border border-ink hover:bg-panel disabled:border-rule disabled:text-ink-3',
 };
 
 const sizes: Record<Size, string> = {

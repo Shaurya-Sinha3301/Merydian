@@ -35,24 +35,9 @@ export function Photo({ photo, alt = '', className = '', scrim = false, priority
   );
 }
 
-const BAND_COLORS = ['#00a3e0', '#e4007c', '#ffd200', '#3cb043'];
-
-/**
- * The identity's signature over a photo: vertical colour bands that multiply into the picture,
- * so the photograph shows through each band in its colour.
- */
-export function Bands({ side = 'right', width = '42%' }: { side?: 'left' | 'right'; width?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={`pointer-events-none absolute inset-y-0 ${side === 'right' ? 'right-0' : 'left-0'} flex`}
-      style={{ width }}
-    >
-      {BAND_COLORS.map((c) => (
-        <span key={c} className="h-full flex-1 mix-blend-multiply" style={{ background: c, opacity: 0.92 }} />
-      ))}
-    </div>
-  );
+/** The earlier identity's colour bands. The timetable world has none; kept as a no-op so callers compile. */
+export function Bands(_props: { side?: 'left' | 'right'; width?: string }) {
+  return null;
 }
 
 /** One short credit line for a photo, as its licence asks. */
@@ -65,5 +50,35 @@ export function PhotoCaption({ photo, className = '' }: { photo?: PhotoCredit; c
         {photo.license}
       </a>
     </p>
+  );
+}
+
+/** A photograph as a printed plate: thin frame, a caption line naming the place, the credit beneath. */
+export function Plate({
+  photo,
+  alt = '',
+  className = '',
+  imgClassName = 'aspect-[4/3]',
+  priority = false,
+  unmask = false,
+}: {
+  photo?: PhotoCredit;
+  alt?: string;
+  className?: string;
+  imgClassName?: string;
+  priority?: boolean;
+  unmask?: boolean;
+}) {
+  if (!photo) return null;
+  return (
+    <figure className={`border border-rule bg-paper p-1.5 ${className}`}>
+      <div className="overflow-hidden" {...(unmask ? { 'data-unmask': '' } : {})}>
+        <Photo photo={photo} alt={alt} priority={priority} className={`w-full ${imgClassName}`} />
+      </div>
+      <figcaption className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 text-[11px] text-ink-3">
+        <span className="font-semibold text-ink-2">{photo.name}</span>
+        <PhotoCaption photo={photo} />
+      </figcaption>
+    </figure>
   );
 }

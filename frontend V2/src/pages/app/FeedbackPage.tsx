@@ -107,7 +107,7 @@ export function FeedbackPage() {
                 type="button"
                 disabled={running}
                 onClick={() => setMessage(idea)}
-                className="rounded-full bg-paper px-3.5 py-1.5 text-sm font-bold shadow-[var(--shadow-card)] hover:bg-yellow disabled:opacity-45"
+                className="rounded-full bg-paper px-3.5 py-1.5 text-sm font-bold shadow-[var(--shadow-card)] hover:bg-panel disabled:opacity-45"
               >
                 {idea}
               </button>

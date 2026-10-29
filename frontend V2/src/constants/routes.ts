@@ -4,7 +4,9 @@ export const ROUTES = {
   LOGIN: '/login',
   SIGNUP: '/signup',
   APP: '/app',
+  OVERVIEW: '/app/overview',
   DESK: '/app/desk',
+  CALENDAR: '/app/calendar',
   TRIPS: '/app/trips',
   ACTIVITY: '/app/activity',
 } as const;
