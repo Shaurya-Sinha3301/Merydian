@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { Logo } from '../ui/Logo';
-import { Photo, Bands, PhotoCaption } from '../ui/Photo';
+import { Photo, PhotoCaption } from '../ui/Photo';
 import { HERO_PHOTOS } from '../lib/photos';
 
 interface AuthLayoutProps {
@@ -16,7 +16,6 @@ export function AuthLayout({ title, lead, children }: AuthLayoutProps) {
       <aside className="relative min-h-[260px] lg:col-span-6 lg:min-h-0">
         <div className="absolute inset-0">
           <Photo photo={HERO_PHOTOS.tomb} alt="Humayun's Tomb in Delhi" scrim priority className="h-full w-full">
-            <Bands width="26%" />
           </Photo>
         </div>
         <div className="relative z-10 flex h-full flex-col justify-between p-6 text-paper sm:p-10 lg:p-14">

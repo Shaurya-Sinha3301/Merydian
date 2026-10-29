@@ -193,21 +193,6 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* A bar: a block of unmixed colour sitting on the module grid */
-  .bar {
-    --bar: var(--color-cyan);
-    background: var(--bar);
-    color: var(--color-ink);
-  }
-
-  /* Overlaps of translucent bars make the secondary colours */
-  .blend {
-    mix-blend-mode: multiply;
-  }
-
-  .rule {
-    border-color: var(--color-rule);
-  }
 }
 
 /* Snap: a bar settling onto the module. The one motion the system uses. */
@@ -231,16 +216,6 @@
   }
 }
 
-@keyframes drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) rotate(var(--r, 0deg));
-  }
-  50% {
-    transform: translate3d(var(--dx, 6px), var(--dy, -8px), 0) rotate(calc(var(--r, 0deg) + 6deg));
-  }
-}
-
 .snap-in {
   animation: snap-in 420ms var(--ease-snap) both;
   animation-delay: calc(var(--i, 0) * 45ms);
@@ -252,15 +227,9 @@
   animation-delay: calc(var(--i, 0) * 60ms);
 }
 
-.drift {
-  animation: drift 9s ease-in-out infinite;
-  animation-delay: calc(var(--i, 0) * -1.3s);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .snap-in,
-  .fill-x,
-  .drift {
+  .fill-x {
     animation: none;
   }
   html {

@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-30T00:00:00Z",
+  "title": "Design System: Merydian",
+  "extensions": {
+    "colorMeta": {
+      "ground": { "role": "neutral", "displayName": "Cool Ground", "canonical": "#f2f4f6", "tonalRamp": ["#14181d", "#39424c", "#56606c", "#8a949f", "#c9cfd6", "#e2e6ea", "#f2f4f6", "#fafbfc"] },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#ffffff", "tonalRamp": ["#14181d", "#39424c", "#56606c", "#8a949f", "#c9cfd6", "#e2e6ea", "#f7f8fa", "#ffffff"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#14181d", "tonalRamp": ["#14181d", "#22282f", "#39424c", "#56606c", "#7b8590", "#a3abb4", "#c9cfd6", "#e8ebee"] },
+      "rule": { "role": "neutral", "displayName": "Hairline", "canonical": "#c9cfd6", "tonalRamp": ["#56606c", "#7b8590", "#a3abb4", "#c9cfd6", "#d8dde2", "#e2e6ea", "#edf0f2", "#f7f8fa"] },
+      "cyan": { "role": "primary", "displayName": "Timetable Navy", "canonical": "#17407f", "tonalRamp": ["#0b1f40", "#102e5c", "#17407f", "#3a62a3", "#6a8bc0", "#9bb3d8", "#cfdcf2", "#e8eef8"] },
+      "green": { "role": "secondary", "displayName": "Forest", "canonical": "#1f6b35", "tonalRamp": ["#0e3319", "#154d26", "#1f6b35", "#3f8a55", "#6fad82", "#a0cbad", "#cde4d4", "#e5f2e9"] },
+      "magenta": { "role": "secondary", "displayName": "Timetable Red", "canonical": "#c4231a", "tonalRamp": ["#5c0f0a", "#8e1a13", "#c4231a", "#d4574f", "#e38a84", "#efb7b3", "#f7d8d5", "#fbebe9"] },
+      "yellow": { "role": "secondary", "displayName": "Amber", "canonical": "#8a5a00", "tonalRamp": ["#3f2900", "#654200", "#8a5a00", "#b0801f", "#cfa754", "#e4c98f", "#f2e2bb", "#fbf1d9"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Landing headline, 700, tight." },
+      "title": { "displayName": "Title", "purpose": "Page headers and section titles." },
+      "body": { "displayName": "Body", "purpose": "Prose, tabular numerals." },
+      "table-head": { "displayName": "Table head", "purpose": "Ruled-table column headings only." }
+    },
+    "shadows": [
+      { "name": "shadow-card", "value": "none", "purpose": "Panels are flat at rest." },
+      { "name": "shadow-lift", "value": "0 1px 0 rgb(20 24 29 / 0.06), 0 8px 24px rgb(20 24 29 / 0.10)", "purpose": "Rare overlay use only." }
+    ],
+    "motion": [
+      { "name": "ease-snap", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "snap-in (420ms) and fill-x (700ms); disabled under prefers-reduced-motion." },
+      { "name": "gsap-entrance", "value": "expo.out / power3.out, staggered", "purpose": "Landing and scroll reveals in src/lib/motion.ts, reduced-motion gated." }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Ink Button",
+      "kind": "custom",
+      "refersTo": "button-ink",
+      "description": "Default action button.",
+      "html": "<button class=\"ds-btn-ink\">Save</button>",
+      "css": ".ds-btn-ink{background:var(--color-ink,#14181d);color:#fff;height:40px;padding:0 16px;border:0;border-radius:2px;font-weight:600;font-size:14px;transition:background-color .15s}.ds-btn-ink:hover{background:var(--color-ink-2,#39424c)}.ds-btn-ink:focus-visible{outline:2px solid #17407f;outline-offset:2px}"
+    },
+    {
+      "name": "Action Button",
+      "kind": "custom",
+      "refersTo": "button-action",
+      "description": "Navy primary call to action.",
+      "html": "<button class=\"ds-btn-action\">Explore the demo</button>",
+      "css": ".ds-btn-action{background:#17407f;color:#fff;height:48px;padding:0 24px;border:0;border-radius:2px;font-weight:600;font-size:16px;transition:background-color .15s}.ds-btn-action:hover{background:#14181d}.ds-btn-action:focus-visible{outline:2px solid #17407f;outline-offset:2px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "custom",
+      "refersTo": "button-outline",
+      "description": "Secondary action on paper.",
+      "html": "<button class=\"ds-btn-outline\">Compare</button>",
+      "css": ".ds-btn-outline{background:#fff;color:#14181d;height:40px;padding:0 16px;border:1px solid #14181d;border-radius:2px;font-weight:600;font-size:14px}.ds-btn-outline:hover{background:#f7f8fa}.ds-btn-outline:focus-visible{outline:2px solid #17407f;outline-offset:2px}"
+    },
+    {
+      "name": "Tag",
+      "kind": "chip",
+      "refersTo": "tag-added",
+      "description": "Stamped one-word state label; tone sets the signal.",
+      "html": "<span class=\"ds-tag ds-tag-added\">Added</span> <span class=\"ds-tag ds-tag-removed\">Withdrawn</span> <span class=\"ds-tag ds-tag-pending\">Pending</span>",
+      "css": ".ds-tag{display:inline-flex;align-items:center;height:24px;padding:0 8px;border:1px solid;border-radius:2px;font-size:12px;font-weight:700}.ds-tag-added{border-color:#1f6b35;background:#e5f2e9;color:#1f6b35}.ds-tag-removed{border-color:#c4231a;background:#fbebe9;color:#c4231a}.ds-tag-pending{border-color:#8a5a00;background:#fbf1d9;color:#8a5a00}"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Flat paper panel with a ruled edge.",
+      "html": "<section class=\"ds-panel\"><h2>Day 3</h2><p>Flat, ruled, never nested.</p></section>",
+      "css": ".ds-panel{background:#fff;border:1px solid #c9cfd6;border-radius:3px;padding:16px;color:#14181d}.ds-panel h2{margin:0 0 8px;font-weight:700;font-size:24px;letter-spacing:-.012em}.ds-panel p{margin:0;color:#39424c}"
+    },
+    {
+      "name": "Ruled Table",
+      "kind": "custom",
+      "refersTo": "table-head",
+      "description": "Signature timetable: 2px ink rule under headers, hairline rows, tabular numerals.",
+      "html": "<table class=\"ds-ruled\"><thead><tr><th>Time</th><th>Stop</th><th class=\"ds-num\">Cost</th></tr></thead><tbody><tr><td>09:30</td><td>Humayun's Tomb</td><td class=\"ds-num\">600</td></tr><tr><td>13:00</td><td>Lunch</td><td class=\"ds-num\">1,200</td></tr></tbody></table>",
+      "css": ".ds-ruled{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;color:#14181d}.ds-ruled th{text-align:left;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#56606c;padding:8px 12px;border-bottom:2px solid #14181d}.ds-ruled td{padding:10px 12px;border-bottom:1px solid #c9cfd6}.ds-ruled tbody tr:hover td{background:#f7f8fa}.ds-num{text-align:right}"
+    },
+    {
+      "name": "Mark",
+      "kind": "custom",
+      "refersTo": "colors.cyan",
+      "description": "Inline emphasis as a signal-coloured underline.",
+      "html": "<p>Version 2 <span class=\"ds-mark\">withdrew</span> one stop.</p>",
+      "css": ".ds-mark{text-decoration:underline;text-decoration-color:#c4231a;text-decoration-thickness:.07em;text-underline-offset:.12em}"
+    },
+    {
+      "name": "Plate",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "Photograph in a thin frame with place caption and credit.",
+      "html": "<figure class=\"ds-plate\"><div class=\"ds-plate-img\"></div><figcaption><b>Humayun's Tomb</b><span>Photo: Author, CC BY-SA</span></figcaption></figure>",
+      "css": ".ds-plate{margin:0;border:1px solid #c9cfd6;background:#fff;padding:6px}.ds-plate-img{aspect-ratio:4/3;background:#14181d}.ds-plate figcaption{margin-top:6px;display:flex;justify-content:space-between;gap:12px;font-size:11px;color:#56606c}.ds-plate b{color:#39424c;font-weight:600}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Printed Timetable",
+    "overview": "A trip is read like a Kursbuch page: white paper on a pale cool ground, ruled columns of times and stops, ink type, and every revision shown as a correction in the margin rather than a highlight. The system is flat, near-square and typographic. Colour is scarce and always carries meaning; nothing is decorative.\n\nDensity is that of a reference table: tabular numerals for every time and amount, hairline rules between rows, a 2px ink rule under table headers. Photographs appear only as small framed plates with captions and credits; maps are real OpenStreetMap insets. The chosen version of a plan is drawn solid, earlier versions dashed.",
+    "keyCharacteristics": [
+      "White paper (#ffffff) on pale ground; ink text; hairline rules.",
+      "Four signals, each with one meaning; tinted fills only on stamps and alerts.",
+      "2-3px corners, no shadows at rest.",
+      "One typeface (Archivo, weight 700 for headings, normal width), tabular numerals globally.",
+      "Emphasis by underline, never by highlight."
+    ],
+    "rules": [
+      { "name": "The Signal Meaning Rule", "body": "Navy, forest, red and amber each mean exactly one thing (action/AI, added/approved, withdrawn/attention, pending). Never use them as decoration or for brand flavour.", "section": "colors" },
+      { "name": "The Correction Rule", "body": "A revision is shown by tone, tag and dashed-versus-solid drawing, not by a highlight fill behind running text.", "section": "colors" },
+      { "name": "The Tabular Rule", "body": "Every time, price and count uses tabular numerals; right-align numbers with the .num treatment.", "section": "typography" },
+      { "name": "The Flat Rule", "body": "Nothing carries a shadow at rest.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep emphasis to underlines, rules and tags.",
+      "Do draw withdrawn or earlier-version items dashed and chosen items solid.",
+      "Do credit every photograph and caption it as a plate.",
+      "Do keep numerals tabular and right-aligned in tables."
+    ],
+    "donts": [
+      "Don't add shadows, gradients or rounded corners above 3px to panels.",
+      "Don't use colour bars or tinted bands as decoration; Bands is a deliberate no-op kept only so old callers compile.",
+      "Don't use a signal colour for anything but its meaning.",
+      "Don't nest panels or build soft travel-app cards."
+    ]
+  }
+}

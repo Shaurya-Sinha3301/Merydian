@@ -91,20 +91,17 @@ export function ChangesPage() {
 
   return (
     <div>
-      <p className="label">
-        Version {previous} to version {current}
-        {trip?.trip_name ? `, ${trip.trip_name}` : ''}
-      </p>
-      <h2 className="display mt-2 text-[2.4rem] sm:text-[3.6rem]">
-        {nAdded > 0 && <span className="mark mark-green">{nAdded} new</span>}
+      <h2 className="display text-3xl sm:text-4xl">
+        {nAdded > 0 && <span className="mark mark-green">{nAdded} added</span>}
         {nAdded > 0 && (nRemoved > 0 || nMoved > 0) && ', '}
-        {nRemoved > 0 && <span className="mark mark-magenta">{nRemoved} dropped</span>}
+        {nRemoved > 0 && <span className="mark mark-magenta">{nRemoved} withdrawn</span>}
         {nRemoved > 0 && nMoved > 0 && ' and '}
         {nMoved > 0 && <span className="mark mark-yellow">{nMoved} moved</span>}
         {nAdded + nRemoved + nMoved === 0 && 'No visible changes'}.
       </h2>
-      <p className="mt-4 text-lg text-ink-2">
-        Plan cost {formatSignedMoney(diff.cost_delta)}
+      <p className="mt-2 text-ink-2">
+        Version {previous} to version {current}
+        {trip?.trip_name ? `, ${trip.trip_name}` : ''}. Plan cost {formatSignedMoney(diff.cost_delta)}
         {diff.satisfaction_delta != null && (
           <>
             , fit score {diff.satisfaction_delta >= 0 ? '+' : ''}
@@ -115,13 +112,13 @@ export function ChangesPage() {
       </p>
 
       {shared && (
-        <section className="mt-8 bg-panel p-5 sm:p-6" aria-label="The AI's explanation">
-          <h3 className="title text-2xl">In the AI&apos;s words</h3>
+        <section className="mt-6 border border-rule bg-paper p-4 sm:p-5" aria-label="The AI's explanation">
+          <h3 className="title text-lg">In the AI&apos;s words</h3>
           <p className="mt-2 max-w-[70ch] text-ink-2">{shared}</p>
         </section>
       )}
 
-      <div className="mt-10 flex flex-col gap-12">
+      <div className="mt-8 flex flex-col gap-8">
         {days.map((d) => {
           const rem = removed.filter((x) => x.day === d);
           const add = added.filter((x) => x.day === d);
@@ -129,7 +126,7 @@ export function ChangesPage() {
           const pairCount = Math.max(rem.length, add.length);
           return (
             <section key={d} aria-label={d ? `Day ${d}` : 'Other changes'}>
-              <h3 className="display border-t-2 border-ink pt-2 text-4xl sm:text-5xl">{d ? `Day ${d}` : 'Other'}</h3>
+              <h3 className="display border-t-2 border-ink pt-2 text-2xl sm:text-3xl">{d ? `Day ${d}` : 'Other'}</h3>
               <div className="mt-4 flex flex-col gap-4">
                 {Array.from({ length: pairCount }, (_, i) => {
                   const r = rem[i];
