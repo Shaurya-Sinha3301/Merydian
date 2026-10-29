@@ -1,0 +1,61 @@
+# Render Blueprint: one free Docker web service (API + Celery worker in the same
+# container) plus a free Key Value (Redis) instance.
+#
+# Postgres: Render's free Postgres expires after 30 days, so use a free external
+# one (Neon / Supabase) and paste its connection string into SQLALCHEMY_DATABASE_URI.
+#
+# Secrets marked `sync: false` are asked for in the Render dashboard on first deploy.
+services:
+  - type: web
+    name: meridian-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: all            # entrypoint mode: migrate, worker + API in one container
+    healthCheckPath: /health/live
+    autoDeploy: true
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SQLALCHEMY_DATABASE_URI
+        sync: false               # postgresql://user:pass@host/db?sslmode=require
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: meridian-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: keyvalue
+          name: meridian-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: keyvalue
+          name: meridian-redis
+          property: connectionString
+      - key: BACKEND_CORS_ORIGINS
+        value: '["https://YOUR-APP.vercel.app"]'
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-20b
+      - key: SEED_ON_START        # idempotent; also rewrites itinerary files on the ephemeral disk
+        value: "true"
+      - key: DEMO_ENABLED
+        value: "true"
+      - key: DEMO_ADMIN_KEY       # needed to call POST /api/v1/demo/reset (X-Admin-Key header)
+        generateValue: true
+      - key: CELERY_CONCURRENCY
+        value: "1"
+      - key: LOG_LEVEL
+        value: info
+
+  - type: keyvalue
+    name: meridian-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []               # internal connections only

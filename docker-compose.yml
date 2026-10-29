@@ -13,27 +13,17 @@ x-backend-env:
   REFRESH_TOKEN_EXPIRE_DAYS: "7"
 
   # ── CORS ────────────────────────────────────────────────────────────────────
-  BACKEND_CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000"]'
+  BACKEND_CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000","http://localhost:5173","http://127.0.0.1:5173","http://localhost:8443","http://127.0.0.1:8443"]'
 
   # ── AI Agents ───────────────────────────────────────────────────────────────
   GROQ_API_KEY: "${GROQ_API_KEY}"
   GEMINI_API_KEY: "${GEMINI_API_KEY}"
-  GROQ_MODEL: "llama-3.1-8b-instant"
+  GROQ_MODEL: "openai/gpt-oss-20b"
 
   # ── TBO Hotel API ──────────────────────────────────────────────────
   TBO_API_URL: "${TBO_API_URL}"
   TBO_USERNAME: "${TBO_USERNAME}"
   TBO_PASSWORD: "${TBO_PASSWORD}"
-
-  # ── TBO Web Login ─────────────────────────────────────────────────────────────
-  TBO_WEB_URL: "https://api.tbotechnology.in/"
-  TBO_WEB_USERNAME: "${TBO_USERNAME}"
-  TBO_WEB_PASSWORD: "${TBO_PASSWORD}"
-
-  # ── TBO Dummy / Agency Account ────────────────────────────────────────────────
-  TBO_DUMMY_URL: "https://prep.tboholidays.com"
-  TBO_DUMMY_USERNAME: "tbohackathonnew"
-  TBO_DUMMY_PASSWORD: "Tboagency@123"
 
   # ── TBO Air API ────────────────────────────────────────
   TBO_AIR_AUTHENTICATE_URL: "${TBO_AIR_AUTHENTICATE_URL}"

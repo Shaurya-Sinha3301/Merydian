@@ -67,11 +67,16 @@ async def health_ready(response: Response, session: Session = Depends(get_sessio
         
     # 4. Check LLM Provider
     try:
-        if os.environ.get("GROQ_API_KEY"):
-            health_status["llm_provider"] = "configured"
-        else:
+        from app.core.config import settings
+        key = os.environ.get("GROQ_API_KEY") or settings.GROQ_API_KEY
+        if not key:
             health_status["llm_provider"] = "missing_api_key"
             is_ready = False
+        elif any(marker in key.lower() for marker in ("your", "here", "xxx", "placeholder")):
+            health_status["llm_provider"] = "placeholder_api_key"
+            is_ready = False
+        else:
+            health_status["llm_provider"] = "configured"
     except Exception as e:
         health_status["llm_provider"] = f"error: {str(e)}"
         is_ready = False
@@ -80,7 +85,7 @@ async def health_ready(response: Response, session: Session = Depends(get_sessio
     try:
         from app.services.travel_data_provider import TravelDataProvider
         provider = TravelDataProvider()
-        provider.get_all_pois() # Just a light check
+        provider.load_locations() # Just a light check
         health_status["travel_data_provider"] = "available"
     except Exception as e:
         health_status["travel_data_provider"] = f"error: {str(e)}"

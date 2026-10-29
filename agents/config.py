@@ -18,7 +18,7 @@ class Config:
     
     # LLM Configuration (Groq)
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-    GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+    GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
     
     # Agent System Configuration
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

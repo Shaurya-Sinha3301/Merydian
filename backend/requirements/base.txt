@@ -1,6 +1,7 @@
 pydantic-settings
 sqlmodel
 psycopg2-binary
+alembic
 pytest
 pytest-asyncio
 httpx
@@ -9,3 +10,5 @@ python-jose[cryptography]
 passlib[bcrypt]
 bcrypt<4.0
 email-validator
+psutil
+python-dotenv
