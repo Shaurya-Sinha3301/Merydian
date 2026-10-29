@@ -14,6 +14,8 @@ import { OverviewPage } from './pages/app/OverviewPage';
 import { CalendarPage } from './pages/app/CalendarPage';
 import { CustomersPage } from './pages/app/CustomersPage';
 import { NewTripPage } from './pages/app/NewTripPage';
+import { CustomerDetailPage } from './pages/app/CustomerDetailPage';
+import { HistoryPage } from './pages/app/HistoryPage';
 import { DeskPage } from './pages/app/DeskPage';
 import { TripsPage } from './pages/app/TripsPage';
 import { ActivityPage } from './pages/app/ActivityPage';
@@ -60,6 +62,7 @@ export const router = createBrowserRouter([
       { path: 'desk', element: <DeskPage /> },
       { path: 'calendar', element: <CalendarPage /> },
       { path: 'customers', element: <CustomersPage /> },
+      { path: 'customers/:familyId', element: <CustomerDetailPage /> },
       { path: 'new-trip', element: <NewTripPage /> },
       { path: 'trips', element: <TripsPage /> },
       { path: 'activity', element: <ActivityPage /> },
@@ -69,6 +72,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <PlanPage /> },
           { path: 'changes', element: <ChangesPage /> },
+          { path: 'history', element: <HistoryPage /> },
           { path: 'feedback', element: <FeedbackPage /> },
         ],
       },

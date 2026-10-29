@@ -4,7 +4,7 @@ import { useCreateCustomer, useCustomers } from '../../hooks/useCustomers';
 import { Button, ButtonLink } from '../../ui/Button';
 import { Input } from '../../ui/Field';
 import { Empty, ErrorNote, Loading } from '../../ui/Surface';
-import { ROUTES } from '../../constants/routes';
+import { customerPath, ROUTES } from '../../constants/routes';
 import { useTitle } from '../../lib/useTitle';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -76,7 +76,13 @@ export function CustomersPage() {
                   {rows.map((c) => (
                     <tr key={c.user_id}>
                       <td>
-                        <p className="font-semibold">{c.full_name || c.email}</p>
+                        {c.family_id ? (
+                          <Link to={customerPath(c.family_id)} className="font-semibold underline underline-offset-4 decoration-1 hover:decoration-2">
+                            {c.full_name || c.email}
+                          </Link>
+                        ) : (
+                          <p className="font-semibold">{c.full_name || c.email}</p>
+                        )}
                         <p className="text-xs text-ink-3">{c.email}</p>
                       </td>
                       <td className="tabular-nums text-ink-2">{c.family_code ?? '—'}</td>

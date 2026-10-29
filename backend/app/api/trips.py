@@ -741,3 +741,88 @@ async def request_trip(
         published=published,
         message="Your plan is ready." if published else "Your plan is with a travel agent for approval.",
     )
+
+
+
+class VersionDTO(BaseModel):
+    version: int
+    created_at: Optional[str] = None
+    created_reason: Optional[str] = None
+    created_by: Optional[str] = None
+    total_cost: Optional[float] = None
+    total_satisfaction: Optional[float] = None
+    duration_days: Optional[int] = None
+
+
+class FeedbackEntryDTO(BaseModel):
+    iteration: Optional[int] = None
+    timestamp: Optional[str] = None
+    message: Optional[str] = None
+    event_type: Optional[str] = None
+    action: Optional[str] = None
+
+
+class TripHistoryResponse(BaseModel):
+    trip_id: str
+    versions: List[VersionDTO]
+    feedback: List[FeedbackEntryDTO]
+
+
+@router.get("/{trip_id}/history", response_model=TripHistoryResponse)
+async def get_trip_history(trip_id: str, _: Any = Depends(verify_trip_access)):
+    """Every itinerary version of a trip, oldest first, and the feedback that led to them."""
+    from uuid import UUID
+
+    from sqlmodel import Session, select
+
+    from app.core.db import engine
+    from app.models.itinerary import Itinerary
+    from app.services.family_service import FamilyService
+    from app.services.optimizer_service import OptimizerService
+
+    trip = OptimizerService.get_trip_session(trip_id)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+
+    family_uuid = None
+    for fid in trip.family_ids or []:
+        try:
+            family_uuid = UUID(str(fid))
+            break
+        except ValueError:
+            family = FamilyService.get_family_by_code(str(fid))
+            if family:
+                family_uuid = family.id
+                break
+
+    versions: List[VersionDTO] = []
+    if family_uuid:
+        with Session(engine) as session:
+            rows = session.exec(
+                select(Itinerary).where(Itinerary.family_id == family_uuid).order_by(Itinerary.version)
+            ).all()
+            versions = [
+                VersionDTO(
+                    version=r.version,
+                    created_at=r.created_at.isoformat() if r.created_at else None,
+                    created_reason=r.created_reason,
+                    created_by=r.created_by,
+                    total_cost=r.total_cost,
+                    total_satisfaction=r.total_satisfaction,
+                    duration_days=r.duration_days,
+                )
+                for r in rows
+            ]
+
+    feedback = [
+        FeedbackEntryDTO(
+            iteration=f.get("iteration"),
+            timestamp=f.get("timestamp"),
+            message=f.get("message"),
+            event_type=f.get("event_type"),
+            action=f.get("action"),
+        )
+        for f in (trip.feedback_history or [])
+        if isinstance(f, dict)
+    ]
+    return TripHistoryResponse(trip_id=trip_id, versions=versions, feedback=feedback)
