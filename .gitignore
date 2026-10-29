@@ -24,3 +24,9 @@ optimizer_outputs/
 
 .kiro/specs/
 frontend/Travel_agent_Landing
+.neon
+node_modules/
+
+# Local demo run output
+backend/trip_sessions_demo/
+backend/optimizer_outputs_demo/

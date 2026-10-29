@@ -9,7 +9,7 @@ a database, OpenStreetMap, Google Places, or any external API.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from app.contracts.optimization import (
     TravelDataset,

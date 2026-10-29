@@ -8,3 +8,4 @@ dependencies:
   - pip:
     - -r backend/requirements/base.txt
     - -r backend/requirements/api.txt
+    - -r backend/requirements/worker.txt
