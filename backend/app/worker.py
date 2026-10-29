@@ -621,6 +621,7 @@ def _process_single_flight(
         "currency": fare_info.get("Currency", "USD"),
     }
 
+@celery_app.task(name="app.worker.process_event_task", bind=True, max_retries=3)
 def process_event_task(self, event_id: str):
     """
     Async task to process a system event (e.g., feedback, POI request).

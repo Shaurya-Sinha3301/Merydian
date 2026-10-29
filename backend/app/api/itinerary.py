@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 from enum import Enum
@@ -6,7 +7,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from pydantic import BaseModel, Field
-from app.core.dependencies import get_current_user, get_optional_user, get_agent_workflow_service
+from app.core.dependencies import get_current_user, get_optional_user, get_agent_workflow_service, verify_trip_access
 from app.schemas.auth import TokenPayload
 from app.schemas.events import EventCreate, EventType, EventResponse
 from app.schemas.frontend_dto import TimelineDTO, TimelineDayDTO, TimelineActivityDTO, DiffDTO, DiffItemDTO, ExplanationDTO
@@ -16,6 +17,8 @@ from app.services.preference_service import PreferenceService
 from app.services.explanation_service import ExplanationService
 from app.models.preference import PreferenceType
 from app.models.event import EventType as ModelEventType
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -123,15 +126,18 @@ async def get_current_itinerary(
 async def get_itinerary_diff(
     version_a: int,
     version_b: int,
+    family_id: Optional[UUID] = Query(default=None, description="Agents only: family to diff"),
     current_user: TokenPayload = Depends(get_current_user),
 ) -> Any:
     """
     Get a structured diff between two itinerary versions.
     """
-    if not current_user.family_id:
+    if current_user.role == "agent" and family_id:
+        pass  # agents have global access
+    elif current_user.family_id:
+        family_id = uuid_lib.UUID(current_user.family_id)
+    else:
         raise HTTPException(status_code=400, detail="User is not associated with a family")
-
-    family_id = uuid_lib.UUID(current_user.family_id)
     diff_raw = ItineraryService.diff_itineraries(family_id, version_a, version_b)
     if diff_raw is None:
         raise HTTPException(
@@ -144,21 +150,22 @@ async def get_itinerary_diff(
     removed = []
     modified = []
     
-    if hasattr(diff_raw, 'day_changes'):
-        for dc in diff_raw.day_changes:
-            for pc in dc.poi_changes:
-                item = DiffItemDTO(
-                    before=pc.old_values if pc.old_values else None,
-                    after=pc.new_values if pc.new_values else None,
-                    reason=f"{pc.change_type} {pc.poi_name}",
-                    importance="medium"
-                )
-                if pc.change_type == "added":
-                    added.append(item)
-                elif pc.change_type == "removed":
-                    removed.append(item)
-                else:
-                    modified.append(item)
+    # diff_itineraries returns a plain dict of day changes
+    for dc in diff_raw.get("day_changes", []):
+        for pc in dc.get("poi_changes", []):
+            change_type = pc.get("change_type")
+            item = DiffItemDTO(
+                before=pc.get("old_values") or None,
+                after=pc.get("new_values") or None,
+                reason=f"{change_type} {pc.get('poi_name', '')} (day {pc.get('day', dc.get('day'))})",
+                importance="medium"
+            )
+            if change_type == "added":
+                added.append(item)
+            elif change_type == "removed":
+                removed.append(item)
+            else:
+                modified.append(item)
     
     return DiffDTO(
         trip_id=str(family_id),
@@ -169,7 +176,10 @@ async def get_itinerary_diff(
         moved_activities=[],
         time_changes=modified,
         hotel_changes=[],
-        transport_changes=[]
+        transport_changes=[],
+        summary=diff_raw.get("summary"),
+        cost_delta=(diff_raw.get("cost_diff") or {}).get("delta"),
+        satisfaction_delta=(diff_raw.get("satisfaction_diff") or {}).get("delta"),
     )
 
 
@@ -181,46 +191,56 @@ async def get_itinerary_diff(
 )
 async def get_itinerary_timeline(
     trip_id: str = Path(..., description="The ID of the trip"),
-    current_user: TokenPayload = Depends(get_current_user)
+    _access: Any = Depends(verify_trip_access),
 ) -> Any:
     try:
         from app.services.optimizer_service import OptimizerService
+        from app.models.itinerary import Itinerary
+        from app.services.optimizer_service import get_db_session
         import json, os
         session = OptimizerService.get_trip_session(trip_id)
         if not session:
             raise HTTPException(status_code=404, detail="Trip not found")
-            
-        itinerary_path = session.latest_itinerary_path or session.baseline_itinerary_path
-        if not itinerary_path or not os.path.exists(itinerary_path):
+
+        # The database copy is the source of truth; the optimizer's JSON file is a fallback
+        data = None
+        if session.current_itinerary_id:
+            with get_db_session() as db:
+                itin = db.get(Itinerary, session.current_itinerary_id)
+                data = itin.data if itin else None
+        if not data:
+            itinerary_path = session.latest_itinerary_path or session.baseline_itinerary_path
+            if itinerary_path and os.path.exists(itinerary_path):
+                with open(itinerary_path, 'r') as f:
+                    data = json.load(f)
+        if not data:
             raise HTTPException(status_code=404, detail="Itinerary not generated yet")
-            
-        with open(itinerary_path, 'r') as f:
-            data = json.load(f)
-            
+        from app.services.itinerary_format import normalize_itinerary
+        data = normalize_itinerary(data)
+
         days_dto = []
         for day in data.get("days", []):
             acts_dto = []
             for poi in day.get("pois", []):
                 acts_dto.append(TimelineActivityDTO(
                     id=poi.get("location_id", "unknown"),
-                    title=poi.get("location_id", "unknown").replace("_", " ").title(),
-                    location="City",
-                    category=poi.get("role", "SKELETON"),
+                    title=poi.get("name") or poi.get("location_id", "unknown").replace("_", " ").title(),
+                    location=session.destination or "",
+                    category=poi.get("category") or poi.get("role", "SKELETON"),
                     start_time=poi.get("time_window_start"),
                     end_time=poi.get("time_window_end"),
                     duration_min=poi.get("planned_visit_time_min", 60),
                     travel_time_min=0,
+                    reason_added=poi.get("reason_added"),
                     notes=poi.get("comment")
                 ))
             days_dto.append(TimelineDayDTO(day=day.get("day", 1), activities=acts_dto))
-            
+
         return TimelineDTO(trip_id=trip_id, days=days_dto)
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
 
 
 @router.post("/feedback", response_model=FeedbackResponse)
@@ -347,10 +367,7 @@ async def process_agent_feedback(
             agent_id=current_user.sub if current_user else None
         )
         
-        # Session update is already handled inside process_feedback_with_agents
-        # No need to modify trip_session here (would cause detached instance error)
-        
-        logger.info(f"Result: {result['action_taken']}, Updated: {result['itinerary_updated']}")
+        logger.info("Queued feedback optimization job_id=%s status=%s", result.get("job_id"), result.get("status"))
         
         return AgentFeedbackResponse(
             job_id=result["job_id"],
@@ -464,6 +481,23 @@ async def submit_poi_request(
 #  Explainability endpoints
 # ---------------------------------------------------------------------------
 
+def _explanation_dto(rec) -> ExplanationDTO:
+    return ExplanationDTO(
+        id=str(rec.id),
+        day=rec.day_number,
+        activity_changed=rec.poi_name or rec.poi_id or "Unknown",
+        reason=rec.change_type or "modified",
+        affected_constraints=rec.causal_tags or [],
+        confidence=1.0,
+        human_explanation=rec.llm_explanation or "No explanation provided",
+        change_type=rec.change_type,
+        cost_delta=rec.cost_delta,
+        satisfaction_delta=rec.satisfaction_delta,
+        trigger_message=rec.trigger_message,
+        itinerary_id=str(rec.itinerary_id),
+    )
+
+
 @router.get(
     "/explanations/{itinerary_id}",
     summary="Get LLM explanations for an itinerary version",
@@ -488,15 +522,7 @@ async def get_itinerary_explanations(
 
     dto_list = []
     for rec in records:
-        dto_list.append(ExplanationDTO(
-            id=str(rec.id),
-            day=rec.day_number,
-            activity_changed=rec.poi_name or rec.poi_id or "Unknown",
-            reason=rec.change_type or "modified",
-            affected_constraints=rec.causal_tags or [],
-            confidence=1.0,
-            human_explanation=rec.llm_explanation or "No explanation provided"
-        ))
+        dto_list.append(_explanation_dto(rec))
 
     return {"itinerary_id": str(itinerary_id), "explanations": dto_list, "total": len(dto_list)}
 
@@ -525,15 +551,7 @@ async def get_trip_explanations(
 
     dto_list = []
     for rec in records:
-        dto_list.append(ExplanationDTO(
-            id=str(rec.id),
-            day=rec.day_number,
-            activity_changed=rec.poi_name or rec.poi_id or "Unknown",
-            reason=rec.change_type or "modified",
-            affected_constraints=rec.causal_tags or [],
-            confidence=1.0,
-            human_explanation=rec.llm_explanation or "No explanation provided"
-        ))
+        dto_list.append(_explanation_dto(rec))
 
     return {
         "trip_id": trip_id,

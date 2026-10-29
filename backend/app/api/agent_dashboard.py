@@ -47,6 +47,10 @@ class ApproveResponse(BaseModel):
 class AgentJobStatusResponse(BaseModel):
     job_id: str
     status: str
+    job_type: Optional[str] = None
+    trip_id: Optional[str] = None
+    itinerary_id: Optional[str] = None
+    attempt_count: Optional[int] = None
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     created_at: datetime
@@ -256,6 +260,10 @@ async def list_agent_jobs(
                     AgentJobStatusResponse(
                         job_id=str(j.id),
                         status=j.status.value,
+                        job_type=j.job_type.value,
+                        trip_id=j.trip_id,
+                        itinerary_id=j.itinerary_id,
+                        attempt_count=j.attempt_count,
                         result=j.result_payload,
                         error=j.error_message,
                         created_at=j.created_at,
@@ -289,6 +297,10 @@ async def get_agent_job_status(
         return AgentJobStatusResponse(
             job_id=str(job.id),
             status=job.status.value,
+            job_type=job.job_type.value,
+            trip_id=job.trip_id,
+            itinerary_id=job.itinerary_id,
+            attempt_count=job.attempt_count,
             result=job.result_payload,
             error=job.error_message,
             created_at=job.created_at,

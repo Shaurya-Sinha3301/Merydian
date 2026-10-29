@@ -7,12 +7,16 @@ Provides endpoints for:
 - Updating family preferences
 """
 
+import logging
+
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Any, Optional, Annotated
 from datetime import date
 
 from app.services.trip_service import TripService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/trips", tags=["trips"])
 
@@ -217,7 +221,16 @@ class TripDetailResponse(BaseModel):
     initial_preferences: Dict[str, Any]
     current_preferences: Dict[str, Any]
     feedback_count: int
-    last_updated: Optional[str]
+    last_updated: Optional[str] = None
+    status: Optional[str] = None
+    latest_itinerary_path: Optional[str] = None
+    created_at: Optional[str] = None
+    family_id: Optional[str] = None
+    current_version: Optional[int] = None
+    total_cost: Optional[float] = None
+    total_satisfaction: Optional[float] = None
+    duration_days: Optional[int] = None
+    feedback_history: List[Dict[str, Any]] = []
 
 
 class PreferenceUpdateRequest(BaseModel):
@@ -511,8 +524,8 @@ async def get_my_trips(
         # But we can reuse TripService._get_... or manually query here.
         from sqlmodel import select, func, col
         from sqlalchemy.dialects.postgresql import JSONB
-        from app.core.db import get_db_session
-        from app.models.trip import TripSession
+        from app.services.optimizer_service import get_db_session
+        from app.models.trip_session import TripSession
         
         with get_db_session() as session:
             statement = select(TripSession).where(
@@ -555,6 +568,8 @@ async def get_my_trips(
                     "latest_itinerary_path": trip.latest_itinerary_path,
                     "status": trip.status,
                     "created_at": trip.created_at.isoformat() if trip.created_at else None,
+                    "last_updated": trip.updated_at.isoformat() if trip.updated_at else None,
+                    **TripService.itinerary_stats(trip),
                 })
 
         return PaginatedResponse(

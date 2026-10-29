@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 @contextmanager
 def get_db_session():
     """Context manager for database sessions"""
-    session = Session(engine)
+    # expire_on_commit=False keeps returned objects readable after the block exits
+    session = Session(engine, expire_on_commit=False)
     try:
         yield session
         session.commit()
@@ -233,11 +234,20 @@ class OptimizerService:
             # Convert preferences dict to the list format the optimizer expects
             pref_list = []
             for fam_id, fam_prefs in preferences.items():
-                entry = {"family_id": fam_id}
-                entry["must_visit"] = fam_prefs.get("must_visit_locations", [])
-                entry["never_visit"] = fam_prefs.get("never_visit_locations", [])
-                entry["interest_vector"] = fam_prefs.get("interest_vector", {})
-                pref_list.append(entry)
+                # The optimizer's FamilyPreference needs every field; accept both the
+                # *_locations and the short must_visit/never_visit spellings.
+                pref_list.append({
+                    "family_id": fam_id,
+                    "members": int(fam_prefs.get("members", 1)),
+                    "children": int(fam_prefs.get("children", 0)),
+                    "budget_sensitivity": float(fam_prefs.get("budget_sensitivity", 0.5)),
+                    "energy_level": float(fam_prefs.get("energy_level", 0.7)),
+                    "interest_vector": fam_prefs.get("interest_vector", {}),
+                    "must_visit_locations": fam_prefs.get("must_visit_locations", fam_prefs.get("must_visit", [])),
+                    "never_visit_locations": fam_prefs.get("never_visit_locations", fam_prefs.get("never_visit", [])),
+                    "pace_preference": fam_prefs.get("pace_preference", "moderate"),
+                    "notes": fam_prefs.get("notes", ""),
+                })
 
             # Write preferences file for the optimizer
             prefs_file = output_dir / "preferences.json"
@@ -257,14 +267,19 @@ class OptimizerService:
                 with open(optimized_path, "r") as f:
                     optimized_data = json.load(f)
 
-                cost = optimized_data.get("total_cost", 0.0)
-                satisfaction = optimized_data.get("total_satisfaction", 0.0)
+                from app.services.itinerary_format import normalize_itinerary
+
+                first_family = next(iter(preferences), None)
+                members = int((preferences.get(first_family) or {}).get("members", 1)) if first_family else 1
+                itinerary_data = normalize_itinerary(optimized_data, first_family, members)
+                cost = itinerary_data.get("total_cost", 0.0)
+                satisfaction = itinerary_data.get("total_satisfaction", 0.0)
 
                 logger.info(f"ML optimizer succeeded for trip {trip_id}")
                 return {
-                    "itinerary_data": optimized_data,
+                    "itinerary_data": itinerary_data,
                     "cost": cost,
-                    "satisfaction": min(satisfaction, 1.0),
+                    "satisfaction": min(satisfaction / 10.0, 1.0),
                     "optimizer_ran": True,
                 }
 
@@ -386,18 +401,28 @@ class OptimizerService:
                     with open(base_path, "w") as f:
                         json.dump(old_itinerary, f)
                         
+                    # Start from the stored family profile so the optimizer gets every field it needs
+                    stored = (trip_session.current_preferences or {}).get(family_id) or next(
+                        iter((trip_session.initial_preferences or {}).values()), {}) or {}
                     family_prefs = [{
                         "family_id": family_id,
-                        "members": 2, # Defaults if full profile not loaded here
+                        "members": int(stored.get("members", 2)),
+                        "children": int(stored.get("children", 0)),
+                        "budget_sensitivity": float(stored.get("budget_sensitivity", 0.5)),
+                        "energy_level": float(stored.get("energy_level", 0.7)),
+                        "interest_vector": stored.get("interest_vector", {}),
+                        "pace_preference": stored.get("pace_preference", "moderate"),
                         "must_visit_locations": PreferenceService.get_must_visit_pois(family_uuid),
-                        "never_visit_locations": PreferenceService.get_never_visit_pois(family_uuid)
+                        "never_visit_locations": PreferenceService.get_never_visit_pois(family_uuid),
                     }]
                     with open(prefs_path, "w") as f:
                         json.dump(family_prefs, f)
                     
                     opt_result = processor.run_optimizer(base_path, prefs_path, temp_dir)
                     if opt_result.get("optimizer_ran") and opt_result.get("optimized_itinerary"):
-                        new_itinerary = opt_result["optimized_itinerary"]
+                        from app.services.itinerary_format import normalize_itinerary
+                        new_itinerary = normalize_itinerary(
+                            opt_result["optimized_itinerary"], family_id, family_prefs[0]["members"])
                         optimization_ran = True
 
             # --- 5. Save New Itinerary to DB ---

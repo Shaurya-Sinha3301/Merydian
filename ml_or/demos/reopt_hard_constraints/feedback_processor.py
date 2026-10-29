@@ -12,6 +12,7 @@ Pipeline (process_feedback):
 """
 
 import json
+import re
 import logging
 import os
 from pathlib import Path
@@ -24,44 +25,48 @@ logger = logging.getLogger(__name__)
 #  LLM helper
 # ---------------------------------------------------------------------------
 
+def _is_real_key(key: str) -> bool:
+    return bool(key) and not any(m in key.lower() for m in ("your", "here", "xxx", "placeholder"))
+
+
 def _call_llm(prompt: str) -> str:
     """
-    Call Gemini (preferred) falling back to Groq.
+    Call Groq (preferred) falling back to Gemini.
     Returns the model's text response, or an empty string on failure.
     """
     gemini_key = os.environ.get("GEMINI_API_KEY", "")
     groq_key   = os.environ.get("GROQ_API_KEY", "")
 
-    # --- Gemini ---
-    if gemini_key:
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=gemini_key)
-            # Try latest model first, fall back to 1.5-flash
-            for model_name in ("gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"):
-                try:
-                    model = genai.GenerativeModel(model_name)
-                    resp = model.generate_content(prompt)
-                    return resp.text.strip()
-                except Exception:
-                    continue
-            raise RuntimeError("All Gemini models failed")
-        except Exception as e:
-            logger.warning("Gemini LLM call failed: %s", e)
-
-    # --- Groq fallback ---
-    if groq_key:
+    # --- Groq ---
+    if _is_real_key(groq_key):
         try:
             from groq import Groq
             client = Groq(api_key=groq_key)
-            completion = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=200,
-            )
-            return completion.choices[0].message.content.strip()
+            model = os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")
+            kwargs = dict(model=model, messages=[{"role": "user", "content": prompt}], max_tokens=1500)
+            try:
+                # Reasoning models spend tokens thinking; keep that short
+                completion = client.chat.completions.create(reasoning_effort="low", **kwargs)
+            except Exception:
+                completion = client.chat.completions.create(**kwargs)
+            text = (completion.choices[0].message.content or "").strip()
+            if text:
+                return text
         except Exception as e:
             logger.warning("Groq LLM call failed: %s", e)
+
+    # --- Gemini fallback ---
+    if _is_real_key(gemini_key):
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=gemini_key)
+            for model_name in ("gemini-2.0-flash", "gemini-1.5-flash"):
+                try:
+                    return genai.GenerativeModel(model_name).generate_content(prompt).text.strip()
+                except Exception:
+                    continue
+        except Exception as e:
+            logger.warning("Gemini LLM call failed: %s", e)
 
     logger.warning("No LLM available — returning empty explanation")
     return ""
@@ -263,7 +268,9 @@ class FeedbackProcessor:
                 optimized_backbone_file=str(data_dir / "optimized_backbone.json"),
             )
 
-            result = optimizer.optimize_trip()  # full multi-family, multi-day solve
+            family_ids = list(optimizer.family_prefs.keys())
+            num_days = len(optimizer.base_itinerary.get("days", [])) or 3
+            result = optimizer.optimize_trip(family_ids=family_ids, num_days=num_days)  # full multi-family, multi-day solve
             output_path = Path(output_dir) / "optimized_itinerary.json"
             output_path.parent.mkdir(parents=True, exist_ok=True)
             with open(output_path, "w") as f:
@@ -405,8 +412,9 @@ class FeedbackProcessor:
             changes = family_payload.get("changes", [])
             for i, change in enumerate(changes):
                 # Split the LLM text by sentence for per-change granularity
-                sentences = [s.strip() for s in llm_text.replace("。", ".").split(".") if s.strip()]
-                sentence = sentences[i] + "." if i < len(sentences) else llm_text
+                # Split on sentence ends (". " etc.) so decimals such as "60.0" stay intact
+                sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", llm_text.replace("。", ". ")) if s.strip()]
+                sentence = sentences[i] if i < len(sentences) else llm_text
 
                 explanations.append({
                     "family_id":         fid,
