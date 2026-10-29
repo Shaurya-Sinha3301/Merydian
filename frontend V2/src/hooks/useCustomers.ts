@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { customersService, type NewCustomer, type TripRequestBody, type AgentTripBody } from '../services/customers';
+import { customerDetailService, customersService, type AgentTripBody, type NewCustomer, type PreferencesPatch, type TripRequestBody } from '../services/customers';
 import { queryKeys } from '../constants/queryKeys';
 
 export function useCustomers() {
@@ -32,5 +32,32 @@ export function useCreateTrip() {
   return useMutation({
     mutationFn: (body: AgentTripBody) => customersService.createTrip(body),
     onSuccess: () => refreshTrips(qc),
+  });
+}
+
+export function useCustomer(familyId?: string) {
+  return useQuery({
+    queryKey: ['customer', familyId],
+    queryFn: () => customerDetailService.get(familyId as string),
+    enabled: !!familyId,
+  });
+}
+
+export function useSavePreferences(familyId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (patch: PreferencesPatch) => customerDetailService.savePreferences(familyId, patch),
+    onSuccess: (data) => {
+      qc.setQueryData(['customer', familyId], data);
+      qc.invalidateQueries({ queryKey: ['customers'] });
+    },
+  });
+}
+
+export function useTripHistory(tripId: string) {
+  return useQuery({
+    queryKey: ['trip-history', tripId],
+    queryFn: () => customerDetailService.tripHistory(tripId),
+    enabled: !!tripId,
   });
 }

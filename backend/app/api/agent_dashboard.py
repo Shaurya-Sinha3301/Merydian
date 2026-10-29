@@ -446,3 +446,113 @@ async def list_customers(current_agent: TokenPayload = Depends(get_current_agent
                 )
             )
     return CustomerListResponse(customers=out)
+
+
+
+class CustomerTripDTO(BaseModel):
+    trip_id: str
+    trip_name: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    current_version: Optional[int] = None
+    total_cost: Optional[float] = None
+    status: Optional[str] = None
+    feedback_count: int = 0
+
+
+class CustomerDetailResponse(BaseModel):
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    family_id: str
+    family_code: str
+    preferences: Dict[str, Any] = Field(default_factory=dict)
+    members: List[Dict[str, Any]] = Field(default_factory=list)
+    trips: List[CustomerTripDTO] = Field(default_factory=list)
+
+
+class PreferencesUpdate(BaseModel):
+    members: Optional[int] = Field(default=None, ge=1, le=20)
+    children: Optional[int] = Field(default=None, ge=0, le=20)
+    interest_vector: Optional[Dict[str, float]] = None
+    pace_preference: Optional[str] = None
+    budget_sensitivity: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    energy_level: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    must_visit_locations: Optional[List[str]] = None
+    never_visit_locations: Optional[List[str]] = None
+    notes: Optional[str] = Field(default=None, max_length=2000)
+
+
+@router.get("/customers/{family_id}", response_model=CustomerDetailResponse)
+async def get_customer(family_id: UUID, current_agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    """One customer's family: contact, saved preferences, members and their trips. Agents only."""
+    from sqlalchemy.dialects.postgresql import JSONB
+    from sqlmodel import Session, col, select
+
+    from app.core.db import engine
+    from app.models.family import Family
+    from app.models.trip_session import TripSession
+    from app.models.user import User
+    from app.services.trip_service import TripService
+
+    with Session(engine) as session:
+        family = session.get(Family, family_id)
+        if not family:
+            raise HTTPException(status_code=404, detail="Customer not found")
+        users = session.exec(select(User).where(User.family_id == family.id).order_by(User.created_at)).all()
+        primary = users[0] if users else None
+        trips = session.exec(
+            select(TripSession)
+            .where(col(TripSession.family_ids).cast(JSONB).contains([str(family.id)]))
+            .order_by(TripSession.created_at.desc())
+        ).all()
+        out_trips = []
+        for t in trips:
+            stats = TripService.itinerary_stats(t)
+            out_trips.append(
+                CustomerTripDTO(
+                    trip_id=t.trip_id,
+                    trip_name=t.trip_name,
+                    start_date=t.start_date.isoformat() if t.start_date else None,
+                    end_date=t.end_date.isoformat() if t.end_date else None,
+                    current_version=stats.get("current_version"),
+                    total_cost=stats.get("total_cost"),
+                    status=t.status,
+                    feedback_count=len(t.feedback_history or []),
+                )
+            )
+        return CustomerDetailResponse(
+            user_id=str(primary.id) if primary else None,
+            email=primary.email if primary else None,
+            full_name=primary.full_name if primary else None,
+            family_id=str(family.id),
+            family_code=family.family_code,
+            preferences=family.preferences or {},
+            members=[{"id": str(u.id), "email": u.email, "full_name": u.full_name, "role": u.role} for u in users],
+            trips=out_trips,
+        )
+
+
+@router.put("/customers/{family_id}/preferences", response_model=CustomerDetailResponse)
+async def update_customer_preferences(
+    family_id: UUID,
+    body: PreferencesUpdate,
+    current_agent: TokenPayload = Depends(get_current_agent),
+) -> Any:
+    """Change a customer's saved preferences. They apply to trips planned from now on. Agents only."""
+    from app.services.family_service import FamilyService
+
+    family = FamilyService.get_family(family_id)
+    if not family:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    prefs = dict(family.preferences or {})
+    changes = body.model_dump(exclude_none=True) if hasattr(body, "model_dump") else body.dict(exclude_none=True)
+    if "interest_vector" in changes:
+        merged = dict(prefs.get("interest_vector") or {})
+        merged.update({k: max(0.0, min(1.0, float(v))) for k, v in changes.pop("interest_vector").items()})
+        prefs["interest_vector"] = merged
+    prefs.update(changes)
+    if prefs.get("children", 0) > prefs.get("members", 1):
+        prefs["children"] = prefs.get("members", 1)
+    FamilyService.update_preferences(family.id, prefs)
+    return await get_customer(family_id, current_agent)

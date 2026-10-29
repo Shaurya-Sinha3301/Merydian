@@ -2,7 +2,7 @@ import { Link, NavLink, Outlet, useParams } from 'react-router-dom';
 import { useTripSummary } from '../../hooks/useTrips';
 import { useTripPlan } from '../../hooks/useTripData';
 import { useAuthStore } from '../../stores/auth.store';
-import { changesPath, feedbackPath, ROUTES, tripPath } from '../../constants/routes';
+import { changesPath, feedbackPath, historyPath, ROUTES, tripPath } from '../../constants/routes';
 import { Empty, ErrorNote, Loading } from '../../ui/Surface';
 import { Photo } from '../../ui/Photo';
 import { ButtonLink } from '../../ui/Button';
@@ -33,6 +33,7 @@ export function TripLayout() {
   const tabs = [
     { to: tripPath(tripId), label: 'Plan', end: true },
     { to: changesPath(tripId), label: 'Changes', end: false },
+    { to: historyPath(tripId), label: 'History', end: false },
     { to: feedbackPath(tripId), label: 'Feedback', end: false },
   ];
   const rounds = trip.feedback_count ?? 0;

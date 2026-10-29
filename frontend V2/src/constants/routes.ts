@@ -13,6 +13,8 @@ export const ROUTES = {
   ACTIVITY: '/app/activity',
 } as const;
 
+export const customerPath = (familyId: string) => `/app/customers/${familyId}`;
+export const historyPath = (tripId: string) => `/app/trip/${tripId}/history`;
 export const tripPath = (tripId: string) => `/app/trip/${tripId}`;
 export const changesPath = (tripId: string) => `/app/trip/${tripId}/changes`;
 export const feedbackPath = (tripId: string) => `/app/trip/${tripId}/feedback`;
