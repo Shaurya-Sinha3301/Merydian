@@ -1,17 +1,18 @@
 import { RouterProvider } from 'react-router-dom';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { router } from './router';
+import { Button } from './ui/Button';
 
-function ErrorFallback({ error, resetErrorBoundary }: import('react-error-boundary').FallbackProps) {
+function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   return (
-    <div style={{ padding: 32, color: '#111', background: '#fff', fontFamily: 'sans-serif' }}>
-      <h2 style={{ color: '#dc2626' }}>Something went wrong</h2>
-      <p style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
-        {error instanceof Error ? error.message : String(error)}
-      </p>
-      <button type="button" onClick={resetErrorBoundary} style={{ padding: '8px 16px', marginTop: 12 }}>
-        Try again
-      </button>
+    <div className="mx-auto max-w-[640px] px-6 py-16">
+      <h1 className="display text-5xl">
+        Something <span className="mark mark-magenta">broke</span>.
+      </h1>
+      <p className="mt-4 text-ink-2">{error instanceof Error ? error.message : String(error)}</p>
+      <div className="mt-6">
+        <Button onClick={resetErrorBoundary}>Try again</Button>
+      </div>
     </div>
   );
 }

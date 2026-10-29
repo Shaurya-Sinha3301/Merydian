@@ -1,15 +1,14 @@
 export const ROUTES = {
   LANDING: '/',
-  LOGIN: '/login',
   DEMO: '/demo',
-  DASHBOARD: '/dashboard',
-  AGENT_DASHBOARD: '/agent-dashboard',
-  TRIPS: '/trips',
-  TIMELINE: '/timeline',
-  FEEDBACK: '/feedback',
-  OPTIMIZATION: '/optimization',
-  DIFF: '/diff-viewer',
-  EXPLAINABILITY: '/explainability',
-  SETTINGS: '/settings',
-  NOT_FOUND: '*',
+  LOGIN: '/login',
+  SIGNUP: '/signup',
+  APP: '/app',
+  DESK: '/app/desk',
+  TRIPS: '/app/trips',
+  ACTIVITY: '/app/activity',
 } as const;
+
+export const tripPath = (tripId: string) => `/app/trip/${tripId}`;
+export const changesPath = (tripId: string) => `/app/trip/${tripId}/changes`;
+export const feedbackPath = (tripId: string) => `/app/trip/${tripId}/feedback`;
