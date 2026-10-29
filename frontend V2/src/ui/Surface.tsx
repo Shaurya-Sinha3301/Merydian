@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 /** A panel: flat panel ground with a ruled edge. Never nested. */
 export function Panel({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <section className={`rounded-2xl bg-paper shadow-[var(--shadow-card)] ${className}`}>{children}</section>
+    <section className={`border border-rule bg-paper ${className}`}>{children}</section>
   );
 }
 
@@ -29,7 +29,7 @@ export function PageHeader({
 
 export function Empty({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="rounded-2xl border-2 border-dashed border-ink-3 p-8 sm:p-10">
+    <div className="border border-dashed border-ink-3 bg-paper p-8 sm:p-10">
       <h2 className="title text-2xl">{title}</h2>
       {children && <p className="mt-2 max-w-[56ch] text-ink-2">{children}</p>}
       {action && <div className="mt-5">{action}</div>}
@@ -48,7 +48,7 @@ export function Loading({ label = 'Loading' }: { label?: string }) {
 
 export function ErrorNote({ children }: { children: ReactNode }) {
   return (
-    <p role="alert" className="border-l-0 bg-magenta px-3 py-2 text-sm font-bold text-paper">
+    <p role="alert" className="border border-magenta bg-red-tint px-3 py-2 text-sm font-semibold text-magenta">
       {children}
     </p>
   );

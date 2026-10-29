@@ -10,6 +10,8 @@ import { TripLayout } from './pages/app/TripLayout';
 import { PlanPage } from './pages/app/PlanPage';
 import { ChangesPage } from './pages/app/ChangesPage';
 import { FeedbackPage } from './pages/app/FeedbackPage';
+import { OverviewPage } from './pages/app/OverviewPage';
+import { CalendarPage } from './pages/app/CalendarPage';
 import { DeskPage } from './pages/app/DeskPage';
 import { TripsPage } from './pages/app/TripsPage';
 import { ActivityPage } from './pages/app/ActivityPage';
@@ -22,10 +24,10 @@ function NotFound() {
       <header className="mx-auto max-w-[1200px] px-4 py-4 sm:px-6">
         <Logo />
       </header>
-      <main className="border-t-4 border-ink">
+      <main className="border-t-2 border-ink">
         <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6">
           <h1 className="display text-[3rem] sm:text-[5rem]">
-            This page <span className="mark mark-magenta">moved</span>.
+            This page has moved.
           </h1>
           <p className="mt-5 max-w-[44ch] text-lg text-ink-2">
             We could not find what you were looking for. <Link to="/" className="font-bold underline underline-offset-4">Go to the front door</Link>.
@@ -52,7 +54,9 @@ export const router = createBrowserRouter([
     element: <AppShell />,
     children: [
       { index: true, element: <AppIndex /> },
+      { path: 'overview', element: <OverviewPage /> },
       { path: 'desk', element: <DeskPage /> },
+      { path: 'calendar', element: <CalendarPage /> },
       { path: 'trips', element: <TripsPage /> },
       { path: 'activity', element: <ActivityPage /> },
       {

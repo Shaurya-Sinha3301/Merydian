@@ -33,46 +33,61 @@ export function ActivityPage() {
 
   return (
     <div>
-      <h1 className="display text-[2.8rem] sm:text-[4.2rem]">What the agents did.</h1>
-      <p className="mt-3 max-w-[64ch] text-lg text-ink-2">
-        {list.length} jobs{retried ? `, ${retried} needed a retry` : ''}
-        {failed ? `, ${failed} failed` : ', none failed'}.
-      </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h1 className="display text-3xl sm:text-4xl">Agent activity</h1>
+        <p className="text-sm text-ink-3">
+          {list.length} jobs{retried ? `, ${retried} needed a retry` : ''}
+          {failed ? `, ${failed} failed` : ', none failed'}
+        </p>
+      </div>
 
-      <div className="mt-10">
+      <div className="mt-4">
         {jobs.isLoading && <Loading label="Loading activity" />}
         {jobs.error && <ErrorNote>Activity could not be loaded.</ErrorNote>}
         {!jobs.isLoading && list.length === 0 && (
           <Empty title="No agent activity yet">Jobs appear here as the agents process traveller requests.</Empty>
         )}
-        <ol className="border-t-4 border-ink">
-          {list.map((j) => {
-            const summary = typeof j.result?.summary === 'string' ? j.result.summary : j.error;
-            return (
-              <li key={j.job_id} className="grid gap-x-6 gap-y-1 border-b border-rule py-3 sm:grid-cols-[12rem_1fr_auto]">
-                <div className="flex items-center gap-2">
-                  <Tag tone={toneOf(j.status)}>{j.status.toLowerCase()}</Tag>
-                  {(j.attempt_count ?? 1) > 1 && <Tag tone="pending">{j.attempt_count} attempts</Tag>}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-extrabold">
-                    {TYPE[j.job_type ?? ''] ?? 'Agent job'}
-                    {j.trip_id && (
-                      <>
-                        {', '}
-                        <Link to={tripPath(j.trip_id)} className="underline underline-offset-4 decoration-2 hover:decoration-cyan">
-                          {name(j.trip_id)}
-                        </Link>
-                      </>
-                    )}
-                  </p>
-                  {summary && <p className="mt-0.5 max-w-[70ch] text-sm text-ink-2">{summary}</p>}
-                </div>
-                <p className="text-sm text-ink-3 sm:text-right">{timeAgo(j.completed_at ?? j.updated_at)}</p>
-              </li>
-            );
-          })}
-        </ol>
+        {list.length > 0 && (
+          <div className="overflow-x-auto border border-rule bg-paper">
+            <table className="ruled min-w-[44rem]">
+              <caption className="sr-only">Agent jobs</caption>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Agent</th>
+                  <th>Trip</th>
+                  <th>Result</th>
+                  <th className="num">When</th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.map((j) => {
+                  const summary = typeof j.result?.summary === 'string' ? j.result.summary : j.error;
+                  return (
+                    <tr key={j.job_id}>
+                      <td className="whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Tag tone={toneOf(j.status)}>{j.status.toLowerCase()}</Tag>
+                          {(j.attempt_count ?? 1) > 1 && <Tag tone="pending">{j.attempt_count} attempts</Tag>}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap font-semibold">{TYPE[j.job_type ?? ''] ?? 'Agent job'}</td>
+                      <td>
+                        {j.trip_id && (
+                          <Link to={tripPath(j.trip_id)} className="underline underline-offset-4 decoration-1 hover:decoration-2">
+                            {name(j.trip_id)}
+                          </Link>
+                        )}
+                      </td>
+                      <td className="max-w-[28rem] truncate text-ink-2">{summary}</td>
+                      <td className="num whitespace-nowrap text-ink-3">{timeAgo(j.completed_at ?? j.updated_at)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

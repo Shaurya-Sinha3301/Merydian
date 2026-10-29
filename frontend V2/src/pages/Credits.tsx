@@ -13,7 +13,7 @@ export function Credits() {
           Back to home
         </Link>
       </header>
-      <main className="border-t-4 border-ink">
+      <main className="border-t-2 border-ink">
         <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-14">
           <h1 className="display text-[2.8rem] sm:text-[4.2rem]">Photo credits.</h1>
           <p className="mt-4 max-w-[62ch] text-lg text-ink-2">

@@ -4,7 +4,7 @@ import { useTripPlan } from '../../hooks/useTripData';
 import { useAuthStore } from '../../stores/auth.store';
 import { changesPath, feedbackPath, ROUTES, tripPath } from '../../constants/routes';
 import { Empty, ErrorNote, Loading } from '../../ui/Surface';
-import { Photo, Bands } from '../../ui/Photo';
+import { Photo } from '../../ui/Photo';
 import { ButtonLink } from '../../ui/Button';
 import { formatDateRange, formatMoney } from '../../lib/format';
 import { leadPhoto, photoForTrip } from '../../lib/photos';
@@ -40,43 +40,46 @@ export function TripLayout() {
   return (
     <div>
       {isAgent && (
-        <Link to={ROUTES.TRIPS} className="mb-3 inline-block text-sm font-bold underline underline-offset-4 decoration-2">
+        <Link to={ROUTES.TRIPS} className="mb-3 inline-block text-sm font-semibold underline underline-offset-4">
           All trips
         </Link>
       )}
 
-      <Photo photo={cover} alt={cover ? `${cover.name}, Delhi` : ''} scrim priority className="h-52 rounded-3xl sm:h-64">
-        <Bands width="20%" />
-        <div className="absolute inset-x-0 bottom-0 p-5 text-paper sm:p-7">
-          <div className="flex flex-wrap items-center gap-2 pr-[20%]">
-            {trip.current_version != null && (
-              <span className="rounded-full bg-paper/90 px-2.5 py-1 text-xs font-bold text-ink">Version {trip.current_version}</span>
-            )}
-            <span className="rounded-full bg-paper/90 px-2.5 py-1 text-xs font-bold text-ink">
-              {formatDateRange(trip.start_date, trip.end_date)}
-            </span>
-            {trip.total_cost != null && (
-              <span className="rounded-full bg-paper/90 px-2.5 py-1 text-xs font-bold text-ink">{formatMoney(trip.total_cost)}</span>
-            )}
-          </div>
-          <h1 className="display mt-2 pr-[20%] text-[2.2rem] sm:text-[3.4rem]">{trip.trip_name || 'Untitled trip'}</h1>
-          <p className="mt-1 pr-[20%] text-sm font-bold opacity-90">
-            {trip.destination || 'Destination to be confirmed'}
-            {' · '}
-            {rounds === 0 ? 'No feedback yet' : `${rounds} round${rounds === 1 ? '' : 's'} of feedback`}
-          </p>
+      <header className="grid gap-4 border border-ink bg-paper sm:grid-cols-[14rem_1fr]">
+        <Photo photo={cover} alt={cover ? `${cover.name}, Delhi` : ''} priority className="h-40 sm:h-full sm:min-h-40" />
+        <div className="p-4 sm:py-4 sm:pl-0 sm:pr-5">
+          <p className="label">{trip.destination || 'Destination to be confirmed'}</p>
+          <h1 className="display mt-1 text-3xl sm:text-4xl">{trip.trip_name || 'Untitled trip'}</h1>
+          <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-rule pt-3 sm:grid-cols-4">
+            <div>
+              <dt className="label">Dates</dt>
+              <dd className="text-sm font-semibold">{formatDateRange(trip.start_date, trip.end_date)}</dd>
+            </div>
+            <div>
+              <dt className="label">Version</dt>
+              <dd className="text-sm font-semibold">{trip.current_version != null ? `v${trip.current_version}` : '—'}</dd>
+            </div>
+            <div>
+              <dt className="label">Plan cost</dt>
+              <dd className="text-sm font-semibold tabular-nums">{formatMoney(trip.total_cost)}</dd>
+            </div>
+            <div>
+              <dt className="label">Feedback</dt>
+              <dd className="text-sm font-semibold">{rounds === 0 ? 'None yet' : `${rounds} round${rounds === 1 ? '' : 's'}`}</dd>
+            </div>
+          </dl>
         </div>
-      </Photo>
+      </header>
 
-      <nav aria-label="Trip" className="mt-4 grid grid-cols-3 gap-2 sm:inline-flex">
+      <nav aria-label="Trip" className="mt-4 flex border-b border-rule">
         {tabs.map((t) => (
           <NavLink
             key={t.to}
             to={t.to}
             end={t.end}
             className={({ isActive }) =>
-              `flex h-11 items-center justify-center rounded-xl text-base font-extrabold sm:px-6 ${
-                isActive ? 'bg-ink text-paper' : 'bg-paper text-ink shadow-[var(--shadow-card)] hover:bg-yellow'
+              `-mb-px flex h-11 flex-1 items-center justify-center border-b-2 text-sm font-semibold sm:flex-none sm:px-6 ${
+                isActive ? 'border-magenta text-ink' : 'border-transparent text-ink-2 hover:text-ink'
               }`
             }
           >

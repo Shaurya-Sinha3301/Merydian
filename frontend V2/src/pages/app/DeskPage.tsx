@@ -1,22 +1,24 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAgentJobs, useAgentOptions, useApproveOption } from '../../hooks/useAgentJobs';
-import { useTrips } from '../../hooks/useTrips';
+import { useAgentOptions, useApproveOption } from '../../hooks/useAgentJobs';
+import { useTripPlan } from '../../hooks/useTripData';
+import { useFleet } from '../../features/agent/useFleet';
+import { TripMap } from '../../features/plan/TripMap';
 import { Button } from '../../ui/Button';
-import { Empty, ErrorNote, Loading } from '../../ui/Surface';
-import { Tag, toneBg, type Tone } from '../../ui/Tag';
 import { Photo } from '../../ui/Photo';
-import { photoForTrip } from '../../lib/photos';
+import { Empty, ErrorNote, Loading } from '../../ui/Surface';
+import { Tag, type Tone } from '../../ui/Tag';
 import { tripPath } from '../../constants/routes';
-import { formatMoney, formatSignedMoney } from '../../lib/format';
+import { formatDateRange, formatMoney, formatSignedMoney, timeAgo } from '../../lib/format';
+import { photoForTrip } from '../../lib/photos';
 import { useTitle } from '../../lib/useTitle';
 import type { AgentJobDTO, ItineraryOptionDTO } from '../../types/dto/agent';
 import type { TripDetailResponse } from '../../types/dto/trip';
 
-const STATUS: Record<ItineraryOptionDTO['status'], { tone: Tone; label: string; text: string }> = {
-  PENDING: { tone: 'pending', label: 'Waiting for you', text: 'text-ink' },
-  APPROVED: { tone: 'added', label: 'Chosen', text: 'text-ink' },
-  REJECTED: { tone: 'removed', label: 'Not chosen', text: 'text-paper' },
+const STATUS: Record<ItineraryOptionDTO['status'], { tone: Tone; label: string }> = {
+  PENDING: { tone: 'pending', label: 'Waiting for you' },
+  APPROVED: { tone: 'added', label: 'Chosen' },
+  REJECTED: { tone: 'removed', label: 'Not chosen' },
 };
 
 const ACTION_WORDS: Record<string, string> = {
@@ -31,196 +33,196 @@ function changesOf(option: ItineraryOptionDTO): Array<Record<string, unknown>> {
   return (option.details?.schedule_changes ?? []) as Array<Record<string, unknown>>;
 }
 
-function OptionColumn({
-  option,
-  trip,
-  onChoose,
-  busy,
-}: {
-  option: ItineraryOptionDTO;
-  trip?: TripDetailResponse;
-  onChoose: () => void;
-  busy: boolean;
-}) {
-  const s = STATUS[option.status];
-  const changes = changesOf(option);
-  const keeps = changes.length === 0;
-  const costDelta = trip?.total_cost != null ? option.cost - trip.total_cost : null;
-  const fitNow = trip?.total_satisfaction != null ? trip.total_satisfaction * 10 : null;
-  const fitDelta = fitNow != null ? Math.round(option.satisfaction * 100 - fitNow) : null;
-
-  return (
-    <li className="flex flex-col overflow-hidden rounded-2xl bg-paper shadow-[var(--shadow-card)]">
-      <div className={`px-4 py-1.5 text-sm font-extrabold ${toneBg[s.tone]} ${s.text}`}>{s.label}</div>
-      <div className="flex flex-1 flex-col gap-4 p-4">
-        <h4 className="title text-2xl">{keeps ? 'Keep the current plan' : option.summary}</h4>
-
-        <div>
-          <p className="label">What changes</p>
-          {keeps ? (
-            <p className="mt-1 text-ink-2">Nothing. The request is set aside for now.</p>
-          ) : (
-            <ul className="mt-1 flex flex-col gap-1.5">
-              {changes.map((c, i) => {
-                const action = ACTION_WORDS[String(c.action)] ?? 'Change';
-                const what = String(c.poi_name ?? c.add ?? c.remove ?? '');
-                return (
-                  <li key={i} className="flex items-baseline gap-2">
-                    <span className="inline-flex h-6 shrink-0 items-center rounded-md bg-green px-2 text-xs font-bold">{action}</span>
-                    <span className="font-bold">
-                      {c.day ? `Day ${String(c.day)}: ` : ''}
-                      {what}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-
-        <dl className="grid grid-cols-2 gap-4 border-t border-rule pt-3">
-          <div>
-            <dt className="label">Plan cost</dt>
-            <dd className="text-xl font-extrabold">{formatMoney(option.cost)}</dd>
-            <dd className="text-sm text-ink-2">
-              {costDelta == null ? '' : costDelta === 0 ? 'Same as now' : `${formatSignedMoney(costDelta)} vs now`}
-            </dd>
-          </div>
-          <div>
-            <dt className="label">Predicted fit</dt>
-            <dd className="text-xl font-extrabold">{Math.round(option.satisfaction * 100)}%</dd>
-            <dd className="text-sm text-ink-2">
-              {fitDelta == null ? '' : fitDelta === 0 ? 'Same as now' : `${fitDelta > 0 ? '+' : ''}${fitDelta} points vs now`}
-            </dd>
-          </div>
-        </dl>
-
-        {option.status === 'PENDING' && (
-          <div className="mt-auto pt-1">
-            {keeps ? (
-              <Button variant="outline" loading={busy} onClick={onChoose}>
-                Keep the current plan
-              </Button>
-            ) : (
-              <Button variant="cyan" loading={busy} onClick={onChoose}>
-                Approve this option
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-    </li>
-  );
-}
-
 function Decision({ job, trip, tripName }: { job: AgentJobDTO; trip?: TripDetailResponse; tripName: string }) {
   const eventId = String(job.result?.event_id);
   const { data, isLoading, error } = useAgentOptions(eventId);
   const approve = useApproveOption();
+  const plan = useTripPlan(job.trip_id ?? '');
   const options = [...(data?.options ?? [])].sort((a, b) => changesOf(b).length - changesOf(a).length);
   const decided = options.some((o) => o.status !== 'PENDING');
   const request = typeof job.result?.summary === 'string' ? job.result.summary : undefined;
 
+  // Every stop of the trip in day order, so the agent sees where the group will be
+  const points = plan.days.flatMap((d) => d.stops.filter((s) => s.category !== 'meal').map((s) => ({ id: s.id, title: s.title })));
+  const fitNow = trip?.total_satisfaction != null ? trip.total_satisfaction * 10 : null;
+
   return (
-    <section aria-label={tripName}>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 className="display text-4xl sm:text-5xl">{tripName}</h2>
-        <div className="flex items-center gap-4">
+    <section aria-label={tripName} className="min-w-0">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="display text-2xl sm:text-3xl">{tripName}</h2>
+          <p className="mt-1 text-sm text-ink-2">
+            {formatDateRange(trip?.start_date, trip?.end_date)}
+            {trip?.current_version ? ` · version ${trip.current_version}` : ''} · {formatMoney(trip?.total_cost)} now
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
           <Tag tone={decided ? 'added' : 'pending'}>{decided ? 'Decided' : 'Needs your decision'}</Tag>
           {job.trip_id && (
-            <Link to={tripPath(job.trip_id)} className="text-sm font-bold underline underline-offset-4 decoration-2">
+            <Link to={tripPath(job.trip_id)} className="text-sm font-semibold underline underline-offset-4">
               Open trip
             </Link>
           )}
         </div>
       </div>
-      {request && <p className="mt-2 max-w-[70ch] text-ink-2">{request}</p>}
+      {request && <p className="mt-3 max-w-[72ch] border-l border-ink pl-3 text-ink-2">{request}</p>}
 
-      {isLoading && <Loading label="Loading the options" />}
-      {error && (
-        <div className="mt-3">
-          <ErrorNote>The options could not be loaded.</ErrorNote>
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4">
+        <div className="border border-rule bg-paper">
+          <h3 className="title border-b-2 border-ink px-4 py-2.5 text-lg">Options against the current plan</h3>
+          {isLoading && <Loading label="Loading the options" />}
+          {error && (
+            <div className="p-3">
+              <ErrorNote>The options could not be loaded.</ErrorNote>
+            </div>
+          )}
+          {options.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="ruled min-w-[38rem]">
+                <thead>
+                  <tr>
+                    <th>Option</th>
+                    <th>What changes</th>
+                    <th className="num">Cost</th>
+                    <th className="num">vs now</th>
+                    <th className="num">Fit</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {options.map((o) => {
+                    const changes = changesOf(o);
+                    const keeps = changes.length === 0;
+                    const costDelta = trip?.total_cost != null ? o.cost - trip.total_cost : null;
+                    const fit = Math.round(o.satisfaction * 100);
+                    const fitDelta = fitNow != null ? Math.round(o.satisfaction * 100 - fitNow) : null;
+                    const s = STATUS[o.status];
+                    return (
+                      <tr key={o.option_id} className="align-top">
+                        <td className="max-w-[16rem]">
+                          <p className="font-semibold">{keeps ? 'Keep the current plan' : o.summary}</p>
+                          <p className="mt-1">
+                            <Tag tone={s.tone}>{s.label}</Tag>
+                          </p>
+                        </td>
+                        <td>
+                          {keeps ? (
+                            <span className="text-ink-2">Nothing. The request is set aside.</span>
+                          ) : (
+                            <ul className="flex flex-col gap-1">
+                              {changes.map((c, i) => (
+                                <li key={i} className="flex items-baseline gap-2 text-sm">
+                                  <Tag tone="added">{ACTION_WORDS[String(c.action)] ?? 'Change'}</Tag>
+                                  <span className="font-semibold">
+                                    {c.day ? `Day ${String(c.day)}: ` : ''}
+                                    {String(c.poi_name ?? c.add ?? c.remove ?? '')}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </td>
+                        <td className="num font-semibold">{formatMoney(o.cost)}</td>
+                        <td className={`num ${costDelta && costDelta > 0 ? 'text-magenta' : costDelta && costDelta < 0 ? 'text-green' : ''}`}>
+                          {costDelta == null ? '—' : costDelta === 0 ? '±0' : formatSignedMoney(costDelta)}
+                        </td>
+                        <td className="num">
+                          {fit}%
+                          {fitDelta != null && fitDelta !== 0 && (
+                            <span className={`ml-1 text-xs ${fitDelta > 0 ? 'text-green' : 'text-magenta'}`}>
+                              {fitDelta > 0 ? '+' : ''}
+                              {fitDelta}
+                            </span>
+                          )}
+                        </td>
+                        <td className="text-right">
+                          {o.status === 'PENDING' && (
+                            <Button
+                              variant={keeps ? 'outline' : 'cyan'}
+                              loading={approve.isPending && approve.variables === o.option_id}
+                              onClick={() => approve.mutate(o.option_id)}
+                            >
+                              {keeps ? 'Keep' : 'Approve'}
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {approve.isError && (
+            <div className="p-3">
+              <ErrorNote>That did not go through. Please try again.</ErrorNote>
+            </div>
+          )}
+          {approve.isSuccess && (
+            <p className="border-t border-rule px-4 py-3 text-sm font-semibold text-green">
+              Saved. The tools and communication agents have been queued.
+            </p>
+          )}
         </div>
-      )}
 
-      <ul className="mt-5 grid gap-4 md:grid-cols-2">
-        {options.map((o) => (
-          <OptionColumn
-            key={o.option_id}
-            option={o}
-            trip={trip}
-            busy={approve.isPending && approve.variables === o.option_id}
-            onChoose={() => approve.mutate(o.option_id)}
-          />
-        ))}
-      </ul>
-      {approve.isError && (
-        <div className="mt-3">
-          <ErrorNote>That did not go through. Please try again.</ErrorNote>
-        </div>
-      )}
-      {approve.isSuccess && (
-        <p className="mt-3 text-sm font-bold">Saved. The tools and communication agents have been queued.</p>
-      )}
+        <TripMap
+          label={`Stops of ${tripName}`}
+          points={points}
+          className="h-80 border border-rule"
+        />
+      </div>
     </section>
   );
 }
 
 export function DeskPage() {
   useTitle('Desk');
-  const jobs = useAgentJobs(100, 0);
-  const trips = useTrips(100, 0);
+  const fleet = useFleet();
   const [picked, setPicked] = useState<string | null>(null);
-  const all: AgentJobDTO[] = jobs.data?.jobs ?? [];
-  const waiting = all.filter((j) => j.result?.awaiting_approval === true && typeof j.result?.event_id === 'string');
-  const tripOf = (id?: string | null) => trips.data?.items.find((t) => t.trip_id === id);
-  const nameOf = (id?: string | null) => tripOf(id)?.trip_name || id || 'Trip';
+  const waiting = fleet.waitingJobs;
+  const tripOf = (id?: string | null) => fleet.items.find((t) => t.trip_id === id);
   const current = waiting.find((j) => j.job_id === picked) ?? waiting[0];
 
   return (
     <div>
-      <h1 className="display text-[2.8rem] sm:text-[4.2rem]">
-        {waiting.length > 0 ? (
-          <>
-            <span className="mark mark-yellow">{waiting.length}</span> waiting on you
-          </>
-        ) : (
-          'Nothing waiting'
-        )}
-        .
-      </h1>
-      <p className="mt-3 max-w-[60ch] text-lg text-ink-2">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h1 className="display text-3xl sm:text-4xl">Desk</h1>
+        <p className="text-sm text-ink-3">{waiting.length} waiting</p>
+      </div>
+      <p className="mt-1 max-w-[70ch] text-ink-2">
         When a traveller asks for something, the AI prepares options. Compare each against the current plan and choose one.
       </p>
 
-      <div className="mt-10">
-        {jobs.isLoading && <Loading label="Loading requests" />}
-        {jobs.error && <ErrorNote>Requests could not be loaded.</ErrorNote>}
-        {!jobs.isLoading && waiting.length === 0 && (
+      <div className="mt-4">
+        {fleet.isLoading && <Loading label="Loading requests" />}
+        {fleet.error && <ErrorNote>Requests could not be loaded.</ErrorNote>}
+        {!fleet.isLoading && waiting.length === 0 && (
           <Empty title="You are all caught up">New requests appear here as soon as the agents finish preparing options.</Empty>
         )}
 
         {waiting.length > 0 && current && (
-          <div className="grid gap-x-10 gap-y-8 lg:grid-cols-12">
-            <nav aria-label="Requests" className="lg:col-span-4">
-              <h2 className="title text-2xl">Requests</h2>
-              <ul className="mt-3 flex flex-col gap-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
+            <nav aria-label="Requests" className="self-start border border-rule bg-paper">
+              <h2 className="title border-b-2 border-ink px-4 py-2.5 text-lg">Requests</h2>
+              <ul className="divide-y divide-rule">
                 {waiting.map((j) => {
                   const active = j.job_id === current.job_id;
+                  const name = fleet.nameOf(j.trip_id);
                   return (
                     <li key={j.job_id}>
                       <button
                         type="button"
                         onClick={() => setPicked(j.job_id)}
                         aria-current={active ? 'true' : undefined}
-                        className={`flex w-full items-center gap-3 rounded-2xl p-2 text-left shadow-[var(--shadow-card)] ${active ? 'bg-ink text-paper' : 'bg-paper hover:bg-yellow'}`}
+                        className={`flex w-full items-center gap-3 p-2.5 text-left ${active ? 'bg-ink text-paper' : 'hover:bg-panel'}`}
                       >
-                        <Photo photo={photoForTrip(nameOf(j.trip_id))} alt="" className="h-14 w-16 shrink-0 rounded-xl" />
+                        <Photo photo={photoForTrip(name)} alt="" className="h-12 w-14 shrink-0" />
                         <span className="min-w-0">
-                          <span className="block text-base font-extrabold">{nameOf(j.trip_id)}</span>
-                          <span className={`line-clamp-2 text-sm ${active ? 'text-paper' : 'text-ink-2'}`}>
+                          <span className="block truncate text-sm font-semibold">{name}</span>
+                          <span className={`line-clamp-2 text-xs ${active ? 'text-paper/80' : 'text-ink-3'}`}>
                             {typeof j.result?.summary === 'string' ? j.result.summary : 'New request'}
                           </span>
+                          <span className={`block text-[11px] ${active ? 'text-paper/70' : 'text-ink-3'}`}>{timeAgo(j.updated_at)}</span>
                         </span>
                       </button>
                     </li>
@@ -228,9 +230,7 @@ export function DeskPage() {
                 })}
               </ul>
             </nav>
-            <div className="lg:col-span-8">
-              <Decision key={current.job_id} job={current} trip={tripOf(current.trip_id)} tripName={nameOf(current.trip_id)} />
-            </div>
+            <Decision key={current.job_id} job={current} trip={tripOf(current.trip_id)} tripName={fleet.nameOf(current.trip_id)} />
           </div>
         )}
       </div>

@@ -129,7 +129,7 @@ export function ChangesPage() {
           const pairCount = Math.max(rem.length, add.length);
           return (
             <section key={d} aria-label={d ? `Day ${d}` : 'Other changes'}>
-              <h3 className="display border-t-4 border-ink pt-2 text-4xl sm:text-5xl">{d ? `Day ${d}` : 'Other'}</h3>
+              <h3 className="display border-t-2 border-ink pt-2 text-4xl sm:text-5xl">{d ? `Day ${d}` : 'Other'}</h3>
               <div className="mt-4 flex flex-col gap-4">
                 {Array.from({ length: pairCount }, (_, i) => {
                   const r = rem[i];
