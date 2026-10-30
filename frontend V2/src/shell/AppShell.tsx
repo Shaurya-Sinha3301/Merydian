@@ -76,6 +76,9 @@ export function AppShell() {
                 Webhooks
               </NavLink>
             )}
+            <NavLink to={ROUTES.SETTINGS} className="hidden text-sm font-semibold text-ink-2 hover:text-ink sm:inline">
+              Settings
+            </NavLink>
             {!isAgent && <Tag>Traveller</Tag>}
             <span className="hidden text-sm font-bold xl:inline">{user?.full_name}</span>
             <Button variant="quiet" onClick={leave}>

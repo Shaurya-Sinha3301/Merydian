@@ -75,6 +75,11 @@ export function Login() {
             That is {mismatch === 'agent' ? 'a travel agent' : 'a traveller'} account. Switch to {mismatch === 'agent' ? 'Travel agent' : 'Traveller'} above and sign in again.
           </ErrorNote>
         )}
+        <p className="-mt-2 text-sm">
+          <Link to="/forgot" className="font-semibold underline underline-offset-4">
+            Forgot your password?
+          </Link>
+        </p>
         {login.isError && <ErrorNote>That email and password do not match. Check them and try again.</ErrorNote>}
         <Button size="lg" type="submit" loading={login.isPending} disabled={!email || !password}>
           Sign in

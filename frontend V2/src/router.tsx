@@ -22,6 +22,8 @@ import { WebhooksPage } from './pages/app/WebhooksPage';
 import { BookingsPage, TripBookingsPage } from './pages/app/BookingsPage';
 import { GroupPage } from './pages/app/GroupPage';
 import { NotesPage } from './pages/app/NotesPage';
+import { ForgotPassword, ResetPassword } from './pages/Recovery';
+import { SettingsPage } from './pages/app/SettingsPage';
 import { DeskPage } from './pages/app/DeskPage';
 import { TripsPage } from './pages/app/TripsPage';
 import { ActivityPage } from './pages/app/ActivityPage';
@@ -59,6 +61,8 @@ export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/signup', element: <Signup /> },
   { path: '/credits', element: <Credits /> },
+  { path: '/forgot', element: <ForgotPassword /> },
+  { path: '/reset', element: <ResetPassword /> },
   {
     path: '/app',
     element: <AppShell />,
@@ -71,6 +75,7 @@ export const router = createBrowserRouter([
       { path: 'agents', element: <AgentsPage /> },
       { path: 'bookings', element: <BookingsPage /> },
       { path: 'webhooks', element: <WebhooksPage /> },
+      { path: 'settings', element: <SettingsPage /> },
       { path: 'customers', element: <CustomersPage /> },
       { path: 'customers/:familyId', element: <CustomerDetailPage /> },
       { path: 'new-trip', element: <NewTripPage /> },

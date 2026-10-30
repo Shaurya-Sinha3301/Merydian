@@ -1,11 +1,148 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTripGroup } from '../../hooks/usePhase3';
+import { useChecklist, useExpenses, useGroupMoneyActions } from '../../hooks/usePhase4';
+import { Button } from '../../ui/Button';
 import { Empty, ErrorNote, Loading } from '../../ui/Surface';
 import { Tag } from '../../ui/Tag';
 import { formatMoney } from '../../lib/format';
 
 const SWATCH = ['#17407f', '#c4231a', '#1f6b35', '#8a5a00', '#39424c', '#6b7a99'];
+
+
+function GroupMoney({ tripId, families }: { tripId: string; families: Array<{ family_id: string; name: string; you: boolean }> }) {
+  const expenses = useExpenses(tripId);
+  const checklist = useChecklist(tripId);
+  const actions = useGroupMoneyActions(tripId);
+  const mine = families.find((f) => f.you)?.family_id ?? families[0]?.family_id;
+  const [title, setTitle] = useState('');
+  const [amount, setAmount] = useState('');
+  const [payer, setPayer] = useState<string>('');
+  const [item, setItem] = useState('');
+
+  const addExpense = (e: FormEvent) => {
+    e.preventDefault();
+    const n = Number(amount);
+    if (title.trim().length < 2 || !(n > 0)) return;
+    actions.addExpense.mutate({ title: title.trim(), amount: n, paid_by: payer || mine }, { onSuccess: () => { setTitle(''); setAmount(''); } });
+  };
+  const addItem = (e: FormEvent) => {
+    e.preventDefault();
+    if (item.trim()) actions.addItem.mutate(item.trim(), { onSuccess: () => setItem('') });
+  };
+  const ex = expenses.data;
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-12">
+      <section className="min-w-0 border border-rule bg-paper lg:col-span-7" aria-label="Shared expenses">
+        <div className="flex items-center justify-between border-b-2 border-ink px-4 py-2.5">
+          <h2 className="title text-lg">Shared expenses</h2>
+          <p className="text-sm text-ink-2">
+            Total <span className="font-bold tabular-nums">{formatMoney(ex?.total ?? 0)}</span> · split equally
+          </p>
+        </div>
+        {ex && ex.settlements.length > 0 && (
+          <ul className="divide-y divide-rule border-b border-rule bg-amber-tint">
+            {ex.settlements.map((s) => (
+              <li key={`${s.from}-${s.to}`} className="px-4 py-2 text-sm">
+                <span className="font-semibold">{s.from_name}</span> pays <span className="font-semibold">{s.to_name}</span> <span className="font-bold tabular-nums">{formatMoney(s.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {ex && ex.settlements.length === 0 && ex.expenses.length > 0 && <p className="border-b border-rule bg-green-tint px-4 py-2 text-sm font-semibold text-green">Everyone is square.</p>}
+        <div className="overflow-x-auto">
+          <table className="ruled min-w-[28rem]">
+            <thead>
+              <tr>
+                <th>What</th>
+                <th>Paid by</th>
+                <th className="num">Amount</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {(ex?.expenses ?? []).map((e) => (
+                <tr key={e.id}>
+                  <td className="font-semibold">{e.title}</td>
+                  <td className="text-ink-2">{e.paid_by_name}</td>
+                  <td className="num">{formatMoney(e.amount)}</td>
+                  <td className="text-right">
+                    <button type="button" onClick={() => actions.deleteExpense.mutate(e.id)} className="text-xs font-semibold text-ink-3 underline underline-offset-4 hover:text-ink">
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {(ex?.expenses ?? []).length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-ink-3">
+                    Nothing shared yet. Add what you paid for the group.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        {ex && (
+          <dl className="grid grid-cols-2 divide-x divide-rule border-t-2 border-ink sm:grid-cols-4">
+            {ex.families.map((f) => (
+              <div key={f.family_id} className="p-3">
+                <dt className="label">{f.name}</dt>
+                <dd className={`mt-1 text-lg font-bold tabular-nums ${f.net > 0 ? 'text-green' : f.net < 0 ? 'text-magenta' : ''}`}>{f.net > 0 ? '+' : ''}{formatMoney(f.net)}</dd>
+                <dd className="text-xs text-ink-3">paid {formatMoney(f.paid)}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        <form onSubmit={addExpense} className="flex flex-wrap items-end gap-2 border-t border-rule p-3">
+          <input aria-label="What was paid for" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Van hire" className="h-10 min-w-[8rem] flex-1 rounded-sm border border-ink bg-paper px-3" />
+          <input aria-label="Amount" type="number" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" className="h-10 w-28 rounded-sm border border-ink bg-paper px-3" />
+          <select aria-label="Paid by" value={payer || mine} onChange={(e) => setPayer(e.target.value)} className="h-10 rounded-sm border border-ink bg-paper px-2">
+            {families.map((f) => (
+              <option key={f.family_id} value={f.family_id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+          <Button type="submit" loading={actions.addExpense.isPending} disabled={title.trim().length < 2 || !(Number(amount) > 0)}>
+            Add
+          </Button>
+        </form>
+      </section>
+
+      <section className="min-w-0 self-start border border-rule bg-paper lg:col-span-5" aria-label="Shared checklist">
+        <div className="flex items-center justify-between border-b-2 border-ink px-4 py-2.5">
+          <h2 className="title text-lg">Shared checklist</h2>
+          <p className="text-sm text-ink-3">
+            {(checklist.data?.items ?? []).filter((i) => i.done).length} of {(checklist.data?.items ?? []).length} done
+          </p>
+        </div>
+        <ul className="divide-y divide-rule">
+          {(checklist.data?.items ?? []).map((i) => (
+            <li key={i.id} className="flex items-start gap-3 px-4 py-2.5">
+              <input type="checkbox" checked={i.done} onChange={(e) => actions.tick.mutate({ id: i.id, done: e.target.checked })} aria-label={i.text} className="mt-1 h-4 w-4 accent-[var(--color-ink)]" />
+              <span className="min-w-0 flex-1">
+                <span className={i.done ? 'text-ink-3 line-through' : ''}>{i.text}</span>
+                <span className="block text-xs text-ink-3">{i.added_by}</span>
+              </span>
+              <button type="button" onClick={() => actions.removeItem.mutate(i.id)} className="text-xs font-semibold text-ink-3 underline underline-offset-4 hover:text-ink">
+                Remove
+              </button>
+            </li>
+          ))}
+          {(checklist.data?.items ?? []).length === 0 && <li className="px-4 py-5 text-sm text-ink-3">Passports, tickets, who brings what. Everyone on the trip can tick things off.</li>}
+        </ul>
+        <form onSubmit={addItem} className="flex gap-2 border-t border-rule p-3">
+          <input aria-label="New item" value={item} onChange={(e) => setItem(e.target.value)} placeholder="Carry passports" className="h-10 min-w-0 flex-1 rounded-sm border border-ink bg-paper px-3" />
+          <Button type="submit" variant="outline" loading={actions.addItem.isPending} disabled={!item.trim()}>
+            Add
+          </Button>
+        </form>
+      </section>
+    </div>
+  );
+}
 
 /** A group trip: one shared plan and, where a family's plan differs, its own branch. */
 export function GroupPage() {
@@ -23,6 +160,7 @@ export function GroupPage() {
   const { shared_stops: shared, branch_stops: branch } = data.summary;
 
   return (
+    <div className="flex flex-col gap-6">
     <div className="grid gap-6 lg:grid-cols-12">
       <section className="min-w-0 border border-rule bg-paper lg:col-span-4" aria-label="Families">
         <h2 className="title border-b-2 border-ink px-4 py-2.5 text-lg">Families on this trip</h2>
@@ -108,6 +246,8 @@ export function GroupPage() {
           </table>
         </div>
       </section>
+    </div>
+    <GroupMoney tripId={tripId} families={data.families} />
     </div>
   );
 }

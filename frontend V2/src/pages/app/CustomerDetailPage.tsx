@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { phase4Service } from '../../services/phase4';
 import { Link, useParams } from 'react-router-dom';
 import { useCustomer, useSavePreferences } from '../../hooks/useCustomers';
 import type { CustomerDetail } from '../../services/customers';
@@ -52,6 +54,7 @@ export function CustomerDetailPage() {
 
 function CustomerView({ data, familyId }: { data: CustomerDetail; familyId: string }) {
   const save = useSavePreferences(familyId);
+  const invite = useMutation({ mutationFn: () => phase4Service.resendInvite(familyId) });
   const p = data.preferences;
   const [members, setMembers] = useState(p.members ?? 2);
   const [children, setChildren] = useState(p.children ?? 0);
@@ -88,8 +91,22 @@ function CustomerView({ data, familyId }: { data: CustomerDetail; familyId: stri
             {data.email} · family code <span className="tabular-nums">{data.family_code}</span>
           </p>
         </div>
-        <ButtonLink to={`${ROUTES.NEW_TRIP}?customer=${encodeURIComponent(data.family_code)}`}>Plan a trip</ButtonLink>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="outline" loading={invite.isPending} onClick={() => invite.mutate()}>
+            Email an invitation again
+          </Button>
+          <ButtonLink to={`${ROUTES.NEW_TRIP}?customer=${encodeURIComponent(data.family_code)}`}>Plan a trip</ButtonLink>
+        </div>
       </div>
+
+      {invite.isSuccess && (
+        <p className="mt-3 border border-green bg-green-tint px-3 py-2 text-sm" role="status">
+          <span className="font-semibold">Invitation sent.</span>{' '}
+          {invite.data.email_configured ? 'It is on its way.' : 'Email is not set up on this server, so send them this link yourself:'}{' '}
+          {!invite.data.email_configured && <span className="select-all break-all font-mono text-xs">{invite.data.invite_link}</span>}
+        </p>
+      )}
+      {invite.isError && <div className="mt-3"><ErrorNote>The invitation could not be sent.</ErrorNote></div>}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <section className="min-w-0 border border-rule bg-paper" aria-labelledby="prefs">

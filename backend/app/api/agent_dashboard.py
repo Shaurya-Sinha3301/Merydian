@@ -72,6 +72,7 @@ class CustomerRegistrationResponse(BaseModel):
     user_id: str = Field(..., description="Created user ID")
     family_id: str = Field(..., description="Created family ID")
     temporary_password: Optional[str] = Field(default=None, description="Shown once, for a newly created customer")
+    invite_link: Optional[str] = Field(default=None, description="Set-your-password link, also emailed to the customer")
 
 
 class CustomerDTO(BaseModel):
@@ -87,6 +88,22 @@ class CustomerDTO(BaseModel):
 
 class CustomerListResponse(BaseModel):
     customers: List[CustomerDTO]
+
+
+def _invite(user: Any, agent_sub: str) -> Optional[str]:
+    try:
+        from sqlmodel import Session as _Session
+
+        from app.api.phase4 import send_invite
+        from app.core.db import engine as _engine
+        from app.models.user import User as _User
+
+        with _Session(_engine) as s:
+            me = s.get(_User, UUID(agent_sub))
+        return send_invite(user, me.full_name if me else None)
+    except Exception as e:
+        logger.error(f"Could not send invitation: {e}", exc_info=True)
+        return None
 
 
 # --------------- Endpoints ---------------
@@ -168,6 +185,11 @@ async def approve_itinerary_option(
 
         # 1. Approve in DB (also auto-rejects sibling options)
         option_uuid = UUID(approve_request.option_id)
+        from app.services.agency_service import ensure_trip_visible
+
+        _opt = ItineraryOptionService.get_option_by_id(option_uuid)
+        if _opt:
+            ensure_trip_visible(current_agent.sub, _opt.trip_id)
         approved_option = ItineraryOptionService.approve_option(
             option_id=option_uuid,
             agent_id=agent_uuid,
@@ -283,8 +305,10 @@ async def list_agent_jobs(
         from app.models.agent_job import AgentJob
         
         with Session(engine) as session:
-            stmt = select(AgentJob).order_by(AgentJob.created_at.desc()).offset(offset).limit(limit)
-            jobs = session.exec(stmt).all()
+            from app.services.agency_service import trip_ids_in, agency_of
+
+            visible = trip_ids_in(session, agency_of(session, current_agent.sub))
+            jobs = [j for j in session.exec(select(AgentJob).order_by(AgentJob.created_at.desc())).all() if j.trip_id in visible][offset:offset + limit]
             
             return AgentJobListResponse(
                 jobs=[
@@ -324,6 +348,10 @@ async def get_agent_job_status(
         
         if not job:
             raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+        if job.trip_id:
+            from app.services.agency_service import ensure_trip_visible
+
+            ensure_trip_visible(current_agent.sub, job.trip_id)
             
         return AgentJobStatusResponse(
             job_id=str(job.id),
@@ -397,6 +425,15 @@ async def register_customer(
         fam = FamilyService.get_family(new_user.family_id)
         
         # We optionally save extra info (like family members) into preferences
+        from sqlmodel import Session
+
+        from app.core.db import engine
+        from app.services.agency_service import agency_of, set_user_agency
+
+        with Session(engine) as _s:
+            _mine = agency_of(_s, current_agent.sub)
+        if _mine:
+            set_user_agency(new_user.id, _mine)
         if fam:
             prefs = fam.preferences or {}
             prefs["members"] = request.members
@@ -411,6 +448,7 @@ async def register_customer(
             user_id=str(new_user.id),
             family_id=str(fam.id),
             temporary_password=default_password,
+            invite_link=_invite(new_user, current_agent.sub),
         )
 
     except HTTPException:
@@ -436,7 +474,10 @@ async def list_customers(current_agent: TokenPayload = Depends(get_current_agent
 
     out: List[CustomerDTO] = []
     with Session(engine) as session:
-        users = session.exec(select(User).where(User.role == "traveller").order_by(User.email)).all()
+        from app.services.agency_service import agency_of, user_ids_in
+
+        mine = set(user_ids_in(session, agency_of(session, current_agent.sub), "traveller"))
+        users = [u for u in session.exec(select(User).where(User.role == "traveller").order_by(User.email)).all() if u.id in mine]
         for u in users:
             family = session.get(Family, u.family_id) if u.family_id else None
             prefs = (family.preferences or {}) if family else {}
@@ -510,6 +551,9 @@ async def get_customer(family_id: UUID, current_agent: TokenPayload = Depends(ge
     from app.services.trip_service import TripService
 
     with Session(engine) as session:
+        from app.services.agency_service import ensure_family_visible
+
+        ensure_family_visible(session, current_agent.sub, family_id)
         family = session.get(Family, family_id)
         if not family:
             raise HTTPException(status_code=404, detail="Customer not found")
@@ -556,6 +600,10 @@ async def update_customer_preferences(
     """Change a customer's saved preferences. They apply to trips planned from now on. Agents only."""
     from app.services.family_service import FamilyService
 
+    from app.services.agency_service import ensure_family_visible
+
+    with Session(engine) as _s:
+        ensure_family_visible(_s, current_agent.sub, family_id)
     family = FamilyService.get_family(family_id)
     if not family:
         raise HTTPException(status_code=404, detail="Customer not found")
@@ -625,7 +673,10 @@ async def list_decisions(
     from app.models.trip_session import TripSession
 
     with Session(engine) as session:
-        options = session.exec(select(ItineraryOptionDB).order_by(ItineraryOptionDB.created_at.desc())).all()
+        from app.services.agency_service import agency_of, trip_ids_in
+
+        visible = trip_ids_in(session, agency_of(session, current_agent.sub))
+        options = [o for o in session.exec(select(ItineraryOptionDB).order_by(ItineraryOptionDB.created_at.desc())).all() if o.trip_id in visible]
         trips = {t.trip_id: t for t in session.exec(select(TripSession)).all()}
         summaries: Dict[str, str] = {}
         for j in session.exec(select(AgentJob)).all():
@@ -704,6 +755,9 @@ async def reject_request(body: RejectRequest, current_agent: TokenPayload = Depe
         ).all()
         if not opts:
             raise HTTPException(status_code=404, detail="Request not found")
+        from app.services.agency_service import ensure_trip_visible
+
+        ensure_trip_visible(current_agent.sub, opts[0].trip_id)
         pending = [o for o in opts if o.status == OptionStatus.PENDING]
         if not pending:
             raise HTTPException(status_code=409, detail="That request has already been decided")
@@ -728,4 +782,4 @@ async def agent_analytics(current_agent: TokenPayload = Depends(get_current_agen
     """Business metrics across trips, versions, approvals, agent jobs and customers. Agents only."""
     from app.services.analytics_service import compute_analytics
 
-    return compute_analytics()
+    return compute_analytics(current_agent.sub)

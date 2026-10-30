@@ -65,6 +65,20 @@ class Settings(BaseSettings):
     # Webhooks may call private addresses (localhost, 10.x) only when this is on; leave off in production.
     WEBHOOK_ALLOW_PRIVATE: bool = False
 
+    # EMAIL AND SMS (optional): without these, messages are recorded as "logged" instead of sent
+    FRONTEND_URL: str = "http://localhost:5173"
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
+    SMTP_TLS: bool = True
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_FROM: str = ""
+    # Local testing only: lets /dev/outbox show recent messages so reset links can be read
+    DEV_OUTBOX: bool = False
+
     # TEST CREDENTIALS
     TEST_USER_EMAIL: str = "test@example.com"
     TEST_USER_PASSWORD: str = "testpassword123"

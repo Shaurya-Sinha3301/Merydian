@@ -121,6 +121,22 @@ async def signup(
         full_name=user_in.full_name,
     )
 
+    # Agency: agents may start one or join one; travellers may join the agency that invited them
+    try:
+        from app.services import agency_service as ags
+
+        joined = None
+        if user_in.agency_code:
+            joined = ags.agency_by_code(user_in.agency_code)
+            if not joined:
+                raise ValueError("That agency code is not valid")
+        elif role == "agent" and user_in.agency_name and user_in.agency_name.strip():
+            joined = ags.create_agency(user_in.agency_name.strip())
+        if joined:
+            ags.set_user_agency(user.id, joined.id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     # Get device info for session tracking
     device_info = get_device_info(request)
     

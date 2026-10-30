@@ -66,14 +66,17 @@ def _round(value: Optional[float], digits: int = 1) -> Optional[float]:
     return None if value is None else round(value, digits)
 
 
-def compute_analytics() -> Dict[str, Any]:
+def compute_analytics(agent_sub: Optional[str] = None) -> Dict[str, Any]:
     catalogue = _locations()
     now = datetime.utcnow()
 
     with Session(engine) as session:
-        trips = session.exec(select(TripSession).order_by(TripSession.created_at)).all()
-        options = session.exec(select(ItineraryOptionDB)).all()
-        jobs = session.exec(select(AgentJob)).all()
+        from app.services.agency_service import agency_of, trip_ids_in
+
+        visible = trip_ids_in(session, agency_of(session, agent_sub)) if agent_sub else None
+        trips = [t for t in session.exec(select(TripSession).order_by(TripSession.created_at)).all() if visible is None or t.trip_id in visible]
+        options = [o for o in session.exec(select(ItineraryOptionDB)).all() if visible is None or o.trip_id in visible]
+        jobs = [j for j in session.exec(select(AgentJob)).all() if visible is None or j.trip_id in visible]
         families = {str(f.id): f for f in session.exec(select(Family)).all()}
         itineraries = session.exec(select(Itinerary).order_by(Itinerary.family_id, Itinerary.version)).all()
 

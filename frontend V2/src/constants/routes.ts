@@ -11,6 +11,7 @@ export const ROUTES = {
   AGENTS: '/app/agents',
   BOOKINGS: '/app/bookings',
   WEBHOOKS: '/app/webhooks',
+  SETTINGS: '/app/settings',
   CUSTOMERS: '/app/customers',
   NEW_TRIP: '/app/new-trip',
   TRIPS: '/app/trips',
