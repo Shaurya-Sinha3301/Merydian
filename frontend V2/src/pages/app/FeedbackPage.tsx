@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTripSummary } from '../../hooks/useTrips';
-import { useJobProgress, useSendFeedback } from '../../hooks/useTripData';
+import { useJobProgress, useSendFeedback, useTripPlan } from '../../hooks/useTripData';
+import { useRequestPlace } from '../../hooks/useDecisions';
+import { DELHI_STOPS } from '../../lib/delhiStops';
 import { Button, ButtonLink } from '../../ui/Button';
 import { TextArea } from '../../ui/Field';
 import { ErrorNote } from '../../ui/Surface';
@@ -16,6 +18,66 @@ const IDEAS = [
 ];
 
 const STAGES = ['Reading your message', 'Updating the constraints', 'Re-planning the days', 'Writing the reasons'];
+
+/** Ask for one specific place. An agent then accepts or declines it, and nothing changes until they do. */
+function PlaceRequest({ tripId }: { tripId: string }) {
+  const plan = useTripPlan(tripId);
+  const request = useRequestPlace();
+  const [place, setPlace] = useState('');
+  const [note, setNote] = useState('');
+  const planned = new Set(plan.days.flatMap((d) => d.stops.map((s) => s.id)));
+  const options = DELHI_STOPS.filter((s) => !planned.has(s.id));
+  const err = request.error as { response?: { data?: { message?: string; detail?: string } } } | null;
+  const reason = err?.response?.data?.message || err?.response?.data?.detail;
+
+  return (
+    <section className="mt-10 border border-rule bg-paper" aria-labelledby="place">
+      <h3 id="place" className="title border-b-2 border-ink px-4 py-2.5 text-lg">
+        Ask for a specific place
+      </h3>
+      <form
+        className="flex flex-col gap-3 p-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (place) request.mutate({ place, note }, { onSuccess: () => { setPlace(''); setNote(''); } });
+        }}
+      >
+        <p className="text-sm text-ink-2">Pick somewhere that is not in your plan yet. Your travel agent will accept or decline it, and you will see the result here.</p>
+        <select
+          aria-label="Place"
+          value={place}
+          onChange={(e) => setPlace(e.target.value)}
+          className="h-11 w-full rounded-sm border border-ink bg-paper px-3"
+          disabled={request.isPending}
+        >
+          <option value="">Choose a place</option>
+          {options.map((s) => (
+            <option key={s.id} value={s.name}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+        <input
+          aria-label="Why you want it"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          maxLength={120}
+          placeholder="Why you want it (optional)"
+          className="h-11 w-full rounded-sm border border-ink bg-paper px-3"
+          disabled={request.isPending}
+        />
+        {request.isError && <ErrorNote>{reason || 'That request could not be sent. Please try again.'}</ErrorNote>}
+        {request.isSuccess && <p className="text-sm font-semibold text-green">{request.data.message}</p>}
+        <div>
+          <Button type="submit" variant="outline" loading={request.isPending} disabled={!place}>
+            Send to my agent
+          </Button>
+          {request.isPending && <span className="ml-3 text-sm text-ink-3">Checking it fits your plan. This takes a few seconds.</span>}
+        </div>
+      </form>
+    </section>
+  );
+}
 
 function jobKey(tripId: string) {
   return `merydian-job-${tripId}`;
@@ -120,6 +182,7 @@ export function FeedbackPage() {
             </Button>
           </div>
         </form>
+        <PlaceRequest tripId={tripId} />
       </section>
 
       <section className="lg:col-span-6" aria-labelledby="progress" aria-live="polite">

@@ -10,6 +10,7 @@ const agentNav = [
   { to: ROUTES.OVERVIEW, label: 'Overview' },
   { to: ROUTES.DESK, label: 'Desk' },
   { to: ROUTES.CALENDAR, label: 'Calendar' },
+  { to: ROUTES.INSIGHTS, label: 'Insights' },
   { to: ROUTES.TRIPS, label: 'Trips' },
   { to: ROUTES.CUSTOMERS, label: 'Customers' },
   { to: ROUTES.ACTIVITY, label: 'Activity' },

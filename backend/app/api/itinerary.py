@@ -31,13 +31,14 @@ class UrgencyLevel(str, Enum):
 
 class POIRequest(BaseModel):
     poi_name: str = Field(..., description="Name of the Point of Interest")
-    urgency: UrgencyLevel = Field(..., description="Urgency level of the request")
+    urgency: UrgencyLevel = Field(default=UrgencyLevel.MEDIUM, description="Urgency level of the request")
+    note: Optional[str] = Field(default=None, max_length=200, description="Why they want it")
 
 
 class POIRequestResponse(BaseModel):
     message: str
     request_id: str
-    event_created: EventResponse
+    event_created: Optional[EventResponse] = None
 
 
 class FeedbackRequest(BaseModel):
@@ -400,81 +401,35 @@ async def submit_poi_request(
     current_user: TokenPayload = Depends(get_current_user)
 ) -> Any:
     """
-    Submit a POI (Point of Interest) request.
-    Creates event and adds preference for agentic processing.
+    Ask for a specific place. The optimizer builds an "add it" option and a "keep the plan" option,
+    and a travel agent accepts or declines. Nothing changes for the traveller until then.
     """
+    from app.services.poi_proposal_service import find_place, propose_place
+    from app.services.trip_service import TripService
+
+    if not current_user.family_id:
+        raise HTTPException(status_code=400, detail="User not associated with a family")
+    family_id = uuid_lib.UUID(current_user.family_id)
+
+    place = find_place(poi_request.poi_name)
+    if not place:
+        raise HTTPException(status_code=404, detail=f"We do not have '{poi_request.poi_name}' in our list of places")
+    trip = TripService.get_active_trip_for_family(str(family_id))
+    if not trip:
+        raise HTTPException(status_code=404, detail="You do not have a trip to add this to yet")
+
     try:
-        # Get user and family context
-        user_id = uuid_lib.UUID(current_user.sub) if current_user.sub else None
-        family_id = uuid_lib.UUID(current_user.family_id) if current_user.family_id else None
-        
-        if not family_id:
-            raise HTTPException(status_code=400, detail="User not associated with a family")
-        
-        # Generate request ID
-        request_id = f"poi_req_{family_id}_{int(datetime.utcnow().timestamp())}"
-        
-        # Create POI request event
-        event_create = EventCreate(
-            event_type=ModelEventType.POI_REQUEST,
-            entity_type="poi",
-            entity_id=request_id,
-            source="ui",
-            payload={
-                "poi_name": poi_request.poi_name,
-                "urgency": poi_request.urgency.value,
-                "request_id": request_id
-            }
-        )
-        
-        # Store event
-        db_event = EventService.create_event(
-            event_data=event_create,
-            user_id=user_id,
-            family_id=family_id
-        )
-        
-        # Add preference based on urgency
-        # High urgency = MUST_VISIT, else PREFER_VISIT
-        pref_type = PreferenceType.MUST_VISIT if poi_request.urgency == UrgencyLevel.HIGH else PreferenceType.PREFER_VISIT
-        strength = 1.0 if poi_request.urgency == UrgencyLevel.HIGH else 0.8
-        
-        PreferenceService.add_preference(
-            family_id=family_id,
-            poi_id=f"POI_{poi_request.poi_name.upper().replace(' ', '_')}",
-            poi_name=poi_request.poi_name,
-            preference_type=pref_type,
-            strength=strength,
-            reason=f"User requested via POI request (urgency: {poi_request.urgency.value})",
-            created_by=str(user_id) if user_id else "system",
-            event_id=db_event.id
-        )
-        
-        logger.info(f"Created POI request: {request_id} for {poi_request.poi_name}")
-        
-        # Trigger agentic processing async
-        from app.worker import process_event_task
-        process_event_task.delay(str(db_event.id))
-        
-        # Response message based on urgency
-        if poi_request.urgency == UrgencyLevel.HIGH:
-            message = f"High priority request for '{poi_request.poi_name}' submitted and added to must-visit list."
-        elif poi_request.urgency == UrgencyLevel.MEDIUM:
-            message = f"POI request for '{poi_request.poi_name}' submitted. Checking feasibility."
-        else:
-            message = f"POI suggestion for '{poi_request.poi_name}' noted for future planning."
-        
-        return POIRequestResponse(
-            message=message,
-            request_id=request_id,
-            event_created=EventResponse(event_id=db_event.id, status=db_event.status)
-        )
-        
+        proposal = propose_place(trip.trip_id, family_id, place, note=poi_request.note)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to process POI request: {str(e)}"
-        )
+        logger.error(f"POI proposal failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="We could not prepare that request. Please try again.")
+
+    return POIRequestResponse(
+        message=f"Your request for {place['name']} is with your travel agent.",
+        request_id=proposal["event_id"],
+    )
 
 
 # ---------------------------------------------------------------------------

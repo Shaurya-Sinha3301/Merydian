@@ -16,6 +16,7 @@ import { CustomersPage } from './pages/app/CustomersPage';
 import { NewTripPage } from './pages/app/NewTripPage';
 import { CustomerDetailPage } from './pages/app/CustomerDetailPage';
 import { HistoryPage } from './pages/app/HistoryPage';
+import { InsightsPage } from './pages/app/InsightsPage';
 import { DeskPage } from './pages/app/DeskPage';
 import { TripsPage } from './pages/app/TripsPage';
 import { ActivityPage } from './pages/app/ActivityPage';
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
       { path: 'overview', element: <OverviewPage /> },
       { path: 'desk', element: <DeskPage /> },
       { path: 'calendar', element: <CalendarPage /> },
+      { path: 'insights', element: <InsightsPage /> },
       { path: 'customers', element: <CustomersPage /> },
       { path: 'customers/:familyId', element: <CustomerDetailPage /> },
       { path: 'new-trip', element: <NewTripPage /> },

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTrips } from '../../hooks/useTrips';
 import { useAgentJobs } from '../../hooks/useAgentJobs';
+import { useDecisions } from '../../hooks/useDecisions';
 import type { CalendarEvent } from '../calendar/MonthGrid';
 import type { TripDetailResponse } from '../../types/dto/trip';
 import type { AgentJobDTO } from '../../types/dto/agent';
@@ -22,8 +23,9 @@ export function useFleet() {
   const items: TripDetailResponse[] = trips.data?.items ?? [];
   const jobList: AgentJobDTO[] = jobs.data?.jobs ?? [];
 
-  const waitingJobs = jobList.filter((j) => j.result?.awaiting_approval === true && typeof j.result?.event_id === 'string');
-  const waitingTrips = new Set(waitingJobs.map((j) => j.trip_id).filter(Boolean) as string[]);
+  const decisions = useDecisions(isAgent);
+  const pending = (decisions.data ?? []).filter((d) => d.status === 'pending');
+  const waitingTrips = new Set(pending.map((d) => d.trip_id));
 
   const totalValue = items.reduce((n, t) => n + (t.total_cost ?? 0), 0);
   const rounds = items.reduce((n, t) => n + (t.feedback_count ?? 0), 0);
@@ -38,7 +40,8 @@ export function useFleet() {
     jobs,
     items,
     jobList,
-    waitingJobs,
+    decisions,
+    pending,
     waitingTrips,
     stats: { totalValue, rounds, avgFit, failed },
     nameOf,
