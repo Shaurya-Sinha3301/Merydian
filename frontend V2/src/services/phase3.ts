@@ -103,6 +103,48 @@ export interface AgentJobRow {
   optimizer?: string | null;
 }
 
+export interface GroupStop {
+  location_id: string;
+  name: string;
+  start?: string | null;
+  end?: string | null;
+  meal: boolean;
+  families: string[];
+  shared: boolean;
+}
+
+export interface GroupView {
+  trip_id: string;
+  families: Array<{ family_id: string; code: string; name: string; members: number; children: number; pace?: string | null; version?: number | null; cost?: number | null; fit?: number | null; you: boolean }>;
+  days: Array<{ day: number; stops: GroupStop[] }>;
+  summary: { families: number; shared_stops: number; branch_stops: number };
+}
+
+export interface TripNote {
+  id: string;
+  trip_id: string;
+  trip_name?: string | null;
+  kind: 'note' | 'task';
+  text: string;
+  author?: string | null;
+  due_on?: string | null;
+  done: boolean;
+  created_at: string;
+}
+
+export interface EngineStats {
+  benchmark: {
+    benchmark_scale: number;
+    median_latency_ms: number;
+    p95_latency_ms: number;
+    p99_latency_ms: number;
+    success_rate: number;
+    average_satisfaction: number;
+    memory_mb: number;
+  } | null;
+  live: { feedback_jobs: number; median_seconds: number | null; p95_seconds: number | null };
+}
+
 export const phase3Service = {
   notifications: async (): Promise<{ notifications: NotificationItem[]; unread: number }> => (await apiClient.get('/notifications')).data,
   markRead: async (ids?: number[]) => (await apiClient.post('/notifications/read', ids ?? null)).data,
@@ -124,4 +166,12 @@ export const phase3Service = {
   deleteBooking: async (id: string) => (await apiClient.delete(`/agent/bookings/${id}`)).data,
 
   agents: async (): Promise<{ agents: AgentRoster[]; recent: AgentJobRow[] }> => (await apiClient.get('/agent/agents')).data,
+
+  group: async (tripId: string): Promise<GroupView> => (await apiClient.get(`/trips/${tripId}/group`)).data,
+  notes: async (tripId: string): Promise<{ notes: TripNote[] }> => (await apiClient.get(`/agent/trips/${tripId}/notes`)).data,
+  addNote: async (tripId: string, body: { kind: 'note' | 'task'; text: string; due_on?: string | null }): Promise<TripNote> => (await apiClient.post(`/agent/trips/${tripId}/notes`, body)).data,
+  toggleNote: async (id: string, done: boolean): Promise<TripNote> => (await apiClient.patch(`/agent/notes/${id}`, null, { params: { done } })).data,
+  deleteNote: async (id: string) => (await apiClient.delete(`/agent/notes/${id}`)).data,
+  tasks: async (): Promise<{ tasks: TripNote[] }> => (await apiClient.get('/agent/tasks')).data,
+  engine: async (): Promise<EngineStats> => (await apiClient.get('/agent/engine')).data,
 };

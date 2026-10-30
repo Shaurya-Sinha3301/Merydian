@@ -457,3 +457,211 @@ async def agents_overview(agent: TokenPayload = Depends(get_current_agent)) -> A
             }
         )
     return {"agents": roster, "recent": recent}
+
+
+
+# ======================================================================
+# Group trips: one shared plan, one branch per family
+# ======================================================================
+
+def _stops_of(data: Optional[dict]) -> Dict[int, List[Dict[str, Any]]]:
+    from app.services.itinerary_format import normalize_itinerary
+
+    out: Dict[int, List[Dict[str, Any]]] = {}
+    if not data:
+        return out
+    try:
+        data = normalize_itinerary(data)
+    except Exception:
+        return out
+    for d in data.get("days", []):
+        out[int(d.get("day") or 0)] = [
+            {
+                "location_id": str(p.get("location_id")),
+                "name": p.get("name") or str(p.get("location_id")),
+                "start": p.get("time_window_start"),
+                "end": p.get("time_window_end"),
+                "meal": p.get("category") == "meal",
+            }
+            for p in d.get("pois", [])
+        ]
+    return out
+
+
+@router.get("/trips/{trip_id}/group")
+async def trip_group(trip_id: str, user: TokenPayload = Depends(get_current_user), _: Any = Depends(verify_trip_access)) -> Any:
+    """Every family's current branch of the trip, with what is shared by all of them."""
+    from app.models.family import Family
+    from app.models.itinerary import Itinerary
+    from app.models.user import User
+    from app.services.trip_service import TripService
+
+    trip = TripService.get_trip(trip_id)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    fam_ids: List[UUID] = []
+    for f in trip.family_ids or []:
+        try:
+            u = UUID(str(f))
+        except ValueError:
+            continue
+        if u not in fam_ids:
+            fam_ids.append(u)
+
+    families: List[Dict[str, Any]] = []
+    per_family: Dict[str, Dict[int, List[Dict[str, Any]]]] = {}
+    with Session(engine) as session:
+        for fid in fam_ids:
+            fam = session.get(Family, fid)
+            if not fam:
+                continue
+            latest = session.exec(select(Itinerary).where(Itinerary.family_id == fid).order_by(col(Itinerary.version).desc())).first()
+            who = session.exec(select(User).where(User.family_id == fid).order_by(User.created_at)).first()
+            prefs = fam.preferences or {}
+            families.append(
+                {
+                    "family_id": str(fid),
+                    "code": fam.family_code,
+                    "name": (who.full_name if who and who.full_name else fam.family_code),
+                    "members": int(prefs.get("members", 1) or 1),
+                    "children": int(prefs.get("children", 0) or 0),
+                    "pace": prefs.get("pace_preference"),
+                    "version": latest.version if latest else None,
+                    "cost": latest.total_cost if latest else None,
+                    "fit": round((latest.total_satisfaction or 0) * 10, 1) if latest else None,
+                    "you": user.family_id == str(fid),
+                }
+            )
+            per_family[str(fid)] = _stops_of(latest.data if latest else None)
+
+    day_numbers = sorted({d for s in per_family.values() for d in s})
+    days = []
+    for d in day_numbers:
+        merged: Dict[str, Dict[str, Any]] = {}
+        for fid, by_day in per_family.items():
+            for s in by_day.get(d, []):
+                row = merged.setdefault(s["location_id"], {**s, "families": []})
+                row["families"].append(fid)
+        stops = sorted(merged.values(), key=lambda r: r.get("start") or "")
+        for r in stops:
+            r["shared"] = len(r["families"]) == len(per_family) and len(per_family) > 1
+        days.append({"day": d, "stops": stops})
+
+    total = len(per_family)
+    shared_count = sum(1 for d in days for s in d["stops"] if s["shared"])
+    branch_count = sum(1 for d in days for s in d["stops"] if not s["shared"])
+    return {"trip_id": trip_id, "families": families, "days": days, "summary": {"families": total, "shared_stops": shared_count, "branch_stops": branch_count}}
+
+
+# ======================================================================
+# The optimizer engine
+# ======================================================================
+
+@router.get("/agent/engine")
+async def engine_stats(agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    """What the optimizer measured offline on simulated trips, beside what it has done here."""
+    bench: Optional[Dict[str, Any]] = None
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "scripts", "benchmark", "resume_metrics.json")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            bench = json.load(f)
+    except Exception:
+        bench = None
+    with Session(engine) as session:
+        feedback_jobs = session.exec(select(AgentJob).where(AgentJob.job_type == "AGENT_FEEDBACK")).all()
+    secs = [(j.completed_at - j.started_at).total_seconds() for j in feedback_jobs if j.started_at and j.completed_at]
+    return {
+        "benchmark": bench,
+        "live": {
+            "feedback_jobs": len(feedback_jobs),
+            "median_seconds": round(statistics.median(secs), 1) if secs else None,
+            "p95_seconds": round(sorted(secs)[int(len(secs) * 0.95) - 1], 1) if len(secs) >= 5 else None,
+        },
+    }
+
+
+# ======================================================================
+# Agent notes and tasks on a trip
+# ======================================================================
+
+class NoteIn(BaseModel):
+    kind: str = Field(default="note", pattern="^(note|task)$")
+    text: str = Field(..., min_length=1, max_length=1000)
+    due_on: Optional[datetime] = None
+
+
+def _note(n: Any) -> Dict[str, Any]:
+    return {
+        "id": str(n.id),
+        "trip_id": n.trip_id,
+        "kind": n.kind,
+        "text": n.text,
+        "author": n.author_name,
+        "due_on": n.due_on.isoformat() if n.due_on else None,
+        "done": n.done,
+        "created_at": n.created_at.isoformat(),
+    }
+
+
+@router.get("/agent/trips/{trip_id}/notes")
+async def list_notes(trip_id: str, agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    from app.models.phase3 import TripNote
+
+    with Session(engine) as session:
+        rows = session.exec(select(TripNote).where(TripNote.trip_id == trip_id).order_by(col(TripNote.created_at).desc())).all()
+        return {"notes": [_note(n) for n in rows]}
+
+
+@router.post("/agent/trips/{trip_id}/notes", status_code=201)
+async def add_note(trip_id: str, body: NoteIn, agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    from app.models.phase3 import TripNote
+    from app.models.user import User
+
+    with Session(engine) as session:
+        me = session.get(User, UUID(agent.sub))
+        n = TripNote(trip_id=trip_id, author_id=UUID(agent.sub), author_name=(me.full_name if me else None), kind=body.kind, text=body.text.strip(), due_on=body.due_on)
+        session.add(n)
+        session.commit()
+        session.refresh(n)
+        return _note(n)
+
+
+@router.patch("/agent/notes/{note_id}")
+async def toggle_note(note_id: UUID, done: bool, agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    from app.models.phase3 import TripNote
+
+    with Session(engine) as session:
+        n = session.get(TripNote, note_id)
+        if not n:
+            raise HTTPException(status_code=404, detail="Note not found")
+        n.done = done
+        session.add(n)
+        session.commit()
+        session.refresh(n)
+        return _note(n)
+
+
+@router.delete("/agent/notes/{note_id}")
+async def delete_note(note_id: UUID, agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    from app.models.phase3 import TripNote
+
+    with Session(engine) as session:
+        n = session.get(TripNote, note_id)
+        if not n:
+            raise HTTPException(status_code=404, detail="Note not found")
+        session.delete(n)
+        session.commit()
+        return {"deleted": True}
+
+
+@router.get("/agent/tasks")
+async def open_tasks(agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    """Every unfinished task across trips, soonest due first."""
+    from app.models.phase3 import TripNote
+
+    names = _trip_names()
+    with Session(engine) as session:
+        rows = session.exec(select(TripNote).where(TripNote.kind == "task", TripNote.done == False)).all()  # noqa: E712
+        out = [{**_note(n), "trip_name": names.get(n.trip_id)} for n in rows]
+    out.sort(key=lambda r: (r["due_on"] is None, r["due_on"] or "", r["created_at"]))
+    return {"tasks": out}

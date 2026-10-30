@@ -10,6 +10,7 @@ import { TripMap } from '../../features/plan/TripMap';
 import { useTripChanges, useTripPlan } from '../../hooks/useTripData';
 import { Empty, ErrorNote, Loading } from '../../ui/Surface';
 import { Tag } from '../../ui/Tag';
+import { downloadIcs } from '../../lib/exporters';
 import { MonthGrid } from '../../features/calendar/MonthGrid';
 import { parseDay } from '../../features/agent/useFleet';
 import { changesPath } from '../../constants/routes';
@@ -152,7 +153,20 @@ export function PlanPage() {
               {cover ? ` · starts near ${cover.name}` : ''}
             </p>
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="no-print flex gap-1.5">
+              <button
+                type="button"
+                disabled={!tripStart}
+                onClick={() => tripStart && downloadIcs(changes.trip?.trip_name || 'Trip', tripStart, plan.days)}
+                className="h-7 border border-rule bg-paper px-2.5 text-xs font-semibold hover:border-ink disabled:opacity-50"
+              >
+                Add to calendar
+              </button>
+              <button type="button" onClick={() => window.print()} className="h-7 border border-rule bg-paper px-2.5 text-xs font-semibold hover:border-ink">
+                Print
+              </button>
+            </span>
             {newCount > 0 && <Tag tone="added">{newCount} added</Tag>}
             {ghosts.length > 0 && <Tag tone="removed">{ghosts.length} withdrawn</Tag>}
           </div>

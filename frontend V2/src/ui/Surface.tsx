@@ -27,6 +27,15 @@ export function PageHeader({
   );
 }
 
+/** A small outlined button for exporting what is on screen. */
+export function ExportButton({ onClick, children = 'Export CSV' }: { onClick: () => void; children?: ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} className="no-print h-8 border border-rule bg-paper px-3 text-xs font-semibold hover:border-ink">
+      {children}
+    </button>
+  );
+}
+
 export function Empty({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
   return (
     <div className="border border-dashed border-ink-3 bg-paper p-8 sm:p-10">

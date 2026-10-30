@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useCreateCustomer, useCustomers } from '../../hooks/useCustomers';
 import { Button, ButtonLink } from '../../ui/Button';
 import { Input } from '../../ui/Field';
-import { Empty, ErrorNote, Loading } from '../../ui/Surface';
+import { Empty, ErrorNote, ExportButton, Loading } from '../../ui/Surface';
+import { downloadCsv } from '../../lib/exporters';
 import { customerPath, ROUTES } from '../../constants/routes';
 import { useTitle } from '../../lib/useTitle';
 
@@ -44,7 +45,10 @@ export function CustomersPage() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="display text-3xl sm:text-4xl">Customers</h1>
-        <p className="text-sm text-ink-3">{rows.length} accounts</p>
+        <p className="flex items-center gap-3 text-sm text-ink-3">
+          {rows.length} accounts
+          <ExportButton onClick={() => downloadCsv('customers.csv', ['Name', 'Email', 'Family code', 'Travellers', 'Children', 'Trips'], rows.map((c) => [c.full_name, c.email, c.family_code, c.members, c.children, c.trip_count]))} />
+        </p>
       </div>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFleet } from '../../features/agent/useFleet';
-import { Empty, ErrorNote, Loading } from '../../ui/Surface';
+import { Empty, ErrorNote, ExportButton, Loading } from '../../ui/Surface';
+import { downloadCsv } from '../../lib/exporters';
 import { Photo } from '../../ui/Photo';
 import { Tag } from '../../ui/Tag';
 import { tripPath } from '../../constants/routes';
@@ -39,8 +40,13 @@ export function TripsPage() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="display text-3xl sm:text-4xl">Trips</h1>
-        <p className="text-sm text-ink-3">
+        <p className="flex items-center gap-3 text-sm text-ink-3">
           {rows.length} of {fleet.items.length}
+          <ExportButton
+            onClick={() =>
+              downloadCsv('trips.csv', ['Trip', 'Destination', 'Start', 'End', 'Version', 'Feedback rounds', 'Cost', 'Fit %', 'Needs a decision'], rows.map((t) => [t.trip_name, t.destination, t.start_date?.slice(0, 10), t.end_date?.slice(0, 10), t.current_version, t.feedback_count, t.total_cost, t.total_satisfaction != null ? Math.round(t.total_satisfaction * 10) : '', fleet.waitingTrips.has(t.trip_id) ? 'yes' : 'no']))
+            }
+          />
         </p>
       </div>
 

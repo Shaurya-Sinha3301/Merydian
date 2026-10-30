@@ -8,6 +8,7 @@ import { Tag } from '../../ui/Tag';
 import { ROUTES, tripPath } from '../../constants/routes';
 import { formatDateRange, formatMoney, timeAgo } from '../../lib/format';
 import { useTitle } from '../../lib/useTitle';
+import { useOpenTasks } from '../../hooks/usePhase3';
 
 export function OverviewPage() {
   useTitle('Overview');
@@ -15,6 +16,7 @@ export function OverviewPage() {
   const fleet = useFleet();
   const cursor = useMonthCursor(fleet.items);
   const { items, pending, waitingTrips, stats, jobList } = fleet;
+  const tasks = useOpenTasks();
 
   const kpis = [
     { label: 'Waiting on you', value: String(pending.length) },
@@ -157,6 +159,29 @@ export function OverviewPage() {
                 <span className="mr-1 inline-block h-2 w-2 bg-yellow align-middle" /> needs a decision
                 <span className="ml-3 mr-1 inline-block h-2 w-2 bg-cyan align-middle" /> up to date
               </p>
+            </section>
+
+            <section className="border border-rule bg-paper" aria-labelledby="tasks">
+              <div className="flex items-center justify-between border-b-2 border-ink px-4 py-2.5">
+                <h2 id="tasks" className="title text-lg">
+                  My open tasks
+                </h2>
+                <span className="text-sm text-ink-3">{tasks.data?.tasks.length ?? 0}</span>
+              </div>
+              <ul className="divide-y divide-rule">
+                {(tasks.data?.tasks ?? []).slice(0, 6).map((t) => (
+                  <li key={t.id} className="px-4 py-2 text-sm">
+                    <Link to={`/app/trip/${t.trip_id}/notes`} className="font-semibold underline underline-offset-4 decoration-1 hover:decoration-2">
+                      {t.text}
+                    </Link>
+                    <p className="text-xs text-ink-3">
+                      {t.trip_name || t.trip_id}
+                      {t.due_on ? ` · due ${new Date(t.due_on).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : ''}
+                    </p>
+                  </li>
+                ))}
+                {(tasks.data?.tasks.length ?? 0) === 0 && <li className="px-4 py-4 text-sm text-ink-2">No open tasks. Add them from a trip's Notes tab.</li>}
+              </ul>
             </section>
 
             <section className="border border-rule bg-paper" aria-labelledby="recent">

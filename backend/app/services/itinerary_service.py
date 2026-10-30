@@ -175,12 +175,12 @@ class ItineraryService:
                     )
                     continue
 
-                itinerary_data = normalize_itinerary(
+                branch = normalize_itinerary(
                     itinerary_data, fam_code, int((family.preferences or {}).get("members", 1)))
                 # Calculate stats
-                total_cost = itinerary_data.get("total_cost", 0.0)
-                total_satisfaction = itinerary_data.get("total_satisfaction", 0.0)
-                duration_days = len(itinerary_data.get("days", []))
+                total_cost = branch.get("total_cost", 0.0)
+                total_satisfaction = branch.get("total_satisfaction", 0.0)
+                duration_days = len(branch.get("days", []))
 
                 # Create Itinerary record
                 latest = session.exec(
@@ -190,7 +190,7 @@ class ItineraryService:
                 itinerary = Itinerary(
                     family_id=family.id,
                     version=(latest or 0) + 1,
-                    data=itinerary_data,
+                    data=branch,
                     created_reason=created_reason,
                     created_by="agent",
                     total_cost=total_cost,

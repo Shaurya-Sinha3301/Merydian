@@ -51,7 +51,7 @@ export function AppShell() {
       >
         Skip to content
       </a>
-      <header className="border-b-2 border-ink bg-paper">
+      <header className="no-print border-b-2 border-ink bg-paper">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 sm:px-6">
           <Logo to={ROUTES.APP} />
           {(

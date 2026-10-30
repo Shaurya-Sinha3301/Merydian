@@ -124,3 +124,32 @@ export function useBookingActions() {
 export function useAgentsOverview() {
   return useQuery({ queryKey: ['agents'], queryFn: phase3Service.agents, refetchInterval: 5000 });
 }
+
+export function useTripGroup(tripId: string) {
+  return useQuery({ queryKey: ['group', tripId], queryFn: () => phase3Service.group(tripId), enabled: !!tripId });
+}
+
+export function useEngine() {
+  return useQuery({ queryKey: ['engine'], queryFn: phase3Service.engine, staleTime: 60000 });
+}
+
+export function useTripNotes(tripId: string) {
+  return useQuery({ queryKey: ['notes', tripId], queryFn: () => phase3Service.notes(tripId), enabled: !!tripId });
+}
+
+export function useOpenTasks(enabled = true) {
+  return useQuery({ queryKey: ['tasks'], queryFn: phase3Service.tasks, enabled, refetchInterval: 30000 });
+}
+
+export function useNoteActions(tripId: string) {
+  const qc = useQueryClient();
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ['notes', tripId] });
+    qc.invalidateQueries({ queryKey: ['tasks'] });
+  };
+  return {
+    add: useMutation({ mutationFn: (b: { kind: 'note' | 'task'; text: string; due_on?: string | null }) => phase3Service.addNote(tripId, b), onSuccess: refresh }),
+    toggle: useMutation({ mutationFn: ({ id, done }: { id: string; done: boolean }) => phase3Service.toggleNote(id, done), onSuccess: refresh }),
+    remove: useMutation({ mutationFn: (id: string) => phase3Service.deleteNote(id), onSuccess: refresh }),
+  };
+}

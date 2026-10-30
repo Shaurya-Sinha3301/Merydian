@@ -5,7 +5,8 @@ import { useAllBookings, useBookingActions, useTripBookings } from '../../hooks/
 import { useAuthStore } from '../../stores/auth.store';
 import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Field';
-import { Empty, ErrorNote, Loading } from '../../ui/Surface';
+import { Empty, ErrorNote, ExportButton, Loading } from '../../ui/Surface';
+import { downloadCsv } from '../../lib/exporters';
 import { Tag, type Tone } from '../../ui/Tag';
 import { tripPath } from '../../constants/routes';
 import { formatMoney } from '../../lib/format';
@@ -206,7 +207,10 @@ export function BookingsPage() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="display text-3xl sm:text-4xl">Bookings</h1>
-        <p className="text-sm text-ink-3">{totals?.count ?? 0} records</p>
+        <p className="flex items-center gap-3 text-sm text-ink-3">
+          {totals?.count ?? 0} records
+          <ExportButton onClick={() => downloadCsv('bookings.csv', ['Trip', 'Kind', 'Title', 'Supplier', 'Reference', 'Amount', 'Status', 'Recorded'], rows.map((b) => [b.trip_name || b.trip_id, b.kind, b.title, b.supplier, b.reference, b.amount, b.status, b.created_at.slice(0, 10)]))} />
+        </p>
       </div>
       <dl className="mt-4 grid grid-cols-3 border border-ink bg-paper [&>div]:border-r [&>div]:border-rule [&>div]:p-3 [&>div:last-child]:border-r-0">
         <div className="bg-ink text-paper">

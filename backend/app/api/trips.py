@@ -372,7 +372,7 @@ async def initialize_trip_with_optimization(
 
 
 @router.get("/{trip_id}/summary", response_model=TripDetailResponse)
-async def get_trip_summary(trip_id: str, _: Any = Depends(verify_trip_access)):
+async def get_trip_summary(trip_id: str, _: Any = Depends(verify_trip_access), current_user: TokenPayload = Depends(get_current_user)):
     """
     Get detailed summary of a trip including current state.
     
@@ -390,6 +390,9 @@ async def get_trip_summary(trip_id: str, _: Any = Depends(verify_trip_access)):
     """
     try:
         summary = TripService.get_trip_summary(trip_id)
+        if current_user.role != "agent" and current_user.family_id:
+            trip = TripService.get_trip(trip_id)
+            summary.update({k: v for k, v in TripService.itinerary_stats(trip, current_user.family_id).items() if k != "feedback_history"})
         return TripDetailResponse(**summary)
     except ValueError as e:
         raise HTTPException(
@@ -572,7 +575,7 @@ async def get_my_trips(
                     "status": trip.status,
                     "created_at": trip.created_at.isoformat() if trip.created_at else None,
                     "last_updated": trip.updated_at.isoformat() if trip.updated_at else None,
-                    **TripService.itinerary_stats(trip),
+                    **TripService.itinerary_stats(trip, current_user.family_id),
                 })
 
         return PaginatedResponse(

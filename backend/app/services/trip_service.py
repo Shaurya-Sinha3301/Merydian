@@ -422,7 +422,7 @@ class TripService:
             return False
 
     @staticmethod
-    def itinerary_stats(trip) -> Dict[str, Any]:
+    def itinerary_stats(trip, family_id: Optional[str] = None) -> Dict[str, Any]:
         """Headline numbers from the trip's current itinerary version (None when absent)."""
         from app.models.itinerary import Itinerary
 
@@ -435,9 +435,17 @@ class TripService:
             "duration_days": None,
             "feedback_history": trip.feedback_history or [],
         }
-        if trip.current_itinerary_id:
+        if trip.current_itinerary_id or family_id:
             with get_db_session() as session:
-                itin = session.get(Itinerary, trip.current_itinerary_id)
+                itin = None
+                if family_id and TripService._is_uuid(family_id):
+                    from sqlmodel import select as _select
+
+                    itin = session.exec(
+                        _select(Itinerary).where(Itinerary.family_id == UUID(str(family_id))).order_by(Itinerary.version.desc())
+                    ).first()
+                if itin is None and trip.current_itinerary_id:
+                    itin = session.get(Itinerary, trip.current_itinerary_id)
                 if itin:
                     stats.update(
                         current_version=itin.version,

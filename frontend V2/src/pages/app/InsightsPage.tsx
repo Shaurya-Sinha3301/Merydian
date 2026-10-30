@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAnalytics } from '../../hooks/useDecisions';
 import { COLORS, Columns, Lines, Scatter, Split } from '../../features/insights/charts';
 import { CostBars } from '../../features/agent/CostBars';
-import { ErrorNote, Loading } from '../../ui/Surface';
+import { ErrorNote, ExportButton, Loading } from '../../ui/Surface';
+import { downloadCsv } from '../../lib/exporters';
 import { ROUTES, tripPath } from '../../constants/routes';
 import { formatMoney, formatSignedMoney } from '../../lib/format';
 import { useTitle } from '../../lib/useTitle';
@@ -233,9 +234,16 @@ export function InsightsPage() {
       <section className="mt-6 border border-rule bg-paper" aria-label="Trip performance">
         <div className="flex items-center justify-between border-b-2 border-ink px-4 py-2.5">
           <h2 className="title text-lg">Trip performance</h2>
-          <Link to={ROUTES.TRIPS} className="text-sm font-semibold underline underline-offset-4">
-            All trips
-          </Link>
+          <span className="flex items-center gap-4">
+            <ExportButton
+              onClick={() =>
+                downloadCsv('trip-performance.csv', ['Trip', 'Days', 'Travellers', 'Children', 'Versions', 'Feedback', 'Cost', 'First cost', 'Per day', 'Per traveller', 'Fit %'], data.trips.map((r) => [r.trip_name, r.days, r.members, r.children, r.versions, r.feedback, r.cost, r.first_cost, r.per_day, r.per_traveller, r.fit]))
+              }
+            />
+            <Link to={ROUTES.TRIPS} className="text-sm font-semibold underline underline-offset-4">
+              All trips
+            </Link>
+          </span>
         </div>
         <div className="overflow-x-auto">
           <table className="ruled min-w-[54rem]">

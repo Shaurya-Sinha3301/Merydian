@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAgentsOverview } from '../../hooks/usePhase3';
+import { useAgentsOverview, useEngine } from '../../hooks/usePhase3';
 import { Empty, ErrorNote, Loading } from '../../ui/Surface';
 import { Tag, type Tone } from '../../ui/Tag';
 import { tripPath } from '../../constants/routes';
@@ -57,6 +57,7 @@ function Detail({ job }: { job: AgentJobRow }) {
 export function AgentsPage() {
   useTitle('Agents');
   const { data, isLoading, error, dataUpdatedAt } = useAgentsOverview();
+  const engine = useEngine();
   const [filter, setFilter] = useState('ALL');
   const [open, setOpen] = useState<string | null>(null);
   const [limit, setLimit] = useState(15);
@@ -112,6 +113,48 @@ export function AgentsPage() {
           </li>
         ))}
       </ul>
+
+      {engine.data?.benchmark && (
+        <section className="mt-6 border border-rule bg-paper" aria-labelledby="engine">
+          <div className="border-b-2 border-ink px-4 py-2.5">
+            <h2 id="engine" className="title text-lg">
+              Optimizer engine
+            </h2>
+            <p className="text-xs text-ink-3">
+              Measured offline on {engine.data.benchmark.benchmark_scale.toLocaleString('en-IN')} simulated trip scenarios, then compared with what it has done here.
+            </p>
+          </div>
+          <dl className="grid grid-cols-2 divide-x divide-rule md:grid-cols-6 [&>div]:p-3">
+            <div className="bg-ink text-paper">
+              <dt className="label !text-paper/80">Median solve</dt>
+              <dd className="mt-1 text-2xl font-bold tabular-nums">{Math.round(engine.data.benchmark.median_latency_ms)} ms</dd>
+            </div>
+            <div>
+              <dt className="label">95th percentile</dt>
+              <dd className="mt-1 text-xl font-bold tabular-nums text-ink-2">{(engine.data.benchmark.p95_latency_ms / 1000).toFixed(1)} s</dd>
+            </div>
+            <div>
+              <dt className="label">99th percentile</dt>
+              <dd className="mt-1 text-xl font-bold tabular-nums text-ink-2">{(engine.data.benchmark.p99_latency_ms / 1000).toFixed(1)} s</dd>
+            </div>
+            <div>
+              <dt className="label">Solver success</dt>
+              <dd className="mt-1 text-xl font-bold tabular-nums text-ink-2">{engine.data.benchmark.success_rate}%</dd>
+            </div>
+            <div>
+              <dt className="label">Live feedback runs</dt>
+              <dd className="mt-1 text-xl font-bold tabular-nums text-ink-2">{engine.data.live.feedback_jobs}</dd>
+            </div>
+            <div>
+              <dt className="label">Live median, whole job</dt>
+              <dd className="mt-1 text-xl font-bold tabular-nums text-ink-2">{engine.data.live.median_seconds != null ? `${engine.data.live.median_seconds} s` : '—'}</dd>
+            </div>
+          </dl>
+          <p className="border-t border-rule px-4 py-2.5 text-xs text-ink-3">
+            The live figure covers the whole feedback job: reading the message with the language model, re-planning, saving and explaining. The solver alone is the benchmark above.
+          </p>
+        </section>
+      )}
 
       <section className="mt-6 border border-rule bg-paper" aria-labelledby="feed">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink px-4 py-2.5">
