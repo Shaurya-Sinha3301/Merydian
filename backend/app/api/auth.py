@@ -114,6 +114,22 @@ async def signup(
             raise HTTPException(status_code=400, detail="That agency code is not valid")
         role = "agent"
 
+    # Check the agency first, so a bad code or a taken name never leaves a half-made account behind
+    if user_in.agency_code:
+        from app.services import agency_service as _ags
+
+        if not _ags.agency_by_code(user_in.agency_code):
+            raise HTTPException(status_code=400, detail="That agency code is not valid")
+    elif role == "agent" and user_in.agency_name and user_in.agency_name.strip():
+        from sqlmodel import Session as _Session, select as _select
+
+        from app.core.db import engine as _engine
+        from app.models.phase4 import Agency as _Agency
+
+        with _Session(_engine) as _s:
+            if _s.exec(_select(_Agency).where(_Agency.name == user_in.agency_name.strip())).first():
+                raise HTTPException(status_code=400, detail="An agency with that name already exists. Ask a colleague for its join code.")
+
     user = UserService.create_user(
         email=user_in.email,
         password=user_in.password,
