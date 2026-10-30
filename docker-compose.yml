@@ -1,45 +1,35 @@
 version: '3.9'
 
-# ─── Shared environment — all credentials hardcoded from .env ───────────────
+# ─── Shared environment — all credentials loaded from .env ───────────────
 x-backend-env:
-  # ── Database (Supabase hosted PostgreSQL — no local db container needed) ───
   &backend-env
-  SQLALCHEMY_DATABASE_URI: "postgresql://postgres.tihzqsfxaqaxieafdyyb:bawanateam910@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres"
+  # ── Database
+  SQLALCHEMY_DATABASE_URI: "${SQLALCHEMY_DATABASE_URI}"
 
   # ── Security ────────────────────────────────────────────────────────────────
-  SECRET_KEY: "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+  SECRET_KEY: "${SECRET_KEY}"
   ALGORITHM: "HS256"
   ACCESS_TOKEN_EXPIRE_MINUTES: "30"
   REFRESH_TOKEN_EXPIRE_DAYS: "7"
 
   # ── CORS ────────────────────────────────────────────────────────────────────
-  BACKEND_CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000"]'
+  BACKEND_CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000","http://localhost:5173","http://127.0.0.1:5173","http://localhost:8443","http://127.0.0.1:8443"]'
 
   # ── AI Agents ───────────────────────────────────────────────────────────────
-  GROQ_API_KEY: "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"
-  GEMINI_API_KEY: "AIzaSyDPXjmYN4t9Qn0TaDMgnV_0LchU_XgJlio"
-  GROQ_MODEL: "llama-3.1-8b-instant"
+  GROQ_API_KEY: "${GROQ_API_KEY}"
+  GEMINI_API_KEY: "${GEMINI_API_KEY}"
+  GROQ_MODEL: "openai/gpt-oss-20b"
 
-  # ── TBO Hotel API (Staging) ──────────────────────────────────────────────────
-  TBO_API_URL: "http://api.tbotechnology.in/TBOHolidays_HotelAPI"
-  TBO_USERNAME: "hackathontest"
-  TBO_PASSWORD: "Hac@98147521"
+  # ── TBO Hotel API ──────────────────────────────────────────────────
+  TBO_API_URL: "${TBO_API_URL}"
+  TBO_USERNAME: "${TBO_USERNAME}"
+  TBO_PASSWORD: "${TBO_PASSWORD}"
 
-  # ── TBO Web Login ─────────────────────────────────────────────────────────────
-  TBO_WEB_URL: "https://api.tbotechnology.in/"
-  TBO_WEB_USERNAME: "hackathontest"
-  TBO_WEB_PASSWORD: "Hackathon@12345"
-
-  # ── TBO Dummy / Agency Account ────────────────────────────────────────────────
-  TBO_DUMMY_URL: "https://prep.tboholidays.com"
-  TBO_DUMMY_USERNAME: "tbohackathonnew"
-  TBO_DUMMY_PASSWORD: "Tboagency@123"
-
-  # ── TBO Air API (add when available) ────────────────────────────────────────
-  TBO_AIR_BOOKING_URL: ""
-  TBO_AIR_SEARCH_URL: ""
-  TBO_AIR_USERNAME: ""
-  TBO_AIR_PASSWORD: ""
+  # ── TBO Air API ────────────────────────────────────────
+  TBO_AIR_AUTHENTICATE_URL: "${TBO_AIR_AUTHENTICATE_URL}"
+  TBO_AIR_SERVICE_URL: "${TBO_AIR_SERVICE_URL}"
+  TBO_AIR_USERNAME: "${TBO_AIR_USERNAME}"
+  TBO_AIR_PASSWORD: "${TBO_AIR_PASSWORD}"
 
   # ── Redis / Celery ───────────────────────────────────────────────────────────
   CELERY_BROKER_URL: "redis://redis:6379/0"
@@ -87,6 +77,26 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+
+  # ── 1.5 Postgres Database ───────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: meiliai_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "meiliai"
+      POSTGRES_PASSWORD: "meiliai_secret"
+      POSTGRES_DB: "meiliai"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meiliai -d meiliai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 
   # ── 2. DB Migration (runs Alembic, then exits) ──────────────────────────────
   migrate:
@@ -172,6 +182,8 @@ services:
 
 volumes:
   redis_data:
+    driver: local
+  postgres_data:
     driver: local
   trip_sessions:
     driver: local

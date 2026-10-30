@@ -1,0 +1,42 @@
+[
+  {
+    "metric": "Optimization scenarios executed",
+    "value": "10000 valid runs",
+    "sql_query": "SELECT COUNT(*) FROM optimization_metrics WHERE solver_status IN ('OPTIMAL', 'FEASIBLE')",
+    "source_table": "optimization_metrics",
+    "sample_size": 10000,
+    "confidence_interval": "N/A",
+    "timestamp": "2026-07-08T14:52:01.133182Z",
+    "reproducible": true
+  },
+  {
+    "metric": "Median optimization latency",
+    "value": "143.7 ms",
+    "sql_query": "SELECT runtime_seconds FROM optimization_metrics ORDER BY runtime_seconds ASC LIMIT 1 OFFSET (SELECT COUNT(*)/2 FROM optimization_metrics)",
+    "source_table": "optimization_metrics",
+    "sample_size": 10000,
+    "confidence_interval": "[592.8, 773.8] ms",
+    "timestamp": "2026-07-08T14:52:01.133182Z",
+    "reproducible": true
+  },
+  {
+    "metric": "P99 latency",
+    "value": "5165.0 ms",
+    "sql_query": "SELECT runtime_seconds FROM optimization_metrics ORDER BY runtime_seconds ASC LIMIT 1 OFFSET (SELECT CAST(COUNT(*)*0.99 AS INTEGER) FROM optimization_metrics)",
+    "source_table": "optimization_metrics",
+    "sample_size": 10000,
+    "confidence_interval": "N/A",
+    "timestamp": "2026-07-08T14:52:01.133182Z",
+    "reproducible": true
+  },
+  {
+    "metric": "Average traveler satisfaction",
+    "value": "56.17 / 100",
+    "sql_query": "SELECT AVG(satisfaction_score) FROM optimization_metrics",
+    "source_table": "optimization_metrics",
+    "sample_size": 10000,
+    "confidence_interval": "[56.08, 56.27]",
+    "timestamp": "2026-07-08T14:52:01.133182Z",
+    "reproducible": true
+  }
+]

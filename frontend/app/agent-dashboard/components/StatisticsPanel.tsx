@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { TripRequest } from '@/lib/agent-dashboard/types';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 

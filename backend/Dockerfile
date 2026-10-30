@@ -10,9 +10,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies (from backend/)
-COPY backend/requirements.txt .
+COPY backend/requirements/ /app/requirements/
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements/api.txt
 
 # Copy backend application code
 COPY backend/ .

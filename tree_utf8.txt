@@ -1,0 +1,1465 @@
+﻿Folder PATH listing for volume New Volume
+Volume serial number is 0000006F FA1A:0E81
+D:.
+|   .dockerignore
+|   .env
+|   .env.example
+|   .env.test
+|   .gitignore
+|   docker-compose.yml
+|   Dockerfile
+|   MERYDIAN_END_TO_END_INTEGRATION_AUDIT.md
+|   README.md
+|   run_demo.py
+|   tree_output.txt
+|   tree_output_cmd.txt
+|   
++---agents
+|   |   agent_controller.py
+|   |   config.py
+|   |   decision_policy_agent.py
+|   |   demo.py
+|   |   explainability_agent.py
+|   |   feedback_agent.py
+|   |   llm_client.py
+|   |   optimizer_agent.py
+|   |   poi_mapper.py
+|   |   preference_builder.py
+|   |   rate_limiter.py
+|   |   README.md
+|   |   requirements_agents.txt
+|   |   schemas.py
+|   |   transport_graph_modifier.py
+|   |   __init__.py
+|   |   
+|   +---Documentation
+|   |       AGENT_API_REFERENCE.md
+|   |       AGENT_ARCHITECTURE.md
+|   |       OPTIMIZER_INTEGRATION.md
+|   |       QUICK_START_GUIDE.md
+|   |       README.md
+|   |       TECHNICAL_FLOW_GUIDE.md
+|   |       usage_report.md
+|   |       WEBSITE_INTEGRATION_GUIDE.md
+|   |       
+|   +---tests
+|   |   \---demo_run_20260219_020638
+|   |       +---scenario_1
+|   |       |       decision_traces.json
+|   |       |       enriched_diffs.json
+|   |       |       family_preferences_updated.json
+|   |       |       llm_outputs.json
+|   |       |       llm_payloads.json
+|   |       |       optimized_backbone.json
+|   |       |       optimized_solution.json
+|   |       |       
+|   |       +---scenario_2
+|   |       |       decision_traces.json
+|   |       |       enriched_diffs.json
+|   |       |       family_preferences_updated.json
+|   |       |       llm_outputs.json
+|   |       |       llm_payloads.json
+|   |       |       optimized_backbone.json
+|   |       |       optimized_solution.json
+|   |       |       
+|   |       \---scenario_3
+|   |               decision_traces.json
+|   |               enriched_diffs.json
+|   |               family_preferences_updated.json
+|   |               llm_outputs.json
+|   |               llm_payloads.json
+|   |               optimized_backbone.json
+|   |               optimized_solution.json
+|   |               transport_METRO_disrupted.json
+|   |               
+|   \---__pycache__
+|           agent_controller.cpython-311.pyc
+|           agent_controller.cpython-312.pyc
+|           config.cpython-311.pyc
+|           config.cpython-312.pyc
+|           decision_policy_agent.cpython-311.pyc
+|           explainability_agent.cpython-311.pyc
+|           feedback_agent.cpython-311.pyc
+|           feedback_agent.cpython-312.pyc
+|           llm_client.cpython-311.pyc
+|           optimizer_agent.cpython-311.pyc
+|           poi_mapper.cpython-311.pyc
+|           preference_builder.cpython-311.pyc
+|           rate_limiter.cpython-311.pyc
+|           schemas.cpython-311.pyc
+|           schemas.cpython-312.pyc
+|           __init__.cpython-311.pyc
+|           __init__.cpython-312.pyc
+|           
++---backend
+|   |   alembic.ini
+|   |   Api_credentials.pdf
+|   |   auth_test_results.json
+|   |   auth_test_results3.json
+|   |   auth_test_results5.json
+|   |   backend_work.md
+|   |   debug_import.py
+|   |   docker-compose.yml
+|   |   Dockerfile
+|   |   Dockerfile.worker
+|   |   init_db.py
+|   |   migrate_add_preference_history.py
+|   |   migrate_booking_tables.py
+|   |   migrate_itinerary_explanations.py
+|   |   migrate_itinerary_options.py
+|   |   migrate_trip_sessions.py
+|   |   requirements.txt
+|   |   search_results.json
+|   |   test_e2e_flow.py
+|   |   test_explainability_fix.py
+|   |   test_llm_pipeline.py
+|   |   test_output.txt
+|   |   
+|   +---API
+|   |       HotelAPI Client.postman_collection 6 copy.json
+|   |       HotelAPI Client.postman_collection 6.json
+|   |       TBO India Air API.postman_collection.json
+|   |       TBOH Hotel API Specifications(V2.1) 5.pdf
+|   |       TBOIndia BE.postman_environment.json
+|   |       
+|   +---app
+|   |   |   main.py
+|   |   |   worker.py
+|   |   |   
+|   |   +---agents
+|   |   |       policy_agent.py
+|   |   |       
+|   |   +---agent_runtime
+|   |   |       exceptions.py
+|   |   |       runtime.py
+|   |   |       schemas.py
+|   |   |       __init__.py
+|   |   |       
+|   |   +---api
+|   |   |       agent_dashboard.py
+|   |   |       auth.py
+|   |   |       bookings.py
+|   |   |       events.py
+|   |   |       families.py
+|   |   |       flights.py
+|   |   |       health.py
+|   |   |       itinerary.py
+|   |   |       policy.py
+|   |   |       trips.py
+|   |   |       users.py
+|   |   |       
+|   |   +---core
+|   |   |       auth.py
+|   |   |       cache.py
+|   |   |       celery_app.py
+|   |   |       config.py
+|   |   |       db.py
+|   |   |       dependencies.py
+|   |   |       logging.py
+|   |   |       pagination.py
+|   |   |       rate_limit.py
+|   |   |       redis.py
+|   |   |       schema.sql
+|   |   |       security.py
+|   |   |       websocket.py
+|   |   |       
+|   |   +---models
+|   |   |       agent_job.py
+|   |   |       booking_job.py
+|   |   |       event.py
+|   |   |       family.py
+|   |   |       flight_booking.py
+|   |   |       hotel_booking.py
+|   |   |       itinerary.py
+|   |   |       itinerary_explanation.py
+|   |   |       itinerary_option.py
+|   |   |       policy.py
+|   |   |       preference.py
+|   |   |       preference_history.py
+|   |   |       token_blacklist.py
+|   |   |       trip_session.py
+|   |   |       user.py
+|   |   |       user_session.py
+|   |   |       __init__.py
+|   |   |       
+|   |   +---schemas
+|   |   |       auth.py
+|   |   |       booking.py
+|   |   |       events.py
+|   |   |       family.py
+|   |   |       flight.py
+|   |   |       itinerary.py
+|   |   |       itinerary_diff.py
+|   |   |       policy.py
+|   |   |       user.py
+|   |   |       
+|   |   +---services
+|   |   |       agent_job_service.py
+|   |   |       agent_service.py
+|   |   |       agent_workflow_service.py
+|   |   |       booking_service.py
+|   |   |       city_code_cache.py
+|   |   |       event_service.py
+|   |   |       explanation_service.py
+|   |   |       family_service.py
+|   |   |       itinerary_option_service.py
+|   |   |       itinerary_service.py
+|   |   |       optimizer_service.py
+|   |   |       policy_service.py
+|   |   |       preference_service.py
+|   |   |       tbo_air_service.py
+|   |   |       tbo_service.py
+|   |   |       trip_service.py
+|   |   |       user_service.py
+|   |   |       
+|   |   +---task_queue
+|   |   |       dispatcher.py
+|   |   |       
+|   |   +---travel_context
+|   |   |       optimization_input_builder.py
+|   |   |       schemas.py
+|   |   |       travel_context_service.py
+|   |   |       
+|   |   \---workers
+|   |           agent_tasks.py
+|   |           celery_app.py
+|   |           __init__.py
+|   |           
+|   +---Documentation
+|   |       AGENT_ARCHITECTURE.md
+|   |       AGENT_DEPENDENCIES_INSTALLED.md
+|   |       AGENT_SERVICES_IMPLEMENTATION_STATUS.md
+|   |       AUTH_IMPLEMENTATION_PLAN.md
+|   |       AUTH_IMPLEMENTATION_SUMMARY.md
+|   |       AUTH_SYSTEM_DOCUMENTATION.md
+|   |       backend_analysis.md.resolved
+|   |       BACKEND_API_REFERENCE.md
+|   |       BACKEND_API_SPEC.md
+|   |       INITIAL_PREFERENCE_IMPLEMENTATION.md
+|   |       INITIAL_PREFERENCE_SETUP.md
+|   |       MIGRATION_CHECKLIST.md
+|   |       ML_OPTIMIZER_DATA_FLOW.md
+|   |       pytest_output.txt
+|   |       QUICK_START_AUTH.md
+|   |       SCHEMA_COMPLIANCE_VERIFICATION.md
+|   |       SYSTEM_ARCHITECTURE_DIAGRAM.md
+|   |       TRIP_SESSIONS_EXPLAINED.md
+|   |       
+|   +---migrations
+|   |   |   add_auth_tables.sql
+|   |   |   env.py
+|   |   |   README
+|   |   |   script.py.mako
+|   |   |   
+|   |   \---versions
+|   |           5fa08801567f_initial_migration.py
+|   |           6a82bcd837ab_create_agent_job.py
+|   |           
+|   +---migrations_manual_backup
+|   |       add_trip_sessions.py
+|   |       
+|   +---requirements
+|   |       api.txt
+|   |       base.txt
+|   |       worker.txt
+|   |       
+|   +---scripts
+|   |       docker-entrypoint.sh
+|   |       init_auth_db.py
+|   |       
+|   +---test
+|   |       TBO_HOTEL_API_DOCS.md
+|   |       tbo_test_results.json
+|   |       test_auth.py
+|   |       test_core_flows.py
+|   |       test_db.py
+|   |       test_health.py
+|   |       test_itinerary_api.py
+|   |       test_tbo_air_api.py
+|   |       test_tbo_booking_flow.py
+|   |       test_tbo_hotel_api.py
+|   |       test_tbo_hotel_cancel.py
+|   |       test_tbo_hotel_search.py
+|   |       
+|   \---tests
+|           test_agent_job_service.py
+|           test_agent_runtime.py
+|           test_agent_tasks.py
+|           test_agent_workflow_integration.py
+|           test_itinerary_api.py
+|           test_medium_priority_features.py
+|           test_phase5b_integration.py
+|           test_task_dispatcher.py
+|           
++---contracts
+|       agent_output.schema.json
+|       approve_request.schema.json
+|       approve_response.schema.json
+|       booking_execute_request.schema.json
+|       booking_execute_response.schema.json
+|       event.schema.json
+|       internal_agent_contracts.json
+|       itinerary.schema.json
+|       itinerary_options_response.schema.json
+|       poi_request.schema.json
+|       poi_request_response.schema.json
+|       
++---frontend
+|   |   .gitignore
+|   |   ANIMATION_INTEGRATION_SUMMARY.md
+|   |   build_output.txt
+|   |   CANVAS_ANIMATION_IMPLEMENTATION.md
+|   |   components.json
+|   |   dev_output.txt
+|   |   eslint.config.mjs
+|   |   frontend_architecture.md
+|   |   next.config.ts
+|   |   package-lock.json
+|   |   package.json
+|   |   postcss.config.mjs
+|   |   README.md
+|   |   tailwind.config.js
+|   |   tsconfig.json
+|   |   ts_errors.txt
+|   |   
+|   +---app
+|   |   |   favicon.ico
+|   |   |   globals.css
+|   |   |   layout.source.tsx
+|   |   |   layout.tsx
+|   |   |   page.tsx
+|   |   |   source_styles.css
+|   |   |   
+|   |   +---agent
+|   |   |   \---dashboard
+|   |   |           page.tsx
+|   |   |           
+|   |   +---agent-dashboard
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   +---components
+|   |   |   |       AgentDashboardInteractive.tsx
+|   |   |   |       BookingExplorer.tsx
+|   |   |   |       CustomerSuggestionsPanel.tsx
+|   |   |   |       DashboardHeader.tsx
+|   |   |   |       DestinationCards.tsx
+|   |   |   |       IssuesAlertsSnapshot.tsx
+|   |   |   |       MobileRequestsList.tsx
+|   |   |   |       RequestFilters.tsx
+|   |   |   |       RequestsTable.tsx
+|   |   |   |       StatisticsPanel.tsx
+|   |   |   |       UpcomingGroupsTimeline.tsx
+|   |   |   |       
+|   |   |   +---itinerary-builder
+|   |   |   |       page.tsx
+|   |   |   |       
+|   |   |   \---itinerary-management
+|   |   |       |   page.tsx
+|   |   |       |   
+|   |   |       +---new
+|   |   |       |       page.tsx
+|   |   |       |       
+|   |   |       \---[tripId]
+|   |   |           |   layout.tsx
+|   |   |           |   page.tsx
+|   |   |           |   
+|   |   |           +---bookings
+|   |   |           |       page.tsx
+|   |   |           |       
+|   |   |           +---groups
+|   |   |           |       page.tsx
+|   |   |           |       
+|   |   |           \---intelligence
+|   |   |                   page.tsx
+|   |   |                   
+|   |   +---agent-login
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   \---components
+|   |   |           AgentLoginInteractive.tsx
+|   |   |           
+|   |   +---agent-request-review
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   \---components
+|   |   |           AgentRequestReviewInteractive.tsx
+|   |   |           ComparisonView.tsx
+|   |   |           CostBreakdownPanel.tsx
+|   |   |           CustomerContextPanel.tsx
+|   |   |           DayTimeline.tsx
+|   |   |           ItineraryActivity.tsx
+|   |   |           
+|   |   +---analytics
+|   |   |       page.tsx
+|   |   |       
+|   |   +---bookings
+|   |   |       page.tsx
+|   |   |       
+|   |   +---components
+|   |   |       CustomerSidebar.tsx
+|   |   |       
+|   |   +---customer-bookings
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   \---components
+|   |   |           BookingCard.tsx
+|   |   |           BookingDetailsModal.tsx
+|   |   |           
+|   |   +---customer-dashboard
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   \---components
+|   |   |           CustomerDashboardInteractive.tsx
+|   |   |           
+|   |   +---customer-itinerary
+|   |   |   \---[tripId]
+|   |   |           page.tsx
+|   |   |           
+|   |   +---customer-itinerary-view
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   \---components
+|   |   |           ActionButtons.tsx
+|   |   |           ChangeHistoryPanel.tsx
+|   |   |           ChangeRequestInput.tsx
+|   |   |           CostDeltaIndicator.tsx
+|   |   |           CustomerItineraryInteractive.tsx
+|   |   |           DayTimelineCard.tsx
+|   |   |           TripSummaryCard.tsx
+|   |   |           
+|   |   +---customer-login
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   \---components
+|   |   |           CustomerLoginInteractive.tsx
+|   |   |           
+|   |   +---customer-portal
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   \---components
+|   |   |           AgentChatModal.tsx
+|   |   |           CustomerPortalInteractive.tsx
+|   |   |           DetailedItineraryModal.tsx
+|   |   |           EnhancedAgentChatModal.tsx
+|   |   |           EnhancedCustomerPortalInteractive.tsx
+|   |   |           EnhancedTripCard.tsx
+|   |   |           FamilyMemberCard.tsx
+|   |   |           PlanTripModal.tsx
+|   |   |           ReportIssueModal.tsx
+|   |   |           SuggestChangeModal.tsx
+|   |   |           TripCard.tsx
+|   |   |           
+|   |   +---customer-preference
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   \---components
+|   |   |           PreferenceBuilderInteractive.tsx
+|   |   |           
+|   |   +---customer-trip-request
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   \---components
+|   |   |           BudgetRangeSlider.tsx
+|   |   |           DateRangePicker.tsx
+|   |   |           DestinationSelector.tsx
+|   |   |           GroupComposition.tsx
+|   |   |           PlacePreferences.tsx
+|   |   |           ProgressIndicator.tsx
+|   |   |           TravelerPreferences.tsx
+|   |   |           TripRequestInteractive.tsx
+|   |   |           
+|   |   +---dashboard
+|   |   |       page.tsx
+|   |   |       
+|   |   +---demo
+|   |   |   |   layout.tsx
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   +---analytics
+|   |   |   |       page.tsx
+|   |   |   |       
+|   |   |   +---families
+|   |   |   |       page.tsx
+|   |   |   |       
+|   |   |   \---family
+|   |   |       \---[id]
+|   |   |               page.tsx
+|   |   |               
+|   |   +---itinerary
+|   |   |       page.tsx
+|   |   |       
+|   |   +---itinerary-selection
+|   |   |       page.tsx
+|   |   |       
+|   |   +---map
+|   |   |       page.tsx
+|   |   |       
+|   |   +---neumorphic-demo
+|   |   |       page.tsx
+|   |   |       
+|   |   +---optimizer
+|   |   |   |   page.tsx
+|   |   |   |   
+|   |   |   \---components
+|   |   |           ActivityLibrary.tsx
+|   |   |           ComparisonView.tsx
+|   |   |           CostAnalysisPanel.tsx
+|   |   |           EditorInteractive.tsx
+|   |   |           ItineraryTimeline.tsx
+|   |   |           
+|   |   +---poi
+|   |   |   \---[poiId]
+|   |   |           page.tsx
+|   |   |           
+|   |   +---signup
+|   |   |       page.tsx
+|   |   |       
+|   |   \---trip
+|   |       \---[id]
+|   |           |   page.tsx
+|   |           |   
+|   |           \---components
+|   |                   TripHeader.tsx
+|   |                   
+|   +---components
+|   |   |   DotGrid.tsx
+|   |   |   ItineraryTimeline.tsx
+|   |   |   LandingPage.tsx
+|   |   |   LightPillar.css
+|   |   |   LightPillar.jsx
+|   |   |   MagicBento.css
+|   |   |   MagicBento.tsx
+|   |   |   MapView.tsx
+|   |   |   PhotoGallery.tsx
+|   |   |   POICard.tsx
+|   |   |   ProtectedRoute.tsx
+|   |   |   ScrollStack.css
+|   |   |   ScrollStack.tsx
+|   |   |   SubgroupBadge.tsx
+|   |   |   TiltedCard.css
+|   |   |   TiltedCard.tsx
+|   |   |   
+|   |   +---charts
+|   |   |       DisruptionImpactChart.tsx
+|   |   |       FamilyAnalysisRadarChart.tsx
+|   |   |       FamilyCostStackedChart.tsx
+|   |   |       index.ts
+|   |   |       PersonalizationProfitChart.tsx
+|   |   |       
+|   |   +---chat
+|   |   |       AgentChatPanel.tsx
+|   |   |       
+|   |   +---common
+|   |   |       AgentNavigation.tsx
+|   |   |       AgentWorkflowTabs.tsx
+|   |   |       CustomerNavigation.tsx
+|   |   |       CustomerProgressIndicator.tsx
+|   |   |       NavigationBreadcrumbs.tsx
+|   |   |       RoleBasedNavigation.tsx
+|   |   |       
+|   |   +---demo
+|   |   |   |   Sidebar.tsx
+|   |   |   |   TopNav.tsx
+|   |   |   |   
+|   |   |   \---pages
+|   |   |           Analytics.tsx
+|   |   |           Dashboard.tsx
+|   |   |           FamilyDetail.tsx
+|   |   |           
+|   |   +---itinerary
+|   |   |       BookingsView.tsx
+|   |   |       GroupsView.tsx
+|   |   |       ImageGalleryModal.tsx
+|   |   |       IntelligenceView.tsx
+|   |   |       ItineraryBuilderView.tsx
+|   |   |       ItineraryDetailView.tsx
+|   |   |       ItineraryOptimizerWindow.tsx
+|   |   |       ItineraryView.tsx
+|   |   |       TicketModal.tsx
+|   |   |       TimelineEventCard.tsx
+|   |   |       TripDetailNavbar.tsx
+|   |   |       VoyageurAIPanel.tsx
+|   |   |       
+|   |   +---landing
+|   |   |       AISupportSection.tsx
+|   |   |       AnalyticsSection.tsx
+|   |   |       FeaturesSection.tsx
+|   |   |       Footer.tsx
+|   |   |       Header.tsx
+|   |   |       HeroSection.tsx
+|   |   |       PricingSection.tsx
+|   |   |       TestimonialSection.tsx
+|   |   |       
+|   |   +---operations
+|   |   |       FloatingNav.tsx
+|   |   |       LightPillars.tsx
+|   |   |       Sidebar.tsx
+|   |   |       TopNav.tsx
+|   |   |       
+|   |   \---ui
+|   |           AppIcon.tsx
+|   |           AppImage.tsx
+|   |           area-chart-interactive.tsx
+|   |           avatar.tsx
+|   |           badge.tsx
+|   |           bento-grid.tsx
+|   |           button-group.tsx
+|   |           button.tsx
+|   |           calendar.tsx
+|   |           card.tsx
+|   |           chart.tsx
+|   |           command.tsx
+|   |           dialog.tsx
+|   |           dropdown-menu.tsx
+|   |           FloatingNavbar.tsx
+|   |           input-group.tsx
+|   |           input.tsx
+|   |           map.tsx
+|   |           mini-chart.tsx
+|   |           pie-chart-interactive.tsx
+|   |           place-autocomplete.tsx
+|   |           radial-chart-stacked.tsx
+|   |           select.tsx
+|   |           separator.tsx
+|   |           Sidebar.tsx
+|   |           spinner.tsx
+|   |           textarea.tsx
+|   |           
+|   +---contexts
+|   |       AuthContext.tsx
+|   |       
+|   +---docs
+|   |       AGENT_FRONTEND_INTEGRATION_PLAN.md
+|   |       CORRECTED_AGENT_ROUTES.md
+|   |       DEVELOPER_QUICK_START.md
+|   |       frontend_architecture.md.resolved
+|   |       INTEGRATION_QUICK_REFERENCE.md
+|   |       ROUTE_CORRECTIONS_APPLIED.md
+|   |       ROUTE_CORRECTIONS_SUMMARY.md
+|   |       
+|   +---Documentation
+|   |       3D_LANDING_INTEGRATION.md
+|   |       BOOKING_PREFILL_GUIDE.md
+|   |       CSS_WARNINGS_EXPLAINED.md
+|   |       CUSTOMER_ENDPOINTS.md
+|   |       DATA_INTEGRATION_SUMMARY.md
+|   |       DEMO_GUIDE.md
+|   |       HOTEL_BOOKING_OPTIMIZATION.md
+|   |       IMAGE_GALLERY_FIX.md
+|   |       implementation_plan.md
+|   |       ITINERARY_IMAGES_IMPLEMENTATION.md
+|   |       ITINERARY_IMPROVEMENTS.md
+|   |       ITINERARY_SIMPLIFIED.md
+|   |       LANDING_PAGE_README.md
+|   |       NEUMORPHIC_CHEATSHEET.md
+|   |       NEUMORPHIC_DESIGN_SYSTEM.md
+|   |       NEUMORPHIC_IMPLEMENTATION_SUMMARY.md
+|   |       NEUMORPHIC_QUICK_START.md
+|   |       TESTING_GUIDE.md
+|   |       TROUBLESHOOTING.md
+|   |       
+|   +---hooks
+|   |       useAuth.ts
+|   |       useCanvasAnimation.ts
+|   |       
+|   +---lib
+|   |   |   demoApi.ts
+|   |   |   trips.ts
+|   |   |   utils.ts
+|   |   |   
+|   |   +---agent-dashboard
+|   |   |   |   api-integration.ts
+|   |   |   |   apiService.ts
+|   |   |   |   data.ts
+|   |   |   |   itinerary-data.ts
+|   |   |   |   types.ts
+|   |   |   |   
+|   |   |   \---data
+|   |   |           active_groups.json
+|   |   |           cabs.json
+|   |   |           flights.json
+|   |   |           hotels.json
+|   |   |           itinerary_data.json
+|   |   |           metro.json
+|   |   |           trains.json
+|   |   |           upcoming_groups.json
+|   |   |           
+|   |   +---agent-request-review
+|   |   |       api-integration.ts
+|   |   |       
+|   |   \---demo
+|   |           data.ts
+|   |           types.ts
+|   |           
+|   +---public
+|   |   |   favicon.ico
+|   |   |   file.svg
+|   |   |   globe.svg
+|   |   |   logo-merydian.png
+|   |   |   next.svg
+|   |   |   vercel.svg
+|   |   |   window.svg
+|   |   |   
+|   |   +---assets
+|   |   |   \---images
+|   |   |           no_image.png
+|   |   |           
+|   |   \---frames
+|   |       |   ezgif-frame-001.jpg
+|   |       |   ezgif-frame-002.jpg
+|   |       |   ezgif-frame-003.jpg
+|   |       |   ezgif-frame-004.jpg
+|   |       |   ezgif-frame-005.jpg
+|   |       |   ezgif-frame-006.jpg
+|   |       |   ezgif-frame-007.jpg
+|   |       |   ezgif-frame-008.jpg
+|   |       |   ezgif-frame-009.jpg
+|   |       |   ezgif-frame-010.jpg
+|   |       |   ezgif-frame-011.jpg
+|   |       |   ezgif-frame-012.jpg
+|   |       |   ezgif-frame-013.jpg
+|   |       |   ezgif-frame-014.jpg
+|   |       |   ezgif-frame-015.jpg
+|   |       |   ezgif-frame-016.jpg
+|   |       |   ezgif-frame-017.jpg
+|   |       |   ezgif-frame-018.jpg
+|   |       |   ezgif-frame-019.jpg
+|   |       |   ezgif-frame-020.jpg
+|   |       |   ezgif-frame-021.jpg
+|   |       |   ezgif-frame-022.jpg
+|   |       |   ezgif-frame-023.jpg
+|   |       |   ezgif-frame-024.jpg
+|   |       |   ezgif-frame-025.jpg
+|   |       |   ezgif-frame-026.jpg
+|   |       |   ezgif-frame-027.jpg
+|   |       |   ezgif-frame-028.jpg
+|   |       |   ezgif-frame-029.jpg
+|   |       |   ezgif-frame-030.jpg
+|   |       |   ezgif-frame-031.jpg
+|   |       |   ezgif-frame-032.jpg
+|   |       |   ezgif-frame-033.jpg
+|   |       |   ezgif-frame-034.jpg
+|   |       |   ezgif-frame-035.jpg
+|   |       |   ezgif-frame-036.jpg
+|   |       |   ezgif-frame-037.jpg
+|   |       |   ezgif-frame-038.jpg
+|   |       |   ezgif-frame-039.jpg
+|   |       |   ezgif-frame-040.jpg
+|   |       |   ezgif-frame-041.jpg
+|   |       |   ezgif-frame-042.jpg
+|   |       |   ezgif-frame-043.jpg
+|   |       |   ezgif-frame-044.jpg
+|   |       |   ezgif-frame-045.jpg
+|   |       |   ezgif-frame-046.jpg
+|   |       |   ezgif-frame-047.jpg
+|   |       |   ezgif-frame-048.jpg
+|   |       |   ezgif-frame-049.jpg
+|   |       |   ezgif-frame-050.jpg
+|   |       |   ezgif-frame-051.jpg
+|   |       |   ezgif-frame-052.jpg
+|   |       |   ezgif-frame-053.jpg
+|   |       |   ezgif-frame-054.jpg
+|   |       |   ezgif-frame-055.jpg
+|   |       |   ezgif-frame-056.jpg
+|   |       |   ezgif-frame-057.jpg
+|   |       |   ezgif-frame-058.jpg
+|   |       |   ezgif-frame-059.jpg
+|   |       |   ezgif-frame-060.jpg
+|   |       |   ezgif-frame-061.jpg
+|   |       |   ezgif-frame-062.jpg
+|   |       |   ezgif-frame-063.jpg
+|   |       |   ezgif-frame-064.jpg
+|   |       |   ezgif-frame-065.jpg
+|   |       |   ezgif-frame-066.jpg
+|   |       |   ezgif-frame-067.jpg
+|   |       |   ezgif-frame-068.jpg
+|   |       |   ezgif-frame-069.jpg
+|   |       |   ezgif-frame-070.jpg
+|   |       |   ezgif-frame-071.jpg
+|   |       |   ezgif-frame-072.jpg
+|   |       |   ezgif-frame-073.jpg
+|   |       |   ezgif-frame-074.jpg
+|   |       |   ezgif-frame-075.jpg
+|   |       |   ezgif-frame-076.jpg
+|   |       |   ezgif-frame-077.jpg
+|   |       |   ezgif-frame-078.jpg
+|   |       |   ezgif-frame-079.jpg
+|   |       |   ezgif-frame-080.jpg
+|   |       |   ezgif-frame-081.jpg
+|   |       |   ezgif-frame-082.jpg
+|   |       |   ezgif-frame-083.jpg
+|   |       |   ezgif-frame-084.jpg
+|   |       |   ezgif-frame-085.jpg
+|   |       |   ezgif-frame-086.jpg
+|   |       |   ezgif-frame-087.jpg
+|   |       |   ezgif-frame-088.jpg
+|   |       |   ezgif-frame-089.jpg
+|   |       |   ezgif-frame-090.jpg
+|   |       |   ezgif-frame-091.jpg
+|   |       |   ezgif-frame-092.jpg
+|   |       |   ezgif-frame-093.jpg
+|   |       |   ezgif-frame-094.jpg
+|   |       |   ezgif-frame-095.jpg
+|   |       |   ezgif-frame-096.jpg
+|   |       |   ezgif-frame-097.jpg
+|   |       |   ezgif-frame-098.jpg
+|   |       |   ezgif-frame-099.jpg
+|   |       |   ezgif-frame-100.jpg
+|   |       |   ezgif-frame-101.jpg
+|   |       |   ezgif-frame-102.jpg
+|   |       |   ezgif-frame-103.jpg
+|   |       |   ezgif-frame-104.jpg
+|   |       |   ezgif-frame-105.jpg
+|   |       |   ezgif-frame-106.jpg
+|   |       |   ezgif-frame-107.jpg
+|   |       |   ezgif-frame-108.jpg
+|   |       |   ezgif-frame-109.jpg
+|   |       |   ezgif-frame-110.jpg
+|   |       |   ezgif-frame-111.jpg
+|   |       |   ezgif-frame-112.jpg
+|   |       |   ezgif-frame-113.jpg
+|   |       |   ezgif-frame-114.jpg
+|   |       |   ezgif-frame-115.jpg
+|   |       |   ezgif-frame-116.jpg
+|   |       |   ezgif-frame-117.jpg
+|   |       |   ezgif-frame-118.jpg
+|   |       |   ezgif-frame-119.jpg
+|   |       |   ezgif-frame-120.jpg
+|   |       |   ezgif-frame-121.jpg
+|   |       |   ezgif-frame-122.jpg
+|   |       |   ezgif-frame-123.jpg
+|   |       |   ezgif-frame-124.jpg
+|   |       |   ezgif-frame-125.jpg
+|   |       |   ezgif-frame-126.jpg
+|   |       |   ezgif-frame-127.jpg
+|   |       |   ezgif-frame-128.jpg
+|   |       |   ezgif-frame-129.jpg
+|   |       |   ezgif-frame-130.jpg
+|   |       |   ezgif-frame-131.jpg
+|   |       |   ezgif-frame-132.jpg
+|   |       |   ezgif-frame-133.jpg
+|   |       |   ezgif-frame-134.jpg
+|   |       |   ezgif-frame-135.jpg
+|   |       |   ezgif-frame-136.jpg
+|   |       |   ezgif-frame-137.jpg
+|   |       |   ezgif-frame-138.jpg
+|   |       |   ezgif-frame-139.jpg
+|   |       |   ezgif-frame-140.jpg
+|   |       |   ezgif-frame-141.jpg
+|   |       |   ezgif-frame-142.jpg
+|   |       |   ezgif-frame-143.jpg
+|   |       |   ezgif-frame-144.jpg
+|   |       |   ezgif-frame-145.jpg
+|   |       |   ezgif-frame-146.jpg
+|   |       |   ezgif-frame-147.jpg
+|   |       |   ezgif-frame-148.jpg
+|   |       |   ezgif-frame-149.jpg
+|   |       |   ezgif-frame-150.jpg
+|   |       |   ezgif-frame-151.jpg
+|   |       |   ezgif-frame-152.jpg
+|   |       |   ezgif-frame-153.jpg
+|   |       |   ezgif-frame-154.jpg
+|   |       |   ezgif-frame-155.jpg
+|   |       |   ezgif-frame-156.jpg
+|   |       |   ezgif-frame-157.jpg
+|   |       |   ezgif-frame-158.jpg
+|   |       |   ezgif-frame-159.jpg
+|   |       |   ezgif-frame-160.jpg
+|   |       |   ezgif-frame-161.jpg
+|   |       |   ezgif-frame-162.jpg
+|   |       |   ezgif-frame-163.jpg
+|   |       |   ezgif-frame-164.jpg
+|   |       |   ezgif-frame-165.jpg
+|   |       |   ezgif-frame-166.jpg
+|   |       |   ezgif-frame-167.jpg
+|   |       |   ezgif-frame-168.jpg
+|   |       |   ezgif-frame-169.jpg
+|   |       |   ezgif-frame-170.jpg
+|   |       |   ezgif-frame-171.jpg
+|   |       |   ezgif-frame-172.jpg
+|   |       |   ezgif-frame-173.jpg
+|   |       |   ezgif-frame-174.jpg
+|   |       |   ezgif-frame-175.jpg
+|   |       |   ezgif-frame-176.jpg
+|   |       |   ezgif-frame-177.jpg
+|   |       |   ezgif-frame-178.jpg
+|   |       |   ezgif-frame-179.jpg
+|   |       |   ezgif-frame-180.jpg
+|   |       |   ezgif-frame-181.jpg
+|   |       |   ezgif-frame-182.jpg
+|   |       |   ezgif-frame-183.jpg
+|   |       |   ezgif-frame-184.jpg
+|   |       |   ezgif-frame-185.jpg
+|   |       |   ezgif-frame-186.jpg
+|   |       |   ezgif-frame-187.jpg
+|   |       |   ezgif-frame-188.jpg
+|   |       |   ezgif-frame-189.jpg
+|   |       |   ezgif-frame-190.jpg
+|   |       |   ezgif-frame-191.jpg
+|   |       |   ezgif-frame-192.jpg
+|   |       |   ezgif-frame-193.jpg
+|   |       |   ezgif-frame-194.jpg
+|   |       |   ezgif-frame-195.jpg
+|   |       |   ezgif-frame-196.jpg
+|   |       |   ezgif-frame-197.jpg
+|   |       |   ezgif-frame-198.jpg
+|   |       |   ezgif-frame-199.jpg
+|   |       |   ezgif-frame-200.jpg
+|   |       |   ezgif-frame-201.jpg
+|   |       |   ezgif-frame-202.jpg
+|   |       |   ezgif-frame-203.jpg
+|   |       |   ezgif-frame-204.jpg
+|   |       |   ezgif-frame-205.jpg
+|   |       |   ezgif-frame-206.jpg
+|   |       |   ezgif-frame-207.jpg
+|   |       |   ezgif-frame-208.jpg
+|   |       |   ezgif-frame-209.jpg
+|   |       |   ezgif-frame-210.jpg
+|   |       |   ezgif-frame-211.jpg
+|   |       |   ezgif-frame-212.jpg
+|   |       |   ezgif-frame-213.jpg
+|   |       |   ezgif-frame-214.jpg
+|   |       |   ezgif-frame-215.jpg
+|   |       |   ezgif-frame-216.jpg
+|   |       |   ezgif-frame-217.jpg
+|   |       |   ezgif-frame-218.jpg
+|   |       |   ezgif-frame-219.jpg
+|   |       |   ezgif-frame-220.jpg
+|   |       |   ezgif-frame-221.jpg
+|   |       |   ezgif-frame-222.jpg
+|   |       |   ezgif-frame-223.jpg
+|   |       |   ezgif-frame-224.jpg
+|   |       |   ezgif-frame-225.jpg
+|   |       |   ezgif-frame-226.jpg
+|   |       |   ezgif-frame-227.jpg
+|   |       |   ezgif-frame-228.jpg
+|   |       |   ezgif-frame-229.jpg
+|   |       |   ezgif-frame-230.jpg
+|   |       |   ezgif-frame-231.jpg
+|   |       |   ezgif-frame-232.jpg
+|   |       |   ezgif-frame-233.jpg
+|   |       |   ezgif-frame-234.jpg
+|   |       |   ezgif-frame-235.jpg
+|   |       |   ezgif-frame-236.jpg
+|   |       |   ezgif-frame-237.jpg
+|   |       |   ezgif-frame-238.jpg
+|   |       |   ezgif-frame-239.jpg
+|   |       |   ezgif-frame-240.jpg
+|   |       |   ezgif-frame-241.jpg
+|   |       |   ezgif-frame-242.jpg
+|   |       |   ezgif-frame-243.jpg
+|   |       |   ezgif-frame-244.jpg
+|   |       |   ezgif-frame-245.jpg
+|   |       |   ezgif-frame-246.jpg
+|   |       |   ezgif-frame-247.jpg
+|   |       |   ezgif-frame-248.jpg
+|   |       |   ezgif-frame-249.jpg
+|   |       |   ezgif-frame-250.jpg
+|   |       |   ezgif-frame-251.jpg
+|   |       |   ezgif-frame-252.jpg
+|   |       |   ezgif-frame-253.jpg
+|   |       |   ezgif-frame-254.jpg
+|   |       |   ezgif-frame-255.jpg
+|   |       |   ezgif-frame-256.jpg
+|   |       |   ezgif-frame-257.jpg
+|   |       |   ezgif-frame-258.jpg
+|   |       |   ezgif-frame-259.jpg
+|   |       |   ezgif-frame-260.jpg
+|   |       |   ezgif-frame-261.jpg
+|   |       |   ezgif-frame-262.jpg
+|   |       |   ezgif-frame-263.jpg
+|   |       |   ezgif-frame-264.jpg
+|   |       |   ezgif-frame-265.jpg
+|   |       |   ezgif-frame-266.jpg
+|   |       |   ezgif-frame-267.jpg
+|   |       |   ezgif-frame-268.jpg
+|   |       |   ezgif-frame-269.jpg
+|   |       |   ezgif-frame-270.jpg
+|   |       |   ezgif-frame-271.jpg
+|   |       |   ezgif-frame-272.jpg
+|   |       |   ezgif-frame-273.jpg
+|   |       |   ezgif-frame-274.jpg
+|   |       |   ezgif-frame-275.jpg
+|   |       |   ezgif-frame-276.jpg
+|   |       |   ezgif-frame-277.jpg
+|   |       |   ezgif-frame-278.jpg
+|   |       |   
+|   |       +---hero-1
+|   |       |       frame_000_delay-0.042s.webp
+|   |       |       frame_001_delay-0.042s.webp
+|   |       |       frame_002_delay-0.042s.webp
+|   |       |       frame_003_delay-0.042s.webp
+|   |       |       frame_004_delay-0.042s.webp
+|   |       |       frame_005_delay-0.042s.webp
+|   |       |       frame_006_delay-0.042s.webp
+|   |       |       frame_007_delay-0.042s.webp
+|   |       |       frame_008_delay-0.042s.webp
+|   |       |       frame_009_delay-0.042s.webp
+|   |       |       frame_010_delay-0.042s.webp
+|   |       |       frame_011_delay-0.042s.webp
+|   |       |       frame_012_delay-0.042s.webp
+|   |       |       frame_013_delay-0.042s.webp
+|   |       |       frame_014_delay-0.042s.webp
+|   |       |       frame_015_delay-0.042s.webp
+|   |       |       frame_016_delay-0.042s.webp
+|   |       |       frame_017_delay-0.042s.webp
+|   |       |       frame_018_delay-0.042s.webp
+|   |       |       frame_019_delay-0.042s.webp
+|   |       |       frame_020_delay-0.042s.webp
+|   |       |       frame_021_delay-0.042s.webp
+|   |       |       frame_022_delay-0.042s.webp
+|   |       |       frame_023_delay-0.042s.webp
+|   |       |       frame_024_delay-0.042s.webp
+|   |       |       frame_025_delay-0.042s.webp
+|   |       |       frame_026_delay-0.042s.webp
+|   |       |       frame_027_delay-0.042s.webp
+|   |       |       frame_028_delay-0.042s.webp
+|   |       |       frame_029_delay-0.042s.webp
+|   |       |       frame_030_delay-0.042s.webp
+|   |       |       frame_031_delay-0.042s.webp
+|   |       |       frame_032_delay-0.042s.webp
+|   |       |       frame_033_delay-0.042s.webp
+|   |       |       frame_034_delay-0.042s.webp
+|   |       |       frame_035_delay-0.042s.webp
+|   |       |       frame_036_delay-0.042s.webp
+|   |       |       frame_037_delay-0.042s.webp
+|   |       |       frame_038_delay-0.042s.webp
+|   |       |       frame_039_delay-0.042s.webp
+|   |       |       frame_040_delay-0.042s.webp
+|   |       |       frame_041_delay-0.042s.webp
+|   |       |       frame_042_delay-0.042s.webp
+|   |       |       frame_043_delay-0.042s.webp
+|   |       |       frame_044_delay-0.042s.webp
+|   |       |       frame_045_delay-0.042s.webp
+|   |       |       frame_046_delay-0.042s.webp
+|   |       |       frame_047_delay-0.042s.webp
+|   |       |       frame_048_delay-0.042s.webp
+|   |       |       frame_049_delay-0.042s.webp
+|   |       |       frame_050_delay-0.042s.webp
+|   |       |       frame_051_delay-0.042s.webp
+|   |       |       frame_052_delay-0.042s.webp
+|   |       |       frame_053_delay-0.042s.webp
+|   |       |       frame_054_delay-0.042s.webp
+|   |       |       frame_055_delay-0.042s.webp
+|   |       |       frame_056_delay-0.042s.webp
+|   |       |       frame_057_delay-0.042s.webp
+|   |       |       frame_058_delay-0.042s.webp
+|   |       |       frame_059_delay-0.042s.webp
+|   |       |       frame_060_delay-0.042s.webp
+|   |       |       frame_061_delay-0.042s.webp
+|   |       |       frame_062_delay-0.042s.webp
+|   |       |       frame_063_delay-0.042s.webp
+|   |       |       frame_064_delay-0.042s.webp
+|   |       |       frame_065_delay-0.042s.webp
+|   |       |       frame_066_delay-0.042s.webp
+|   |       |       frame_067_delay-0.042s.webp
+|   |       |       frame_068_delay-0.042s.webp
+|   |       |       frame_069_delay-0.042s.webp
+|   |       |       frame_070_delay-0.042s.webp
+|   |       |       frame_071_delay-0.042s.webp
+|   |       |       frame_072_delay-0.042s.webp
+|   |       |       frame_073_delay-0.042s.webp
+|   |       |       frame_074_delay-0.042s.webp
+|   |       |       frame_075_delay-0.042s.webp
+|   |       |       frame_076_delay-0.042s.webp
+|   |       |       frame_077_delay-0.042s.webp
+|   |       |       frame_078_delay-0.042s.webp
+|   |       |       frame_079_delay-0.042s.webp
+|   |       |       frame_080_delay-0.042s.webp
+|   |       |       frame_081_delay-0.042s.webp
+|   |       |       frame_082_delay-0.042s.webp
+|   |       |       frame_083_delay-0.042s.webp
+|   |       |       frame_084_delay-0.042s.webp
+|   |       |       frame_085_delay-0.042s.webp
+|   |       |       frame_086_delay-0.042s.webp
+|   |       |       frame_087_delay-0.042s.webp
+|   |       |       frame_088_delay-0.042s.webp
+|   |       |       frame_089_delay-0.042s.webp
+|   |       |       frame_090_delay-0.042s.webp
+|   |       |       frame_091_delay-0.042s.webp
+|   |       |       frame_092_delay-0.042s.webp
+|   |       |       frame_093_delay-0.042s.webp
+|   |       |       frame_094_delay-0.042s.webp
+|   |       |       frame_095_delay-0.042s.webp
+|   |       |       frame_096_delay-0.042s.webp
+|   |       |       frame_097_delay-0.042s.webp
+|   |       |       frame_098_delay-0.042s.webp
+|   |       |       frame_099_delay-0.042s.webp
+|   |       |       frame_100_delay-0.042s.webp
+|   |       |       frame_101_delay-0.042s.webp
+|   |       |       frame_102_delay-0.042s.webp
+|   |       |       frame_103_delay-0.042s.webp
+|   |       |       frame_104_delay-0.042s.webp
+|   |       |       frame_105_delay-0.042s.webp
+|   |       |       frame_106_delay-0.042s.webp
+|   |       |       frame_107_delay-0.042s.webp
+|   |       |       frame_108_delay-0.042s.webp
+|   |       |       frame_109_delay-0.042s.webp
+|   |       |       frame_110_delay-0.042s.webp
+|   |       |       frame_111_delay-0.042s.webp
+|   |       |       frame_112_delay-0.042s.webp
+|   |       |       frame_113_delay-0.042s.webp
+|   |       |       frame_114_delay-0.042s.webp
+|   |       |       frame_115_delay-0.042s.webp
+|   |       |       frame_116_delay-0.042s.webp
+|   |       |       frame_117_delay-0.042s.webp
+|   |       |       frame_118_delay-0.042s.webp
+|   |       |       frame_119_delay-0.042s.webp
+|   |       |       frame_120_delay-0.042s.webp
+|   |       |       frame_121_delay-0.042s.webp
+|   |       |       frame_122_delay-0.042s.webp
+|   |       |       frame_123_delay-0.042s.webp
+|   |       |       frame_124_delay-0.042s.webp
+|   |       |       frame_125_delay-0.042s.webp
+|   |       |       frame_126_delay-0.042s.webp
+|   |       |       frame_127_delay-0.042s.webp
+|   |       |       frame_128_delay-0.042s.webp
+|   |       |       frame_129_delay-0.042s.webp
+|   |       |       frame_130_delay-0.042s.webp
+|   |       |       frame_131_delay-0.042s.webp
+|   |       |       frame_132_delay-0.042s.webp
+|   |       |       frame_133_delay-0.042s.webp
+|   |       |       frame_134_delay-0.042s.webp
+|   |       |       frame_135_delay-0.042s.webp
+|   |       |       frame_136_delay-0.042s.webp
+|   |       |       frame_137_delay-0.042s.webp
+|   |       |       frame_138_delay-0.042s.webp
+|   |       |       frame_139_delay-0.042s.webp
+|   |       |       frame_140_delay-0.042s.webp
+|   |       |       frame_141_delay-0.042s.webp
+|   |       |       frame_142_delay-0.042s.webp
+|   |       |       frame_143_delay-0.042s.webp
+|   |       |       frame_144_delay-0.042s.webp
+|   |       |       frame_145_delay-0.042s.webp
+|   |       |       frame_146_delay-0.042s.webp
+|   |       |       frame_147_delay-0.042s.webp
+|   |       |       frame_148_delay-0.042s.webp
+|   |       |       frame_149_delay-0.042s.webp
+|   |       |       frame_150_delay-0.042s.webp
+|   |       |       frame_151_delay-0.042s.webp
+|   |       |       frame_152_delay-0.042s.webp
+|   |       |       frame_153_delay-0.042s.webp
+|   |       |       frame_154_delay-0.042s.webp
+|   |       |       frame_155_delay-0.042s.webp
+|   |       |       frame_156_delay-0.042s.webp
+|   |       |       frame_157_delay-0.042s.webp
+|   |       |       frame_158_delay-0.042s.webp
+|   |       |       frame_159_delay-0.042s.webp
+|   |       |       frame_160_delay-0.042s.webp
+|   |       |       frame_161_delay-0.042s.webp
+|   |       |       frame_162_delay-0.042s.webp
+|   |       |       frame_163_delay-0.042s.webp
+|   |       |       frame_164_delay-0.042s.webp
+|   |       |       frame_165_delay-0.042s.webp
+|   |       |       frame_166_delay-0.042s.webp
+|   |       |       frame_167_delay-0.042s.webp
+|   |       |       frame_168_delay-0.042s.webp
+|   |       |       frame_169_delay-0.042s.webp
+|   |       |       frame_170_delay-0.042s.webp
+|   |       |       frame_171_delay-0.042s.webp
+|   |       |       frame_172_delay-0.042s.webp
+|   |       |       frame_173_delay-0.042s.webp
+|   |       |       frame_174_delay-0.042s.webp
+|   |       |       frame_175_delay-0.042s.webp
+|   |       |       frame_176_delay-0.042s.webp
+|   |       |       frame_177_delay-0.042s.webp
+|   |       |       frame_178_delay-0.042s.webp
+|   |       |       frame_179_delay-0.042s.webp
+|   |       |       frame_180_delay-0.042s.webp
+|   |       |       frame_181_delay-0.042s.webp
+|   |       |       frame_182_delay-0.042s.webp
+|   |       |       frame_183_delay-0.042s.webp
+|   |       |       frame_184_delay-0.042s.webp
+|   |       |       frame_185_delay-0.042s.webp
+|   |       |       frame_186_delay-0.042s.webp
+|   |       |       frame_187_delay-0.042s.webp
+|   |       |       frame_188_delay-0.042s.webp
+|   |       |       frame_189_delay-0.042s.webp
+|   |       |       frame_190_delay-0.042s.webp
+|   |       |       frame_191_delay-0.042s.webp
+|   |       |       
+|   |       \---hero-2
+|   |               frame_000_delay-0.041s.webp
+|   |               frame_001_delay-0.041s.webp
+|   |               frame_002_delay-0.041s.webp
+|   |               frame_003_delay-0.041s.webp
+|   |               frame_004_delay-0.041s.webp
+|   |               frame_005_delay-0.041s.webp
+|   |               frame_006_delay-0.041s.webp
+|   |               frame_007_delay-0.041s.webp
+|   |               frame_008_delay-0.041s.webp
+|   |               frame_009_delay-0.041s.webp
+|   |               frame_010_delay-0.041s.webp
+|   |               frame_011_delay-0.041s.webp
+|   |               frame_012_delay-0.041s.webp
+|   |               frame_013_delay-0.041s.webp
+|   |               frame_014_delay-0.041s.webp
+|   |               frame_015_delay-0.041s.webp
+|   |               frame_016_delay-0.041s.webp
+|   |               frame_017_delay-0.041s.webp
+|   |               frame_018_delay-0.041s.webp
+|   |               frame_019_delay-0.041s.webp
+|   |               frame_020_delay-0.041s.webp
+|   |               frame_021_delay-0.041s.webp
+|   |               frame_022_delay-0.041s.webp
+|   |               frame_023_delay-0.041s.webp
+|   |               frame_024_delay-0.041s.webp
+|   |               frame_025_delay-0.041s.webp
+|   |               frame_026_delay-0.041s.webp
+|   |               frame_027_delay-0.041s.webp
+|   |               frame_028_delay-0.041s.webp
+|   |               frame_029_delay-0.041s.webp
+|   |               frame_030_delay-0.041s.webp
+|   |               frame_031_delay-0.041s.webp
+|   |               frame_032_delay-0.041s.webp
+|   |               frame_033_delay-0.041s.webp
+|   |               frame_034_delay-0.041s.webp
+|   |               frame_035_delay-0.041s.webp
+|   |               frame_036_delay-0.041s.webp
+|   |               frame_037_delay-0.041s.webp
+|   |               frame_038_delay-0.041s.webp
+|   |               frame_039_delay-0.041s.webp
+|   |               frame_040_delay-0.041s.webp
+|   |               frame_041_delay-0.041s.webp
+|   |               frame_042_delay-0.041s.webp
+|   |               frame_043_delay-0.041s.webp
+|   |               frame_044_delay-0.041s.webp
+|   |               frame_045_delay-0.041s.webp
+|   |               frame_046_delay-0.041s.webp
+|   |               frame_047_delay-0.041s.webp
+|   |               frame_048_delay-0.041s.webp
+|   |               frame_049_delay-0.041s.webp
+|   |               frame_050_delay-0.041s.webp
+|   |               frame_051_delay-0.041s.webp
+|   |               frame_052_delay-0.041s.webp
+|   |               frame_053_delay-0.041s.webp
+|   |               frame_054_delay-0.041s.webp
+|   |               frame_055_delay-0.041s.webp
+|   |               frame_056_delay-0.041s.webp
+|   |               frame_057_delay-0.041s.webp
+|   |               frame_058_delay-0.041s.webp
+|   |               frame_059_delay-0.041s.webp
+|   |               frame_060_delay-0.041s.webp
+|   |               frame_061_delay-0.041s.webp
+|   |               frame_062_delay-0.041s.webp
+|   |               frame_063_delay-0.041s.webp
+|   |               frame_064_delay-0.041s.webp
+|   |               frame_065_delay-0.041s.webp
+|   |               frame_066_delay-0.041s.webp
+|   |               frame_067_delay-0.041s.webp
+|   |               frame_068_delay-0.041s.webp
+|   |               frame_069_delay-0.041s.webp
+|   |               frame_070_delay-0.041s.webp
+|   |               frame_071_delay-0.041s.webp
+|   |               frame_072_delay-0.041s.webp
+|   |               frame_073_delay-0.041s.webp
+|   |               frame_074_delay-0.041s.webp
+|   |               frame_075_delay-0.041s.webp
+|   |               frame_076_delay-0.041s.webp
+|   |               frame_077_delay-0.041s.webp
+|   |               frame_078_delay-0.041s.webp
+|   |               frame_079_delay-0.041s.webp
+|   |               frame_080_delay-0.041s.webp
+|   |               frame_081_delay-0.041s.webp
+|   |               frame_082_delay-0.041s.webp
+|   |               frame_083_delay-0.041s.webp
+|   |               frame_084_delay-0.041s.webp
+|   |               frame_085_delay-0.041s.webp
+|   |               frame_086_delay-0.041s.webp
+|   |               frame_087_delay-0.041s.webp
+|   |               frame_088_delay-0.041s.webp
+|   |               frame_089_delay-0.041s.webp
+|   |               frame_090_delay-0.041s.webp
+|   |               frame_091_delay-0.041s.webp
+|   |               frame_092_delay-0.041s.webp
+|   |               frame_093_delay-0.041s.webp
+|   |               frame_094_delay-0.041s.webp
+|   |               frame_095_delay-0.041s.webp
+|   |               frame_096_delay-0.041s.webp
+|   |               frame_097_delay-0.041s.webp
+|   |               frame_098_delay-0.041s.webp
+|   |               frame_099_delay-0.041s.webp
+|   |               frame_100_delay-0.041s.webp
+|   |               frame_101_delay-0.041s.webp
+|   |               frame_102_delay-0.041s.webp
+|   |               frame_103_delay-0.041s.webp
+|   |               frame_104_delay-0.041s.webp
+|   |               frame_105_delay-0.041s.webp
+|   |               frame_106_delay-0.041s.webp
+|   |               frame_107_delay-0.041s.webp
+|   |               frame_108_delay-0.041s.webp
+|   |               frame_109_delay-0.041s.webp
+|   |               frame_110_delay-0.041s.webp
+|   |               frame_111_delay-0.041s.webp
+|   |               frame_112_delay-0.041s.webp
+|   |               frame_113_delay-0.041s.webp
+|   |               frame_114_delay-0.041s.webp
+|   |               frame_115_delay-0.041s.webp
+|   |               frame_116_delay-0.041s.webp
+|   |               frame_117_delay-0.041s.webp
+|   |               frame_118_delay-0.041s.webp
+|   |               frame_119_delay-0.041s.webp
+|   |               frame_120_delay-0.041s.webp
+|   |               frame_121_delay-0.041s.webp
+|   |               frame_122_delay-0.041s.webp
+|   |               frame_123_delay-0.041s.webp
+|   |               frame_124_delay-0.041s.webp
+|   |               frame_125_delay-0.041s.webp
+|   |               frame_126_delay-0.041s.webp
+|   |               frame_127_delay-0.041s.webp
+|   |               frame_128_delay-0.041s.webp
+|   |               frame_129_delay-0.041s.webp
+|   |               frame_130_delay-0.041s.webp
+|   |               frame_131_delay-0.041s.webp
+|   |               frame_132_delay-0.041s.webp
+|   |               frame_133_delay-0.041s.webp
+|   |               frame_134_delay-0.041s.webp
+|   |               frame_135_delay-0.041s.webp
+|   |               frame_136_delay-0.041s.webp
+|   |               frame_137_delay-0.041s.webp
+|   |               frame_138_delay-0.041s.webp
+|   |               frame_139_delay-0.041s.webp
+|   |               frame_140_delay-0.041s.webp
+|   |               frame_141_delay-0.041s.webp
+|   |               frame_142_delay-0.041s.webp
+|   |               frame_143_delay-0.041s.webp
+|   |               frame_144_delay-0.041s.webp
+|   |               frame_145_delay-0.041s.webp
+|   |               frame_146_delay-0.041s.webp
+|   |               frame_147_delay-0.041s.webp
+|   |               frame_148_delay-0.041s.webp
+|   |               frame_149_delay-0.041s.webp
+|   |               frame_150_delay-0.041s.webp
+|   |               frame_151_delay-0.041s.webp
+|   |               frame_152_delay-0.041s.webp
+|   |               frame_153_delay-0.041s.webp
+|   |               frame_154_delay-0.041s.webp
+|   |               frame_155_delay-0.041s.webp
+|   |               frame_156_delay-0.041s.webp
+|   |               frame_157_delay-0.041s.webp
+|   |               frame_158_delay-0.041s.webp
+|   |               frame_159_delay-0.041s.webp
+|   |               frame_160_delay-0.041s.webp
+|   |               frame_161_delay-0.041s.webp
+|   |               frame_162_delay-0.041s.webp
+|   |               frame_163_delay-0.041s.webp
+|   |               frame_164_delay-0.041s.webp
+|   |               frame_165_delay-0.041s.webp
+|   |               frame_166_delay-0.041s.webp
+|   |               frame_167_delay-0.041s.webp
+|   |               frame_168_delay-0.041s.webp
+|   |               frame_169_delay-0.041s.webp
+|   |               frame_170_delay-0.041s.webp
+|   |               frame_171_delay-0.041s.webp
+|   |               frame_172_delay-0.041s.webp
+|   |               frame_173_delay-0.041s.webp
+|   |               frame_174_delay-0.041s.webp
+|   |               frame_175_delay-0.041s.webp
+|   |               frame_176_delay-0.041s.webp
+|   |               frame_177_delay-0.041s.webp
+|   |               frame_178_delay-0.041s.webp
+|   |               frame_179_delay-0.041s.webp
+|   |               frame_180_delay-0.041s.webp
+|   |               frame_181_delay-0.041s.webp
+|   |               frame_182_delay-0.041s.webp
+|   |               frame_183_delay-0.041s.webp
+|   |               frame_184_delay-0.041s.webp
+|   |               frame_185_delay-0.041s.webp
+|   |               frame_186_delay-0.041s.webp
+|   |               frame_187_delay-0.041s.webp
+|   |               frame_188_delay-0.041s.webp
+|   |               frame_189_delay-0.041s.webp
+|   |               frame_190_delay-0.041s.webp
+|   |               frame_191_delay-0.041s.webp
+|   |               
+|   +---services
+|   |       api.ts
+|   |       itinerary.service.ts
+|   |       map.service.ts
+|   |       media.service.ts
+|   |       poi.service.ts
+|   |       websocket.service.ts
+|   |       
+|   +---sockets
+|   |       updates.ts
+|   |       
+|   +---stitch_voyageur
+|   |       book_new2.html
+|   |       book_new2.png
+|   |       book_side.html
+|   |       book_side.png
+|   |       cust_iti.html
+|   |       cust_iti.png
+|   |       det_iti_why.html
+|   |       det_iti_why.png
+|   |       group_new.html
+|   |       group_new.png
+|   |       inteli.html
+|   |       inteli.png
+|   |       iti_build.html
+|   |       iti_build.png
+|   |       iti_det_new.html
+|   |       iti_det_new.png
+|   |       pref_builder.png
+|   |       
+|   +---temp
+|   |       code.html
+|   |       
+|   \---types
+|           events.ts
+|           itinerary.ts
+|           operations.ts
+|           poi.ts
+|           
+\---ml_or
+    |   hotel_optimizer.py
+    |   itinerary_optimizer.py
+    |   README.md
+    |   __init__.py
+    |   
+    +---data
+    |       base_itinerary_clustered.json
+    |       family_preferences_3fam_strict.json
+    |       hotels.json
+    |       initial_optimized_solution.json
+    |       locations.json
+    |       optimized_backbone.json
+    |       transport_graph.json
+    |       
+    +---demos
+    |   |   __init__.py
+    |   |   
+    |   \---reopt_hard_constraints
+    |           feedback_processor.py
+    |           __init__.py
+    |           
+    +---Documentation
+    |       AGENTIC_WORKFLOW_COMPLETE_GUIDE.md
+    |       Backend_Integration_Guide.md
+    |       MATHEMATICAL_MODEL_SPECIFICATION.md
+    |       OPTIMIZER_ARCHITECTURE_AND_FEATURES.md
+    |       PRODUCTION_API_GUIDE.md
+    |       README.md
+    |       VOYAGEUR_AGENT_HANDBOOK.md
+    |       VOYAGEUR_ARCHITECTURE_DEEP_DIVE.md
+    |       VOYAGEUR_CAPABILITIES_REPORT.md
+    |       VOYAGEUR_DATA_FLOW_REPORT.md
+    |       
+    +---explainability
+    |   |   causal_tagger.py
+    |   |   delta_engine.py
+    |   |   diff_engine.py
+    |   |   payload_builder.py
+    |   |   __init__.py
+    |   |   
+    |   \---__pycache__
+    |           causal_tagger.cpython-311.pyc
+    |           delta_engine.cpython-311.pyc
+    |           diff_engine.cpython-311.pyc
+    |           payload_builder.cpython-311.pyc
+    |           __init__.cpython-311.pyc
+    |           
+    \---__pycache__
+            itinerary_optimizer.cpython-311.pyc
+            __init__.cpython-311.pyc
+            

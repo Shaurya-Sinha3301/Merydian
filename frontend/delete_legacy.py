@@ -1,0 +1,63 @@
+import os
+
+deleted_files = [
+    "app/agent-dashboard/itinerary-management/[tripId]/bookings/page.tsx",
+    "app/agent-dashboard/itinerary-management/[tripId]/groups/page.tsx",
+    "app/agent-dashboard/itinerary-management/[tripId]/intelligence/page.tsx",
+    "app/agent-dashboard/itinerary-management/[tripId]/layout.tsx",
+    "app/agent-dashboard/itinerary-management/new/page.tsx",
+    "app/agent-dashboard/itinerary-management/page.tsx",
+    "app/customer-bookings/components/BookingCard.tsx",
+    "app/customer-bookings/components/BookingDetailsModal.tsx",
+    "app/customer-bookings/page.tsx",
+    "app/customer-itinerary-view/components/ActionButtons.tsx",
+    "app/customer-itinerary-view/components/ChangeHistoryPanel.tsx",
+    "app/customer-itinerary-view/components/ChangeRequestInput.tsx",
+    "app/customer-itinerary-view/components/CostDeltaIndicator.tsx",
+    "app/customer-itinerary-view/components/CustomerItineraryInteractive.tsx",
+    "app/customer-itinerary-view/components/DayTimelineCard.tsx",
+    "app/customer-itinerary-view/components/TripSummaryCard.tsx",
+    "app/customer-itinerary-view/page.tsx",
+    "app/customer-itinerary/[tripId]/page.tsx",
+    "app/customer-portal/components/AgentChatModal.tsx",
+    "app/customer-portal/components/CustomerPortalInteractive.tsx",
+    "app/customer-portal/components/DetailedItineraryModal.tsx",
+    "app/customer-portal/components/EnhancedAgentChatModal.tsx",
+    "app/customer-portal/components/EnhancedCustomerPortalInteractive.tsx",
+    "app/customer-portal/components/EnhancedTripCard.tsx",
+    "app/customer-portal/components/FamilyMemberCard.tsx",
+    "app/customer-portal/components/PlanTripModal.tsx",
+    "app/customer-portal/components/ReportIssueModal.tsx",
+    "app/customer-portal/components/SuggestChangeModal.tsx",
+    "app/customer-portal/components/TripCard.tsx",
+    "app/customer-portal/page.tsx",
+    "app/customer-preference/components/PreferenceBuilderInteractive.tsx",
+    "app/customer-preference/page.tsx",
+    "app/customer-trip-request/components/BudgetRangeSlider.tsx",
+    "app/customer-trip-request/components/DateRangePicker.tsx",
+    "app/customer-trip-request/components/DestinationSelector.tsx",
+    "app/customer-trip-request/components/GroupComposition.tsx",
+    "app/customer-trip-request/components/PlacePreferences.tsx",
+    "app/customer-trip-request/components/ProgressIndicator.tsx",
+    "app/customer-trip-request/components/TravelerPreferences.tsx",
+    "app/customer-trip-request/components/TripRequestInteractive.tsx",
+    "app/customer-trip-request/page.tsx",
+    "components/itinerary/BookingsView.tsx",
+    "components/itinerary/GroupsView.tsx",
+    "components/itinerary/ImageGalleryModal.tsx",
+    "components/itinerary/IntelligenceView.tsx",
+    "components/itinerary/ItineraryBuilderView.tsx",
+    "components/itinerary/ItineraryOptimizerWindow.tsx",
+    "components/itinerary/ItineraryView.tsx",
+    "components/itinerary/TicketModal.tsx",
+    "components/itinerary/TimelineEventCard.tsx",
+    "components/itinerary/TripDetailNavbar.tsx",
+    "components/itinerary/VoyageurAIPanel.tsx",
+]
+
+for f in deleted_files:
+    try:
+        os.remove(f)
+        print("Deleted", f)
+    except OSError:
+        pass

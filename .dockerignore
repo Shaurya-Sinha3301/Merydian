@@ -1,4 +1,4 @@
-# ── Python ───────────────────────────────────────────────────────────────────
+# Python
 **/__pycache__
 **/*.pyc
 **/*.pyo
@@ -7,43 +7,47 @@
 **/.mypy_cache
 **/.ruff_cache
 **/*.egg-info
-**/.eggs
-**/dist
-**/build
-
-# ── Virtual environments ─────────────────────────────────────────────────────
 .venv
 venv
-env
 
-# ── Node / Frontend ──────────────────────────────────────────────────────────
+# Frontends (hosted separately on Vercel)
 frontend/
-frontend/node_modules
-frontend/.next
+frontend V2/
+**/node_modules
 
-# ── Git & IDE ────────────────────────────────────────────────────────────────
+# Git & IDE
 .git
 .gitignore
 .vscode
 .idea
+.cursor
+.claude
+.agents
 
-# ── Secrets & local config ───────────────────────────────────────────────────
-# Keep .env so it's COPY'd into the image at build time
-# (only for dev; in prod pass secrets via orchestrator env vars)
-# .env  <-- intentionally NOT excluded
+# Secrets and local config: never bake into the image
+.env
+.env.*
+**/.env
+**/.env.*
 
-# ── Test outputs ─────────────────────────────────────────────────────────────
+# Tests, scratch and generated output
 backend/test
 backend/tests
 backend/test_output.txt
+backend/*.json
+backend/Api_credentials.pdf
 agents/tests
-
-# ── Large data / outputs that are volume-mounted ─────────────────────────────
 backend/trip_sessions
 backend/optimizer_outputs
+*.zip
+*.txt.bak
+tree_*.txt
+frontend_tree*.txt
+full_report_generator.txt
 
-# ── Docs ─────────────────────────────────────────────────────────────────────
+# Docs
 backend/Documentation
 agents/Documentation
-README.md
+ml_or/Documentation
+backend/scripts/benchmark
 *.md

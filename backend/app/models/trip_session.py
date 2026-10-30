@@ -39,38 +39,43 @@ class TripSession(SQLModel, table=True):
     # Related family/families
     family_ids: list = Field(sa_column=Column(JSONB))  # List of family UUIDs
     
-    # Itinerary Paths (file-based for ML optimizer compatibility)
-    baseline_itinerary_path: str = Field(max_length=500)  # Original skeleton
-    latest_itinerary_path: Optional[str] = Field(default=None, max_length=500)  # Latest optimized
+    # ─── Current Itinerary (DB-based, replaces filesystem paths) ───
+    current_itinerary_id: Optional[UUID] = Field(
+        default=None,
+        foreign_key="itineraries.id",
+        description="FK to the current active Itinerary for this trip"
+    )
+    
+    # ─── DEPRECATED: Filesystem paths (kept for migration, will be removed) ───
+    # These fields are superseded by current_itinerary_id and Itinerary.data JSONB.
+    baseline_itinerary_path: Optional[str] = Field(default=None, max_length=500)  # DEPRECATED
+    latest_itinerary_path: Optional[str] = Field(default=None, max_length=500)  # DEPRECATED
     
     # Optimization State
     iteration_count: int = Field(default=0)
     last_optimization_at: Optional[datetime] = Field(default=None)
     
-    # Initial Preferences (set at trip creation, never modified)
-    # Format: {family_id: {family_id, members, interest_vector, must_visit_locations, ...}}
-    initial_preferences: dict = Field(default_factory=dict, sa_column=Column(JSONB))
+    # ─── DEPRECATED: Preference JSONB columns ───
+    # The Preference table (via PreferenceService) is now the single source of truth.
+    # These fields are retained temporarily for backward compatibility.
+    initial_preferences: dict = Field(default_factory=dict, sa_column=Column(JSONB))  # DEPRECATED
+    current_preferences: dict = Field(default_factory=dict, sa_column=Column(JSONB))  # DEPRECATED
     
-    # Current Preferences (initial + feedback updates)
-    # Format: {family_id: {must_visit: [], never_visit: [], ratings: {}}}
-    current_preferences: dict = Field(default_factory=dict, sa_column=Column(JSONB))
-    
-    # Feedback History (JSON)
+    # Feedback History (JSON) — retained as audit trail
     # Format: [{iteration, timestamp, family_id, message, event_type, action}]
     feedback_history: list = Field(default_factory=list, sa_column=Column(JSONB))
     
-    # Preference History (JSON) - Tracks all preference changes
+    # Preference History (JSON) - Tracks all preference changes — retained as audit trail
     # Format: [{timestamp, iteration, family_id, change_type, poi_id, old_value, new_value, trigger}]
-    # This provides full audit trail of how preferences evolved through feedback
     preference_history: list = Field(default_factory=list, sa_column=Column(JSONB))
     
     # Metadata
     trip_name: Optional[str] = Field(default=None, max_length=200)
     status: str = Field(default="active", max_length=50)  # active, completed, archived
     
-    # Storage Paths
-    session_storage_dir: Optional[str] = Field(default=None, max_length=500)
-    output_dir: Optional[str] = Field(default=None, max_length=500)
+    # ─── DEPRECATED: Storage Paths ───
+    session_storage_dir: Optional[str] = Field(default=None, max_length=500)  # DEPRECATED
+    output_dir: Optional[str] = Field(default=None, max_length=500)  # DEPRECATED
     
     # Timestamps
     created_at: datetime = Field(default_factory=datetime.utcnow)

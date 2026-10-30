@@ -1,0 +1,14 @@
+{
+  "benchmark_scale": 10000,
+  "optimizer_configs": 1,
+  "median_latency_ms": 143.7,
+  "p95_latency_ms": 5063.2,
+  "p99_latency_ms": 5165.0,
+  "success_rate": 100.0,
+  "objective_improvement_pct": "Not Available",
+  "travel_time_reduction_pct": "Not Available",
+  "activities_skipped_reduction_pct": "Not Available",
+  "average_satisfaction": 56.17,
+  "memory_mb": 4.7482,
+  "cpu_seconds": 6.1229
+}

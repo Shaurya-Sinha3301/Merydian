@@ -1,149 +1,158 @@
-"""
-Decision & Policy Agent - Deterministic decision-making based on event types.
-Rule-based, no LLM. This is the "brainstem" of the agent system.
-"""
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
-from .schemas import FeedbackEvent, PolicyDecision, EventType, ActionType
+from .schemas import FeedbackUnderstanding, PolicyDecision, EventType, ActionType
+from app.travel_context.schemas import TravelContext, TravelConstraint, IntentType
 
 logger = logging.getLogger(__name__)
 
 
 class DecisionPolicyAgent:
     """
-    Agent responsible for deciding what action to take based on events.
-    Pure Python, deterministic rules, no LLM.
+    Agent responsible for deciding what action to take based on events and intents.
+    Rule-based, no LLM. Context-aware conflict resolution.
+    
+    Produces structured TravelConstraint objects that map directly to
+    optimizer weights via the architecture contracts.
     """
     
-    # Event types that require optimizer re-run (hard constraints)
-    HARD_CONSTRAINT_EVENTS = {
-        EventType.MUST_VISIT_ADDED,
-        EventType.NEVER_VISIT_ADDED
-    }
-    
-    # Event types that only update preferences (soft constraints)
-    SOFT_PREFERENCE_EVENTS = {
-        EventType.POI_RATING,
-        EventType.DAY_RATING
-    }
-    
-    # Events acknowledged but not yet handled (future features)
-    MOCKED_EVENTS = {
-        EventType.DELAY_REPORTED
-    }
-    
     def __init__(self):
-        """Initialize the Decision/Policy Agent."""
         logger.info("DecisionPolicyAgent initialized")
     
-    def decide(self, event: FeedbackEvent) -> PolicyDecision:
+    def decide(self, understanding: FeedbackUnderstanding, context: Optional[TravelContext] = None) -> PolicyDecision:
         """
-        Make a decision based on the event type.
+        Make a decision based on the feedback understanding and optional travel context.
         
-        Args:
-            event: FeedbackEvent from Feedback Agent
-        
-        Returns:
-            PolicyDecision with action and reasoning
+        Produces a TravelConstraint with:
+        - hard_constraints: must_visit, never_visit (boolean POI constraints)
+        - soft_constraints: pace, budget_level, hotel_quality, accessibility (influence weights)
         """
-        logger.info(f"Making decision for event type: {event.event_type}")
+        logger.info(f"Making decision for feedback with {len(understanding.existing_events)} events and {len(understanding.travel_intents)} intents")
         
-        # Hard constraints - must re-run optimizer
-        if event.event_type in self.HARD_CONSTRAINT_EVENTS:
-            return PolicyDecision(
-                action=ActionType.RUN_OPTIMIZER,
-                reason=f"Hard constraint changed: {event.event_type}",
-                requires_approval=False,
-                event_context=event
-            )
+        # Build constraints
+        hard_constraints = {}
+        soft_constraints = {}
         
-        # Soft preferences - update preferences only
-        if event.event_type in self.SOFT_PREFERENCE_EVENTS:
-            return PolicyDecision(
-                action=ActionType.UPDATE_PREFERENCES_ONLY,
-                reason=f"Soft preference updated: {event.event_type}",
-                requires_approval=False,
-                event_context=event
-            )
+        must_visit = []
+        never_visit = []
         
-        # Transport issue - re-optimize with disrupted transport graph
-        if event.event_type == EventType.TRANSPORT_ISSUE:
-            disruption_desc = f"{event.transport_mode} disruption"
-            if event.disruption_from_poi and event.disruption_to_poi:
-                disruption_desc += f" on route from {event.disruption_from_poi} to {event.disruption_to_poi}"
-            else:
-                disruption_desc += " (global)"
+        # ─── 1. Process legacy events (MUST/NEVER visit, ratings, transport) ───
+        for event in understanding.existing_events:
+            if event.event_type == EventType.MUST_VISIT_ADDED and event.poi_id:
+                must_visit.append(event.poi_id)
+            elif event.event_type == EventType.NEVER_VISIT_ADDED and event.poi_id:
+                never_visit.append(event.poi_id)
+            elif event.event_type == EventType.TRANSPORT_ISSUE:
+                # Map transport issues to disruption constraints
+                if event.transport_mode:
+                    disruption = {"mode": event.transport_mode}
+                    if event.disruption_from_poi:
+                        disruption["from"] = event.disruption_from_poi
+                    if event.disruption_to_poi:
+                        disruption["to"] = event.disruption_to_poi
+                    
+                    if "transport_disruptions" not in hard_constraints:
+                        hard_constraints["transport_disruptions"] = []
+                    hard_constraints["transport_disruptions"].append(disruption)
+                
+        if must_visit:
+            hard_constraints["must_visit"] = must_visit
+        if never_visit:
+            hard_constraints["never_visit"] = never_visit
             
-            return PolicyDecision(
-                action=ActionType.RUN_OPTIMIZER,
-                reason=f"{disruption_desc} requires itinerary re-optimization with updated transport graph",
-                requires_approval=False,
-                event_context=event
-            )
+        # ─── 2. Process Travel Intents (with conflict resolution) ───
+        pace_requests = []
+        budget_requests = []
+        hotel_requests = []
+        accessibility_flags = {}
         
-        # Mocked events - acknowledge but don't act yet
-        if event.event_type in self.MOCKED_EVENTS:
-            return PolicyDecision(
-                action=ActionType.NO_ACTION,
-                reason=f"Event acknowledged but not yet handled: {event.event_type}. "
-                       f"The agent system supports these events; optimizer will handle them in future updates.",
-                requires_approval=False,
-                event_context=event
-            )
+        for intent in understanding.travel_intents:
+            if intent.intent_type == IntentType.PACE_CHANGE:
+                pace_requests.append(intent.target or "relaxed")
+            elif intent.intent_type == IntentType.BUDGET_CHANGE:
+                budget_requests.append(intent.target or "budget")
+            elif intent.intent_type == IntentType.HOTEL_CHANGE:
+                hotel_requests.append(intent.target or "luxury")
+            elif intent.intent_type == IntentType.ACCESSIBILITY_CHANGE:
+                # Accessibility is additive, not conflicting
+                accessibility_flags["wheelchair_accessible"] = True
+            elif intent.intent_type == IntentType.TIME_CHANGE:
+                # Map time changes to pace adjustments
+                if intent.target and "early" in intent.target.lower():
+                    pace_requests.append("active")
+                elif intent.target and "late" in intent.target.lower():
+                    pace_requests.append("relaxed")
+                
+        # ─── 3. Resolve conflicts ───
         
-        # Unknown events - no action
+        # Pace: if conflicting requests, pick moderate
+        if pace_requests:
+            if len(set(pace_requests)) > 1:
+                soft_constraints["pace"] = "moderate"
+            else:
+                soft_constraints["pace"] = pace_requests[0]
+                
+        # Budget: if conflicting, pick moderate
+        if budget_requests:
+            if len(set(budget_requests)) > 1:
+                soft_constraints["budget_level"] = "moderate"
+            else:
+                soft_constraints["budget_level"] = budget_requests[0]
+            
+        # Hotel: if conflicting, pick standard
+        if hotel_requests:
+            if len(set(hotel_requests)) > 1:
+                soft_constraints["hotel_quality"] = "standard"
+            else:
+                soft_constraints["hotel_quality"] = hotel_requests[0]
+        
+        # Accessibility: always additive
+        if accessibility_flags:
+            soft_constraints.update(accessibility_flags)
+                
+        constraint = TravelConstraint(
+            hard_constraints=hard_constraints,
+            soft_constraints=soft_constraints
+        )
+        
+        # ─── 4. Determine ActionType ───
+        requires_optimizer = (
+            bool(understanding.travel_intents)
+            or bool(must_visit) 
+            or bool(never_visit)
+            or bool(hard_constraints.get("transport_disruptions"))
+        )
+        
+        if requires_optimizer:
+            action = ActionType.RUN_OPTIMIZER
+            reason = self._build_reason(must_visit, never_visit, soft_constraints)
+        elif understanding.existing_events:
+            action = ActionType.UPDATE_PREFERENCES_ONLY
+            reason = "Only soft preferences updated (ratings), no re-optimization needed"
+        else:
+            action = ActionType.NO_ACTION
+            reason = "No actionable intents or events found"
+            
         return PolicyDecision(
-            action=ActionType.NO_ACTION,
-            reason=f"Unknown or unhandled event type: {event.event_type}",
+            action=action,
+            reason=reason,
             requires_approval=False,
-            event_context=event
+            travel_constraint=constraint,
+            event_context=understanding.existing_events[0] if understanding.existing_events else None
         )
     
-    def should_run_optimizer(self, event: FeedbackEvent) -> bool:
-        """
-        Quick check if optimizer should be run (without full decision object).
-        
-        Args:
-            event: FeedbackEvent to check
-        
-        Returns:
-            True if optimizer should run, False otherwise
-        """
-        return event.event_type in self.HARD_CONSTRAINT_EVENTS
-
-
-# Test function for standalone execution
-if __name__ == "__main__":
-    from .feedback_agent import FeedbackAgent
-    
-    print("=" * 80)
-    print("DECISION/POLICY AGENT TEST")
-    print("=" * 80)
-    
-    # Create agents
-    feedback_agent = FeedbackAgent()
-    policy_agent = DecisionPolicyAgent()
-    
-    # Test cases
-    test_cases = [
-        ("We loved Akshardham, we definitely want to visit it tomorrow.", "HARD_CONSTRAINT"),
-        ("Please skip the Red Fort, we're not interested.", "HARD_CONSTRAINT"),
-        ("I'd rate today a 9 out of 10!", "SOFT_PREFERENCE"),
-        ("The Lotus Temple was amazing, 10/10", "SOFT_PREFERENCE"),
-        ("We're running 30 minutes late due to traffic", "MOCKED"),
-    ]
-    
-    for user_input, expected_category in test_cases:
-        print(f"\nInput: {user_input}")
-        print(f"Expected: {expected_category}")
-        
-        # Parse input
-        event = feedback_agent.parse(user_input)
-        print(f"Event Type: {event.event_type}")
-        
-        # Make decision
-        decision = policy_agent.decide(event)
-        print(f"Action: {decision.action}")
-        print(f"Reason: {decision.reason}")
-        print("-" * 80)
+    @staticmethod
+    def _build_reason(must_visit, never_visit, soft_constraints):
+        """Build a human-readable reason string."""
+        parts = []
+        if must_visit:
+            parts.append(f"Must-visit POIs added: {must_visit}")
+        if never_visit:
+            parts.append(f"Never-visit POIs added: {never_visit}")
+        if "pace" in soft_constraints:
+            parts.append(f"Pace changed to: {soft_constraints['pace']}")
+        if "budget_level" in soft_constraints:
+            parts.append(f"Budget preference: {soft_constraints['budget_level']}")
+        if "hotel_quality" in soft_constraints:
+            parts.append(f"Hotel quality: {soft_constraints['hotel_quality']}")
+        return "; ".join(parts) if parts else "Travel constraint changed, requiring re-optimization"

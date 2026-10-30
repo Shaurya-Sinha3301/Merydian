@@ -20,10 +20,10 @@ services:
       - ../ml_or:/app/ml_or
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  celery_worker:
+  backend-worker:
     build:
       context: ../
-      dockerfile: backend/Dockerfile
+      dockerfile: backend/Dockerfile.worker
     container_name: meiliai_celery_worker
     env_file:
       - .env
@@ -37,7 +37,13 @@ services:
     volumes:
       - .:/app
       - ../ml_or:/app/ml_or
-    command: celery -A app.core.celery_app worker --loglevel=info
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.workers.celery_app inspect ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   redis:
     image: redis:7-alpine

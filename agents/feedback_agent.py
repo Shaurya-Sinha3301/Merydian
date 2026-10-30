@@ -8,7 +8,8 @@ from typing import Optional
 
 from .config import Config
 from .llm_client import get_llm_client
-from .schemas import FeedbackEvent, EventType, ConfidenceLevel
+from .schemas import FeedbackEvent, EventType, ConfidenceLevel, FeedbackUnderstanding
+from app.travel_context.schemas import TravelIntent, IntentType, IntentScope
 
 logger = logging.getLogger(__name__)
 
@@ -35,16 +36,16 @@ class FeedbackAgent:
         self.demo_mode = False
         logger.info(f"FeedbackAgent initialized with model: {Config.GROQ_MODEL}")
     
-    def parse(self, user_input: str, context: Optional[dict] = None) -> FeedbackEvent:
+    def parse(self, user_input: str, context: Optional[dict] = None) -> FeedbackUnderstanding:
         """
-        Parse user input into a structured event.
+        Parse user input into a structured understanding of intents and events.
         
         Args:
             user_input: Natural language text from the user
             context: Optional context (family_id, current_day, etc.)
         
         Returns:
-            FeedbackEvent with structured data
+            FeedbackUnderstanding with structured data
         """
         logger.info(f"Parsing user input: '{user_input}'")
         
@@ -73,24 +74,37 @@ class FeedbackAgent:
             # Parse the JSON
             parsed_data = json.loads(response_text)
             
-            # Add raw input
-            parsed_data["raw_input"] = user_input
+            # Construct nested structures
+            existing_events_data = parsed_data.get("existing_events", [])
+            travel_intents_data = parsed_data.get("travel_intents", [])
             
-            # Validate and construct FeedbackEvent
-            event = FeedbackEvent(**parsed_data)
-            logger.info(f"Successfully parsed event: {event.event_type}")
+            existing_events = []
+            for ev in existing_events_data:
+                ev["raw_input"] = user_input
+                existing_events.append(FeedbackEvent(**ev))
+                
+            travel_intents = []
+            for intent in travel_intents_data:
+                travel_intents.append(TravelIntent(**intent))
             
-            return event
+            understanding = FeedbackUnderstanding(
+                existing_events=existing_events,
+                travel_intents=travel_intents
+            )
+            logger.info(f"Successfully parsed feedback understanding.")
+            
+            return understanding
             
         except Exception as e:
             logger.error(f"Error parsing user input: {e}")
-            # Return a fallback event
-            return FeedbackEvent(
+            # Return a fallback understanding
+            fallback_event = FeedbackEvent(
                 event_type=EventType.UNKNOWN,
                 confidence=ConfidenceLevel.LOW,
                 raw_input=user_input,
                 metadata={"error": str(e)}
             )
+            return FeedbackUnderstanding(existing_events=[fallback_event], travel_intents=[])
     
     def _build_prompt(self, user_input: str, context: Optional[dict]) -> str:
         """Build the prompt for Gemini API."""
@@ -99,97 +113,88 @@ class FeedbackAgent:
         if context:
             context_str = f"\n\nContext information: {json.dumps(context, indent=2)}"
         
-        prompt = f"""You are a travel itinerary feedback parser. Your job is to convert natural language user feedback into structured JSON events.
+        prompt = f"""You are a travel itinerary feedback parser. Your job is to convert natural language user feedback into a structured JSON understanding containing both legacy events and new travel intents.
 
 User Input: "{user_input}"{context_str}
 
 Extract the following information and return ONLY valid JSON (no markdown, no explanation):
 
 {{
-  "event_type": "MUST_VISIT_ADDED" | "NEVER_VISIT_ADDED" | "POI_RATING" | "DAY_RATING" | "DELAY_REPORTED" | "TRANSPORT_ISSUE" | "UNKNOWN",
-  "family_id": "FAM_A" | "FAM_B" | "FAM_C" | null,
-  "poi_id": "LOC_XXX" or null if not identifiable,
-  "poi_name": "Name of the place" or null,
-  "rating": 0-10 number or null,
-  "day": integer or null,
-  "transport_mode": "BUS" | "METRO" | "AUTO" | "CAB" | null,
-  "disruption_from_poi": "POI name or LOC_XXX" | null,
-  "disruption_to_poi": "POI name or LOC_XXX" | null,
-  "confidence": "HIGH" | "MEDIUM" | "LOW"
+  "existing_events": [
+    {{
+      "event_type": "MUST_VISIT_ADDED" | "NEVER_VISIT_ADDED" | "POI_RATING" | "DAY_RATING" | "DELAY_REPORTED" | "TRANSPORT_ISSUE" | "UNKNOWN",
+      "family_id": "FAM_A" | null,
+      "poi_id": "LOC_XXX" or null if not identifiable,
+      "poi_name": "Name of the place" or null,
+      "rating": 0-10 number or null,
+      "day": integer or null,
+      "transport_mode": "BUS" | "METRO" | "AUTO" | "CAB" | null,
+      "disruption_from_poi": "POI name or LOC_XXX" | null,
+      "disruption_to_poi": "POI name or LOC_XXX" | null,
+      "confidence": "HIGH" | "MEDIUM" | "LOW"
+    }}
+  ],
+  "travel_intents": [
+    {{
+      "intent_type": "PACE_CHANGE" | "BUDGET_CHANGE" | "HOTEL_CHANGE" | "LOCATION_CHANGE" | "ACTIVITY_CHANGE" | "ACCESSIBILITY_CHANGE" | "TIME_CHANGE",
+      "target": "string or null",
+      "strength": float between -1.0 and 1.0,
+      "family_id": "FAM_A" | null,
+      "metadata": {{}},
+      "scope": "GLOBAL_TRIP" | "SPECIFIC_DAY" | "SPECIFIC_LOCATION"
+    }}
+  ]
 }}
 
-Event Type Guidelines:
-- MUST_VISIT_ADDED: User expresses strong desire to visit a place, uses words like "must", "definitely want", "loved it"
-- NEVER_VISIT_ADDED: User wants to exclude/avoid a place, uses words like "skip", "avoid", "don't want"
-- POI_RATING: User rates a specific location
-- DAY_RATING: User rates their experience for a day
-- DELAY_REPORTED: User mentions being late or delayed
-- TRANSPORT_ISSUE: User mentions transport problems
-  * Global disruption: "METRO is shut down", "All buses unavailable" → set transport_mode only
-  * Route-specific disruption: "METRO from India Gate to Lotus Temple is closed" → set transport_mode, disruption_from_poi, disruption_to_poi
-  * Extract POI names or IDs if specific route mentioned
-- UNKNOWN: Cannot determine intent
+Guidelines for existing_events:
+- MUST_VISIT_ADDED: "must", "definitely want", "loved it"
+- NEVER_VISIT_ADDED: "skip", "avoid", "don't want"
+- POI_RATING, DAY_RATING, DELAY_REPORTED, TRANSPORT_ISSUE
+- Only output if it matches these strict categories.
 
+Guidelines for travel_intents (New Intents):
+- PACE_CHANGE: "Too rushed", "Too slow", "Tomorrow should be lighter". Set target to e.g. "slower". Set scope to SPECIFIC_DAY if they say "tomorrow" or "today".
+- BUDGET_CHANGE: "Too expensive", "Need cheaper hotels".
+- HOTEL_CHANGE: "Want luxury hotels".
+- ACTIVITY_CHANGE: "More adventure".
+- If the text is "Day too rushed", create PACE_CHANGE with scope SPECIFIC_DAY.
+
+You can return multiple events and intents if the user input contains multiple distinct requests.
 Return ONLY the JSON object, nothing else."""
         
         return prompt
     
-    def _demo_parse(self, user_input: str, context: Optional[dict]) -> FeedbackEvent:
+    def _demo_parse(self, user_input: str, context: Optional[dict]) -> FeedbackUnderstanding:
         """Simple demo parsing using keyword matching (fallback when no API key)."""
         
         user_lower = user_input.lower()
+        events = []
+        intents = []
         
         # Simple keyword-based parsing
         if any(word in user_lower for word in ["must", "definitely", "loved", "want to visit"]):
-            event_type = EventType.MUST_VISIT_ADDED
-            confidence = ConfidenceLevel.HIGH
+            events.append(FeedbackEvent(
+                event_type=EventType.MUST_VISIT_ADDED, confidence=ConfidenceLevel.HIGH, raw_input=user_input, family_id=context.get("family_id") if context else None
+            ))
         elif any(word in user_lower for word in ["skip", "avoid", "don't want", "never", "not interested"]):
-            event_type = EventType.NEVER_VISIT_ADDED
-            confidence = ConfidenceLevel.HIGH
-        elif "rating" in user_lower or "rate" in user_lower or any(str(i) + "/10" in user_lower for i in range(11)) or any("out of 10" in user_lower for i in range(11)):
-            if "day" in user_lower or "today" in user_lower:
-                event_type = EventType.DAY_RATING
-            else:
-                event_type = EventType.POI_RATING
-            confidence = ConfidenceLevel.MEDIUM
-        elif "delay" in user_lower or "late" in user_lower or "running" in user_lower:
-            event_type = EventType.DELAY_REPORTED
-            confidence = ConfidenceLevel.MEDIUM
-        elif "metro" in user_lower or "bus" in user_lower or "transport" in user_lower or "auto" in user_lower or "cab" in user_lower:
-            event_type = EventType.TRANSPORT_ISSUE
-            confidence = ConfidenceLevel.HIGH
-            # Extract transport mode
-            transport_mode = None
-            if "metro" in user_lower:
-                transport_mode = "METRO"
-            elif "bus" in user_lower:
-                transport_mode = "BUS"
-            elif "auto" in user_lower:
-                transport_mode = "AUTO"
-            elif "cab" in user_lower:
-                transport_mode = "CAB"
-            
-            return FeedbackEvent(
-                event_type=event_type,
-                confidence=confidence,
-                raw_input=user_input,
-                family_id=context.get("family_id") if context else None,
-                transport_mode=transport_mode,
-                disruption_from_poi=context.get("from_poi") if context else None,
-                disruption_to_poi=context.get("to_poi") if context else None,
-                metadata={"demo_mode": True}
-            )
+            events.append(FeedbackEvent(
+                event_type=EventType.NEVER_VISIT_ADDED, confidence=ConfidenceLevel.HIGH, raw_input=user_input, family_id=context.get("family_id") if context else None
+            ))
+        elif "expensive" in user_lower or "budget" in user_lower or "cheap" in user_lower:
+            intents.append(TravelIntent(
+                intent_type=IntentType.BUDGET_CHANGE, scope=IntentScope.GLOBAL_TRIP, family_id=context.get("family_id") if context else None
+            ))
+        elif "rushed" in user_lower or "slow" in user_lower or "lighter" in user_lower:
+            scope = IntentScope.SPECIFIC_DAY if "tomorrow" in user_lower or "today" in user_lower or "day" in user_lower else IntentScope.GLOBAL_TRIP
+            intents.append(TravelIntent(
+                intent_type=IntentType.PACE_CHANGE, target="slower", scope=scope, family_id=context.get("family_id") if context else None
+            ))
         else:
-            event_type = EventType.UNKNOWN
-            confidence = ConfidenceLevel.LOW
+            events.append(FeedbackEvent(
+                event_type=EventType.UNKNOWN, confidence=ConfidenceLevel.LOW, raw_input=user_input, family_id=context.get("family_id") if context else None
+            ))
         
-        return FeedbackEvent(
-            event_type=event_type,
-            confidence=confidence,
-            raw_input=user_input,
-            family_id=context.get("family_id") if context else None,
-            metadata={"demo_mode": True}
-        )
+        return FeedbackUnderstanding(existing_events=events, travel_intents=intents)
 
 
 # Test function for standalone execution

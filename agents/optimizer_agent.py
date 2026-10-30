@@ -43,6 +43,148 @@ class OptimizerAgent:
         
         logger.info("OptimizerAgent initialized with real optimizer")
     
+    def run_with_contracts(self, request) -> "OptimizationResult":
+        """
+        Production entry point: run optimization using architecture contracts.
+        
+        Args:
+            request: OptimizationRequest with dataset, constraints, and context.
+        
+        Returns:
+            OptimizationResult with solution and explainability artifacts.
+        """
+        from app.contracts.optimization import OptimizationResult
+        from app.services.conflict_resolver import ConflictResolver
+        from app.services.constraint_validator import ConstraintValidator
+        from ml_or.hotel_optimizer import HotelSkeletonOptimizer
+        from ml_or.itinerary_optimizer import ItineraryOptimizer
+        
+        logger.info(f"Running contract-based optimization for trip {request.trip_id}")
+        
+        try:
+            # ─── Step 0A: Resolve Conflicts ───
+            family_prefs_list = list(request.dataset.family_preferences.values())
+            resolved_constraints = ConflictResolver.resolve(family_prefs_list, request.constraints)
+            request.constraints = resolved_constraints
+            
+            # ─── Step 0B: Validate Request ───
+            validation_result = ConstraintValidator.validate(request)
+            if not validation_result.valid:
+                logger.warning(f"Constraint validation failed: {validation_result.errors}")
+                return OptimizationResult(
+                    success=False,
+                    error="Constraint validation failed",
+                    validation_report=validation_result.model_dump(),
+                    warnings=validation_result.warnings,
+                    solver_status="VALIDATION_FAILED"
+                )
+                
+            # ─── Step 1: Run Hotel Backbone ───
+            logger.info("Running HotelSkeletonOptimizer via from_dataset...")
+            hotel_opt = HotelSkeletonOptimizer.from_dataset(
+                dataset=request.dataset,
+                constraints=request.constraints,
+            )
+            backbone_data = hotel_opt.optimize()  # Returns dict or writes to file
+            
+            # Handle backbone_data format
+            if isinstance(backbone_data, str):
+                # Legacy: returned a file path
+                import json
+                with open(backbone_data, 'r') as f:
+                    backbone_data = json.load(f)
+            elif backbone_data is None:
+                backbone_data = {}
+            
+            # ─── Step 2: Build Itinerary Optimizer ───
+            logger.info("Building ItineraryOptimizer via from_dataset...")
+            optimizer = ItineraryOptimizer.from_dataset(
+                dataset=request.dataset,
+                constraints=request.constraints,
+                backbone_data=backbone_data,
+            )
+            
+            # ─── Step 3: Run Optimization ───
+            day_constraints = request.constraints.day_constraints or {}
+            
+            if request.current_solution and request.start_day_index > 0:
+                # Partial re-optimization
+                logger.info(f"Running partial optimization from day {request.start_day_index + 1}")
+                
+                initial_history = None
+                if request.start_day_index > 0:
+                    initial_history = {fid: set() for fid in request.family_ids}
+                    for i in range(request.start_day_index):
+                        if i < len(request.current_solution.get('days', [])):
+                            day_data = request.current_solution['days'][i]
+                            for fid, fam_data in day_data.get('families', {}).items():
+                                if fid in initial_history:
+                                    for poi in fam_data.get('pois', []):
+                                        initial_history[fid].add(poi['location_id'])
+                
+                new_solution = optimizer.optimize_trip(
+                    family_ids=request.family_ids,
+                    num_days=request.num_days,
+                    lambda_divergence=request.lambda_divergence,
+                    day_constraints=day_constraints if day_constraints else None,
+                    start_day_index=request.start_day_index,
+                    initial_visited_history=initial_history,
+                )
+                
+                # Stitch preserved days
+                if request.start_day_index > 0 and request.current_solution and new_solution:
+                    preserved_days = request.current_solution.get('days', [])[:request.start_day_index]
+                    new_solution['days'] = preserved_days + new_solution.get('days', [])
+            else:
+                # Full optimization
+                logger.info("Running full trip optimization...")
+                new_solution = optimizer.optimize_trip(
+                    family_ids=request.family_ids,
+                    num_days=request.num_days,
+                    lambda_divergence=request.lambda_divergence,
+                    day_constraints=day_constraints if day_constraints else None,
+                )
+            
+            if not new_solution or not new_solution.get("success", True):
+                error_details = new_solution.get("error_details", {}) if new_solution else {}
+                return OptimizationResult(
+                    success=False,
+                    error=error_details.get("message", "Optimizer failed to find a feasible solution"),
+                    solver_status=error_details.get("status", "UNKNOWN"),
+                    diagnostics=error_details.get("diagnostics", {}),
+                    metrics={"solve_time_seconds": error_details.get("solve_time_seconds", 0)}
+                )
+            
+            # Calculate metrics
+            metrics = {
+                "solve_time_seconds": new_solution.get("solve_time_seconds", 0),
+                "objective_score": new_solution.get("objective_value", 0),
+                "total_trip_cost": new_solution.get("total_trip_cost", 0),
+                "total_trip_time_min": new_solution.get("total_trip_time_min", 0),
+            }
+            
+            # ─── Step 4: Return Result ───
+            logger.info("Optimization complete.")
+            
+            return OptimizationResult(
+                success=True,
+                solution=new_solution,
+                decision_traces=optimizer.decision_traces,
+                enriched_diffs={},
+                llm_payloads=[],
+                solver_status="OPTIMAL",
+                metrics=metrics,
+                validation_report=validation_result.model_dump(),
+                warnings=validation_result.warnings
+            )
+            
+        except Exception as e:
+            logger.exception("Error during optimization")
+            return OptimizationResult(
+                success=False,
+                error=str(e),
+            )
+
     def _apply_transport_disruption(
         self,
         transport_file: str,

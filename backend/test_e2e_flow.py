@@ -10,8 +10,11 @@ Tests the full travel agent workflow inside Docker:
   6. Customer sends feedback → re-optimization
   7. Retrieve cost analysis / explanations
 """
-import requests, json, sys, time
+import requests, json, sys, time, os
 from datetime import datetime, timedelta
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+from app.core.config import settings
 
 BASE = "http://localhost:8000/api/v1"
 S = requests.Session()
@@ -45,7 +48,7 @@ ts = int(time.time())
 info("Signing up agent...")
 agent_data = check(S.post(f"{BASE}/auth/signup", json={
     "email": f"agent_{ts}@test.com",
-    "password": "TestPass123!",
+    "password": settings.TEST_USER_PASSWORD,
     "full_name": "Test Agent",
     "role": "agent"
 }), "Agent signup")
@@ -57,7 +60,7 @@ AGENT_HEADERS = {"Authorization": f"Bearer {AGENT_TOKEN}"} if AGENT_TOKEN else {
 info("Signing up traveller...")
 traveller_data = check(S.post(f"{BASE}/auth/signup", json={
     "email": f"traveller_{ts}@test.com",
-    "password": "TestPass123!",
+    "password": settings.TEST_USER_PASSWORD,
     "full_name": "Test Traveller",
     "role": "traveller"
 }), "Traveller signup")

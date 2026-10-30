@@ -5,9 +5,11 @@ Represents family preferences for POIs and activities.
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 from uuid import UUID, uuid4
 from enum import Enum
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column
 
 from sqlmodel import Field, SQLModel
 
@@ -18,6 +20,7 @@ class PreferenceType(str, Enum):
     NEVER_VISIT = "NEVER_VISIT"
     PREFER_VISIT = "PREFER_VISIT"
     AVOID_VISIT = "AVOID_VISIT"
+    GENERAL = "GENERAL"
 
 
 class Preference(SQLModel, table=True):
@@ -38,13 +41,20 @@ class Preference(SQLModel, table=True):
     # Foreign Keys
     family_id: UUID = Field(foreign_key="families.id", index=True)
     
-    # POI Reference
-    poi_id: str = Field(max_length=100, index=True)
-    poi_name: str = Field(max_length=255)
+    # POI Reference (now optional for generalized preferences)
+    poi_id: Optional[str] = Field(default=None, max_length=100, index=True)
+    poi_name: Optional[str] = Field(default=None, max_length=255)
     
     # Preference Details
-    preference_type: PreferenceType = Field(index=True)
+    preference_type: PreferenceType = Field(index=True, default=PreferenceType.GENERAL)
     
+    # Generalized Preferences Fields
+    category: Optional[str] = Field(default=None, max_length=100, index=True)
+    key: Optional[str] = Field(default=None, max_length=100, index=True)
+    value: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSONB))
+    confidence: Optional[str] = Field(default=None, max_length=50)
+    source: Optional[str] = Field(default=None, max_length=100)
+
     # Strength (for soft preferences)
     strength: Optional[float] = Field(default=1.0)  # 0.0 to 1.0
     

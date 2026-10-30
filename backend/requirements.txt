@@ -1,21 +1,3 @@
-fastapi
-uvicorn
-python-jose[cryptography]
-passlib[bcrypt]
-bcrypt<4.0
-python-multipart
-pydantic-settings
-email-validator
-sqlmodel
-psycopg2-binary
-pytest
-pytest-asyncio
-httpx
-celery[redis]>=5.3,<6
-kombu>=5.3,<6
-redis[asyncio]
-websockets
-groq
-google-generativeai
-ortools
-requests
+-r requirements/base.txt
+-r requirements/api.txt
+-r requirements/worker.txt

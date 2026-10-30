@@ -1,0 +1,30 @@
+{
+  "baseline": {
+    "config_id": 20,
+    "config_name": "Baseline",
+    "alpha": 1.0,
+    "beta": 0.05,
+    "gamma": 100.0
+  },
+  "candidates": [
+    {
+      "config_id": 21,
+      "config_name": "A2.0_B0.05_G100.0",
+      "alpha": 2.0,
+      "beta": 0.05,
+      "gamma": 100.0,
+      "composite_score": 6726.956023,
+      "regression_safe": true,
+      "regression_violations": [],
+      "significant_improvements": 1,
+      "promoted": false
+    }
+  ],
+  "best_config": {
+    "config_id": 20,
+    "config_name": "Baseline",
+    "alpha": 1.0,
+    "beta": 0.05,
+    "gamma": 100.0
+  }
+}

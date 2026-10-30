@@ -1,20 +1,24 @@
+import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 from enum import Enum
 import uuid as uuid_lib
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from pydantic import BaseModel, Field
-from app.core.dependencies import get_current_user, get_optional_user
+from app.core.dependencies import get_current_user, get_optional_user, get_agent_workflow_service, verify_trip_access
 from app.schemas.auth import TokenPayload
 from app.schemas.events import EventCreate, EventType, EventResponse
+from app.schemas.frontend_dto import TimelineDTO, TimelineDayDTO, TimelineActivityDTO, DiffDTO, DiffItemDTO, ExplanationDTO
 from app.services.itinerary_service import ItineraryService
 from app.services.event_service import EventService
 from app.services.preference_service import PreferenceService
 from app.services.explanation_service import ExplanationService
 from app.models.preference import PreferenceType
 from app.models.event import EventType as ModelEventType
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -27,13 +31,14 @@ class UrgencyLevel(str, Enum):
 
 class POIRequest(BaseModel):
     poi_name: str = Field(..., description="Name of the Point of Interest")
-    urgency: UrgencyLevel = Field(..., description="Urgency level of the request")
+    urgency: UrgencyLevel = Field(default=UrgencyLevel.MEDIUM, description="Urgency level of the request")
+    note: Optional[str] = Field(default=None, max_length=200, description="Why they want it")
 
 
 class POIRequestResponse(BaseModel):
     message: str
     request_id: str
-    event_created: EventResponse
+    event_created: Optional[EventResponse] = None
 
 
 class FeedbackRequest(BaseModel):
@@ -81,118 +86,20 @@ async def get_current_itinerary(
         itinerary_data = ItineraryService.get_current_itinerary(family_id)
         
         if not itinerary_data:
-            print(f"[Itinerary API] No active itinerary found for {family_id}. Returning Delhi fallback.")
+            logger.info(f"No active itinerary found for {family_id}. Returning empty state.")
             
-            # Base Delhi itinerary fallback
-            itinerary_data = {
-                "id": str(uuid_lib.uuid4()),
-                "trip_id": str(uuid_lib.uuid4()),
-                "family_id": str(family_id),
-                "destination": "Delhi, India",
-                "start_date": "2026-03-15",
-                "end_date": "2026-03-18",
-                "status": "draft",
-                "version": 1,
-                "days": [
-                    {
-                        "day_number": 1,
-                        "date": "2026-03-15",
-                        "total_day_cost": 50.0,
-                        "activities": [
-                            {
-                                "poi_id": "POI_RED_FORT",
-                                "time": "09:00",
-                                "title": "Red Fort",
-                                "location": "Netaji Subhash Marg, Chandni Chowk, New Delhi",
-                                "description": "Historic fort complex built by Mughal Emperor Shah Jahan.",
-                                "duration": 120,
-                                "cost": 10.0,
-                                "image": "https://images.unsplash.com/photo-1587474260584-136574528ed5",
-                                "alt": "Red Fort, Delhi",
-                                "is_must_visit": True,
-                                "travel_time": "30 mins",
-                                "highlights": ["Mughal Architecture", "History", "Photography"]
-                            },
-                            {
-                                "poi_id": "POI_JAMA_MASJID",
-                                "time": "11:30",
-                                "title": "Jama Masjid",
-                                "location": "Jama Masjid Rd, Jama Masjid, Chandni Chowk, New Delhi",
-                                "description": "One of the largest mosques in India.",
-                                "duration": 60,
-                                "cost": 0.0,
-                                "image": "https://images.unsplash.com/photo-1701336049285-d867c29beaba",
-                                "alt": "Jama Masjid, Delhi",
-                                "is_must_visit": False,
-                                "travel_time": "15 mins",
-                                "highlights": ["Islamic Architecture", "Culture"]
-                            }
-                        ]
-                    },
-                    {
-                        "day_number": 2,
-                        "date": "2026-03-16",
-                        "total_day_cost": 80.0,
-                        "activities": [
-                            {
-                                "poi_id": "POI_QUTUB_MINAR",
-                                "time": "10:00",
-                                "title": "Qutub Minar",
-                                "location": "Seth Sarai, Mehrauli, New Delhi",
-                                "description": "UNESCO World Heritage Site and the tallest brick minaret in the world.",
-                                "duration": 90,
-                                "cost": 15.0,
-                                "image": "https://images.unsplash.com/photo-1563851508210-b9cc65882cd8",
-                                "alt": "Qutub Minar, Delhi",
-                                "is_must_visit": True,
-                                "travel_time": "45 mins",
-                                "highlights": ["Ancient Architecture", "History"]
-                            },
-                             {
-                                "poi_id": "POI_LOTUS_TEMPLE",
-                                "time": "14:00",
-                                "title": "Lotus Temple",
-                                "location": "Lotus Temple Rd, Bahapur, Shambhu Dayal Bagh, Kalkaji, New Delhi",
-                                "description": "Bahá'í House of Worship notable for its flowerlike shape.",
-                                "duration": 60,
-                                "cost": 0.0,
-                                "image": "https://images.unsplash.com/photo-1598324789736-4861f89564a9",
-                                "alt": "Lotus Temple, Delhi",
-                                "is_must_visit": False,
-                                "travel_time": "30 mins",
-                                "highlights": ["Modern Architecture", "Peaceful"]
-                            }
-                        ]
-                    },
-                    {
-                        "day_number": 3,
-                        "date": "2026-03-17",
-                        "total_day_cost": 30.0,
-                        "activities": [
-                           {
-                                "poi_id": "POI_INDIA_GATE",
-                                "time": "17:00",
-                                "title": "India Gate & Rajpath",
-                                "location": "Kartavya Path, India Gate, New Delhi",
-                                "description": "War memorial located astride the Rajpath.",
-                                "duration": 90,
-                                "cost": 0.0,
-                                "image": "https://images.unsplash.com/photo-1585084335487-f653d0859c14",
-                                "alt": "India Gate, Delhi",
-                                "is_must_visit": True,
-                                "travel_time": "20 mins",
-                                "highlights": ["Monument", "Evening Walk", "Photography"]
-                            }
-                        ]
-                    }
-                ]
+            return {
+                "status": "NO_ACTIVE_ITINERARY",
+                "trip_id": None, # We don't have trip_id in this context natively unless we look it up from the family, but the spec says "trip_id": "...", let's try to get it if we can, else null.
+                "current_itinerary": None,
+                "message": "No itinerary has been generated yet."
             }
         
         # Set Cache (expire in 60 seconds)
         try:
             await redis.setex(cache_key, 60, json.dumps(itinerary_data, default=str))
         except Exception as e:
-            print(f"Failed to cache itinerary: {e}")
+            logger.error(f"Failed to cache itinerary: {e}")
 
         return itinerary_data
         
@@ -207,30 +114,143 @@ async def get_current_itinerary(
         )
 
 
-@router.get("/diff")
+@router.get(
+    "/diff",
+    response_model=DiffDTO,
+    summary="Get itinerary diff",
+    description="Get a categorized diff between two itinerary versions for UI presentation.",
+    responses={
+        200: {"description": "Diff retrieved successfully"},
+        404: {"description": "Itinerary versions not found"}
+    }
+)
 async def get_itinerary_diff(
     version_a: int,
     version_b: int,
+    family_id: Optional[UUID] = Query(default=None, description="Agents only: family to diff"),
     current_user: TokenPayload = Depends(get_current_user),
 ) -> Any:
     """
     Get a structured diff between two itinerary versions.
-
-    Compares POIs, costs, and satisfaction scores between versions.
     """
-    if not current_user.family_id:
+    if current_user.role == "agent" and family_id:
+        pass  # agents have global access
+    elif current_user.family_id:
+        family_id = uuid_lib.UUID(current_user.family_id)
+    else:
         raise HTTPException(status_code=400, detail="User is not associated with a family")
-
-    family_id = uuid_lib.UUID(current_user.family_id)
-    diff = ItineraryService.diff_itineraries(family_id, version_a, version_b)
-    if diff is None:
+    diff_raw = ItineraryService.diff_itineraries(family_id, version_a, version_b)
+    if diff_raw is None:
         raise HTTPException(
             status_code=404,
             detail=f"One or both itinerary versions not found (v{version_a}, v{version_b})",
         )
-    return diff
+    
+    # Transform raw diff into DiffDTO
+    added = []
+    removed = []
+    modified = []
+    
+    # diff_itineraries returns a plain dict of day changes
+    for dc in diff_raw.get("day_changes", []):
+        for pc in dc.get("poi_changes", []):
+            change_type = pc.get("change_type")
+            item = DiffItemDTO(
+                before=pc.get("old_values") or None,
+                after=pc.get("new_values") or None,
+                reason=f"{change_type} {pc.get('poi_name', '')} (day {pc.get('day', dc.get('day'))})",
+                importance="medium"
+            )
+            if change_type == "added":
+                added.append(item)
+            elif change_type == "removed":
+                removed.append(item)
+            else:
+                modified.append(item)
+    
+    return DiffDTO(
+        trip_id=str(family_id),
+        version_a=version_a,
+        version_b=version_b,
+        added_activities=added,
+        removed_activities=removed,
+        moved_activities=[],
+        time_changes=modified,
+        hotel_changes=[],
+        transport_changes=[],
+        summary=diff_raw.get("summary"),
+        cost_delta=(diff_raw.get("cost_diff") or {}).get("delta"),
+        satisfaction_delta=(diff_raw.get("satisfaction_diff") or {}).get("delta"),
+    )
 
 
+@router.get(
+    "/{trip_id}/timeline",
+    response_model=TimelineDTO,
+    summary="Get itinerary timeline",
+    description="Get the current itinerary transformed into flat DTOs for the UI timeline."
+)
+async def get_itinerary_timeline(
+    trip_id: str = Path(..., description="The ID of the trip"),
+    _access: Any = Depends(verify_trip_access),
+    current_user: TokenPayload = Depends(get_current_user),
+) -> Any:
+    try:
+        from app.services.optimizer_service import OptimizerService
+        from app.models.itinerary import Itinerary
+        from app.services.optimizer_service import get_db_session
+        import json, os
+        session = OptimizerService.get_trip_session(trip_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Trip not found")
+
+        # The database copy is the source of truth; the optimizer's JSON file is a fallback
+        data = None
+        with get_db_session() as db:
+            itin = None
+            # On a group trip every family reads its own branch of the plan
+            if current_user.role != "agent" and current_user.family_id:
+                from sqlmodel import select as _select
+
+                itin = db.exec(
+                    _select(Itinerary).where(Itinerary.family_id == uuid_lib.UUID(current_user.family_id)).order_by(Itinerary.version.desc())
+                ).first()
+            if itin is None and session.current_itinerary_id:
+                itin = db.get(Itinerary, session.current_itinerary_id)
+            data = itin.data if itin else None
+        if not data:
+            itinerary_path = session.latest_itinerary_path or session.baseline_itinerary_path
+            if itinerary_path and os.path.exists(itinerary_path):
+                with open(itinerary_path, 'r') as f:
+                    data = json.load(f)
+        if not data:
+            raise HTTPException(status_code=404, detail="Itinerary not generated yet")
+        from app.services.itinerary_format import normalize_itinerary
+        data = normalize_itinerary(data)
+
+        days_dto = []
+        for day in data.get("days", []):
+            acts_dto = []
+            for poi in day.get("pois", []):
+                acts_dto.append(TimelineActivityDTO(
+                    id=poi.get("location_id", "unknown"),
+                    title=poi.get("name") or poi.get("location_id", "unknown").replace("_", " ").title(),
+                    location=session.destination or "",
+                    category=poi.get("category") or poi.get("role", "SKELETON"),
+                    start_time=poi.get("time_window_start"),
+                    end_time=poi.get("time_window_end"),
+                    duration_min=poi.get("planned_visit_time_min", 60),
+                    travel_time_min=0,
+                    reason_added=poi.get("reason_added"),
+                    notes=poi.get("comment")
+                ))
+            days_dto.append(TimelineDayDTO(day=day.get("day", 1), activities=acts_dto))
+
+        return TimelineDTO(trip_id=trip_id, days=days_dto)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/feedback", response_model=FeedbackResponse)
@@ -267,7 +287,7 @@ async def submit_feedback(
             family_id=family_id
         )
         
-        print(f"[Itinerary API] Created feedback event: {db_event.id} for POI {feedback.node_id}")
+        logger.info(f"Created feedback event: {db_event.id} for POI {feedback.node_id}")
         
         # Trigger agentic processing async
         from app.worker import process_event_task
@@ -299,20 +319,17 @@ class AgentFeedbackRequest(BaseModel):
 
 
 class AgentFeedbackResponse(BaseModel):
-    """Response model for agent-based feedback processing"""
-    success: bool
-    event_type: str
-    action_taken: str
-    explanations: List[str]
-    itinerary_updated: bool
-    iteration: int
-    cost_analysis: Optional[Dict[str, Any]] = None
+    """Response model for asynchronous agent-based feedback processing"""
+    job_id: str
+    status: str
+    message: str
 
 
 @router.post("/feedback/agent", response_model=AgentFeedbackResponse)
 async def process_agent_feedback(
     feedback: AgentFeedbackRequest,
-    current_user: Optional[TokenPayload] = Depends(get_optional_user)
+    current_user: Optional[TokenPayload] = Depends(get_optional_user),
+    workflow_service: Any = Depends(get_agent_workflow_service)
 ) -> Any:
     """
     Process feedback through the agent pipeline.
@@ -328,14 +345,13 @@ async def process_agent_feedback(
     Note: Authentication is optional for testing. In production, this should require auth.
     """
     try:
-        from app.services.optimizer_service import OptimizerService
         from app.services.trip_service import TripService
         
         # Use default test family if not authenticated
         if not current_user or not current_user.family_id:
             # Default test family for demo/testing
             family_id = "FAM_A"
-            print(f"[Agent Feedback API] Using default test family: {family_id}")
+            logger.info(f"Using default test family: {family_id}")
         else:
             family_id = current_user.family_id
         
@@ -350,29 +366,32 @@ async def process_agent_feedback(
         
         trip_id = trip_session.trip_id
         
-        print(f"[Agent Feedback API] Processing: '{feedback.message}' for family {family_id}, trip {trip_id}")
+        logger.info(f"Processing: '{feedback.message}' for family {family_id}, trip {trip_id}")
         
-        # Process through agent pipeline
+        # Process through agent pipeline via Workflow Service
         # NOTE: This handles the full workflow: agents → optimizer → session update
-        result = OptimizerService.process_feedback_with_agents(
+        result = workflow_service.enqueue_feedback_optimization(
             trip_id=trip_id,
-            family_id=family_id,
-            message=feedback.message
+            family_id=str(family_id),
+            message=feedback.message,
+            agent_id=current_user.sub if current_user else None
         )
         
-        # Session update is already handled inside process_feedback_with_agents
-        # No need to modify trip_session here (would cause detached instance error)
-        
-        print(f"[Agent Feedback API] Result: {result['action_taken']}, Updated: {result['itinerary_updated']}")
-        
+        logger.info("Queued feedback optimization job_id=%s status=%s", result.get("job_id"), result.get("status"))
+
+        from app.services import notification_service as ns
+
+        ns.notify_agents(
+            "feedback.received",
+            f"Feedback on {trip_session.trip_name}",
+            feedback.message[:200],
+            f"/app/trip/{trip_id}/history",
+            {"trip_id": trip_id, "job_id": result.get("job_id")},
+        )
         return AgentFeedbackResponse(
-            success=result["success"],
-            event_type=result["event_type"],
-            action_taken=result["action_taken"],
-            explanations=result["explanations"],
-            itinerary_updated=result["itinerary_updated"],
-            iteration=result["iteration"],
-            cost_analysis=result.get("cost_analysis")
+            job_id=result["job_id"],
+            status=result["status"],
+            message=result["message"]
         )
         
     except ImportError as e:
@@ -386,7 +405,7 @@ async def process_agent_feedback(
             detail=f"Trip session error: {str(e)}"
         )
     except Exception as e:
-        print(f"[Agent Feedback API] Error: {str(e)}")
+        logger.error(f"Error processing agent feedback: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Failed to process agent feedback: {str(e)}"
@@ -400,90 +419,71 @@ async def submit_poi_request(
     current_user: TokenPayload = Depends(get_current_user)
 ) -> Any:
     """
-    Submit a POI (Point of Interest) request.
-    Creates event and adds preference for agentic processing.
+    Ask for a specific place. The optimizer builds an "add it" option and a "keep the plan" option,
+    and a travel agent accepts or declines. Nothing changes for the traveller until then.
     """
+    from app.services.poi_proposal_service import find_place, propose_place
+    from app.services.trip_service import TripService
+
+    if not current_user.family_id:
+        raise HTTPException(status_code=400, detail="User not associated with a family")
+    family_id = uuid_lib.UUID(current_user.family_id)
+
+    place = find_place(poi_request.poi_name)
+    if not place:
+        raise HTTPException(status_code=404, detail=f"We do not have '{poi_request.poi_name}' in our list of places")
+    trip = TripService.get_active_trip_for_family(str(family_id))
+    if not trip:
+        raise HTTPException(status_code=404, detail="You do not have a trip to add this to yet")
+
     try:
-        # Get user and family context
-        user_id = uuid_lib.UUID(current_user.sub) if current_user.sub else None
-        family_id = uuid_lib.UUID(current_user.family_id) if current_user.family_id else None
-        
-        if not family_id:
-            raise HTTPException(status_code=400, detail="User not associated with a family")
-        
-        # Generate request ID
-        request_id = f"poi_req_{family_id}_{int(datetime.utcnow().timestamp())}"
-        
-        # Create POI request event
-        event_create = EventCreate(
-            event_type=ModelEventType.POI_REQUEST,
-            entity_type="poi",
-            entity_id=request_id,
-            source="ui",
-            payload={
-                "poi_name": poi_request.poi_name,
-                "urgency": poi_request.urgency.value,
-                "request_id": request_id
-            }
-        )
-        
-        # Store event
-        db_event = EventService.create_event(
-            event_data=event_create,
-            user_id=user_id,
-            family_id=family_id
-        )
-        
-        # Add preference based on urgency
-        # High urgency = MUST_VISIT, else PREFER_VISIT
-        pref_type = PreferenceType.MUST_VISIT if poi_request.urgency == UrgencyLevel.HIGH else PreferenceType.PREFER_VISIT
-        strength = 1.0 if poi_request.urgency == UrgencyLevel.HIGH else 0.8
-        
-        PreferenceService.add_preference(
-            family_id=family_id,
-            poi_id=f"POI_{poi_request.poi_name.upper().replace(' ', '_')}",
-            poi_name=poi_request.poi_name,
-            preference_type=pref_type,
-            strength=strength,
-            reason=f"User requested via POI request (urgency: {poi_request.urgency.value})",
-            created_by=str(user_id) if user_id else "system",
-            event_id=db_event.id
-        )
-        
-        print(f"[Itinerary API] Created POI request: {request_id} for {poi_request.poi_name}")
-        
-        # Trigger agentic processing async
-        from app.worker import process_event_task
-        process_event_task.delay(str(db_event.id))
-        
-        # Response message based on urgency
-        if poi_request.urgency == UrgencyLevel.HIGH:
-            message = f"High priority request for '{poi_request.poi_name}' submitted and added to must-visit list."
-        elif poi_request.urgency == UrgencyLevel.MEDIUM:
-            message = f"POI request for '{poi_request.poi_name}' submitted. Checking feasibility."
-        else:
-            message = f"POI suggestion for '{poi_request.poi_name}' noted for future planning."
-        
-        return POIRequestResponse(
-            message=message,
-            request_id=request_id,
-            event_created=EventResponse(event_id=db_event.id, status=db_event.status)
-        )
-        
+        proposal = propose_place(trip.trip_id, family_id, place, note=poi_request.note)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to process POI request: {str(e)}"
-        )
+        logger.error(f"POI proposal failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="We could not prepare that request. Please try again.")
+
+    from app.services import notification_service as ns
+
+    ns.notify_agents(
+        "decision.created",
+        f"Request: add {place['name']}",
+        (poi_request.note or f"For {trip.trip_name}"),
+        "/app/desk",
+        {"trip_id": trip.trip_id, "event_id": proposal["event_id"]},
+    )
+    return POIRequestResponse(
+        message=f"Your request for {place['name']} is with your travel agent.",
+        request_id=proposal["event_id"],
+    )
 
 
 # ---------------------------------------------------------------------------
 #  Explainability endpoints
 # ---------------------------------------------------------------------------
 
+def _explanation_dto(rec) -> ExplanationDTO:
+    return ExplanationDTO(
+        id=str(rec.id),
+        day=rec.day_number,
+        activity_changed=rec.poi_name or rec.poi_id or "Unknown",
+        reason=rec.change_type or "modified",
+        affected_constraints=rec.causal_tags or [],
+        confidence=1.0,
+        human_explanation=rec.llm_explanation or "No explanation provided",
+        change_type=rec.change_type,
+        cost_delta=rec.cost_delta,
+        satisfaction_delta=rec.satisfaction_delta,
+        trigger_message=rec.trigger_message,
+        itinerary_id=str(rec.itinerary_id),
+    )
+
+
 @router.get(
     "/explanations/{itinerary_id}",
     summary="Get LLM explanations for an itinerary version",
+    description="Returns display-ready explanation payloads mapped to frontend DTOs.",
     tags=["Explanations"],
 )
 async def get_itinerary_explanations(
@@ -493,9 +493,6 @@ async def get_itinerary_explanations(
 ):
     """
     Return all per-POI explanations stored for the given itinerary version.
-    Each entry describes why a POI was added, removed, or rerouted.
-
-    Grouped output: {"by_day": {"1": [...], "2": [...]}, "total": N}
     """
     try:
         records = ExplanationService.get_explanations(
@@ -505,29 +502,17 @@ async def get_itinerary_explanations(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    by_day: Dict[str, List[Dict]] = {}
+    dto_list = []
     for rec in records:
-        day_key = str(rec.day_number)
-        by_day.setdefault(day_key, []).append({
-            "id": str(rec.id),
-            "family_id": str(rec.family_id),
-            "poi_id": rec.poi_id,
-            "poi_name": rec.poi_name,
-            "change_type": rec.change_type,
-            "causal_tags": rec.causal_tags or [],
-            "cost_delta": rec.cost_delta or {},
-            "satisfaction_delta": rec.satisfaction_delta or {},
-            "explanation": rec.llm_explanation,
-            "trigger_message": rec.trigger_message,
-            "created_at": rec.created_at.isoformat() if rec.created_at else None,
-        })
+        dto_list.append(_explanation_dto(rec))
 
-    return {"itinerary_id": str(itinerary_id), "by_day": by_day, "total": len(records)}
+    return {"itinerary_id": str(itinerary_id), "explanations": dto_list, "total": len(dto_list)}
 
 
 @router.get(
     "/explanations/trip/{trip_id}",
     summary="Get all LLM explanations for a trip",
+    description="Returns display-ready explanation payloads mapped to frontend DTOs.",
     tags=["Explanations"],
 )
 async def get_trip_explanations(
@@ -536,8 +521,7 @@ async def get_trip_explanations(
     current_user: TokenPayload = Depends(get_current_user),
 ):
     """
-    Return all stored explanations for a trip across all itinerary versions,
-    ordered most-recent first.
+    Return all stored explanations for a trip across all itinerary versions.
     """
     try:
         records = ExplanationService.get_trip_explanations(
@@ -547,26 +531,12 @@ async def get_trip_explanations(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+    dto_list = []
+    for rec in records:
+        dto_list.append(_explanation_dto(rec))
+
     return {
         "trip_id": trip_id,
-        "explanations": [
-            {
-                "id": str(rec.id),
-                "itinerary_id": str(rec.itinerary_id),
-                "prev_itinerary_id": str(rec.prev_itinerary_id) if rec.prev_itinerary_id else None,
-                "family_id": str(rec.family_id),
-                "day": rec.day_number,
-                "poi_id": rec.poi_id,
-                "poi_name": rec.poi_name,
-                "change_type": rec.change_type,
-                "causal_tags": rec.causal_tags or [],
-                "cost_delta": rec.cost_delta or {},
-                "satisfaction_delta": rec.satisfaction_delta or {},
-                "explanation": rec.llm_explanation,
-                "trigger_message": rec.trigger_message,
-                "created_at": rec.created_at.isoformat() if rec.created_at else None,
-            }
-            for rec in records
-        ],
+        "explanations": dto_list,
         "total": len(records),
     }

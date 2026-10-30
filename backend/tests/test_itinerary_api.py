@@ -7,7 +7,10 @@ Tests all itinerary-related API calls including the new feedback endpoint.
 import sys
 import os
 import json
+import random
+import uuid
 from datetime import datetime
+from app.core.config import settings
 
 # Add backend directory to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -28,7 +31,7 @@ try:
             print("Testing Authentication...")
             login_payload = {
                 "username": "traveller@example.com",
-                "password": "password"
+                "password": settings.TEST_USER_PASSWORD
             }
             
             response = client.post("/api/v1/auth/login", data=login_payload)

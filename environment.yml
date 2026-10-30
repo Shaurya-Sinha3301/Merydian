@@ -1,0 +1,11 @@
+name: merydian
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - -r backend/requirements/base.txt
+    - -r backend/requirements/api.txt
+    - -r backend/requirements/worker.txt

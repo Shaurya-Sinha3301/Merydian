@@ -1,0 +1,415 @@
+{
+  "optimizer_version": "v2.1",
+  "dataset_version": "v1.0",
+  "suite_version": "v1.0",
+  "git_hash": "69cd1f5",
+  "config_name": "Baseline",
+  "config_id": 2,
+  "batches": [
+    {
+      "target_size": 100,
+      "executed": 100,
+      "run_id": 2,
+      "elapsed_seconds": 43.78,
+      "verification": {
+        "total_scenarios": 100,
+        "successes": 100,
+        "success_rate": 1.0,
+        "crashes": 0,
+        "crash_rate": 0.0,
+        "avg_constraint_satisfaction": 1.0,
+        "avg_runtime_seconds": 0.3904,
+        "runtime_stddev": 0.9765,
+        "runtime_stddev_ratio": 2.5015,
+        "passed": true,
+        "abort_reasons": []
+      },
+      "failure_analysis": {
+        "total_scenarios": 100,
+        "total_failures": 0,
+        "failure_rate": 0.0,
+        "failure_frequency": {},
+        "failure_percentages": {},
+        "category_trends": {
+          "Accessibility-Focused Trip": {
+            "OPTIMAL": 6
+          },
+          "Budget Vacation": {
+            "OPTIMAL": 7
+          },
+          "Couple": {
+            "OPTIMAL": 7
+          },
+          "Dense City Itinerary": {
+            "OPTIMAL": 7
+          },
+          "Elderly Travelers": {
+            "OPTIMAL": 7
+          },
+          "Family with Children": {
+            "OPTIMAL": 7
+          },
+          "Heavy Traffic": {
+            "OPTIMAL": 6
+          },
+          "High Transport Disruption": {
+            "OPTIMAL": 6
+          },
+          "Long Vacation": {
+            "OPTIMAL": 7
+          },
+          "Luxury Vacation": {
+            "OPTIMAL": 7
+          },
+          "Mixed Interests": {
+            "OPTIMAL": 6
+          },
+          "Overloaded Day": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 5
+          },
+          "Solo Traveler": {
+            "OPTIMAL": 7
+          },
+          "Sparse Rural Itinerary": {
+            "OPTIMAL": 7
+          },
+          "Weekend Trip": {
+            "OPTIMAL": 7
+          }
+        }
+      }
+    },
+    {
+      "target_size": 500,
+      "executed": 400,
+      "run_id": 3,
+      "elapsed_seconds": 193.38,
+      "verification": {
+        "total_scenarios": 400,
+        "successes": 400,
+        "success_rate": 1.0,
+        "crashes": 0,
+        "crash_rate": 0.0,
+        "avg_constraint_satisfaction": 1.0,
+        "avg_runtime_seconds": 0.4358,
+        "runtime_stddev": 1.1318,
+        "runtime_stddev_ratio": 2.5968,
+        "passed": true,
+        "abort_reasons": []
+      },
+      "failure_analysis": {
+        "total_scenarios": 400,
+        "total_failures": 0,
+        "failure_rate": 0.0,
+        "failure_frequency": {},
+        "failure_percentages": {},
+        "category_trends": {
+          "Accessibility-Focused Trip": {
+            "OPTIMAL": 26
+          },
+          "Budget Vacation": {
+            "OPTIMAL": 27
+          },
+          "Couple": {
+            "OPTIMAL": 27
+          },
+          "Dense City Itinerary": {
+            "FEASIBLE": 2,
+            "OPTIMAL": 25
+          },
+          "Elderly Travelers": {
+            "OPTIMAL": 27
+          },
+          "Family with Children": {
+            "OPTIMAL": 27
+          },
+          "Heavy Traffic": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 25
+          },
+          "High Transport Disruption": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 25
+          },
+          "Long Vacation": {
+            "OPTIMAL": 27
+          },
+          "Luxury Vacation": {
+            "OPTIMAL": 27
+          },
+          "Mixed Interests": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 25
+          },
+          "Overloaded Day": {
+            "FEASIBLE": 11,
+            "OPTIMAL": 15
+          },
+          "Solo Traveler": {
+            "OPTIMAL": 27
+          },
+          "Sparse Rural Itinerary": {
+            "OPTIMAL": 27
+          },
+          "Weekend Trip": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 26
+          }
+        }
+      }
+    },
+    {
+      "target_size": 1000,
+      "executed": 500,
+      "run_id": 4,
+      "elapsed_seconds": 290.86,
+      "verification": {
+        "total_scenarios": 500,
+        "successes": 500,
+        "success_rate": 1.0,
+        "crashes": 0,
+        "crash_rate": 0.0,
+        "avg_constraint_satisfaction": 1.0,
+        "avg_runtime_seconds": 0.5219,
+        "runtime_stddev": 1.2599,
+        "runtime_stddev_ratio": 2.4144,
+        "passed": true,
+        "abort_reasons": []
+      },
+      "failure_analysis": {
+        "total_scenarios": 500,
+        "total_failures": 0,
+        "failure_rate": 0.0,
+        "failure_frequency": {},
+        "failure_percentages": {},
+        "category_trends": {
+          "Accessibility-Focused Trip": {
+            "OPTIMAL": 33
+          },
+          "Budget Vacation": {
+            "OPTIMAL": 33
+          },
+          "Couple": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 33
+          },
+          "Dense City Itinerary": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 32
+          },
+          "Elderly Travelers": {
+            "OPTIMAL": 34
+          },
+          "Family with Children": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 33
+          },
+          "Heavy Traffic": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 32
+          },
+          "High Transport Disruption": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 32
+          },
+          "Long Vacation": {
+            "OPTIMAL": 33
+          },
+          "Luxury Vacation": {
+            "OPTIMAL": 34
+          },
+          "Mixed Interests": {
+            "FEASIBLE": 5,
+            "OPTIMAL": 28
+          },
+          "Overloaded Day": {
+            "FEASIBLE": 20,
+            "OPTIMAL": 13
+          },
+          "Solo Traveler": {
+            "OPTIMAL": 34
+          },
+          "Sparse Rural Itinerary": {
+            "OPTIMAL": 33
+          },
+          "Weekend Trip": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 32
+          }
+        }
+      }
+    },
+    {
+      "target_size": 5000,
+      "executed": 4000,
+      "run_id": 5,
+      "elapsed_seconds": 3078.4,
+      "verification": {
+        "total_scenarios": 4000,
+        "successes": 4000,
+        "success_rate": 1.0,
+        "crashes": 0,
+        "crash_rate": 0.0,
+        "avg_constraint_satisfaction": 1.0,
+        "avg_runtime_seconds": 0.688,
+        "runtime_stddev": 1.3319,
+        "runtime_stddev_ratio": 1.9359,
+        "passed": true,
+        "abort_reasons": []
+      },
+      "failure_analysis": {
+        "total_scenarios": 4000,
+        "total_failures": 0,
+        "failure_rate": 0.0,
+        "failure_frequency": {},
+        "failure_percentages": {},
+        "category_trends": {
+          "Accessibility-Focused Trip": {
+            "OPTIMAL": 266
+          },
+          "Budget Vacation": {
+            "FEASIBLE": 2,
+            "OPTIMAL": 265
+          },
+          "Couple": {
+            "FEASIBLE": 10,
+            "OPTIMAL": 257
+          },
+          "Dense City Itinerary": {
+            "FEASIBLE": 9,
+            "OPTIMAL": 258
+          },
+          "Elderly Travelers": {
+            "FEASIBLE": 2,
+            "OPTIMAL": 265
+          },
+          "Family with Children": {
+            "OPTIMAL": 267
+          },
+          "Heavy Traffic": {
+            "FEASIBLE": 8,
+            "OPTIMAL": 258
+          },
+          "High Transport Disruption": {
+            "FEASIBLE": 9,
+            "OPTIMAL": 257
+          },
+          "Long Vacation": {
+            "FEASIBLE": 4,
+            "OPTIMAL": 263
+          },
+          "Luxury Vacation": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 266
+          },
+          "Mixed Interests": {
+            "FEASIBLE": 26,
+            "OPTIMAL": 240
+          },
+          "Overloaded Day": {
+            "FEASIBLE": 164,
+            "OPTIMAL": 102
+          },
+          "Solo Traveler": {
+            "OPTIMAL": 267
+          },
+          "Sparse Rural Itinerary": {
+            "OPTIMAL": 267
+          },
+          "Weekend Trip": {
+            "FEASIBLE": 14,
+            "OPTIMAL": 253
+          }
+        }
+      }
+    },
+    {
+      "target_size": 10000,
+      "executed": 5000,
+      "run_id": 6,
+      "elapsed_seconds": 3712.83,
+      "verification": {
+        "total_scenarios": 5000,
+        "successes": 5000,
+        "success_rate": 1.0,
+        "crashes": 0,
+        "crash_rate": 0.0,
+        "avg_constraint_satisfaction": 1.0,
+        "avg_runtime_seconds": 0.6786,
+        "runtime_stddev": 7.2599,
+        "runtime_stddev_ratio": 10.698,
+        "passed": false,
+        "abort_reasons": [
+          "Runtime instability ratio 10.70 > 5.0"
+        ]
+      },
+      "failure_analysis": {
+        "total_scenarios": 5000,
+        "total_failures": 0,
+        "failure_rate": 0.0,
+        "failure_frequency": {},
+        "failure_percentages": {},
+        "category_trends": {
+          "Accessibility-Focused Trip": {
+            "OPTIMAL": 333
+          },
+          "Budget Vacation": {
+            "FEASIBLE": 4,
+            "OPTIMAL": 329
+          },
+          "Couple": {
+            "FEASIBLE": 10,
+            "OPTIMAL": 324
+          },
+          "Dense City Itinerary": {
+            "FEASIBLE": 8,
+            "OPTIMAL": 325
+          },
+          "Elderly Travelers": {
+            "FEASIBLE": 1,
+            "OPTIMAL": 333
+          },
+          "Family with Children": {
+            "FEASIBLE": 3,
+            "OPTIMAL": 331
+          },
+          "Heavy Traffic": {
+            "FEASIBLE": 7,
+            "OPTIMAL": 326
+          },
+          "High Transport Disruption": {
+            "FEASIBLE": 6,
+            "OPTIMAL": 327
+          },
+          "Long Vacation": {
+            "FEASIBLE": 8,
+            "OPTIMAL": 325
+          },
+          "Luxury Vacation": {
+            "OPTIMAL": 334
+          },
+          "Mixed Interests": {
+            "FEASIBLE": 17,
+            "OPTIMAL": 316
+          },
+          "Overloaded Day": {
+            "FEASIBLE": 196,
+            "OPTIMAL": 137
+          },
+          "Solo Traveler": {
+            "FEASIBLE": 2,
+            "OPTIMAL": 332
+          },
+          "Sparse Rural Itinerary": {
+            "OPTIMAL": 333
+          },
+          "Weekend Trip": {
+            "FEASIBLE": 7,
+            "OPTIMAL": 326
+          }
+        }
+      }
+    }
+  ]
+}

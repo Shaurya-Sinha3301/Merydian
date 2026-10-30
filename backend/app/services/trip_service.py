@@ -9,6 +9,7 @@ This service manages the initial setup of trips, including:
 """
 
 import logging
+from uuid import UUID
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 from datetime import datetime
@@ -386,11 +387,12 @@ class TripService:
             ValueError: If baseline not found
         """
         # Predefined baseline mappings
+        data_dir = settings.ML_DATA_DIR
         baselines = {
-            "delhi_3day_skeleton": "ml_or/data/base_itinerary_clustered.json",
-            "delhi_3day": "ml_or/data/base_itinerary_clustered.json",
-            "delhi_5day": "ml_or/data/delhi_5day_skeleton.json",
-            "mumbai_3day": "ml_or/data/mumbai_3day_skeleton.json",
+            "delhi_3day_skeleton": f"{data_dir}/base_itinerary_clustered.json",
+            "delhi_3day": f"{data_dir}/base_itinerary_clustered.json",
+            "delhi_5day": f"{data_dir}/delhi_5day_skeleton.json",
+            "mumbai_3day": f"{data_dir}/mumbai_3day_skeleton.json",
         }
         
         # Check if it's a known baseline name
@@ -411,6 +413,48 @@ class TripService:
             f"Available: {list(baselines.keys())}"
         )
     
+    @staticmethod
+    def _is_uuid(value) -> bool:
+        try:
+            UUID(str(value))
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def itinerary_stats(trip, family_id: Optional[str] = None) -> Dict[str, Any]:
+        """Headline numbers from the trip's current itinerary version (None when absent)."""
+        from app.models.itinerary import Itinerary
+
+        stats: Dict[str, Any] = {
+            # The API addresses families by UUID; trips may also list legacy family codes
+            "family_id": next((f for f in (trip.family_ids or []) if TripService._is_uuid(f)), None),
+            "current_version": None,
+            "total_cost": None,
+            "total_satisfaction": None,
+            "duration_days": None,
+            "feedback_history": trip.feedback_history or [],
+        }
+        if trip.current_itinerary_id or family_id:
+            with get_db_session() as session:
+                itin = None
+                if family_id and TripService._is_uuid(family_id):
+                    from sqlmodel import select as _select
+
+                    itin = session.exec(
+                        _select(Itinerary).where(Itinerary.family_id == UUID(str(family_id))).order_by(Itinerary.version.desc())
+                    ).first()
+                if itin is None and trip.current_itinerary_id:
+                    itin = session.get(Itinerary, trip.current_itinerary_id)
+                if itin:
+                    stats.update(
+                        current_version=itin.version,
+                        total_cost=itin.total_cost,
+                        total_satisfaction=itin.total_satisfaction,
+                        duration_days=itin.duration_days,
+                    )
+        return stats
+
     @staticmethod
     def get_trip_summary(trip_id: str) -> Dict[str, Any]:
         """
@@ -441,7 +485,9 @@ class TripService:
             "initial_preferences": trip_session.initial_preferences,
             "current_preferences": trip_session.current_preferences,
             "feedback_count": len(trip_session.feedback_history),
-            "last_updated": trip_session.updated_at.isoformat() if trip_session.updated_at else None
+            "last_updated": trip_session.updated_at.isoformat() if trip_session.updated_at else None,
+            "status": trip_session.status,
+            **TripService.itinerary_stats(trip_session),
         }
     
     @staticmethod
@@ -779,6 +825,8 @@ class TripService:
                     "current_preferences": trip.current_preferences,
                     "feedback_count": len(trip.feedback_history) if trip.feedback_history else 0,
                     "last_updated": trip.updated_at.isoformat() if trip.updated_at else None,
+                    "status": trip.status,
+                    **TripService.itinerary_stats(trip),
                 })
 
             return results, total
@@ -858,3 +906,44 @@ class TripService:
             "status": "archived",
             "message": f"Trip {trip_id} has been archived",
         }
+
+    @staticmethod
+    def update_trip_itinerary(
+        trip_id: str,
+        itinerary_id,
+        iteration_count_increment: bool = False,
+    ) -> Optional[TripSession]:
+        """
+        Update the TripSession to point to a new current itinerary (DB-based).
+        
+        Args:
+            trip_id: Trip identifier string
+            itinerary_id: UUID of the new current Itinerary record
+            iteration_count_increment: If True, increment iteration_count
+        
+        Returns:
+            Updated TripSession, or None if not found
+        """
+        from sqlmodel import select
+        import uuid as uuid_mod
+
+        with get_db_session() as session:
+            stmt = select(TripSession).where(TripSession.trip_id == trip_id)
+            trip = session.exec(stmt).first()
+            
+            if not trip:
+                logger.warning(f"Trip not found for itinerary update: {trip_id}")
+                return None
+            
+            trip.current_itinerary_id = itinerary_id if isinstance(itinerary_id, uuid_mod.UUID) else uuid_mod.UUID(str(itinerary_id))
+            trip.last_optimization_at = datetime.utcnow()
+            trip.updated_at = datetime.utcnow()
+            
+            if iteration_count_increment:
+                trip.iteration_count = (trip.iteration_count or 0) + 1
+            
+            session.add(trip)
+            # session commits on __exit__ of get_db_session context manager
+        
+        logger.info(f"Updated trip {trip_id} -> itinerary {itinerary_id} (iteration {trip.iteration_count})")
+        return trip

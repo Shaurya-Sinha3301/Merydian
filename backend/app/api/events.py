@@ -1,5 +1,8 @@
 from typing import Any, List, Optional
 import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
@@ -39,7 +42,7 @@ async def create_event(
             family_id=family_id
         )
 
-        print(f"[Event API] Created event: {db_event.event_type} | ID: {db_event.id} | Family: {family_id}")
+        logger.info(f"Created event: {db_event.event_type} | ID: {db_event.id} | Family: {family_id}")
 
         from app.worker import process_event_task
         process_event_task.delay(str(db_event.id))
@@ -47,7 +50,7 @@ async def create_event(
         return EventResponse(event_id=db_event.id, status=db_event.status)
 
     except Exception as e:
-        print(f"[Event API] Error creating event: {str(e)}")
+        logger.error(f"Error creating event: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to create event: {str(e)}")
 
 

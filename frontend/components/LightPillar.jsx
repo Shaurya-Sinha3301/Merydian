@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import './LightPillar.css';

@@ -3,8 +3,10 @@ Pydantic schemas for type-safe event and action structures.
 Ensures validation across agent boundaries.
 """
 from enum import Enum
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
+
+from app.travel_context.schemas import TravelIntent
 
 
 class EventType(str, Enum):
@@ -52,6 +54,13 @@ class FeedbackEvent(BaseModel):
         use_enum_values = True
 
 
+class FeedbackUnderstanding(BaseModel):
+    """Structured understanding of feedback, containing both legacy events and new intents."""
+    agent: str = Field(default="FeedbackAgent", description="Source agent name")
+    existing_events: List[FeedbackEvent] = Field(default_factory=list, description="Legacy boolean constraints")
+    travel_intents: List[TravelIntent] = Field(default_factory=list, description="Rich context intents")
+
+
 class PolicyDecision(BaseModel):
     """Decision output from Decision/Policy Agent."""
     agent: str = Field(default="DecisionPolicyAgent", description="Source agent name")
@@ -59,6 +68,7 @@ class PolicyDecision(BaseModel):
     reason: str = Field(..., description="Explanation for the decision")
     requires_approval: bool = Field(default=False, description="Whether user approval is needed")
     event_context: Optional[FeedbackEvent] = Field(None, description="Original event that triggered decision")
+    travel_constraint: Optional[Any] = Field(None, description="Generated optimizer constraint")
     
     class Config:
         use_enum_values = True

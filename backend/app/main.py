@@ -4,13 +4,17 @@ import logging
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth
+from app.api import auth, phase3, phase4
 from app.core.config import settings
 from app.core.websocket import ws_manager, start_redis_listener
 
 from app.core.logging import setup_logging
 import time
 from fastapi import Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from app.schemas.base_errors import ApiErrorResponse
 
 # Setup structured logging
 setup_logging()
@@ -25,6 +29,46 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=ApiErrorResponse(
+            status="FAILED",
+            error_code="HTTP_ERROR",
+            title="Request Error",
+            message=str(exc.detail),
+            suggestions=[]
+        ).dict()
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content=ApiErrorResponse(
+            status="FAILED",
+            error_code="VALIDATION_ERROR",
+            title="Validation Failed",
+            message="The request payload is invalid.",
+            suggestions=[str(err) for err in exc.errors()]
+        ).dict()
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content=ApiErrorResponse(
+            status="FAILED",
+            error_code="INTERNAL_SERVER_ERROR",
+            title="Internal Server Error",
+            message="An unexpected error occurred processing the request.",
+            suggestions=["Please try again later or contact support."]
+        ).dict()
+    )
+
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     # Skip rate limiting for WebSocket upgrade requests
@@ -34,21 +78,34 @@ async def rate_limit_middleware(request: Request, call_next):
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    start_time = time.time()
-    response = await call_next(request)
-    duration = time.time() - start_time
+    import uuid
+    from app.core.context import set_log_context, clear_log_context
     
-    logger.info(
-        f"Request: {request.method} {request.url.path} "
-        f"Status: {response.status_code} Duration: {duration:.4f}s"
-    )
-    return response
+    correlation_id = str(uuid.uuid4())
+    request_id = str(uuid.uuid4())
+    set_log_context(correlation_id=correlation_id, request_id=request_id)
+    
+    start_time = time.time()
+    try:
+        response = await call_next(request)
+        duration = time.time() - start_time
+        
+        logger.info(
+            f"Request: {request.method} {request.url.path} "
+            f"Status: {response.status_code} Duration: {duration:.4f}s"
+        )
+        # Inject correlation_id in response headers if needed
+        response.headers["X-Correlation-ID"] = correlation_id
+        return response
+    finally:
+        clear_log_context()
 
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.BACKEND_CORS_ORIGINS,
+        allow_origin_regex=settings.BACKEND_CORS_ORIGIN_REGEX or None,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -89,6 +146,15 @@ app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["u
 
 from app.api import families
 app.include_router(families.router, prefix=f"{settings.API_V1_STR}/families", tags=["families"])
+
+from app.api import jobs
+app.include_router(jobs.router, prefix=f"{settings.API_V1_STR}/jobs", tags=["jobs"])
+
+from app.api import demo
+app.include_router(phase3.router, prefix=f"{settings.API_V1_STR}", tags=["phase3"])
+app.include_router(phase4.router, prefix=f"{settings.API_V1_STR}", tags=["phase4"])
+
+app.include_router(demo.router, prefix=f"{settings.API_V1_STR}/demo", tags=["demo"])
 
 
 # ------------------------------------------------------------------ #

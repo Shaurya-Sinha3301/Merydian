@@ -158,6 +158,9 @@ class ItineraryService:
         Returns:
             List of created Itinerary UUIDs
         """
+        from app.services.itinerary_format import normalize_itinerary
+        from app.models.trip_session import TripSession
+
         created_ids: List[UUID] = []
 
         with Session(engine) as session:
@@ -172,16 +175,22 @@ class ItineraryService:
                     )
                     continue
 
+                branch = normalize_itinerary(
+                    itinerary_data, fam_code, int((family.preferences or {}).get("members", 1)))
                 # Calculate stats
-                total_cost = itinerary_data.get("total_cost", 0.0)
-                total_satisfaction = itinerary_data.get("total_satisfaction", 0.0)
-                duration_days = len(itinerary_data.get("days", []))
+                total_cost = branch.get("total_cost", 0.0)
+                total_satisfaction = branch.get("total_satisfaction", 0.0)
+                duration_days = len(branch.get("days", []))
 
                 # Create Itinerary record
+                latest = session.exec(
+                    select(Itinerary.version).where(Itinerary.family_id == family.id)
+                    .order_by(Itinerary.version.desc())
+                ).first()
                 itinerary = Itinerary(
                     family_id=family.id,
-                    version=1,
-                    data=itinerary_data,
+                    version=(latest or 0) + 1,
+                    data=branch,
                     created_reason=created_reason,
                     created_by="agent",
                     total_cost=total_cost,
@@ -198,6 +207,18 @@ class ItineraryService:
                 session.add(family)
 
                 created_ids.append(itinerary.id)
+
+                # Link the trip to this itinerary so dashboards and the timeline find it
+                trip = session.exec(select(TripSession).where(TripSession.trip_id == trip_id)).first()
+                if trip:
+                    trip.current_itinerary_id = itinerary.id
+                    trip.latest_itinerary_path = None
+                    trip.updated_at = datetime.utcnow()
+                    ids = list(trip.family_ids or [])
+                    if str(family.id) not in ids:
+                        ids.append(str(family.id))
+                        trip.family_ids = ids
+                    session.add(trip)
 
             session.commit()
 
