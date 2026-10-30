@@ -193,6 +193,7 @@ async def get_itinerary_diff(
 async def get_itinerary_timeline(
     trip_id: str = Path(..., description="The ID of the trip"),
     _access: Any = Depends(verify_trip_access),
+    current_user: TokenPayload = Depends(get_current_user),
 ) -> Any:
     try:
         from app.services.optimizer_service import OptimizerService
@@ -205,10 +206,18 @@ async def get_itinerary_timeline(
 
         # The database copy is the source of truth; the optimizer's JSON file is a fallback
         data = None
-        if session.current_itinerary_id:
-            with get_db_session() as db:
+        with get_db_session() as db:
+            itin = None
+            # On a group trip every family reads its own branch of the plan
+            if current_user.role != "agent" and current_user.family_id:
+                from sqlmodel import select as _select
+
+                itin = db.exec(
+                    _select(Itinerary).where(Itinerary.family_id == uuid_lib.UUID(current_user.family_id)).order_by(Itinerary.version.desc())
+                ).first()
+            if itin is None and session.current_itinerary_id:
                 itin = db.get(Itinerary, session.current_itinerary_id)
-                data = itin.data if itin else None
+            data = itin.data if itin else None
         if not data:
             itinerary_path = session.latest_itinerary_path or session.baseline_itinerary_path
             if itinerary_path and os.path.exists(itinerary_path):

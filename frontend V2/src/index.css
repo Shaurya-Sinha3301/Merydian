@@ -227,6 +227,19 @@
   animation-delay: calc(var(--i, 0) * 60ms);
 }
 
+@media print {
+  .no-print,
+  header,
+  nav,
+  .leaflet-control-container {
+    display: none !important;
+  }
+  body,
+  html {
+    background: #fff !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .snap-in,
   .fill-x {

@@ -82,3 +82,19 @@ class TripBooking(SQLModel, table=True):
     created_by: Optional[UUID] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class TripNote(SQLModel, table=True):
+    """An agent's private note or task on a trip. Never shown to travellers."""
+
+    __tablename__ = "trip_notes"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    trip_id: str = Field(max_length=100, index=True)
+    author_id: UUID = Field(index=True)
+    author_name: Optional[str] = Field(default=None, max_length=120)
+    kind: str = Field(default="note", max_length=10)  # note | task
+    text: str = Field(max_length=1000)
+    due_on: Optional[datetime] = Field(default=None)
+    done: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)

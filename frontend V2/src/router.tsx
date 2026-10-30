@@ -20,6 +20,8 @@ import { InsightsPage } from './pages/app/InsightsPage';
 import { AgentsPage } from './pages/app/AgentsPage';
 import { WebhooksPage } from './pages/app/WebhooksPage';
 import { BookingsPage, TripBookingsPage } from './pages/app/BookingsPage';
+import { GroupPage } from './pages/app/GroupPage';
+import { NotesPage } from './pages/app/NotesPage';
 import { DeskPage } from './pages/app/DeskPage';
 import { TripsPage } from './pages/app/TripsPage';
 import { ActivityPage } from './pages/app/ActivityPage';
@@ -82,6 +84,8 @@ export const router = createBrowserRouter([
           { path: 'changes', element: <ChangesPage /> },
           { path: 'history', element: <HistoryPage /> },
           { path: 'bookings', element: <TripBookingsPage /> },
+          { path: 'group', element: <GroupPage /> },
+          { path: 'notes', element: <NotesPage /> },
           { path: 'feedback', element: <FeedbackPage /> },
         ],
       },

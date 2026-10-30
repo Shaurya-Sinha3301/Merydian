@@ -82,14 +82,14 @@ export function NewTripPage() {
   const [picked, setPicked] = useState<Set<string>>(new Set(['history', 'food']));
   const [pace, setPace] = useState<(typeof PACE)[number]['id']>('moderate');
   const [budget, setBudget] = useState<(typeof BUDGET)[number]['id']>('mid');
-  const [customer, setCustomer] = useState(params.get('customer') ?? '');
+  const [chosen, setChosen] = useState<string[]>(params.get('customer') ? [params.get('customer') as string] : []);
   const [touched, setTouched] = useState(false);
 
   const days = Math.round((new Date(end).getTime() - new Date(start).getTime()) / 86_400_000) + 1;
   const errors = {
     name: name.trim().length < 2 ? 'Give the trip a name.' : '',
     dates: !(days >= 1) ? 'The trip must end on or after it starts.' : days > 10 ? 'Trips are limited to 10 days.' : '',
-    customer: isAgent && !customer ? 'Choose the customer this trip is for.' : '',
+    customer: isAgent && chosen.length === 0 ? 'Choose at least one customer.' : '',
   };
   const valid = !errors.name && !errors.dates && !errors.customer;
   const busy = requestTrip.isPending || createTrip.isPending;
@@ -112,8 +112,8 @@ export function NewTripPage() {
         destination: 'Delhi, India',
         start_date: start,
         end_date: end,
-        family_ids: [customer],
-        num_travellers: (customers.data?.find((c) => c.family_code === customer)?.members ?? 2),
+        family_ids: chosen,
+        num_travellers: chosen.reduce((n, code) => n + (customers.data?.find((c) => c.family_code === code)?.members ?? 2), 0),
       });
       return;
     }
@@ -204,22 +204,32 @@ export function NewTripPage() {
       <form onSubmit={submit} noValidate className={`mt-6 flex flex-col gap-6 ${busy ? 'pointer-events-none opacity-50' : ''}`}>
         {isAgent && (
           <div>
-            <label htmlFor="customer" className="text-sm font-bold">
-              Customer
-            </label>
-            <select
-              id="customer"
-              value={customer}
-              onChange={(e) => setCustomer(e.target.value)}
-              className="mt-1.5 h-11 w-full rounded-sm border border-ink bg-paper px-3"
-            >
-              <option value="">Choose a customer</option>
+            <p id="customer-label" className="text-sm font-bold">
+              Customers on this trip
+            </p>
+            <p className="text-xs text-ink-3">Pick one family, or several to plan a group trip with one shared plan.</p>
+            <ul aria-labelledby="customer-label" className="mt-2 max-h-56 divide-y divide-rule overflow-y-auto border border-rule bg-paper">
               {customers.data?.map((c) => (
-                <option key={c.user_id} value={c.family_code ?? ''} disabled={!c.family_code}>
-                  {c.full_name || c.email} ({c.email})
-                </option>
+                <li key={c.user_id}>
+                  <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-panel">
+                    <input
+                      type="checkbox"
+                      disabled={!c.family_code}
+                      checked={!!c.family_code && chosen.includes(c.family_code)}
+                      onChange={() => c.family_code && setChosen((s) => (s.includes(c.family_code as string) ? s.filter((x) => x !== c.family_code) : [...s, c.family_code as string]))}
+                      className="h-4 w-4 accent-[var(--color-ink)]"
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="font-semibold">{c.full_name || c.email}</span>
+                      <span className="block truncate text-xs text-ink-3">
+                        {c.email} · {c.members} travellers{c.children ? `, ${c.children} children` : ''}
+                      </span>
+                    </span>
+                  </label>
+                </li>
               ))}
-            </select>
+            </ul>
+            {chosen.length > 1 && <p className="mt-1.5 text-sm font-semibold text-cyan">Group trip: {chosen.length} families</p>}
             {touched && errors.customer && <p className="mt-1 text-xs font-bold text-magenta">{errors.customer}</p>}
           </div>
         )}
