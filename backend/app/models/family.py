@@ -43,8 +43,10 @@ class Family(SQLModel, table=True):
     start_date: Optional[datetime] = Field(default=None)
     end_date: Optional[datetime] = Field(default=None)
     
-    # Preferences (stored as JSON)
-    preferences: dict = Field(default_factory=dict, sa_column=Column(JSONB))
+    # ─── DEPRECATED: Preferences JSONB ───
+    # The Preference table (via PreferenceService) is now the single source of truth.
+    # This column is retained temporarily for backward compatibility.
+    preferences: dict = Field(default_factory=dict, sa_column=Column(JSONB))  # DEPRECATED
     
     # Status
     is_active: bool = Field(default=True)

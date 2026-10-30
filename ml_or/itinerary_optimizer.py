@@ -64,6 +64,8 @@ class Location:
     tags: List[str]
     base_importance: float
     role: str = "SKELETON"  # SKELETON (shared order) or BRANCH (optional per family)
+    time_window_start: Optional[str] = None  # e.g. "09:00"
+    time_window_end: Optional[str] = None    # e.g. "18:00"
 
 
 @dataclass
@@ -91,6 +93,7 @@ class FamilyPreference:
     never_visit_locations: List[str]
     pace_preference: str = "moderate"
     notes: str = ""
+    profiles: Optional[List[str]] = None # e.g. ["elderly", "children", "accessibility", "foodie", "adventure", "shopping", "nightlife"]
 
 
 class ItineraryOptimizer:
@@ -133,6 +136,144 @@ class ItineraryOptimizer:
         
         # Inject Restaurants into Base Itinerary
         self._inject_restaurants()
+
+    @classmethod
+    def from_dataset(cls, dataset, constraints=None, backbone_data=None):
+        """
+        Construct optimizer from domain objects instead of file paths.
+        
+        Args:
+            dataset: TravelDataset contract object
+            constraints: Optional TravelConstraints for soft constraint weight tuning
+            backbone_data: Optional dict with hotel_assignments, skeleton_routes, daily_restaurants
+        
+        Returns:
+            Fully initialized ItineraryOptimizer
+        """
+        instance = cls.__new__(cls)
+        
+        # Convert contract LocationData -> internal Location dataclass
+        instance.locations = {}
+        for lid, loc_data in {**dataset.locations, **dataset.hotels}.items():
+            instance.locations[lid] = Location(
+                location_id=loc_data.location_id,
+                name=loc_data.name,
+                type=loc_data.category or "POI",
+                category=loc_data.category or "general",
+                lat=loc_data.lat,
+                lng=loc_data.lon,
+                avg_visit_time_min=loc_data.visit_duration_min or 60,
+                cost=loc_data.entry_fee or 0,
+                repeatable=False,
+                tags=loc_data.tags,
+                base_importance=loc_data.metadata.get("base_importance", 1.0),
+                role=loc_data.metadata.get("role", "SKELETON"),
+                time_window_start=loc_data.metadata.get("time_window_start"),
+                time_window_end=loc_data.metadata.get("time_window_end"),
+            )
+        
+        # Convert contract TransportEdgeData -> internal TransportEdge dataclass
+        instance.transport_edges = [
+            TransportEdge(
+                edge_id=f"{e.from_location}_{e.to_location}_{e.mode}",
+                from_loc=e.from_location,
+                to_loc=e.to_location,
+                mode=e.mode,
+                duration_min=int(e.duration_min),
+                cost=e.cost,
+                reliability=e.metadata.get("reliability", 0.9) if hasattr(e, 'metadata') else 0.9,
+            )
+            for e in dataset.transport_edges
+            if e.available
+        ]
+        
+        # Base itinerary
+        instance.base_itinerary = {
+            "days": dataset.base_itinerary.days,
+            **dataset.base_itinerary.metadata,
+        }
+        
+        # Convert contract FamilyPreferenceData -> internal FamilyPreference dataclass
+        instance.family_prefs = {}
+        for fid, fp in dataset.family_preferences.items():
+            instance.family_prefs[fid] = FamilyPreference(
+                family_id=fid,
+                members=fp.members,
+                children=0,
+                budget_sensitivity=fp.budget_sensitivity,
+                energy_level=1.0,
+                interest_vector={},
+                must_visit_locations=fp.must_visit_locations,
+                never_visit_locations=fp.never_visit_locations,
+                pace_preference="moderate",
+                profiles=fp.metadata.get("profiles") if hasattr(fp, 'metadata') else None
+            )
+        
+        # Build transport lookup
+        instance.transport_lookup = instance._build_transport_lookup()
+        
+        # Default coherence weights
+        instance.alpha = 1.0
+        instance.beta = 0.05
+        instance.gamma = 100.0
+        instance.delta = 0.5
+        instance.lambda_coherence = 0.3
+        instance.decision_traces = {}
+        
+        # Apply soft constraints from TravelConstraints
+        if constraints:
+            # Pace -> adjust gamma (missed POI penalty) and activity limits
+            pace_map = {
+                "very_relaxed": 50.0, "relaxed": 75.0,
+                "moderate": 100.0, "active": 125.0, "intensive": 150.0,
+            }
+            if constraints.pace:
+                instance.gamma = pace_map.get(constraints.pace.value, 100.0)
+            
+            # Budget -> adjust beta (cost weight)
+            budget_map = {
+                "budget": 0.15, "moderate": 0.05,
+                "premium": 0.02, "luxury": 0.01,
+            }
+            if constraints.budget_level:
+                instance.beta = budget_map.get(constraints.budget_level.value, 0.05)
+            
+            # Apply hard constraints to family prefs
+            for fid in instance.family_prefs:
+                fp = instance.family_prefs[fid]
+                fp.must_visit_locations = list(set(fp.must_visit_locations + constraints.must_visit))
+                fp.never_visit_locations = list(set(fp.never_visit_locations + constraints.never_visit))
+            
+            # Filter transport disruptions
+            if constraints.transport_disruptions:
+                for disruption in constraints.transport_disruptions:
+                    mode = disruption.get("mode")
+                    from_loc = disruption.get("from")
+                    to_loc = disruption.get("to")
+                    instance.transport_edges = [
+                        e for e in instance.transport_edges
+                        if not (
+                            e.mode == mode and
+                            (from_loc is None or e.from_loc == from_loc) and
+                            (to_loc is None or e.to_loc == to_loc)
+                        )
+                    ]
+                # Rebuild lookup after filtering
+                instance.transport_lookup = instance._build_transport_lookup()
+        
+        # Load backbone
+        if backbone_data:
+            instance.hotel_assignments = backbone_data.get("hotel_assignments", {})
+            instance.backbone_routes = backbone_data.get("skeleton_routes", {})
+            instance.daily_restaurants = backbone_data.get("daily_restaurants", {})
+        else:
+            instance.hotel_assignments = {}
+            instance.backbone_routes = {}
+            instance.daily_restaurants = {}
+        
+        instance._inject_restaurants()
+        
+        return instance
 
     def _load_backbone(self, filepath: str) -> Tuple[Dict, Dict, Dict]:
         """Load optimized hotel assignments, skeleton routes, and restaurants"""
@@ -311,7 +452,25 @@ class ItineraryOptimizer:
             cost=max(50, cost),  # Minimum 50 cost
             reliability=0.85  # Reasonable reliability
         )
-            
+        
+    def _create_fallback_walk_transport(self, from_loc: str, to_loc: str) -> Optional[TransportEdge]:
+        """Create a walking transport option if distance is short (<3km)."""
+        loc1 = self.locations[from_loc]
+        loc2 = self.locations[to_loc]
+        distance_km = self._haversine_distance(loc1, loc2)
+        if distance_km <= 3.0:
+            walk_duration_min = int(distance_km / 5.0 * 60)
+            return TransportEdge(
+                edge_id=f"FALLBACK_WALK_{from_loc}_{to_loc}",
+                from_loc=from_loc,
+                to_loc=to_loc,
+                mode="WALK",
+                duration_min=max(5, walk_duration_min),
+                cost=0.0,
+                reliability=0.99
+            )
+        return None
+
     def expand_branch_pois_for_day(
         self,
         day_index: int,
@@ -410,50 +569,46 @@ class ItineraryOptimizer:
         location: Location
     ) -> float:
         """
-        Calculate satisfaction score for a family visiting a location.
-        
-        Satisfaction(f,i) = base_importance × Σ_tag(interest_vector × poi_tag)
+        Calculate satisfaction score (0-100) for a family visiting a location.
         """
-        if not location.tags:
-            return location.base_importance
+        # Base score (0-50) derived from location importance
+        base_score = location.base_importance * 50.0
         
-        tag_score = 0.0
-        for tag in location.tags:
-            if tag in family.interest_vector:
-                tag_score += family.interest_vector[tag]
+        # Interest alignment score (0-50)
+        interest_score = 0.0
+        if location.tags and family.interest_vector:
+            tag_matches = []
+            for tag in location.tags:
+                if tag in family.interest_vector:
+                    tag_matches.append(family.interest_vector[tag])
+            
+            if tag_matches:
+                avg_match = sum(tag_matches) / len(location.tags)
+                interest_score = avg_match * 50.0
+                
+        total_score = base_score + interest_score
         
-        # Normalize by number of tags
-        if len(location.tags) > 0:
-            tag_score /= len(location.tags)
-        
-        return location.base_importance * (1.0 + tag_score)
+        # Apply fatigue penalty
+        if location.avg_visit_time_min > 90 and family.energy_level < 0.7:
+            total_score *= 0.8
+            
+        return max(0.0, min(100.0, total_score))
     
     def optimize_single_family_single_day(
         self,
         family_id: str = "FAM_001",
         day_index: int = 0,
-        max_pois: int = 3,
+        max_pois: int = 12,
         time_limit_seconds: int = 30,
         freeze_order: bool = False,  # STEP 5: Now allowing reordering
         enable_transport_choice: bool = True  # STEP 4: Enable transport mode selection
     ) -> Optional[Dict]:
         """
         Optimize itinerary for 1 family, 1 day, limited POIs.
-        
-        STEP 1-4: Order frozen, transport choice enabled
-        STEP 5A/5B: Reintroduce ordering freedom with START/END nodes
-        
-        Args:
-            family_id: Family to optimize for
-            day_index: Which day from base itinerary (0-indexed)
-            max_pois: Maximum POIs to consider (start with 3)
-            time_limit_seconds: Solver time limit
-            freeze_order: If True, use base itinerary order; if False, allow reordering (STEP 5)
-            enable_transport_choice: If True, allow multiple transport modes (STEP 4)
-        
-        Returns:
-            Solution dict with POI order, transport, times, or None if infeasible
         """
+        from ml_or.metrics_collector import OptimizationMetricsCollector
+        metrics = OptimizationMetricsCollector()
+        metrics.start_measurement()
         family = self.family_prefs[family_id]
         day_data = self.base_itinerary['days'][day_index]
         assumptions = self.base_itinerary['assumptions']
@@ -498,9 +653,7 @@ class ItineraryOptimizer:
         x = {}
         for poi in candidate_pois:
             x[poi] = model.NewBoolVar(f'visit_{poi}')
-            # STEP 5: Force all POIs to be visited (for now)
-            # Later we can make this optional based on satisfaction scores
-            model.Add(x[poi] == 1)
+            # (Removed forced visit constraint to allow trade-offs)
         
         # STEP 5A: y[i,j] = 1 if node i is visited before node j (ordering variables)
         y = {}
@@ -547,6 +700,9 @@ class ItineraryOptimizer:
                 # Always add fallback transport
                 fallback_edge = self._create_fallback_transport(i, j)
                 transport_modes[key].append(fallback_edge)
+                walk_edge = self._create_fallback_walk_transport(i, j)
+                if walk_edge:
+                    transport_modes[key].append(walk_edge)
                 
                 # Create decision variables for each transport mode
                 for edge in transport_modes[key]:
@@ -584,6 +740,9 @@ class ItineraryOptimizer:
                         # Add fallback transport
                         fallback_edge = self._create_fallback_transport(i, j)
                         transport_modes[key].append(fallback_edge)
+                        walk_edge = self._create_fallback_walk_transport(i, j)
+                        if walk_edge:
+                            transport_modes[key].append(walk_edge)
                     
                     # Create decision variables
                     for edge in transport_modes[key]:
@@ -718,6 +877,11 @@ class ItineraryOptimizer:
         for poi in candidate_pois:
             model.Add(arr[poi] >= day_start_min)
             model.Add(dep[poi] <= day_end_min)
+            loc = self.locations[poi]
+            if loc.time_window_start:
+                model.Add(arr[poi] >= self._time_to_minutes(loc.time_window_start)).OnlyEnforceIf(x[poi])
+            if loc.time_window_end:
+                model.Add(dep[poi] <= self._time_to_minutes(loc.time_window_end)).OnlyEnforceIf(x[poi])
         
         # STEP 16 LOGIC MOVED TO MULTI-FAMILY METHOD
         # (This block was misplaced and is now removed)
@@ -726,15 +890,15 @@ class ItineraryOptimizer:
         # maximize Σ_f [ Satisfaction(f) − λ·CoherenceLoss(f) ]
         
         # STEP 7: Calculate satisfaction scores for each POI
-        # Since all POIs are forced to be visited (x[poi] == 1), we can calculate total satisfaction
-        total_satisfaction_value = 0.0
+        # Let the solver maximize satisfaction based on visitation (x[poi])
+        satisfaction_terms = []
         for poi in candidate_pois:
             sat_score = self.calculate_satisfaction(family, self.locations[poi])
-            total_satisfaction_value += sat_score
-        
-        # Scale satisfaction to integer (multiply by 100 for human-readable scale)
-        # Satisfaction ≈ O(1-10), so scaled ≈ O(100-1000)
-        satisfaction_scaled = int(total_satisfaction_value * 100)
+            # Satisfaction is 0-100. Multiply by 100 to allow precision against scaled penalties.
+            sat_scaled = int(sat_score * 100)
+            satisfaction_terms.append(sat_scaled * x[poi])
+            
+        satisfaction_scaled = sum(satisfaction_terms) if satisfaction_terms else 0
         
         # STEP 8: Calculate coherence loss components
         # Component 1: Transport cost and time
@@ -793,30 +957,25 @@ class ItineraryOptimizer:
                         # If i comes after j in base order, add penalty
                         if base_order[i] > base_order[j]:
                             # This edge violates base order
-                            # Penalty = 100 per violation (scaled to match satisfaction)
-                            order_deviation_terms.append(100 * y[(i, j)])
+                            # Penalty = 1 per violation (scaled by gamma)
+                            order_deviation_terms.append(1 * y[(i, j)])
         
         total_order_deviation = sum(order_deviation_terms) if order_deviation_terms else 0
         
         # Coherence loss = α·time + β·cost + γ·order_deviation
-        # Rescaled to match satisfaction magnitude (O(100-1000))
-        # Original: α=1, β=0.05, γ=100
-        # Scaled: divide time and cost by 10 to bring to O(1-10) range
-        alpha = 1      # Time weight (1 minute ≈ 1 satisfaction point)
-        beta = 1       # Cost weight (₹1 ≈ 1 satisfaction point)
-        gamma = 1      # Order deviation weight (1 violation ≈ 100 satisfaction points, already scaled)
+        # Scale the weights from class properties
+        # Time is ~15-45 mins. Cost is ~0-300 Rs.
+        # With alpha=1.0, time penalty is 15-45 points.
+        # With beta=0.05, cost penalty is 0-15 points.
+        # By multiplying everything by 100, we maintain integer precision.
+        alpha_scaled = int(self.alpha * 100)
+        beta_scaled = int(self.beta * 100)
+        gamma_scaled = int(self.gamma * 100)
         
-        coherence_loss = alpha * total_time + beta * total_cost + gamma * total_order_deviation
+        coherence_loss = alpha_scaled * total_time + beta_scaled * total_cost + gamma_scaled * total_order_deviation
         
-        # Overall objective: maximize satisfaction - λ·coherence_loss
-        # λ (lambda_coherence) controls tradeoff between satisfaction and coherence
-        # For single family: λ = 0.3 (coherence is 30% as important as satisfaction)
-        lambda_coherence = 0.3
-        lambda_coherence_scaled = int(lambda_coherence * 100)  # Scale to match satisfaction
-        
-        # Maximize: satisfaction - λ·coherence_loss
-        # Now both terms are in O(100-1000) range
-        objective = satisfaction_scaled - lambda_coherence_scaled * coherence_loss
+        # Maximize: satisfaction - coherence_loss
+        objective = satisfaction_scaled - coherence_loss
         
         model.Maximize(objective)
         
@@ -827,12 +986,37 @@ class ItineraryOptimizer:
         
         status = solver.Solve(model)
         
+        metrics.stop_measurement(
+            solver_status=solver.StatusName(status),
+            objective_score=solver.ObjectiveValue() if status in [cp_model.OPTIMAL, cp_model.FEASIBLE] else 0.0
+        )
+        
         if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
-            return self._extract_solution(
+            solution = self._extract_solution(
                 solver, x, y if not freeze_order else None, z, arr, dep,
                 candidate_pois, transport_modes, family_id, day_index,
                 freeze_order, all_nodes if not freeze_order else None
             )
+            if solution:
+                total_time_min = sum([trans.get('duration_min', 0) for trans in solution.get('transport', [])])
+                gap = abs(solver.ObjectiveValue() - solver.BestObjectiveBound()) if status == cp_model.OPTIMAL else 0.0
+                utilization = total_time_min / 720.0 * 100 # assuming 12h day
+                avg_travel = total_time_min / max(1, len(solution.get('transport', [])))
+                metrics.record_solution_details(
+                    travel_distance_km=0.0,
+                    travel_time_min=total_time_min,
+                    hotel_cost=0.0,
+                    activities_scheduled=len(solution.get('pois', [])),
+                    activities_skipped=len(candidate_pois) - len(solution.get('pois', [])),
+                    satisfaction_score=solution.get('total_satisfaction', 0.0) / max(1.0, len(solution.get('pois', []))),
+                    solver_optimality_gap=gap,
+                    candidate_pois_evaluated=len(candidate_pois),
+                    itinerary_utilization_pct=utilization,
+                    avg_travel_time_min=avg_travel,
+                    preference_coverage_pct=solution.get('total_satisfaction', 0.0) / max(1.0, len(solution.get('pois', [])) * 100.0) * 100.0
+                )
+                solution['metrics'] = metrics.get_metrics_dict()
+            return solution
         else:
             print(f"No feasible solution found. Status: {solver.StatusName(status)}")
             return None
@@ -1081,22 +1265,28 @@ class ItineraryOptimizer:
                 forced_exclude_pois=forced_exclude
             )
             
-            if day_result:
+            if day_result and not day_result.get("error"):
                 trip_solution["days"].append(day_result)
-                trip_solution["total_trip_cost"] += day_result["total_transport_cost"]
-                trip_solution["total_trip_time_min"] += day_result["total_transport_time_min"]
+                trip_solution["total_trip_cost"] += day_result.get("total_transport_cost", 0)
+                trip_solution["total_trip_time_min"] += day_result.get("total_transport_time_min", 0)
                 
                 # STEP 16: Update History (Restored)
-                for fid, fam_data in day_result['families'].items():
-                    for poi in fam_data['pois']:
+                for fid, fam_data in day_result.get('families', {}).items():
+                    for poi in fam_data.get('pois', []):
                         pid = poi['location_id']
                         if visited_history and fid in visited_history:
                              visited_history[fid].add(pid)
                              
                 print(f"DAY {day_idx + 1} COMPLETE")
             else:
+                print(f"DAY {day_idx + 1} FAILED.")
+                trip_solution["success"] = False
+                trip_solution["error_details"] = day_result
                 break
                 
+        if "success" not in trip_solution:
+            trip_solution["success"] = True
+            
         return trip_solution
 
     def find_best_day_for_poi(
@@ -1297,6 +1487,10 @@ class ItineraryOptimizer:
         STEP 9/10: Optimize itinerary for MULTIPLE families, 1 day.
         Supports explicit physical Start/End locations (e.g. Hotel).
         """
+        from ml_or.metrics_collector import OptimizationMetricsCollector
+        metrics = OptimizationMetricsCollector()
+        metrics.start_measurement()
+        
         families = {fid: self.family_prefs[fid] for fid in family_ids}
         
         # Safe access to day data
@@ -1603,6 +1797,9 @@ class ItineraryOptimizer:
                     
                     # Always allow fallback if explicit transport missing
                     candidates.append(self._create_fallback_transport(source_loc, target_loc))
+                    walk_edge = self._create_fallback_walk_transport(source_loc, target_loc)
+                    if walk_edge:
+                        candidates.append(walk_edge)
                     
                     # Select best
                     best_edge = min(candidates, key=lambda e: e.duration_min * 2 + e.cost)
@@ -1734,6 +1931,13 @@ class ItineraryOptimizer:
         
         cost_terms = []
         time_terms = []
+        fatigue_terms = {fid: [] for fid in family_ids}
+        
+        # POI Fatigue
+        for fid in family_ids:
+            for poi in candidate_pois:
+                poi_fatigue = int(self.locations[poi].avg_visit_time_min / 10.0)
+                fatigue_terms[fid].append(poi_fatigue * x[(fid, poi)])
         
         for fid in family_ids:
             for i in all_nodes:
@@ -1816,6 +2020,12 @@ class ItineraryOptimizer:
                     # We add cost PER FAMILY travel
                     cost_terms.append(cost * adj[(fid, i, j)])
                     time_terms.append(duration * adj[(fid, i, j)])
+                    
+                    if i != START_NODE and j != END_NODE:
+                        best_edge = best_transport_edges.get((i, j))
+                        if best_edge and best_edge.mode == "WALK":
+                            walk_fatigue = int(duration / 2.0)
+                            fatigue_terms[fid].append(walk_fatigue * adj[(fid, i, j)])
 
         # 5. REMOVED: Old shared flow constraints for skeleton (replaced by adj + sync)
         # 5B. REMOVED: Branch POI Time Window Attachment (replaced by adj)
@@ -1823,6 +2033,17 @@ class ItineraryOptimizer:
         total_cost = sum(cost_terms) if cost_terms else 0
         total_time = sum(time_terms) if time_terms else 0
         
+        # FAMILY-SPECIFIC: Fatigue constraints
+        for fid in family_ids:
+            family = families[fid]
+            max_fatigue = int(100 * family.energy_level)
+            profiles = family.profiles or []
+            if "elderly" in profiles:
+                max_fatigue = int(max_fatigue * 0.7)
+            if "children" in profiles:
+                max_fatigue = int(max_fatigue * 0.8)
+            model.Add(sum(fatigue_terms[fid]) <= max_fatigue)
+            
         # 6. FAMILY-SPECIFIC: Must-visit and never-visit constraints
         
         # 5B. BRANCH POIs: Time window attachment (NOT in shared ordering)
@@ -1857,6 +2078,12 @@ class ItineraryOptimizer:
             for poi in candidate_pois:
                 model.Add(arr[(fid, poi)] >= day_start_min)
                 model.Add(dep[(fid, poi)] <= day_end_min)
+                
+                loc = self.locations[poi]
+                if loc.time_window_start:
+                    model.Add(arr[(fid, poi)] >= self._time_to_minutes(loc.time_window_start)).OnlyEnforceIf(x[(fid, poi)])
+                if loc.time_window_end:
+                    model.Add(dep[(fid, poi)] <= self._time_to_minutes(loc.time_window_end)).OnlyEnforceIf(x[(fid, poi)])
         
         # OBJECTIVE
         
@@ -1936,11 +2163,42 @@ class ItineraryOptimizer:
         
         status = solver.Solve(model)
         
+        metrics.stop_measurement(
+            solver_status=solver.StatusName(status),
+            objective_score=solver.ObjectiveValue() if status in [cp_model.OPTIMAL, cp_model.FEASIBLE] else 0.0
+        )
+        
         if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
             solution = self._extract_multi_family_solution(
                 solver, x, y, adj, arr, dep,
                 candidate_pois, best_transport_edges, family_ids, day_index, all_nodes
             )
+            solution["status"] = solver.StatusName(status)
+            
+            # Record business metrics
+            total_time_min = 0
+            for fam in solution.get('families', {}).values():
+                for trans in fam.get('transport', []):
+                    total_time_min += trans.get('duration_min', 0)
+            
+            gap = abs(solver.ObjectiveValue() - solver.BestObjectiveBound()) if status == cp_model.OPTIMAL else 0.0
+            utilization = total_time_min / 720.0 * 100 # assuming 12h day
+            transport_count = sum(len(fam.get('transport', [])) for fam in solution.get('families', {}).values())
+            avg_travel = total_time_min / max(1, transport_count)
+            metrics.record_solution_details(
+                travel_distance_km=0.0, # distance not strictly tracked in this simple metric pass
+                travel_time_min=total_time_min,
+                hotel_cost=0.0,
+                activities_scheduled=len(solution.get('shared_poi_order', [])),
+                activities_skipped=len(candidate_pois) - len(solution.get('shared_poi_order', [])),
+                satisfaction_score=solution.get('total_satisfaction', 0.0),
+                solver_optimality_gap=gap,
+                candidate_pois_evaluated=len(candidate_pois),
+                itinerary_utilization_pct=utilization,
+                avg_travel_time_min=avg_travel,
+                preference_coverage_pct=solution.get('total_satisfaction', 0.0) / max(1.0, len(solution.get('shared_poi_order', [])) * 100.0) * 100.0
+            )
+            solution['metrics'] = metrics.get_metrics_dict()
             
             # TRACE: C. Solver Outcome
             if enable_trace and solution:
@@ -1960,8 +2218,20 @@ class ItineraryOptimizer:
                 
             return solution
         else:
-            print(f"No feasible solution found. Status: {solver.StatusName(status)}")
-            return None
+            status_name = solver.StatusName(status)
+            print(f"No feasible solution found. Status: {status_name}")
+            return {
+                "error": True,
+                "status": status_name,
+                "solve_time_seconds": solver.WallTime(),
+                "message": f"Optimization failed for Day {day_index + 1} with status: {status_name}",
+                "metrics": metrics.get_metrics_dict(),
+                "diagnostics": {
+                    "dropped_soft_constraints": [],
+                    "failed_hard_constraints": "Unknown - Check time allocations or graph connectivity",
+                    "solver_status": status_name
+                }
+            }
     
     def _extract_multi_family_solution(
         self,

@@ -1,11 +1,11 @@
-from typing import Any, List
+from typing import Any, List, Optional, Dict
 from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core.dependencies import get_current_agent
+from app.core.dependencies import get_current_agent, get_agent_workflow_service
 from app.schemas.auth import TokenPayload
 from app.services.itinerary_option_service import ItineraryOptionService
 from app.models.itinerary_option import OptionStatus
@@ -39,12 +39,28 @@ class ApproveRequest(BaseModel):
 class ApproveResponse(BaseModel):
     message: str = Field(..., description="Confirmation message")
     option_id: str = Field(..., description="Approved option ID")
-    tools_agent_triggered: bool = Field(..., description="Whether Tools Agent was triggered")
-    communication_agent_triggered: bool = Field(..., description="Whether Communication Agent was triggered")
+    status: str = Field(default="QUEUED", description="Status of the dispatched background jobs")
+    tools_job_id: Optional[str] = Field(default=None, description="Job ID for the Tools Agent")
+    communication_job_id: Optional[str] = Field(default=None, description="Job ID for the Communication Agent")
 
+
+class AgentJobStatusResponse(BaseModel):
+    job_id: str
+    status: str
+    job_type: Optional[str] = None
+    trip_id: Optional[str] = None
+    itinerary_id: Optional[str] = None
+    attempt_count: Optional[int] = None
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
 
 class CustomerRegistrationRequest(BaseModel):
     email: str = Field(..., description="Email address for the family's primary contact")
+    full_name: str = Field(default="", description="Name of the family's primary contact")
     members: int = Field(default=1, description="Number of members in the family")
     children: int = Field(default=0, description="Number of children in the family")
     initial_location: str = Field(default="", description="Initial location of the family")
@@ -55,6 +71,39 @@ class CustomerRegistrationResponse(BaseModel):
     family_code: str = Field(..., description="Auto-generated family code")
     user_id: str = Field(..., description="Created user ID")
     family_id: str = Field(..., description="Created family ID")
+    temporary_password: Optional[str] = Field(default=None, description="Shown once, for a newly created customer")
+    invite_link: Optional[str] = Field(default=None, description="Set-your-password link, also emailed to the customer")
+
+
+class CustomerDTO(BaseModel):
+    user_id: str
+    email: str
+    full_name: Optional[str] = None
+    family_id: Optional[str] = None
+    family_code: Optional[str] = None
+    members: int = 1
+    children: int = 0
+    trip_count: int = 0
+
+
+class CustomerListResponse(BaseModel):
+    customers: List[CustomerDTO]
+
+
+def _invite(user: Any, agent_sub: str) -> Optional[str]:
+    try:
+        from sqlmodel import Session as _Session
+
+        from app.api.phase4 import send_invite
+        from app.core.db import engine as _engine
+        from app.models.user import User as _User
+
+        with _Session(_engine) as s:
+            me = s.get(_User, UUID(agent_sub))
+        return send_invite(user, me.full_name if me else None)
+    except Exception as e:
+        logger.error(f"Could not send invitation: {e}", exc_info=True)
+        return None
 
 
 # --------------- Endpoints ---------------
@@ -123,7 +172,8 @@ async def get_itinerary_options(
 @router.post("/itinerary/approve", response_model=ApproveResponse)
 async def approve_itinerary_option(
     approve_request: ApproveRequest,
-    current_agent: TokenPayload = Depends(get_current_agent)
+    current_agent: TokenPayload = Depends(get_current_agent),
+    workflow_service: Any = Depends(get_agent_workflow_service)
 ) -> Any:
     """
     Approve an itinerary option (Human-in-the-loop decision).
@@ -135,6 +185,11 @@ async def approve_itinerary_option(
 
         # 1. Approve in DB (also auto-rejects sibling options)
         option_uuid = UUID(approve_request.option_id)
+        from app.services.agency_service import ensure_trip_visible
+
+        _opt = ItineraryOptionService.get_option_by_id(option_uuid)
+        if _opt:
+            ensure_trip_visible(current_agent.sub, _opt.trip_id)
         approved_option = ItineraryOptionService.approve_option(
             option_id=option_uuid,
             agent_id=agent_uuid,
@@ -172,37 +227,52 @@ async def approve_itinerary_option(
                     exc_info=True,
                 )
 
-        # 2. Trigger downstream agents (fire-and-forget, failures logged)
-        tools_triggered = False
-        comm_triggered = False
+        # 2. Trigger downstream agents via Workflow Service
+        tools_job_id = None
+        communication_job_id = None
 
         try:
-            from app.services.agent_service import AgentService
-            tools_triggered = AgentService.trigger_tools_agent(
+            tools_job_id = workflow_service.enqueue_tools_agent(
                 option_id=str(approved_option.id),
                 event_id=approved_option.event_id,
                 trip_id=approved_option.trip_id,
                 details=approved_option.details,
             )
         except Exception as e:
-            logger.warning(f"Tools Agent trigger failed (non-blocking): {e}")
+            # The workflow service will have logged and saved the FAILED state.
+            # We log locally just for the API boundary.
+            logger.warning(f"Tools Agent workflow failed: {e}")
 
         try:
-            from app.services.agent_service import AgentService
-            comm_triggered = AgentService.trigger_communication_agent(
+            communication_job_id = workflow_service.enqueue_communication_agent(
                 option_id=str(approved_option.id),
                 event_id=approved_option.event_id,
                 trip_id=approved_option.trip_id,
                 agent_id=str(agent_uuid) if agent_uuid else None,
             )
         except Exception as e:
-            logger.warning(f"Communication Agent trigger failed (non-blocking): {e}")
+            logger.warning(f"Communication Agent workflow failed: {e}")
+
+        from app.services import notification_service as ns
+
+        first = (approved_option.event_id or "").startswith("trip_init_")
+        link = f"/app/trip/{approved_option.trip_id}"
+        ns.notify_trip_travellers(
+            approved_option.trip_id,
+            "plan.published",
+            "Your plan is ready" if first else "A change to your plan was accepted",
+            approved_option.summary,
+            link,
+            {"trip_id": approved_option.trip_id},
+        )
+        ns.notify_agents("decision.accepted", f"Accepted: {approved_option.summary}", "", link, {"trip_id": approved_option.trip_id, "event_id": approved_option.event_id})
 
         return ApproveResponse(
-            message=f"Option '{approve_request.option_id}' approved successfully.",
+            message=f"Option '{approve_request.option_id}' approved successfully. Jobs queued.",
             option_id=approve_request.option_id,
-            tools_agent_triggered=tools_triggered,
-            communication_agent_triggered=comm_triggered,
+            status="QUEUED",
+            tools_job_id=str(tools_job_id) if tools_job_id else None,
+            communication_job_id=str(communication_job_id) if communication_job_id else None,
         )
 
     except ValueError as e:
@@ -216,6 +286,97 @@ async def approve_itinerary_option(
             detail=f"Failed to approve option: {str(e)}"
         )
 
+
+class AgentJobListResponse(BaseModel):
+    jobs: List[AgentJobStatusResponse]
+
+@router.get("/jobs", response_model=AgentJobListResponse)
+async def list_agent_jobs(
+    limit: int = 50,
+    offset: int = 0,
+    current_agent: TokenPayload = Depends(get_current_agent)
+) -> Any:
+    """
+    List all agent jobs (for agent dashboard).
+    """
+    try:
+        from sqlmodel import Session, select
+        from app.core.db import engine
+        from app.models.agent_job import AgentJob
+        
+        with Session(engine) as session:
+            from app.services.agency_service import trip_ids_in, agency_of
+
+            visible = trip_ids_in(session, agency_of(session, current_agent.sub))
+            jobs = [j for j in session.exec(select(AgentJob).order_by(AgentJob.created_at.desc())).all() if j.trip_id in visible][offset:offset + limit]
+            
+            return AgentJobListResponse(
+                jobs=[
+                    AgentJobStatusResponse(
+                        job_id=str(j.id),
+                        status=j.status.value,
+                        job_type=j.job_type.value,
+                        trip_id=j.trip_id,
+                        itinerary_id=j.itinerary_id,
+                        attempt_count=j.attempt_count,
+                        result=j.result_payload,
+                        error=j.error_message,
+                        created_at=j.created_at,
+                        updated_at=j.updated_at,
+                        started_at=j.started_at,
+                        completed_at=j.completed_at
+                    ) for j in jobs
+                ]
+            )
+    except Exception as e:
+        logger.error(f"Failed to list jobs: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to list jobs: {str(e)}")
+
+
+@router.get("/jobs/{job_id}", response_model=AgentJobStatusResponse)
+async def get_agent_job_status(
+    job_id: str,
+    current_agent: TokenPayload = Depends(get_current_agent)
+) -> Any:
+    """
+    Get the status and result of an asynchronous agent job.
+    """
+    try:
+        from app.services.agent_job_service import AgentJobService
+        job_uuid = UUID(job_id)
+        job = AgentJobService.get_job(job_uuid)
+        
+        if not job:
+            raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+        if job.trip_id:
+            from app.services.agency_service import ensure_trip_visible
+
+            ensure_trip_visible(current_agent.sub, job.trip_id)
+            
+        return AgentJobStatusResponse(
+            job_id=str(job.id),
+            status=job.status.value,
+            job_type=job.job_type.value,
+            trip_id=job.trip_id,
+            itinerary_id=job.itinerary_id,
+            attempt_count=job.attempt_count,
+            result=job.result_payload,
+            error=job.error_message,
+            created_at=job.created_at,
+            updated_at=job.updated_at,
+            started_at=job.started_at,
+            completed_at=job.completed_at
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get job status: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve job status: {str(e)}"
+        )
 
 @router.post("/customers", response_model=CustomerRegistrationResponse)
 async def register_customer(
@@ -248,21 +409,31 @@ async def register_customer(
                 family_id=str(fam.id)
             )
 
-        # Default password for auto-generated customers
-        default_password = "VoyageurDefault2026!"
+        import secrets
+        # Secure default password for auto-generated customers
+        default_password = secrets.token_urlsafe(16)
         
         # Create user (this auto-creates the Family because role = "traveller")
         new_user = UserService.create_user(
             email=request.email,
             password=default_password,
             role="traveller",
-            full_name=request.email.split("@")[0]  # simple default name
+            full_name=request.full_name.strip() or request.email.split("@")[0]
         )
         
         from app.services.family_service import FamilyService
         fam = FamilyService.get_family(new_user.family_id)
         
         # We optionally save extra info (like family members) into preferences
+        from sqlmodel import Session
+
+        from app.core.db import engine
+        from app.services.agency_service import agency_of, set_user_agency
+
+        with Session(engine) as _s:
+            _mine = agency_of(_s, current_agent.sub)
+        if _mine:
+            set_user_agency(new_user.id, _mine)
         if fam:
             prefs = fam.preferences or {}
             prefs["members"] = request.members
@@ -275,7 +446,9 @@ async def register_customer(
             message="Customer registered successfully",
             family_code=fam.family_code,
             user_id=str(new_user.id),
-            family_id=str(fam.id)
+            family_id=str(fam.id),
+            temporary_password=default_password,
+            invite_link=_invite(new_user, current_agent.sub),
         )
 
     except HTTPException:
@@ -286,3 +459,327 @@ async def register_customer(
             status_code=500,
             detail=f"Failed to register customer: {str(e)}"
         )
+
+
+@router.get("/customers", response_model=CustomerListResponse)
+async def list_customers(current_agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    """Every traveller account with its family and how many trips it is on. Agents only."""
+    from sqlalchemy.dialects.postgresql import JSONB
+    from sqlmodel import Session, col, func, select
+
+    from app.core.db import engine
+    from app.models.family import Family
+    from app.models.trip_session import TripSession
+    from app.models.user import User
+
+    out: List[CustomerDTO] = []
+    with Session(engine) as session:
+        from app.services.agency_service import agency_of, user_ids_in
+
+        mine = set(user_ids_in(session, agency_of(session, current_agent.sub), "traveller"))
+        users = [u for u in session.exec(select(User).where(User.role == "traveller").order_by(User.email)).all() if u.id in mine]
+        for u in users:
+            family = session.get(Family, u.family_id) if u.family_id else None
+            prefs = (family.preferences or {}) if family else {}
+            trips = 0
+            if family:
+                trips = session.exec(
+                    select(func.count()).select_from(TripSession).where(
+                        col(TripSession.family_ids).cast(JSONB).contains([str(family.id)])
+                    )
+                ).one()
+            out.append(
+                CustomerDTO(
+                    user_id=str(u.id),
+                    email=u.email,
+                    full_name=u.full_name,
+                    family_id=str(family.id) if family else None,
+                    family_code=family.family_code if family else None,
+                    members=int(prefs.get("members", 1) or 1),
+                    children=int(prefs.get("children", 0) or 0),
+                    trip_count=int(trips),
+                )
+            )
+    return CustomerListResponse(customers=out)
+
+
+
+class CustomerTripDTO(BaseModel):
+    trip_id: str
+    trip_name: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    current_version: Optional[int] = None
+    total_cost: Optional[float] = None
+    status: Optional[str] = None
+    feedback_count: int = 0
+
+
+class CustomerDetailResponse(BaseModel):
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    family_id: str
+    family_code: str
+    preferences: Dict[str, Any] = Field(default_factory=dict)
+    members: List[Dict[str, Any]] = Field(default_factory=list)
+    trips: List[CustomerTripDTO] = Field(default_factory=list)
+
+
+class PreferencesUpdate(BaseModel):
+    members: Optional[int] = Field(default=None, ge=1, le=20)
+    children: Optional[int] = Field(default=None, ge=0, le=20)
+    interest_vector: Optional[Dict[str, float]] = None
+    pace_preference: Optional[str] = None
+    budget_sensitivity: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    energy_level: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    must_visit_locations: Optional[List[str]] = None
+    never_visit_locations: Optional[List[str]] = None
+    notes: Optional[str] = Field(default=None, max_length=2000)
+
+
+@router.get("/customers/{family_id}", response_model=CustomerDetailResponse)
+async def get_customer(family_id: UUID, current_agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    """One customer's family: contact, saved preferences, members and their trips. Agents only."""
+    from sqlalchemy.dialects.postgresql import JSONB
+    from sqlmodel import Session, col, select
+
+    from app.core.db import engine
+    from app.models.family import Family
+    from app.models.trip_session import TripSession
+    from app.models.user import User
+    from app.services.trip_service import TripService
+
+    with Session(engine) as session:
+        from app.services.agency_service import ensure_family_visible
+
+        ensure_family_visible(session, current_agent.sub, family_id)
+        family = session.get(Family, family_id)
+        if not family:
+            raise HTTPException(status_code=404, detail="Customer not found")
+        users = session.exec(select(User).where(User.family_id == family.id).order_by(User.created_at)).all()
+        primary = users[0] if users else None
+        trips = session.exec(
+            select(TripSession)
+            .where(col(TripSession.family_ids).cast(JSONB).contains([str(family.id)]))
+            .order_by(TripSession.created_at.desc())
+        ).all()
+        out_trips = []
+        for t in trips:
+            stats = TripService.itinerary_stats(t)
+            out_trips.append(
+                CustomerTripDTO(
+                    trip_id=t.trip_id,
+                    trip_name=t.trip_name,
+                    start_date=t.start_date.isoformat() if t.start_date else None,
+                    end_date=t.end_date.isoformat() if t.end_date else None,
+                    current_version=stats.get("current_version"),
+                    total_cost=stats.get("total_cost"),
+                    status=t.status,
+                    feedback_count=len(t.feedback_history or []),
+                )
+            )
+        return CustomerDetailResponse(
+            user_id=str(primary.id) if primary else None,
+            email=primary.email if primary else None,
+            full_name=primary.full_name if primary else None,
+            family_id=str(family.id),
+            family_code=family.family_code,
+            preferences=family.preferences or {},
+            members=[{"id": str(u.id), "email": u.email, "full_name": u.full_name, "role": u.role} for u in users],
+            trips=out_trips,
+        )
+
+
+@router.put("/customers/{family_id}/preferences", response_model=CustomerDetailResponse)
+async def update_customer_preferences(
+    family_id: UUID,
+    body: PreferencesUpdate,
+    current_agent: TokenPayload = Depends(get_current_agent),
+) -> Any:
+    """Change a customer's saved preferences. They apply to trips planned from now on. Agents only."""
+    from app.services.family_service import FamilyService
+
+    from app.services.agency_service import ensure_family_visible
+
+    with Session(engine) as _s:
+        ensure_family_visible(_s, current_agent.sub, family_id)
+    family = FamilyService.get_family(family_id)
+    if not family:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    prefs = dict(family.preferences or {})
+    changes = body.model_dump(exclude_none=True) if hasattr(body, "model_dump") else body.dict(exclude_none=True)
+    if "interest_vector" in changes:
+        merged = dict(prefs.get("interest_vector") or {})
+        merged.update({k: max(0.0, min(1.0, float(v))) for k, v in changes.pop("interest_vector").items()})
+        prefs["interest_vector"] = merged
+    prefs.update(changes)
+    if prefs.get("children", 0) > prefs.get("members", 1):
+        prefs["children"] = prefs.get("members", 1)
+    FamilyService.update_preferences(family.id, prefs)
+    return await get_customer(family_id, current_agent)
+
+
+# ------------------------------------------------------------------
+# Decisions: every approval the agent can accept or decline
+# ------------------------------------------------------------------
+
+class DecisionOptionDTO(BaseModel):
+    option_id: str
+    summary: str
+    cost: float
+    satisfaction: float
+    status: str
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class DecisionDTO(BaseModel):
+    event_id: str
+    trip_id: str
+    trip_name: Optional[str] = None
+    kind: str  # first_plan | change_request
+    status: str  # pending | accepted | declined
+    request: Optional[str] = None
+    created_at: Optional[str] = None
+    decided_at: Optional[str] = None
+    current_cost: Optional[float] = None
+    current_fit: Optional[float] = None
+    options: List[DecisionOptionDTO]
+
+
+class DecisionListResponse(BaseModel):
+    decisions: List[DecisionDTO]
+
+
+class RejectRequest(BaseModel):
+    event_id: str
+    reason: Optional[str] = Field(default=None, max_length=500)
+
+
+@router.get("/decisions", response_model=DecisionListResponse)
+async def list_decisions(
+    status: Optional[str] = Query(default=None, description="pending, accepted or declined"),
+    limit: int = Query(default=60, ge=1, le=200),
+    current_agent: TokenPayload = Depends(get_current_agent),
+) -> Any:
+    """Every first plan and change request with its options, newest first. Agents only."""
+    from collections import defaultdict
+    from sqlmodel import Session, select
+
+    from app.core.db import engine
+    from app.models.agent_job import AgentJob
+    from app.models.itinerary import Itinerary
+    from app.models.itinerary_option import ItineraryOptionDB, OptionStatus
+    from app.models.trip_session import TripSession
+
+    with Session(engine) as session:
+        from app.services.agency_service import agency_of, trip_ids_in
+
+        visible = trip_ids_in(session, agency_of(session, current_agent.sub))
+        options = [o for o in session.exec(select(ItineraryOptionDB).order_by(ItineraryOptionDB.created_at.desc())).all() if o.trip_id in visible]
+        trips = {t.trip_id: t for t in session.exec(select(TripSession)).all()}
+        summaries: Dict[str, str] = {}
+        for j in session.exec(select(AgentJob)).all():
+            result = j.result_payload or {}
+            ev = result.get("event_id")
+            if ev and isinstance(result.get("summary"), str):
+                summaries[str(ev)] = result["summary"]
+
+        grouped: Dict[str, list] = defaultdict(list)
+        for o in options:
+            grouped[o.event_id].append(o)
+
+        out: List[DecisionDTO] = []
+        for event_id, opts in grouped.items():
+            opts.sort(key=lambda o: (-len((o.details or {}).get("schedule_changes") or []), -o.satisfaction))
+            if any(o.status == OptionStatus.APPROVED for o in opts):
+                state = "accepted"
+            elif all(o.status == OptionStatus.REJECTED for o in opts):
+                state = "declined"
+            else:
+                state = "pending"
+            if status and status != state:
+                continue
+            trip = trips.get(opts[0].trip_id)
+            cost = fit = None
+            if trip and trip.current_itinerary_id:
+                itin = session.get(Itinerary, trip.current_itinerary_id)
+                if itin:
+                    cost, fit = itin.total_cost, itin.total_satisfaction
+            decided = [o.approved_at for o in opts if o.approved_at]
+            out.append(
+                DecisionDTO(
+                    event_id=event_id,
+                    trip_id=opts[0].trip_id,
+                    trip_name=trip.trip_name if trip else None,
+                    kind="first_plan" if event_id.startswith("trip_init_") else "change_request",
+                    status=state,
+                    request=summaries.get(event_id),
+                    created_at=min(o.created_at for o in opts).isoformat(),
+                    decided_at=max(decided).isoformat() if decided else None,
+                    current_cost=cost,
+                    current_fit=fit,
+                    options=[
+                        DecisionOptionDTO(
+                            option_id=str(o.id),
+                            summary=o.summary,
+                            cost=o.cost,
+                            satisfaction=o.satisfaction,
+                            status=o.status.value,
+                            details={k: v for k, v in (o.details or {}).items() if k in ("schedule_changes", "affected_pois", "type", "optimizer_ran")},
+                        )
+                        for o in opts
+                    ],
+                )
+            )
+    out.sort(key=lambda d: (d.status != "pending", d.created_at or ""), reverse=False)
+    pending = [d for d in out if d.status == "pending"]
+    rest = [d for d in out if d.status != "pending"]
+    pending.sort(key=lambda d: d.created_at or "")
+    rest.sort(key=lambda d: d.decided_at or d.created_at or "", reverse=True)
+    return DecisionListResponse(decisions=(pending + rest)[:limit])
+
+
+@router.post("/itinerary/reject")
+async def reject_request(body: RejectRequest, current_agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    """Decline a request: every pending option for the event is rejected and the plan stays as it is."""
+    from sqlmodel import Session, select
+
+    from app.core.db import engine
+    from app.models.itinerary_option import ItineraryOptionDB, OptionStatus
+
+    agent_uuid = UUID(current_agent.sub) if current_agent.sub else None
+    with Session(engine) as session:
+        opts = session.exec(
+            select(ItineraryOptionDB).where(ItineraryOptionDB.event_id == body.event_id)
+        ).all()
+        if not opts:
+            raise HTTPException(status_code=404, detail="Request not found")
+        from app.services.agency_service import ensure_trip_visible
+
+        ensure_trip_visible(current_agent.sub, opts[0].trip_id)
+        pending = [o for o in opts if o.status == OptionStatus.PENDING]
+        if not pending:
+            raise HTTPException(status_code=409, detail="That request has already been decided")
+        now = datetime.utcnow()
+        for o in pending:
+            o.status = OptionStatus.REJECTED
+            o.approved_by = agent_uuid
+            o.approved_at = now
+            session.add(o)
+        session.commit()
+    logger.info(f"Agent {current_agent.sub} declined event {body.event_id} ({len(pending)} options)")
+    from app.services import notification_service as ns
+
+    trip_id = pending[0].trip_id
+    ns.notify_trip_travellers(trip_id, "decision.declined", "A request was declined", pending[0].summary, f"/app/trip/{trip_id}", {"trip_id": trip_id})
+    ns.notify_agents("decision.declined", f"Declined: {pending[0].summary}", body.reason or "", "/app/desk", {"trip_id": trip_id, "event_id": body.event_id})
+    return {"event_id": body.event_id, "declined": len(pending), "reason": body.reason}
+
+
+@router.get("/analytics")
+async def agent_analytics(current_agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    """Business metrics across trips, versions, approvals, agent jobs and customers. Agents only."""
+    from app.services.analytics_service import compute_analytics
+
+    return compute_analytics(current_agent.sub)

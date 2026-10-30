@@ -9,13 +9,15 @@ from app.models.user import User
 from app.models.family import Family
 from app.models.itinerary import Itinerary
 from app.models.policy import DecisionLog, POIRequest
+from app.models.itinerary_option import OptionStatus
+from app.core.config import settings
 from app.services.user_service import UserService
 
 client = TestClient(app)
 
 # Test Data
-TEST_EMAIL = "test_features@meili.ai"
-TEST_PASSWORD = "password123"
+TEST_EMAIL = "agent_test@example.com"
+TEST_PASSWORD = settings.TEST_USER_PASSWORD
 TEST_FAMILY_NAME = "Feature Test Family"
 TEST_MEMBER_EMAIL = "member@meili.ai"
 

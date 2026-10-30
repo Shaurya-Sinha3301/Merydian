@@ -57,9 +57,9 @@ case "$MODE" in
     # ── Run Alembic migrations then exit (used as init-container) ────────────
     migrate)
         wait_for_postgres
-        echo "🔄  Running Alembic migrations …"
-        alembic upgrade head
-        echo "✅  Migrations complete."
+        echo "🔄  Bootstrapping schema …"
+        python scripts/db_bootstrap.py
+        echo "✅  Schema ready."
         ;;
 
     # ── Start FastAPI application ─────────────────────────────────────────────
@@ -69,9 +69,8 @@ case "$MODE" in
         echo "🚀  Starting FastAPI (uvicorn) …"
         exec uvicorn app.main:app \
             --host 0.0.0.0 \
-            --port 8000 \
+            --port "${PORT:-8000}" \
             --workers "${UVICORN_WORKERS:-2}" \
-            --loop uvloop \
             --log-level "${LOG_LEVEL:-info}"
         ;;
 
@@ -80,29 +79,54 @@ case "$MODE" in
         wait_for_postgres
         wait_for_redis
         echo "⚙️   Starting Celery worker …"
-        exec celery -A app.worker.celery worker \
+        exec celery -A app.core.celery_app:celery_app worker \
             --loglevel="${LOG_LEVEL:-info}" \
             --concurrency="${CELERY_CONCURRENCY:-4}" \
-            --queues="default,bookings,agent_tasks" \
+            --queues="${CELERY_QUEUES:-default,booking_queue,event_queue,notification_queue}" \
             --hostname="worker@%h"
+        ;;
+
+    # ── Single-container mode for free hosts (Render): migrate, worker + API ──
+    all)
+        wait_for_postgres
+        wait_for_redis
+        echo "🔄  Bootstrapping schema …"
+        python scripts/db_bootstrap.py
+        if [ "${SEED_ON_START:-false}" = "true" ]; then
+            echo "🌱  Seeding data …"
+            python -m scripts.seed || echo "⚠️  Seeding failed (continuing)"
+        fi
+        echo "⚙️   Starting Celery worker in background …"
+        celery -A app.core.celery_app:celery_app worker \
+            --loglevel="${LOG_LEVEL:-info}" \
+            --concurrency="${CELERY_CONCURRENCY:-1}" \
+            --max-tasks-per-child=20 \
+            --queues="${CELERY_QUEUES:-default,booking_queue,event_queue,notification_queue}" \
+            --hostname="worker@%h" &
+        WORKER_PID=$!
+        trap 'kill "$WORKER_PID" 2>/dev/null || true' EXIT TERM INT
+        echo "🚀  Starting FastAPI (uvicorn) on port ${PORT:-8000} …"
+        uvicorn app.main:app \
+            --host 0.0.0.0 \
+            --port "${PORT:-8000}" \
+            --workers 1 \
+            --proxy-headers --forwarded-allow-ips="*" \
+            --log-level "${LOG_LEVEL:-info}"
         ;;
 
     # ── Start Celery Beat scheduler ───────────────────────────────────────────
     beat)
         wait_for_redis
         echo "🕐  Starting Celery Beat scheduler …"
-        exec celery -A app.worker.celery beat \
-            --loglevel="${LOG_LEVEL:-info}" \
-            --scheduler django_celery_beat.schedulers:DatabaseScheduler 2>/dev/null \
-            || exec celery -A app.worker.celery beat \
-                --loglevel="${LOG_LEVEL:-info}"
+        exec celery -A app.core.celery_app:celery_app beat \
+            --loglevel="${LOG_LEVEL:-info}"
         ;;
 
     # ── Flower monitoring dashboard ───────────────────────────────────────────
     flower)
         wait_for_redis
         echo "🌸  Starting Flower monitoring …"
-        exec celery -A app.worker.celery flower \
+        exec celery -A app.core.celery_app:celery_app flower \
             --port=5555 \
             --address=0.0.0.0 \
             --basic_auth="${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-admin}" \
@@ -111,7 +135,7 @@ case "$MODE" in
 
     *)
         echo "❌  Unknown mode: ${MODE}"
-        echo "    Valid modes: api | worker | beat | flower | migrate"
+        echo "    Valid modes: api | worker | all | beat | flower | migrate"
         exit 1
         ;;
 esac

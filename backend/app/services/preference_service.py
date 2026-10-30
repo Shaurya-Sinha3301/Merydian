@@ -71,6 +71,18 @@ class PreferenceService:
                 statement = statement.where(Preference.is_active == True)
             results = session.exec(statement)
             return list(results.all())
+            
+    @staticmethod
+    def get_families_preferences(family_ids: List[UUID], active_only: bool = True) -> List[Preference]:
+        """Get all preferences for multiple families."""
+        if not family_ids:
+            return []
+        with Session(engine) as session:
+            statement = select(Preference).where(Preference.family_id.in_(family_ids))
+            if active_only:
+                statement = statement.where(Preference.is_active == True)
+            results = session.exec(statement)
+            return list(results.all())
     
     @staticmethod
     def get_must_visit_pois(family_id: UUID) -> List[str]:

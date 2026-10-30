@@ -12,6 +12,7 @@ Integrates the full agent pipeline with the backend database:
 """
 
 import logging
+from app.core.config import settings
 import json
 import time
 import tempfile
@@ -554,7 +555,7 @@ class AgentService:
         trip_session = TripService.get_active_trip_for_family(family_id)
         if not trip_session:
             logger.warning("No active trip for family %s — creating fallback session", family_id)
-            baseline_path = "ml_or/data/base_itinerary_clustered.json"
+            baseline_path = f"{settings.ML_DATA_DIR}/base_itinerary_clustered.json"
             trip_id = f"auto_{family_id}"
             OptimizerService.create_trip_session(
                 trip_id=trip_id,
@@ -578,7 +579,7 @@ class AgentService:
                 (event.payload or {}).get("disruption_to_poi")
             )
 
-            base_graph = "ml_or/data/transport_graph.json"
+            base_graph = f"{settings.ML_DATA_DIR}/transport_graph.json"
             disrupted_graph_path = _apply_transport_disruption(
                 transport_graph_path=base_graph,
                 transport_mode=transport_mode,

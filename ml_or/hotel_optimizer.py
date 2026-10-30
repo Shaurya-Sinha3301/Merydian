@@ -66,6 +66,72 @@ class HotelSkeletonOptimizer:
         self.w_coherence = -500.0     # Penalty for splitting families
         self.w_switching = -200.0     # Penalty for switching hotels
 
+    @classmethod
+    def from_dataset(cls, dataset, constraints=None):
+        """
+        Construct hotel optimizer from domain objects instead of file paths.
+        
+        Args:
+            dataset: TravelDataset contract object
+            constraints: Optional TravelConstraints for weight tuning
+        """
+        instance = cls.__new__(cls)
+        
+        # Convert contract LocationData -> internal Location dataclass
+        instance.locations = {}
+        for lid, loc_data in {**dataset.locations, **dataset.hotels}.items():
+            instance.locations[lid] = Location(
+                location_id=loc_data.location_id,
+                name=loc_data.name,
+                type=loc_data.category or "POI",
+                lat=loc_data.lat,
+                lng=loc_data.lon,
+                avg_visit_time_min=loc_data.visit_duration_min or 60,
+                cost=loc_data.entry_fee or 0,
+                tags=loc_data.tags,
+                role=loc_data.metadata.get("role", "SKELETON"),
+            )
+        
+        # Base itinerary as dict
+        instance.base_itinerary = {
+            "days": dataset.base_itinerary.days,
+            **dataset.base_itinerary.metadata,
+        }
+        
+        # Family prefs as raw list-of-dicts (HotelSkeletonOptimizer reads raw JSON)
+        instance.family_prefs = [
+            {
+                "family_id": fp.family_id,
+                "budget_sensitivity": fp.budget_sensitivity,
+                "members": fp.members,
+                "must_visit_locations": fp.must_visit_locations,
+                "never_visit_locations": fp.never_visit_locations,
+            }
+            for fp in dataset.family_preferences.values()
+        ]
+        
+        # Configuration
+        instance.search_radius_km = 10.0
+        instance.check_in_time = 1400
+        instance.check_out_time = 1100
+        
+        # Default weights
+        instance.w_satisfaction = 10.0
+        instance.w_travel_dist = -1.0
+        instance.w_hotel_cost = -0.01
+        instance.w_coherence = -500.0
+        instance.w_switching = -200.0
+        
+        # Apply budget constraint to hotel cost weight
+        if constraints and constraints.budget_level:
+            budget_weight_map = {
+                "budget": -0.05, "moderate": -0.01,
+                "premium": -0.005, "luxury": -0.002,
+            }
+            instance.w_hotel_cost = budget_weight_map.get(constraints.budget_level.value, -0.01)
+        
+        return instance
+
     def _load_json(self, filepath: str):
         with open(filepath, 'r') as f:
             return json.load(f)

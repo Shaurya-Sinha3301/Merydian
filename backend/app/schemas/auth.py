@@ -23,6 +23,9 @@ class UserCreate(BaseModel):
     full_name: str
     role: str = "traveller"
     user_type: str = "customer" # For frontend compatibility
+    agent_code: Optional[str] = None
+    agency_name: Optional[str] = None  # agents: start a new agency
+    agency_code: Optional[str] = None  # agents and travellers: join an existing agency
 
 class LogoutRequest(BaseModel):
     """Request body for logout (optional, can be empty)"""

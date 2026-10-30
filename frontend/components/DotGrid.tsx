@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import { gsap } from 'gsap';

@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "trip_id": "delhi_indi_20260315_4127",
+  "trip_session_id": "3879f7fb-e384-4c28-8876-683d2819db11",
+  "message": "Trip initialized successfully with 1 families",
+  "summary": {
+    "families_registered": 1,
+    "total_members": 4,
+    "total_children": 2,
+    "trip_duration_days": 4,
+    "baseline_itinerary": "delhi_3day_skeleton"
+  },
+  "next_steps": [
+    "Review your baseline itinerary",
+    "Run initial optimization to see the proposed trip plan",
+    "Provide feedback to refine the itinerary"
+  ]
+}

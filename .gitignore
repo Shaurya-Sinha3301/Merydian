@@ -24,3 +24,20 @@ optimizer_outputs/
 
 .kiro/specs/
 frontend/Travel_agent_Landing
+.neon
+node_modules/
+
+# Local demo run output
+backend/trip_sessions_demo/
+backend/optimizer_outputs_demo/
+
+# Demo walkthrough output (regenerate with demo-run/record_walkthrough.py)
+demo-run/shots/
+demo-run/videos/
+
+backend/Api_credentials.pdf
+*credentials*.pdf
+.env
+.env.*
+!.env.example
+!.env.test

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiClient } from '../services/api';
+import { authService } from '@/services/auth';
 
 interface User {
     id: string;
@@ -29,40 +29,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
-    // Decode JWT to extract user info
-    const decodeToken = (token: string): User | null => {
-        try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(
-                atob(base64)
-                    .split('')
-                    .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join('')
-            );
-            const payload = JSON.parse(jsonPayload);
-
-            return {
-                id: payload.sub,
-                email: '', // Will be fetched from profile endpoint if needed
-                full_name: '', // Will be fetched from profile endpoint if needed
-                role: payload.role,
-                family_id: payload.family_id,
-            };
-        } catch (error) {
-            console.error('Failed to decode token:', error);
-            return null;
-        }
-    };
-
     // Initialize auth state from stored token
     useEffect(() => {
         const initAuth = async () => {
             const token = localStorage.getItem('access_token');
             if (token) {
-                apiClient.setToken(token);
                 try {
-                    const profile = await apiClient.getUserProfile();
+                    const profile = await authService.getUserProfile();
                     setUser(profile);
                 } catch (e) {
                     // Token invalid, try to refresh
@@ -92,25 +65,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = useCallback(async (email: string, password: string) => {
         try {
-            const response = await apiClient.login(email, password);
-
-            // Store access token
-            localStorage.setItem('access_token', response.access_token);
-            apiClient.setToken(response.access_token);
+            await authService.login(email, password);
 
             // Fetch and set user
-            const profile = await apiClient.getUserProfile();
+            const profile = await authService.getUserProfile();
             setUser(profile);
 
             // Redirect based on role
             if (profile.role === 'agent') {
                 router.push('/agent-dashboard');
             } else {
-                router.push('/customer-portal');
+                router.push('/customer-dashboard');
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Login failed:', error);
-            throw new Error(error.message || 'Login failed');
+            throw new Error(((error as Error).message || "") || 'Login failed');
         }
     }, [router]);
 
@@ -121,43 +90,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: 'traveller' | 'agent'
     ) => {
         try {
-            const response = await apiClient.signup({
+            await authService.signup({
                 email,
                 password,
                 full_name: fullName,
                 role,
             });
 
-            // Store access token
-            localStorage.setItem('access_token', response.access_token);
-            apiClient.setToken(response.access_token);
-
             // Fetch and set user
-            const profile = await apiClient.getUserProfile();
+            const profile = await authService.getUserProfile();
             setUser(profile);
 
             // Redirect based on role
             if (role === 'agent') {
                 router.push('/agent-dashboard');
             } else {
-                // New customers go to portal directly now
-                router.push('/customer-portal');
+                router.push('/customer-dashboard');
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Signup failed:', error);
-            throw new Error(error.message || 'Signup failed');
+            throw new Error(((error as Error).message || "") || 'Signup failed');
         }
     }, [router]);
 
     const logout = useCallback(async () => {
         try {
-            await apiClient.logout();
+            await authService.logout();
         } catch (error) {
             console.error('Logout API call failed:', error);
         } finally {
             // Clear local state regardless of API call success
-            localStorage.removeItem('access_token');
-            apiClient.clearToken();
             setUser(null);
             router.push('/login');
         }
@@ -165,23 +127,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const refreshToken = useCallback(async (): Promise<boolean> => {
         try {
-            const response = await apiClient.refreshToken();
-
-            // Store new access token
-            localStorage.setItem('access_token', response.access_token);
-            apiClient.setToken(response.access_token);
+            await authService.refreshToken();
 
             // Fetch updated user data
-            const profile = await apiClient.getUserProfile();
+            const profile = await authService.getUserProfile();
             setUser(profile);
             return true;
         } catch (error) {
-            if ((error as any).status !== 401 && (error as any).status !== 403) {
+            if (((error as {status?: number}).status) !== 401 && ((error as {status?: number}).status) !== 403) {
                 console.error('Token refresh failed:', error);
             }
             // Clear auth state on refresh failure
-            localStorage.removeItem('access_token');
-            apiClient.clearToken();
             setUser(null);
             return false;
         }

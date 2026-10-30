@@ -21,7 +21,7 @@ from app.models.policy import POIRequest, FamilyResponseMessage, DecisionLog
 # Create engine with connection pooling
 engine = create_engine(
     settings.SQLALCHEMY_DATABASE_URI, 
-    echo=True,
+    echo=settings.DB_ECHO,
     pool_pre_ping=True,  # Verify connections before using them
 )
 

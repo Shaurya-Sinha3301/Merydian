@@ -1,0 +1,41 @@
+{
+  "base": [
+    "Engineered a constraint programming (CP-SAT) multi-objective itinerary optimizer, evaluated across 10,000 benchmark runs with 100.0% solver success rate (Reference: resume_evidence.json#Optimization scenarios executed).",
+    "Designed a reproducible benchmarking pipeline producing statistically validated metrics with P99 latency of 5165.0 ms (Reference: resume_evidence.json#P99 latency).",
+    "Achieved average traveler satisfaction score of 56.17 via automated multi-objective tuning (Reference: resume_evidence.json#Average traveler satisfaction)."
+  ],
+  "Google": [
+    "Engineered a constraint programming (CP-SAT) multi-objective itinerary optimizer, evaluated across 10,000 benchmark runs with 100.0% solver success rate (Reference: resume_evidence.json#Optimization scenarios executed).",
+    "Designed a reproducible benchmarking pipeline producing statistically validated metrics with P99 latency of 5165.0 ms (Reference: resume_evidence.json#P99 latency).",
+    "Achieved average traveler satisfaction score of 56.17 via automated multi-objective tuning (Reference: resume_evidence.json#Average traveler satisfaction).",
+    "Scaled deterministic solver evaluation to 10,000 real-world travel planning scenarios with automated regression validation.",
+    "Optimized computational throughput, satisfying complex temporal logic constraints with 5165.0 ms P99 bounds."
+  ],
+  "Meta": [
+    "Engineered a constraint programming (CP-SAT) multi-objective itinerary optimizer, evaluated across 10,000 benchmark runs with 100.0% solver success rate (Reference: resume_evidence.json#Optimization scenarios executed).",
+    "Designed a reproducible benchmarking pipeline producing statistically validated metrics with P99 latency of 5165.0 ms (Reference: resume_evidence.json#P99 latency).",
+    "Achieved average traveler satisfaction score of 56.17 via automated multi-objective tuning (Reference: resume_evidence.json#Average traveler satisfaction)."
+  ],
+  "OpenAI": [
+    "Engineered a constraint programming (CP-SAT) multi-objective itinerary optimizer, evaluated across 10,000 benchmark runs with 100.0% solver success rate (Reference: resume_evidence.json#Optimization scenarios executed).",
+    "Designed a reproducible benchmarking pipeline producing statistically validated metrics with P99 latency of 5165.0 ms (Reference: resume_evidence.json#P99 latency).",
+    "Achieved average traveler satisfaction score of 56.17 via automated multi-objective tuning (Reference: resume_evidence.json#Average traveler satisfaction)."
+  ],
+  "Amazon": [
+    "Engineered a constraint programming (CP-SAT) multi-objective itinerary optimizer, evaluated across 10,000 benchmark runs with 100.0% solver success rate (Reference: resume_evidence.json#Optimization scenarios executed).",
+    "Designed a reproducible benchmarking pipeline producing statistically validated metrics with P99 latency of 5165.0 ms (Reference: resume_evidence.json#P99 latency).",
+    "Achieved average traveler satisfaction score of 56.17 via automated multi-objective tuning (Reference: resume_evidence.json#Average traveler satisfaction).",
+    "Scaled deterministic solver evaluation to 10,000 real-world travel planning scenarios with automated regression validation."
+  ],
+  "General SWE": [
+    "Engineered a constraint programming (CP-SAT) multi-objective itinerary optimizer, evaluated across 10,000 benchmark runs with 100.0% solver success rate (Reference: resume_evidence.json#Optimization scenarios executed).",
+    "Designed a reproducible benchmarking pipeline producing statistically validated metrics with P99 latency of 5165.0 ms (Reference: resume_evidence.json#P99 latency).",
+    "Achieved average traveler satisfaction score of 56.17 via automated multi-objective tuning (Reference: resume_evidence.json#Average traveler satisfaction).",
+    "Optimized computational throughput, satisfying complex temporal logic constraints with 5165.0 ms P99 bounds."
+  ],
+  "AI/ML Engineering": [
+    "Engineered a constraint programming (CP-SAT) multi-objective itinerary optimizer, evaluated across 10,000 benchmark runs with 100.0% solver success rate (Reference: resume_evidence.json#Optimization scenarios executed).",
+    "Designed a reproducible benchmarking pipeline producing statistically validated metrics with P99 latency of 5165.0 ms (Reference: resume_evidence.json#P99 latency).",
+    "Achieved average traveler satisfaction score of 56.17 via automated multi-objective tuning (Reference: resume_evidence.json#Average traveler satisfaction)."
+  ]
+}

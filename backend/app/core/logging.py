@@ -9,6 +9,8 @@ class JSONFormatter(logging.Formatter):
     Formatter that outputs JSON strings after parsing the LogRecord.
     """
     def format(self, record: logging.LogRecord) -> str:
+        from app.core.context import get_log_context
+        
         log_obj: dict[str, Any] = {
             "timestamp": datetime.utcnow().isoformat(),
             "level": record.levelname,
@@ -17,6 +19,12 @@ class JSONFormatter(logging.Formatter):
             "funcName": record.funcName,
             "line": record.lineno,
         }
+        
+        # Inject structured context
+        ctx = get_log_context()
+        for k, v in ctx.items():
+            if v is not None:
+                log_obj[k] = v
         
         if record.exc_info:
             log_obj["exception"] = self.formatException(record.exc_info)

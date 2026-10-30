@@ -7,12 +7,16 @@ Provides endpoints for:
 - Updating family preferences
 """
 
+import logging
+
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Any, Optional, Annotated
 from datetime import date
 
 from app.services.trip_service import TripService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/trips", tags=["trips"])
 
@@ -217,7 +221,16 @@ class TripDetailResponse(BaseModel):
     initial_preferences: Dict[str, Any]
     current_preferences: Dict[str, Any]
     feedback_count: int
-    last_updated: Optional[str]
+    last_updated: Optional[str] = None
+    status: Optional[str] = None
+    latest_itinerary_path: Optional[str] = None
+    created_at: Optional[str] = None
+    family_id: Optional[str] = None
+    current_version: Optional[int] = None
+    total_cost: Optional[float] = None
+    total_satisfaction: Optional[float] = None
+    duration_days: Optional[int] = None
+    feedback_history: List[Dict[str, Any]] = []
 
 
 class PreferenceUpdateRequest(BaseModel):
@@ -232,7 +245,7 @@ class PreferenceUpdateRequest(BaseModel):
 # Endpoints
 # ============================================================================
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_agent, get_current_user, verify_trip_access
 from app.schemas.auth import TokenPayload
 
 @router.post("/initialize", response_model=InitializeTripResponse, status_code=status.HTTP_201_CREATED)
@@ -318,7 +331,7 @@ async def initialize_trip(
 )
 async def initialize_trip_with_optimization(
     request: InitializeTripWithOptiRequest,
-    current_user: Optional[TokenPayload] = Depends(lambda: None),
+    current_user: TokenPayload = Depends(get_current_agent),
 ):
     """
     Initialize a trip with automatic optimizer run.
@@ -340,6 +353,14 @@ async def initialize_trip_with_optimization(
             family_ids=request.family_ids,
             num_travellers=request.num_travellers,
         )
+        from app.core.db import engine as _engine
+        from app.services import notification_service as ns
+        from app.services.agency_service import agency_of, set_trip_agency
+        from sqlmodel import Session as _Session
+
+        with _Session(_engine) as _s:
+            set_trip_agency(result["trip_id"], agency_of(_s, current_user.sub))
+        ns.notify_agents("decision.created", f"First plan ready: {request.trip_name}", "Waiting for approval", "/app/desk", {"trip_id": result.get("trip_id"), "option_id": result.get("option_id")})
 
         return InitializeTripWithOptiResponse(**result)
 
@@ -356,7 +377,7 @@ async def initialize_trip_with_optimization(
 
 
 @router.get("/{trip_id}/summary", response_model=TripDetailResponse)
-async def get_trip_summary(trip_id: str):
+async def get_trip_summary(trip_id: str, _: Any = Depends(verify_trip_access), current_user: TokenPayload = Depends(get_current_user)):
     """
     Get detailed summary of a trip including current state.
     
@@ -374,6 +395,9 @@ async def get_trip_summary(trip_id: str):
     """
     try:
         summary = TripService.get_trip_summary(trip_id)
+        if current_user.role != "agent" and current_user.family_id:
+            trip = TripService.get_trip(trip_id)
+            summary.update({k: v for k, v in TripService.itinerary_stats(trip, current_user.family_id).items() if k != "feedback_history"})
         return TripDetailResponse(**summary)
     except ValueError as e:
         raise HTTPException(
@@ -388,7 +412,7 @@ async def get_trip_summary(trip_id: str):
 
 
 @router.get("/{trip_id}/itinerary")
-async def get_trip_itinerary(trip_id: str):
+async def get_trip_itinerary(trip_id: str, _: Any = Depends(verify_trip_access)):
     """
     Get the full latest optimized itinerary for a trip.
     Reads the actual JSON file specified in the TripSession.
@@ -437,7 +461,8 @@ async def get_trip_itinerary(trip_id: str):
 async def update_family_preferences(
     trip_id: str,
     family_id: str,
-    request: PreferenceUpdateRequest
+    request: PreferenceUpdateRequest,
+    _: Any = Depends(verify_trip_access)
 ):
     """
     Update preferences for a specific family.
@@ -510,8 +535,8 @@ async def get_my_trips(
         # But we can reuse TripService._get_... or manually query here.
         from sqlmodel import select, func, col
         from sqlalchemy.dialects.postgresql import JSONB
-        from app.core.db import get_db_session
-        from app.models.trip import TripSession
+        from app.services.optimizer_service import get_db_session
+        from app.models.trip_session import TripSession
         
         with get_db_session() as session:
             statement = select(TripSession).where(
@@ -554,6 +579,8 @@ async def get_my_trips(
                     "latest_itinerary_path": trip.latest_itinerary_path,
                     "status": trip.status,
                     "created_at": trip.created_at.isoformat() if trip.created_at else None,
+                    "last_updated": trip.updated_at.isoformat() if trip.updated_at else None,
+                    **TripService.itinerary_stats(trip, current_user.family_id),
                 })
 
         return PaginatedResponse(
@@ -573,16 +600,22 @@ async def get_my_trips(
 async def list_trips(
     pagination: PaginationParams = Depends(),
     trip_status: str = None,
+    agent: TokenPayload = Depends(get_current_agent),
 ):
     """
-    List all trips (with pagination).
+    List the trips of the agent's agency (with pagination).
     """
     try:
-        trips, total = TripService.list_trips(
-            limit=pagination.limit,
-            offset=pagination.skip,
-            status_filter=trip_status,
-        )
+        from app.core.db import engine as _engine
+        from app.services.agency_service import agency_of, trip_ids_in
+        from sqlmodel import Session as _Session
+
+        trips, _ = TripService.list_trips(limit=1000, offset=0, status_filter=trip_status)
+        with _Session(_engine) as _s:
+            visible = trip_ids_in(_s, agency_of(_s, agent.sub))
+        trips = [t for t in trips if t["trip_id"] in visible]
+        total = len(trips)
+        trips = trips[pagination.skip:pagination.skip + pagination.limit]
         return PaginatedResponse(
             items=[TripDetailResponse(**t) for t in trips],
             total=total,
@@ -598,7 +631,7 @@ async def list_trips(
 
 
 @router.delete("/{trip_id}")
-async def delete_trip(trip_id: str):
+async def delete_trip(trip_id: str, _: Any = Depends(verify_trip_access)):
     """
     Archive a trip (soft delete).
 
@@ -618,3 +651,209 @@ async def delete_trip(trip_id: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to archive trip: {str(e)}"
         )
+
+
+
+class TripRequest(BaseModel):
+    """A traveller asking for their own trip."""
+    trip_name: str = Field(..., min_length=2, max_length=120)
+    destination: str = "Delhi, India"
+    start_date: date
+    end_date: date
+    members: int = Field(default=2, ge=1, le=20)
+    children: int = Field(default=0, ge=0, le=20)
+    interests: Dict[str, float] = Field(default_factory=dict, description="Interest weights 0 to 1 by category")
+    pace: str = Field(default="moderate", description="relaxed, moderate or fast")
+    budget_sensitivity: float = Field(default=0.5, ge=0.0, le=1.0)
+    energy_level: float = Field(default=0.5, ge=0.0, le=1.0)
+    must_visit: List[str] = Field(default_factory=list)
+
+
+class TripRequestResponse(BaseModel):
+    trip_id: str
+    option_id: str
+    published: bool
+    message: str
+
+
+@router.post("/request", response_model=TripRequestResponse, status_code=status.HTTP_201_CREATED)
+async def request_trip(
+    body: TripRequest,
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
+):
+    """
+    A traveller plans their own trip: saves the family's preferences, runs the optimizer and, when
+    SELF_SERVE_AUTO_APPROVE is on, publishes the first plan so they can read it and send feedback.
+    Later changes still go to a travel agent for approval.
+    """
+    from uuid import UUID
+
+    from app.core.config import settings
+    from app.services.family_service import FamilyService
+    from app.services.itinerary_option_service import ItineraryOptionService
+    from app.services.itinerary_service import ItineraryService
+
+    if current_user.role != "traveller" or not current_user.family_id:
+        raise HTTPException(status_code=403, detail="Only travellers with a family can request a trip")
+    if body.end_date < body.start_date:
+        raise HTTPException(status_code=400, detail="The end date is before the start date")
+    if (body.end_date - body.start_date).days > 9:
+        raise HTTPException(status_code=400, detail="Trips are limited to 10 days")
+
+    family = FamilyService.get_family(UUID(current_user.family_id))
+    if not family:
+        raise HTTPException(status_code=404, detail="Family not found")
+
+    interests = {
+        "history": 0.5, "architecture": 0.5, "food": 0.5, "nature": 0.5,
+        "nightlife": 0.3, "shopping": 0.3, "religious": 0.3,
+    }
+    interests.update({k: max(0.0, min(1.0, float(v))) for k, v in body.interests.items()})
+    prefs = dict(family.preferences or {})
+    prefs.update(
+        members=body.members,
+        children=body.children,
+        interest_vector=interests,
+        pace_preference=body.pace,
+        budget_sensitivity=body.budget_sensitivity,
+        energy_level=body.energy_level,
+        must_visit_locations=body.must_visit,
+    )
+    FamilyService.update_preferences(family.id, prefs)
+
+    try:
+        result = TripService.initialize_trip_with_optimization(
+            trip_name=body.trip_name.strip(),
+            destination=body.destination,
+            start_date=body.start_date.isoformat(),
+            end_date=body.end_date.isoformat(),
+            family_ids=[family.family_code],
+            num_travellers=body.members,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Trip request failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="We could not build that plan. Please try again.")
+
+    published = False
+    if settings.SELF_SERVE_AUTO_APPROVE:
+        try:
+            option = ItineraryOptionService.approve_option(option_id=UUID(result["option_id"]), agent_id=None)
+            details = option.details or {}
+            if details.get("itinerary"):
+                ItineraryService.publish_base_itinerary(
+                    trip_id=option.trip_id,
+                    family_ids=details.get("family_ids", [family.family_code]),
+                    itinerary_data=details["itinerary"],
+                    created_reason="First plan published automatically for the traveller's own request",
+                )
+                published = True
+        except Exception as e:
+            logger.error(f"Auto-publish failed for {result['trip_id']}: {e}", exc_info=True)
+
+    from app.core.db import engine as _engine
+    from app.services import notification_service as ns
+    from app.services.agency_service import agency_of, set_trip_agency
+    from sqlmodel import Session as _Session
+
+    with _Session(_engine) as _s:
+        set_trip_agency(result["trip_id"], agency_of(_s, current_user.sub))
+    ns.notify_agents(
+        "plan.published" if published else "decision.created",
+        f"New trip: {body.trip_name.strip()}",
+        f"{body.members} travellers, {body.start_date} to {body.end_date}",
+        f"/app/trip/{result['trip_id']}",
+        {"trip_id": result["trip_id"], "published": published},
+    )
+    return TripRequestResponse(
+        trip_id=result["trip_id"],
+        option_id=result["option_id"],
+        published=published,
+        message="Your plan is ready." if published else "Your plan is with a travel agent for approval.",
+    )
+
+
+
+class VersionDTO(BaseModel):
+    version: int
+    created_at: Optional[str] = None
+    created_reason: Optional[str] = None
+    created_by: Optional[str] = None
+    total_cost: Optional[float] = None
+    total_satisfaction: Optional[float] = None
+    duration_days: Optional[int] = None
+
+
+class FeedbackEntryDTO(BaseModel):
+    iteration: Optional[int] = None
+    timestamp: Optional[str] = None
+    message: Optional[str] = None
+    event_type: Optional[str] = None
+    action: Optional[str] = None
+
+
+class TripHistoryResponse(BaseModel):
+    trip_id: str
+    versions: List[VersionDTO]
+    feedback: List[FeedbackEntryDTO]
+
+
+@router.get("/{trip_id}/history", response_model=TripHistoryResponse)
+async def get_trip_history(trip_id: str, _: Any = Depends(verify_trip_access)):
+    """Every itinerary version of a trip, oldest first, and the feedback that led to them."""
+    from uuid import UUID
+
+    from sqlmodel import Session, select
+
+    from app.core.db import engine
+    from app.models.itinerary import Itinerary
+    from app.services.family_service import FamilyService
+    from app.services.optimizer_service import OptimizerService
+
+    trip = OptimizerService.get_trip_session(trip_id)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+
+    family_uuid = None
+    for fid in trip.family_ids or []:
+        try:
+            family_uuid = UUID(str(fid))
+            break
+        except ValueError:
+            family = FamilyService.get_family_by_code(str(fid))
+            if family:
+                family_uuid = family.id
+                break
+
+    versions: List[VersionDTO] = []
+    if family_uuid:
+        with Session(engine) as session:
+            rows = session.exec(
+                select(Itinerary).where(Itinerary.family_id == family_uuid).order_by(Itinerary.version)
+            ).all()
+            versions = [
+                VersionDTO(
+                    version=r.version,
+                    created_at=r.created_at.isoformat() if r.created_at else None,
+                    created_reason=r.created_reason,
+                    created_by=r.created_by,
+                    total_cost=r.total_cost,
+                    total_satisfaction=r.total_satisfaction,
+                    duration_days=r.duration_days,
+                )
+                for r in rows
+            ]
+
+    feedback = [
+        FeedbackEntryDTO(
+            iteration=f.get("iteration"),
+            timestamp=f.get("timestamp"),
+            message=f.get("message"),
+            event_type=f.get("event_type"),
+            action=f.get("action"),
+        )
+        for f in (trip.feedback_history or [])
+        if isinstance(f, dict)
+    ]
+    return TripHistoryResponse(trip_id=trip_id, versions=versions, feedback=feedback)

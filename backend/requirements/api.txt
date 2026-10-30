@@ -1,0 +1,5 @@
+-r base.txt
+fastapi==0.139.0
+uvicorn==0.50.0
+python-multipart==0.0.32
+websockets==16.0

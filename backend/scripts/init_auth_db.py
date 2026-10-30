@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlmodel import SQLModel
 from app.core.db import engine
+from app.core.config import settings
 from app.models.user import User
 from app.models.family import Family
 from app.models.token_blacklist import TokenBlacklist
@@ -60,7 +61,7 @@ def create_test_users():
         if not existing_traveller:
             traveller = UserService.create_user(
                 email="traveller@test.com",
-                password="testpass123",
+                password=settings.TEST_USER_PASSWORD,
                 role="traveller",
                 full_name="Test Traveller"
             )
@@ -70,7 +71,7 @@ def create_test_users():
         if not existing_agent:
             agent = UserService.create_user(
                 email="agent@test.com",
-                password="testpass123",
+                password=settings.TEST_USER_PASSWORD,
                 role="agent",
                 full_name="Test Agent"
             )

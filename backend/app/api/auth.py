@@ -105,13 +105,54 @@ async def signup(
             detail="Password must be at least 8 characters long"
         )
     
+    # Public signup creates a traveller; only the agency code grants agent access
+    role = "traveller"
+    if user_in.agent_code:
+        import secrets
+        configured = settings.AGENT_SIGNUP_CODE
+        if not configured or not secrets.compare_digest(user_in.agent_code.strip().casefold().encode(), configured.strip().casefold().encode()):
+            raise HTTPException(status_code=400, detail="That agency code is not valid")
+        role = "agent"
+
+    # Check the agency first, so a bad code or a taken name never leaves a half-made account behind
+    if user_in.agency_code:
+        from app.services import agency_service as _ags
+
+        if not _ags.agency_by_code(user_in.agency_code):
+            raise HTTPException(status_code=400, detail="That agency code is not valid")
+    elif role == "agent" and user_in.agency_name and user_in.agency_name.strip():
+        from sqlmodel import Session as _Session, select as _select
+
+        from app.core.db import engine as _engine
+        from app.models.phase4 import Agency as _Agency
+
+        with _Session(_engine) as _s:
+            if _s.exec(_select(_Agency).where(_Agency.name == user_in.agency_name.strip())).first():
+                raise HTTPException(status_code=400, detail="An agency with that name already exists. Ask a colleague for its join code.")
+
     user = UserService.create_user(
         email=user_in.email,
         password=user_in.password,
-        role=user_in.role,
+        role=role,
         full_name=user_in.full_name,
     )
-    
+
+    # Agency: agents may start one or join one; travellers may join the agency that invited them
+    try:
+        from app.services import agency_service as ags
+
+        joined = None
+        if user_in.agency_code:
+            joined = ags.agency_by_code(user_in.agency_code)
+            if not joined:
+                raise ValueError("That agency code is not valid")
+        elif role == "agent" and user_in.agency_name and user_in.agency_name.strip():
+            joined = ags.create_agency(user_in.agency_name.strip())
+        if joined:
+            ags.set_user_agency(user.id, joined.id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     # Get device info for session tracking
     device_info = get_device_info(request)
     

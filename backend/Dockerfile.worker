@@ -1,0 +1,24 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install python dependencies
+COPY backend/requirements/ /app/requirements/
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements/worker.txt
+
+# Copy backend application code
+COPY backend/ .
+
+# Copy ml_or ML optimizer (needed for FeedbackProcessor / agent pipeline)
+COPY ml_or/ /app/ml_or/
+
+# Command to run the worker
+CMD ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info"]

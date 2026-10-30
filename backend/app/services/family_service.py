@@ -71,6 +71,15 @@ class FamilyService:
         with Session(engine) as session:
             statement = select(Family).where(Family.family_code == family_code)
             return session.exec(statement).first()
+            
+    @staticmethod
+    def get_families_by_codes(family_codes: List[str]) -> List[Family]:
+        """Get multiple families by their codes."""
+        if not family_codes:
+            return []
+        with Session(engine) as session:
+            statement = select(Family).where(Family.family_code.in_(family_codes))
+            return list(session.exec(statement).all())
     
     @staticmethod
     def update_current_itinerary(family_id: UUID, itinerary_id: UUID) -> Optional[Family]:

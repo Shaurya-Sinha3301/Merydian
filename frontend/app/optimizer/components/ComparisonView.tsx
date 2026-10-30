@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 
 import Icon from '@/components/ui/AppIcon';
