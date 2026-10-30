@@ -1,3 +1,4 @@
+import os
 """
 TBO Hotel API — Quick Hotel Search Test
 ========================================
@@ -17,8 +18,8 @@ from datetime import datetime, timedelta
 # Config
 # ---------------------------------------------------------------------------
 BASE_URL = "http://api.tbotechnology.in/TBOHolidays_HotelAPI"
-USERNAME = "hackathontest"
-PASSWORD = "Hac@98147521"
+USERNAME = os.environ.get("TBO_USERNAME", "")
+PASSWORD = os.environ.get("TBO_PASSWORD", "")
 
 AUTH = HTTPBasicAuth(USERNAME, PASSWORD)
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}

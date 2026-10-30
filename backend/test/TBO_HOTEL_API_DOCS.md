@@ -12,10 +12,10 @@
 | **Base URL** | `http://api.tbotechnology.in/TBOHolidays_HotelAPI` |
 | **Auth Type** | HTTP Basic Auth |
 | **Username** | `hackathontest` |
-| **Password** | `Hac@98147521` |
+| **Password** | `<set TBO_PASSWORD in your environment>` |
 
 All requests must include the `Authorization: Basic <base64(user:pass)>` header.
-With Python `requests`, use `HTTPBasicAuth("hackathontest", "Hac@98147521")`.
+With Python `requests`, use `HTTPBasicAuth(os.environ["TBO_USERNAME"], os.environ["TBO_PASSWORD"])`.
 
 ### Standard Headers
 
@@ -101,7 +101,7 @@ from requests.auth import HTTPBasicAuth
 
 resp = requests.get(
     "http://api.tbotechnology.in/TBOHolidays_HotelAPI/CountryList",
-    auth=HTTPBasicAuth("hackathontest", "Hac@98147521"),
+    auth=HTTPBasicAuth(os.environ["TBO_USERNAME"], os.environ["TBO_PASSWORD"]),
     headers={"Accept": "application/json"},
 )
 data = resp.json()
@@ -757,7 +757,7 @@ class TBOHotelClient:
 ### Usage Example
 
 ```python
-client = TBOHotelClient("hackathontest", "Hac@98147521")
+client = TBOHotelClient(os.environ["TBO_USERNAME"], os.environ["TBO_PASSWORD"])
 
 # 1. Get hotel codes for Delhi
 hotels = client.get_hotel_codes("418069")
