@@ -191,6 +191,21 @@ def execute_agent_job_task(self, job_id_str: str):
         # Handle Result
         if result.success:
             AgentJobService.complete_job(job_id, result_payload=result.result)
+            try:
+                if str(job.job_type.value if hasattr(job.job_type, "value") else job.job_type) == "AGENT_FEEDBACK" and job.trip_id:
+                    from app.services import notification_service as ns
+
+                    applied = bool((result.result.get("optimization_result") or {}).get("solution"))
+                    ns.notify_trip_travellers(
+                        job.trip_id,
+                        "feedback.processed",
+                        "Your plan was updated" if applied else "Your feedback was saved",
+                        (job.input_payload or {}).get("message", "")[:200],
+                        f"/app/trip/{job.trip_id}/changes" if applied else f"/app/trip/{job.trip_id}/feedback",
+                        {"trip_id": job.trip_id, "applied": applied},
+                    )
+            except Exception as notify_err:
+                logger.error(f"Could not notify about processed feedback: {notify_err}")
             
             # Publish to Redis for WebSocket real-time updates
             try:

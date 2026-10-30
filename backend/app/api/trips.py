@@ -353,6 +353,9 @@ async def initialize_trip_with_optimization(
             family_ids=request.family_ids,
             num_travellers=request.num_travellers,
         )
+        from app.services import notification_service as ns
+
+        ns.notify_agents("decision.created", f"First plan ready: {request.trip_name}", "Waiting for approval", "/app/desk", {"trip_id": result.get("trip_id"), "option_id": result.get("option_id")})
 
         return InitializeTripWithOptiResponse(**result)
 
@@ -735,6 +738,15 @@ async def request_trip(
         except Exception as e:
             logger.error(f"Auto-publish failed for {result['trip_id']}: {e}", exc_info=True)
 
+    from app.services import notification_service as ns
+
+    ns.notify_agents(
+        "plan.published" if published else "decision.created",
+        f"New trip: {body.trip_name.strip()}",
+        f"{body.members} travellers, {body.start_date} to {body.end_date}",
+        f"/app/trip/{result['trip_id']}",
+        {"trip_id": result["trip_id"], "published": published},
+    )
     return TripRequestResponse(
         trip_id=result["trip_id"],
         option_id=result["option_id"],

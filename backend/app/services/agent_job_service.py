@@ -157,6 +157,12 @@ class AgentJobService:
             session.commit()
             session.refresh(job)
             logger.error(f"AgentJob failed: {job.id}. Reason: {error_message}")
+            try:
+                from app.services import notification_service as ns
+
+                ns.notify_agents("job.failed", f"Agent job failed: {job.job_type.value if hasattr(job.job_type, 'value') else job.job_type}", error_message[:300], "/app/agents", {"job_id": str(job.id), "trip_id": job.trip_id})
+            except Exception:
+                pass
             return job
 
     @staticmethod

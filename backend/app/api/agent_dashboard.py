@@ -231,6 +231,20 @@ async def approve_itinerary_option(
         except Exception as e:
             logger.warning(f"Communication Agent workflow failed: {e}")
 
+        from app.services import notification_service as ns
+
+        first = (approved_option.event_id or "").startswith("trip_init_")
+        link = f"/app/trip/{approved_option.trip_id}"
+        ns.notify_trip_travellers(
+            approved_option.trip_id,
+            "plan.published",
+            "Your plan is ready" if first else "A change to your plan was accepted",
+            approved_option.summary,
+            link,
+            {"trip_id": approved_option.trip_id},
+        )
+        ns.notify_agents("decision.accepted", f"Accepted: {approved_option.summary}", "", link, {"trip_id": approved_option.trip_id, "event_id": approved_option.event_id})
+
         return ApproveResponse(
             message=f"Option '{approve_request.option_id}' approved successfully. Jobs queued.",
             option_id=approve_request.option_id,
@@ -701,6 +715,11 @@ async def reject_request(body: RejectRequest, current_agent: TokenPayload = Depe
             session.add(o)
         session.commit()
     logger.info(f"Agent {current_agent.sub} declined event {body.event_id} ({len(pending)} options)")
+    from app.services import notification_service as ns
+
+    trip_id = pending[0].trip_id
+    ns.notify_trip_travellers(trip_id, "decision.declined", "A request was declined", pending[0].summary, f"/app/trip/{trip_id}", {"trip_id": trip_id})
+    ns.notify_agents("decision.declined", f"Declined: {pending[0].summary}", body.reason or "", "/app/desk", {"trip_id": trip_id, "event_id": body.event_id})
     return {"event_id": body.event_id, "declined": len(pending), "reason": body.reason}
 
 

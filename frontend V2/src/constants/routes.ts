@@ -8,6 +8,9 @@ export const ROUTES = {
   DESK: '/app/desk',
   CALENDAR: '/app/calendar',
   INSIGHTS: '/app/insights',
+  AGENTS: '/app/agents',
+  BOOKINGS: '/app/bookings',
+  WEBHOOKS: '/app/webhooks',
   CUSTOMERS: '/app/customers',
   NEW_TRIP: '/app/new-trip',
   TRIPS: '/app/trips',
@@ -16,6 +19,7 @@ export const ROUTES = {
 
 export const customerPath = (familyId: string) => `/app/customers/${familyId}`;
 export const historyPath = (tripId: string) => `/app/trip/${tripId}/history`;
+export const tripBookingsPath = (tripId: string) => `/app/trip/${tripId}/bookings`;
 export const tripPath = (tripId: string) => `/app/trip/${tripId}`;
 export const changesPath = (tripId: string) => `/app/trip/${tripId}/changes`;
 export const feedbackPath = (tripId: string) => `/app/trip/${tripId}/feedback`;
