@@ -353,8 +353,13 @@ async def initialize_trip_with_optimization(
             family_ids=request.family_ids,
             num_travellers=request.num_travellers,
         )
+        from app.core.db import engine as _engine
         from app.services import notification_service as ns
+        from app.services.agency_service import agency_of, set_trip_agency
+        from sqlmodel import Session as _Session
 
+        with _Session(_engine) as _s:
+            set_trip_agency(result["trip_id"], agency_of(_s, current_user.sub))
         ns.notify_agents("decision.created", f"First plan ready: {request.trip_name}", "Waiting for approval", "/app/desk", {"trip_id": result.get("trip_id"), "option_id": result.get("option_id")})
 
         return InitializeTripWithOptiResponse(**result)
@@ -595,16 +600,22 @@ async def get_my_trips(
 async def list_trips(
     pagination: PaginationParams = Depends(),
     trip_status: str = None,
+    agent: TokenPayload = Depends(get_current_agent),
 ):
     """
-    List all trips (with pagination).
+    List the trips of the agent's agency (with pagination).
     """
     try:
-        trips, total = TripService.list_trips(
-            limit=pagination.limit,
-            offset=pagination.skip,
-            status_filter=trip_status,
-        )
+        from app.core.db import engine as _engine
+        from app.services.agency_service import agency_of, trip_ids_in
+        from sqlmodel import Session as _Session
+
+        trips, _ = TripService.list_trips(limit=1000, offset=0, status_filter=trip_status)
+        with _Session(_engine) as _s:
+            visible = trip_ids_in(_s, agency_of(_s, agent.sub))
+        trips = [t for t in trips if t["trip_id"] in visible]
+        total = len(trips)
+        trips = trips[pagination.skip:pagination.skip + pagination.limit]
         return PaginatedResponse(
             items=[TripDetailResponse(**t) for t in trips],
             total=total,
@@ -741,8 +752,13 @@ async def request_trip(
         except Exception as e:
             logger.error(f"Auto-publish failed for {result['trip_id']}: {e}", exc_info=True)
 
+    from app.core.db import engine as _engine
     from app.services import notification_service as ns
+    from app.services.agency_service import agency_of, set_trip_agency
+    from sqlmodel import Session as _Session
 
+    with _Session(_engine) as _s:
+        set_trip_agency(result["trip_id"], agency_of(_s, current_user.sub))
     ns.notify_agents(
         "plan.published" if published else "decision.created",
         f"New trip: {body.trip_name.strip()}",

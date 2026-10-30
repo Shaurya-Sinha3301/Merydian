@@ -25,6 +25,7 @@ export interface CustomerCreated {
   user_id: string;
   family_id: string;
   temporary_password?: string | null;
+  invite_link?: string | null;
 }
 
 export interface TripRequestBody {

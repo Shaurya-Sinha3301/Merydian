@@ -23,21 +23,24 @@ export function Signup() {
   const [role, setRole] = useState<AccountRole>(params.get('as') === 'agent' ? 'agent' : 'traveller');
   const agency = role === 'agent';
   const [code, setCode] = useState('');
+  const [agencyMode, setAgencyMode] = useState<'new' | 'join'>('new');
+  const [agencyValue, setAgencyValue] = useState('');
 
   const errors = {
     name: name.trim().length < 2 ? 'Tell us your name.' : '',
     email: EMAIL.test(email) ? '' : 'Enter a valid email address.',
     password: password.length < 8 ? 'Use at least 8 characters.' : '',
     code: agency && !code.trim() ? 'Enter your agency code.' : '',
+    agency: agency && !agencyValue.trim() ? (agencyMode === 'new' ? 'Name your agency.' : 'Enter the join code.') : '',
   };
-  const valid = !errors.name && !errors.email && !errors.password && !errors.code;
+  const valid = !errors.name && !errors.email && !errors.password && !errors.code && !errors.agency;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     setTouched(true);
     if (!valid) return;
     signup.mutate(
-      { email: email.trim(), password, full_name: name.trim(), role: agency ? 'agent' : 'traveller', user_type: agency ? 'agent' : 'traveller', ...(agency ? { agent_code: code.trim() } : {}) },
+      { email: email.trim(), password, full_name: name.trim(), role: agency ? 'agent' : 'traveller', user_type: agency ? 'agent' : 'traveller', ...(agency ? { agent_code: code.trim(), ...(agencyMode === 'new' ? { agency_name: agencyValue.trim() } : { agency_code: agencyValue.trim() }) } : agencyValue.trim() ? { agency_code: agencyValue.trim() } : {}) },
       { onSuccess: () => navigate(ROUTES.APP) },
     );
   };
@@ -45,6 +48,7 @@ export function Signup() {
   const serverMessage = (signup.error as { response?: { data?: { message?: string } } } | null)?.response?.data?.message;
   const exists = serverMessage?.toLowerCase().includes('already exists');
   const badCode = serverMessage?.toLowerCase().includes('agency code');
+  const badAgency = serverMessage?.toLowerCase().includes('agency') && !badCode;
 
   return (
     <AuthLayout
@@ -91,9 +95,24 @@ export function Signup() {
         {agency && (
           <Input id="code" label="Agency code" value={code} onChange={(e) => setCode(e.target.value)} error={touched ? errors.code : ''} autoComplete="off" hint="Given to you by your agency. It creates a travel agent account." />
         )}
+        {agency ? (
+          <fieldset>
+            <legend className="mb-1.5 text-sm font-bold">Your agency</legend>
+            <div className="mb-2 flex divide-x divide-rule border border-ink">
+              {(['new', 'join'] as const).map((m) => (
+                <button key={m} type="button" aria-pressed={agencyMode === m} onClick={() => setAgencyMode(m)} className={`h-10 flex-1 text-sm font-semibold ${agencyMode === m ? 'bg-ink text-paper' : 'bg-paper hover:bg-panel'}`}>
+                  {m === 'new' ? 'Start a new agency' : 'Join one'}
+                </button>
+              ))}
+            </div>
+            <Input id="agency" label={agencyMode === 'new' ? 'Agency name' : 'Agency join code'} value={agencyValue} onChange={(e) => setAgencyValue(e.target.value)} error={touched ? errors.agency : ''} autoComplete="off" hint={agencyMode === 'new' ? 'You will get a join code for colleagues and customers.' : 'Looks like AG-1A2B3C. A colleague finds it in Settings.'} />
+          </fieldset>
+        ) : (
+          <Input id="agency" label="Agency code (optional)" value={agencyValue} onChange={(e) => setAgencyValue(e.target.value)} autoComplete="off" hint="If a travel agency invited you, enter the code they gave you." />
+        )}
         {signup.isError && (
           <ErrorNote>
-            {exists ? 'An account with that email already exists. Try signing in.' : badCode ? 'That agency code is not valid.' : 'We could not create the account. Please try again.'}
+            {exists ? 'An account with that email already exists. Try signing in.' : badCode ? 'That agency code is not valid.' : badAgency ? serverMessage : 'We could not create the account. Please try again.'}
           </ErrorNote>
         )}
         <Button size="lg" type="submit" loading={signup.isPending}>

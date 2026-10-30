@@ -163,9 +163,24 @@ def execute_agent_job_task(self, job_id_str: str):
                         trip_session = TripService.get_trip(job.trip_id)
                         if trip_session:
                             # Create itinerary records via ItineraryService
+                            # Only the family that asked gets the new branch; the others keep their plan
+                            target_codes = trip_session.family_ids
+                            try:
+                                from sqlmodel import Session as _S, select as _sel
+                                from app.core.db import engine as _e
+                                from app.models.family import Family as _F
+
+                                asked = (job.input_payload or {}).get("family_id")
+                                if asked:
+                                    with _S(_e) as _s:
+                                        fam = _s.exec(_sel(_F).where((_F.family_code == str(asked)) | (_F.id == asked if len(str(asked)) == 36 else False))).first()
+                                    if fam:
+                                        target_codes = [fam.family_code]
+                            except Exception as _err:
+                                logger.warning(f"Could not narrow the feedback to one family: {_err}")
                             itinerary_ids = ItineraryService.publish_base_itinerary(
                                 trip_id=job.trip_id,
-                                family_ids=trip_session.family_ids,
+                                family_ids=target_codes,
                                 itinerary_data=solution,
                                 created_reason=f"Feedback optimization (job {job_id})",
                             )

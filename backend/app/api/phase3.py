@@ -92,6 +92,16 @@ async def notification_stream(token: str = Query(...), after: int = Query(0, ge=
                 last = int(top or 0)
         idle = 0
         yield "retry: 3000\n\n"
+        wake = None
+        try:
+            import redis.asyncio as aioredis
+
+            client = aioredis.from_url(settings.REDIS_URL)
+            wake = client.pubsub()
+            await wake.subscribe(f"notif:{uid}")
+        except Exception as e:
+            logger.warning(f"Stream falls back to polling: {e}")
+            wake = None
         while True:
             rows: List[Notification] = []
             try:
@@ -104,9 +114,16 @@ async def notification_stream(token: str = Query(...), after: int = Query(0, ge=
                 yield f"id: {n.id}\nevent: notification\ndata: {_dto(n).model_dump_json()}\n\n"
                 idle = 0
             idle += 1
-            if idle % 7 == 0:
+            if wake is not None or idle % 7 == 0:
                 yield ": keep-alive\n\n"
-            await asyncio.sleep(2)
+            if wake is not None:
+                # Instant when something is published; the 15 second timeout is only a safety net
+                try:
+                    await wake.get_message(ignore_subscribe_messages=True, timeout=15)
+                except Exception:
+                    wake = None
+            else:
+                await asyncio.sleep(2)
 
     return StreamingResponse(events(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
@@ -290,21 +307,24 @@ def _booking(b: TripBooking, trip_name: Optional[str] = None) -> Dict[str, Any]:
     }
 
 
-def _trip_names() -> Dict[str, str]:
+def _trip_names(agent_sub: Optional[str] = None) -> Dict[str, str]:
+    """Trip names, limited to the agent's agency when one is given."""
     from app.models.trip_session import TripSession
+    from app.services.agency_service import agency_of, trip_ids_in
 
     with Session(engine) as session:
-        return {t.trip_id: t.trip_name for t in session.exec(select(TripSession)).all()}
+        visible = trip_ids_in(session, agency_of(session, agent_sub)) if agent_sub else None
+        return {t.trip_id: t.trip_name for t in session.exec(select(TripSession)).all() if visible is None or t.trip_id in visible}
 
 
 @router.get("/agent/bookings")
 async def list_all_bookings(status: Optional[str] = None, agent: TokenPayload = Depends(get_current_agent)) -> Any:
-    names = _trip_names()
+    names = _trip_names(agent.sub)
     with Session(engine) as session:
         stmt = select(TripBooking).order_by(col(TripBooking.created_at).desc())
         if status:
             stmt = stmt.where(TripBooking.status == status)
-        rows = session.exec(stmt).all()
+        rows = [b for b in session.exec(stmt).all() if b.trip_id in names]
         confirmed = sum(b.amount for b in rows if b.status == "confirmed")
         pending = sum(b.amount for b in rows if b.status == "requested")
         return {
@@ -323,8 +343,10 @@ async def trip_bookings(trip_id: str, user: TokenPayload = Depends(get_current_u
 
 @router.post("/agent/bookings", status_code=201)
 async def create_booking(body: BookingIn, agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    from app.services.agency_service import ensure_trip_visible
     from app.services.trip_service import TripService
 
+    ensure_trip_visible(agent.sub, body.trip_id)
     trip = TripService.get_trip(body.trip_id)
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
@@ -400,9 +422,9 @@ AGENTS = [
 
 @router.get("/agent/agents")
 async def agents_overview(agent: TokenPayload = Depends(get_current_agent)) -> Any:
-    names = _trip_names()
+    names = _trip_names(agent.sub)
     with Session(engine) as session:
-        jobs = session.exec(select(AgentJob).order_by(col(AgentJob.created_at).desc())).all()
+        jobs = [j for j in session.exec(select(AgentJob).order_by(col(AgentJob.created_at).desc())).all() if j.trip_id in names]
     by_type: Dict[str, List[AgentJob]] = {}
     for j in jobs:
         by_type.setdefault(str(j.job_type.value if hasattr(j.job_type, "value") else j.job_type), []).append(j)
@@ -606,6 +628,9 @@ def _note(n: Any) -> Dict[str, Any]:
 @router.get("/agent/trips/{trip_id}/notes")
 async def list_notes(trip_id: str, agent: TokenPayload = Depends(get_current_agent)) -> Any:
     from app.models.phase3 import TripNote
+    from app.services.agency_service import ensure_trip_visible
+
+    ensure_trip_visible(agent.sub, trip_id)
 
     with Session(engine) as session:
         rows = session.exec(select(TripNote).where(TripNote.trip_id == trip_id).order_by(col(TripNote.created_at).desc())).all()
@@ -616,6 +641,9 @@ async def list_notes(trip_id: str, agent: TokenPayload = Depends(get_current_age
 async def add_note(trip_id: str, body: NoteIn, agent: TokenPayload = Depends(get_current_agent)) -> Any:
     from app.models.phase3 import TripNote
     from app.models.user import User
+    from app.services.agency_service import ensure_trip_visible
+
+    ensure_trip_visible(agent.sub, trip_id)
 
     with Session(engine) as session:
         me = session.get(User, UUID(agent.sub))
@@ -659,9 +687,9 @@ async def open_tasks(agent: TokenPayload = Depends(get_current_agent)) -> Any:
     """Every unfinished task across trips, soonest due first."""
     from app.models.phase3 import TripNote
 
-    names = _trip_names()
+    names = _trip_names(agent.sub)
     with Session(engine) as session:
-        rows = session.exec(select(TripNote).where(TripNote.kind == "task", TripNote.done == False)).all()  # noqa: E712
+        rows = [n for n in session.exec(select(TripNote).where(TripNote.kind == "task", TripNote.done == False)).all() if n.trip_id in names]  # noqa: E712
         out = [{**_note(n), "trip_name": names.get(n.trip_id)} for n in rows]
     out.sort(key=lambda r: (r["due_on"] is None, r["due_on"] or "", r["created_at"]))
     return {"tasks": out}

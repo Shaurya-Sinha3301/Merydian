@@ -128,10 +128,10 @@ export function CustomersPage() {
           {created && (
             <div className="mt-4 border border-green bg-green-tint p-4 text-sm" role="status">
               <p className="font-bold">{created.message}</p>
-              {created.temporary_password ? (
+              {created.invite_link ? (
                 <>
-                  <p className="mt-2 text-ink-2">Give them this temporary password. It is shown only once.</p>
-                  <p className="mt-1 select-all break-all border border-rule bg-paper px-2 py-1.5 font-mono text-base">{created.temporary_password}</p>
+                  <p className="mt-2 text-ink-2">We emailed them an invitation to choose a password. If email is not set up here, send them this link yourself. It works once and lasts a week.</p>
+                  <p className="mt-1 select-all break-all border border-rule bg-paper px-2 py-1.5 font-mono text-xs">{created.invite_link}</p>
                 </>
               ) : (
                 <p className="mt-2 text-ink-2">This email already had an account, so nothing was changed.</p>

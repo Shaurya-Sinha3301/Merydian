@@ -45,6 +45,24 @@ services:
         sync: false
       - key: SELF_SERVE_AUTO_APPROVE
         value: "true"
+      - key: FRONTEND_URL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM
+        sync: false
       - key: GROQ_MODEL
         value: openai/gpt-oss-20b
       - key: SEED_ON_START        # idempotent; also rewrites itinerary files on the ephemeral disk

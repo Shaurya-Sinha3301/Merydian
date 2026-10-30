@@ -83,20 +83,41 @@ def notify_users(
         return 0
     try:
         with Session(engine) as session:
-            for uid in ids:
-                session.add(Notification(user_id=uid, type=type, title=title[:200], body=body[:1000], link=link, data=data or {}))
+            rows = [Notification(user_id=uid, type=type, title=title[:200], body=body[:1000], link=link, data=data or {}) for uid in ids]
+            for r in rows:
+                session.add(r)
             session.commit()
+            for r in rows:
+                session.refresh(r)
+            made = [(r.user_id, r.id) for r in rows]
+        _push(made)
+        from app.services import message_service
+
+        message_service.fan_out(ids, type, title, body, link)
         return len(ids)
     except Exception as e:  # a notice must never break the action that caused it
         logger.error(f"Could not store notification {type}: {e}", exc_info=True)
         return 0
 
 
+def _push(made: List[Any]) -> None:
+    """Tell each person's open stream there is something new. Best effort: the table stays the source of truth."""
+    try:
+        import redis
+
+        r = redis.from_url(settings.REDIS_URL, socket_connect_timeout=1, socket_timeout=1)
+        for uid, nid in made:
+            r.publish(f"notif:{uid}", str(nid))
+    except Exception as e:
+        logger.warning(f"Live push skipped: {e}")
+
+
 def notify_agents(type: str, title: str, body: str = "", link: Optional[str] = None, data: Optional[Dict[str, Any]] = None) -> int:
     """Tell every agent, then send the event to their webhook endpoints."""
     try:
-        with Session(engine) as session:
-            ids = _agent_ids(session)
+        from app.services.agency_service import agents_for_trip
+
+        ids = agents_for_trip((data or {}).get("trip_id"))
     except Exception as e:
         logger.error(f"Could not list agents: {e}")
         return 0
@@ -212,9 +233,15 @@ def deliver(endpoint_id: UUID, event_type: str, title: str, body: str, link: Opt
 def dispatch_event(event_type: str, title: str, body: str, link: Optional[str], data: Dict[str, Any]) -> None:
     """Hand the event to every active endpoint that subscribes to it. Runs in the background."""
     try:
+        from app.services.agency_service import agency_of, trip_agency
+
         with Session(engine) as session:
+            event_agency = trip_agency(session, data["trip_id"]) if data.get("trip_id") else None
             endpoints = session.exec(select(WebhookEndpoint).where(WebhookEndpoint.active == True)).all()  # noqa: E712
-            targets = [e.id for e in endpoints if not e.events or event_type in e.events]
+            targets = [
+                e.id for e in endpoints
+                if (not e.events or event_type in e.events) and agency_of(session, e.owner_id) == event_agency
+            ]
     except Exception as e:
         logger.error(f"Could not list webhook endpoints: {e}")
         return

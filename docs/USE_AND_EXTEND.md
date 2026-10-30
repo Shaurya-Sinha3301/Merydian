@@ -46,27 +46,34 @@ Merydian plans one trip for several families at once, lets travellers change it 
 | **Notifications and webhooks** | Per-user inbox, live stream, signed webhooks with retries and a delivery log | `notification_service.py` has no trip logic; lift it as a package. |
 | **Agent job runner** | Queued jobs with status, retries and events | `AgentJobService` and the Agents tab work for any Celery-backed agent. |
 
-## 5. Roadmap
+## 5. Done since the first version of this note
 
-**Next (days)**
-- Drive the live stream from the existing Redis pub/sub instead of reading the table, so a push is instant and the database is not polled.
-- Family-specific feedback: let one family change only their branch, so the Group tab shows real divergence.
-- Trip length from the dates (today the baseline is three days).
-- Password reset and invite links, so customers do not rely on a temporary password.
-- Email delivery of notifications (the webhook path is already there).
+| Item | Where |
+|---|---|
+| Live updates pushed over Redis pub/sub, not read on a timer | `notification_service._push`, `/notifications/stream` waits on `notif:<user>`; an event reaches an open stream in under 100 ms |
+| Family-specific feedback: one family's change only edits its branch | `agent_tasks.py` publishes to the asking family; the Group tab shows the divergence |
+| Password reset and invitations | `/auth/forgot`, `/auth/reset`, invite links emailed when an agent adds a customer |
+| Email and SMS notifications, per person and per event | `message_service.py` (SMTP and Twilio), the Settings page; without credentials messages are recorded as "logged" so every flow can still be tried |
+| Agencies: each agency sees only its own customers, trips, bookings and metrics | `agency_service.py`; agents start or join an agency at sign-up; customers join with the agency code |
+| Personal API keys for agents | Settings, `mk_...` bearer keys work on every agent endpoint |
+| Group expenses (equal split, who pays whom) and a shared checklist | the Group tab |
 
-**Then (weeks)**
-- A second city: add a data folder and a baseline skeleton per destination.
-- Per-agency tenancy: agencies see only their own customers and trips.
-- Personal API keys for agents, so partners can read trips and post requests without a browser.
-- Supplier booking behind the existing ledger once credentials exist; the ledger stays as the record.
-- Traveller expense split and shared checklists for group trips.
+To send real messages, set `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` and `FRONTEND_URL` (email) and `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (SMS) on the backend. Nothing else changes.
+
+## 6. Roadmap
+
+**Next**
+- Supplier booking behind the ledger, once supplier credentials exist.
+- Per-family opening hours and travel-time rules shown when the optimizer cannot fit a request.
+- A weekly email digest for agents and travellers.
+- Rate limiting on sign-in, reset and the public API.
 
 **Later**
+- A second city, by adding a data folder and baseline per destination.
 - A white-label embed of the planner for a travel site.
-- Learning from outcomes: use accepted versus declined proposals and ratings to tune the objective weights.
-- Offline PDF itinerary with maps, built from the same plan data.
+- Learning from outcomes: use accepted and declined proposals to tune the objective weights.
+- Offline PDF itinerary with maps.
 
-## 6. Known limits
+## 7. Known limits
 
-Delhi only; plans are three days regardless of dates; the optimizer silently leaves out places that will not fit, and the app says so when asked for one; no email or SMS; booking is a manual record, not a supplier integration; agents share one pool of customers.
+Delhi only and three days per plan, by design of the optimizer. Booking is a manual record, not a supplier integration. Email and text need provider credentials before anything leaves the server. Equal split only for shared expenses.
