@@ -4,7 +4,7 @@ import logging
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth
+from app.api import auth, phase3
 from app.core.config import settings
 from app.core.websocket import ws_manager, start_redis_listener
 
@@ -151,6 +151,8 @@ from app.api import jobs
 app.include_router(jobs.router, prefix=f"{settings.API_V1_STR}/jobs", tags=["jobs"])
 
 from app.api import demo
+app.include_router(phase3.router, prefix=f"{settings.API_V1_STR}", tags=["phase3"])
+
 app.include_router(demo.router, prefix=f"{settings.API_V1_STR}/demo", tags=["demo"])
 
 

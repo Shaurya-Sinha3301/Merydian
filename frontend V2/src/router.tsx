@@ -17,6 +17,9 @@ import { NewTripPage } from './pages/app/NewTripPage';
 import { CustomerDetailPage } from './pages/app/CustomerDetailPage';
 import { HistoryPage } from './pages/app/HistoryPage';
 import { InsightsPage } from './pages/app/InsightsPage';
+import { AgentsPage } from './pages/app/AgentsPage';
+import { WebhooksPage } from './pages/app/WebhooksPage';
+import { BookingsPage, TripBookingsPage } from './pages/app/BookingsPage';
 import { DeskPage } from './pages/app/DeskPage';
 import { TripsPage } from './pages/app/TripsPage';
 import { ActivityPage } from './pages/app/ActivityPage';
@@ -63,6 +66,9 @@ export const router = createBrowserRouter([
       { path: 'desk', element: <DeskPage /> },
       { path: 'calendar', element: <CalendarPage /> },
       { path: 'insights', element: <InsightsPage /> },
+      { path: 'agents', element: <AgentsPage /> },
+      { path: 'bookings', element: <BookingsPage /> },
+      { path: 'webhooks', element: <WebhooksPage /> },
       { path: 'customers', element: <CustomersPage /> },
       { path: 'customers/:familyId', element: <CustomerDetailPage /> },
       { path: 'new-trip', element: <NewTripPage /> },
@@ -75,6 +81,7 @@ export const router = createBrowserRouter([
           { index: true, element: <PlanPage /> },
           { path: 'changes', element: <ChangesPage /> },
           { path: 'history', element: <HistoryPage /> },
+          { path: 'bookings', element: <TripBookingsPage /> },
           { path: 'feedback', element: <FeedbackPage /> },
         ],
       },

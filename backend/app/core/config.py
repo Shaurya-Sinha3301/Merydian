@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     # A traveller's own first plan is published straight away; every later change still needs an agent.
     SELF_SERVE_AUTO_APPROVE: bool = True
 
+    # Webhooks may call private addresses (localhost, 10.x) only when this is on; leave off in production.
+    WEBHOOK_ALLOW_PRIVATE: bool = False
+
     # TEST CREDENTIALS
     TEST_USER_EMAIL: str = "test@example.com"
     TEST_USER_PASSWORD: str = "testpassword123"

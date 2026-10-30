@@ -369,7 +369,16 @@ async def process_agent_feedback(
         )
         
         logger.info("Queued feedback optimization job_id=%s status=%s", result.get("job_id"), result.get("status"))
-        
+
+        from app.services import notification_service as ns
+
+        ns.notify_agents(
+            "feedback.received",
+            f"Feedback on {trip_session.trip_name}",
+            feedback.message[:200],
+            f"/app/trip/{trip_id}/history",
+            {"trip_id": trip_id, "job_id": result.get("job_id")},
+        )
         return AgentFeedbackResponse(
             job_id=result["job_id"],
             status=result["status"],
@@ -426,6 +435,15 @@ async def submit_poi_request(
         logger.error(f"POI proposal failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="We could not prepare that request. Please try again.")
 
+    from app.services import notification_service as ns
+
+    ns.notify_agents(
+        "decision.created",
+        f"Request: add {place['name']}",
+        (poi_request.note or f"For {trip.trip_name}"),
+        "/app/desk",
+        {"trip_id": trip.trip_id, "event_id": proposal["event_id"]},
+    )
     return POIRequestResponse(
         message=f"Your request for {place['name']} is with your travel agent.",
         request_id=proposal["event_id"],
