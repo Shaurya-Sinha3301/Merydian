@@ -26,8 +26,8 @@ from datetime import datetime, timedelta
 # Configuration
 # ---------------------------------------------------------------------------
 TBO_BASE_URL = "http://api.tbotechnology.in/TBOHolidays_HotelAPI"
-TBO_USERNAME = "hackathontest"
-TBO_PASSWORD = "Hac@98147521"
+TBO_USERNAME = os.environ.get("TBO_USERNAME", "")
+TBO_PASSWORD = os.environ.get("TBO_PASSWORD", "")
 
 AUTH = HTTPBasicAuth(TBO_USERNAME, TBO_PASSWORD)
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
