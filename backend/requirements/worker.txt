@@ -1,7 +1,7 @@
 -r base.txt
-celery[redis]>=5.3,<6
-kombu>=5.3,<6
-redis[asyncio]
-groq
-google-generativeai
-ortools
+celery[redis]==5.6.3
+kombu==5.6.2
+redis[asyncio]==6.4.0
+groq==1.7.0
+google-generativeai==0.8.6
+ortools==9.12.4544

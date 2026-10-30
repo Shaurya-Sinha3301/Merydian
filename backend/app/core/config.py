@@ -101,7 +101,11 @@ class Settings(BaseSettings):
         # Hosted Postgres providers often hand out the legacy "postgres://" scheme,
         # which SQLAlchemy 1.4+ rejects.
         if v.startswith("postgres://"):
-            return "postgresql://" + v[len("postgres://"):]
+            v = "postgresql://" + v[len("postgres://"):]
+        # Name the driver. Newer SQLAlchemy releases default a bare "postgresql://" to psycopg 3,
+        # which this project does not install; psycopg2 is the one in requirements.
+        if v.startswith("postgresql://"):
+            v = "postgresql+psycopg2://" + v[len("postgresql://"):]
         return v
 
     class Config:
