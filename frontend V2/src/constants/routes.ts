@@ -7,6 +7,7 @@ export const ROUTES = {
   OVERVIEW: '/app/overview',
   DESK: '/app/desk',
   CALENDAR: '/app/calendar',
+  INSIGHTS: '/app/insights',
   CUSTOMERS: '/app/customers',
   NEW_TRIP: '/app/new-trip',
   TRIPS: '/app/trips',

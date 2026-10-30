@@ -14,10 +14,10 @@ export function OverviewPage() {
   const navigate = useNavigate();
   const fleet = useFleet();
   const cursor = useMonthCursor(fleet.items);
-  const { items, waitingJobs, waitingTrips, stats, jobList } = fleet;
+  const { items, pending, waitingTrips, stats, jobList } = fleet;
 
   const kpis = [
-    { label: 'Waiting on you', value: String(waitingJobs.length) },
+    { label: 'Waiting on you', value: String(pending.length) },
     { label: 'Trips overseen', value: String(items.length) },
     { label: 'Feedback rounds', value: String(stats.rounds) },
     { label: 'Plan value', value: formatMoney(stats.totalValue) },
@@ -64,7 +64,7 @@ export function OverviewPage() {
                   Open the desk
                 </Link>
               </div>
-              {waitingJobs.length === 0 ? (
+              {pending.length === 0 ? (
                 <p className="px-4 py-6 text-ink-2">Nothing waiting. New requests appear here as agents finish preparing options.</p>
               ) : (
                 <div className="overflow-x-auto"><table className="ruled">
@@ -77,13 +77,13 @@ export function OverviewPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {waitingJobs.map((j) => (
-                      <tr key={j.job_id}>
-                        <td className="min-w-[11rem] font-semibold">{fleet.nameOf(j.trip_id)}</td>
+                    {pending.map((d) => (
+                      <tr key={d.event_id}>
+                        <td className="min-w-[11rem] font-semibold">{d.trip_name || d.trip_id}</td>
                         <td className="min-w-[12rem] text-ink-2">
-                          {typeof j.result?.summary === 'string' ? j.result.summary : 'New request'}
+                          {d.kind === 'first_plan' ? 'First plan' : d.options.find((o) => (o.details?.schedule_changes ?? []).length > 0)?.summary || d.request || 'Change request'}
                         </td>
-                        <td className="whitespace-nowrap text-ink-3">{timeAgo(j.updated_at)}</td>
+                        <td className="whitespace-nowrap text-ink-3">{timeAgo(d.created_at)}</td>
                         <td className="whitespace-nowrap text-right">
                           <Tag tone="pending">Needs a decision</Tag>
                         </td>

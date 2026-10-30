@@ -556,3 +556,157 @@ async def update_customer_preferences(
         prefs["children"] = prefs.get("members", 1)
     FamilyService.update_preferences(family.id, prefs)
     return await get_customer(family_id, current_agent)
+
+
+# ------------------------------------------------------------------
+# Decisions: every approval the agent can accept or decline
+# ------------------------------------------------------------------
+
+class DecisionOptionDTO(BaseModel):
+    option_id: str
+    summary: str
+    cost: float
+    satisfaction: float
+    status: str
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class DecisionDTO(BaseModel):
+    event_id: str
+    trip_id: str
+    trip_name: Optional[str] = None
+    kind: str  # first_plan | change_request
+    status: str  # pending | accepted | declined
+    request: Optional[str] = None
+    created_at: Optional[str] = None
+    decided_at: Optional[str] = None
+    current_cost: Optional[float] = None
+    current_fit: Optional[float] = None
+    options: List[DecisionOptionDTO]
+
+
+class DecisionListResponse(BaseModel):
+    decisions: List[DecisionDTO]
+
+
+class RejectRequest(BaseModel):
+    event_id: str
+    reason: Optional[str] = Field(default=None, max_length=500)
+
+
+@router.get("/decisions", response_model=DecisionListResponse)
+async def list_decisions(
+    status: Optional[str] = Query(default=None, description="pending, accepted or declined"),
+    limit: int = Query(default=60, ge=1, le=200),
+    current_agent: TokenPayload = Depends(get_current_agent),
+) -> Any:
+    """Every first plan and change request with its options, newest first. Agents only."""
+    from collections import defaultdict
+    from sqlmodel import Session, select
+
+    from app.core.db import engine
+    from app.models.agent_job import AgentJob
+    from app.models.itinerary import Itinerary
+    from app.models.itinerary_option import ItineraryOptionDB, OptionStatus
+    from app.models.trip_session import TripSession
+
+    with Session(engine) as session:
+        options = session.exec(select(ItineraryOptionDB).order_by(ItineraryOptionDB.created_at.desc())).all()
+        trips = {t.trip_id: t for t in session.exec(select(TripSession)).all()}
+        summaries: Dict[str, str] = {}
+        for j in session.exec(select(AgentJob)).all():
+            result = j.result_payload or {}
+            ev = result.get("event_id")
+            if ev and isinstance(result.get("summary"), str):
+                summaries[str(ev)] = result["summary"]
+
+        grouped: Dict[str, list] = defaultdict(list)
+        for o in options:
+            grouped[o.event_id].append(o)
+
+        out: List[DecisionDTO] = []
+        for event_id, opts in grouped.items():
+            opts.sort(key=lambda o: (-len((o.details or {}).get("schedule_changes") or []), -o.satisfaction))
+            if any(o.status == OptionStatus.APPROVED for o in opts):
+                state = "accepted"
+            elif all(o.status == OptionStatus.REJECTED for o in opts):
+                state = "declined"
+            else:
+                state = "pending"
+            if status and status != state:
+                continue
+            trip = trips.get(opts[0].trip_id)
+            cost = fit = None
+            if trip and trip.current_itinerary_id:
+                itin = session.get(Itinerary, trip.current_itinerary_id)
+                if itin:
+                    cost, fit = itin.total_cost, itin.total_satisfaction
+            decided = [o.approved_at for o in opts if o.approved_at]
+            out.append(
+                DecisionDTO(
+                    event_id=event_id,
+                    trip_id=opts[0].trip_id,
+                    trip_name=trip.trip_name if trip else None,
+                    kind="first_plan" if event_id.startswith("trip_init_") else "change_request",
+                    status=state,
+                    request=summaries.get(event_id),
+                    created_at=min(o.created_at for o in opts).isoformat(),
+                    decided_at=max(decided).isoformat() if decided else None,
+                    current_cost=cost,
+                    current_fit=fit,
+                    options=[
+                        DecisionOptionDTO(
+                            option_id=str(o.id),
+                            summary=o.summary,
+                            cost=o.cost,
+                            satisfaction=o.satisfaction,
+                            status=o.status.value,
+                            details={k: v for k, v in (o.details or {}).items() if k in ("schedule_changes", "affected_pois", "type", "optimizer_ran")},
+                        )
+                        for o in opts
+                    ],
+                )
+            )
+    out.sort(key=lambda d: (d.status != "pending", d.created_at or ""), reverse=False)
+    pending = [d for d in out if d.status == "pending"]
+    rest = [d for d in out if d.status != "pending"]
+    pending.sort(key=lambda d: d.created_at or "")
+    rest.sort(key=lambda d: d.decided_at or d.created_at or "", reverse=True)
+    return DecisionListResponse(decisions=(pending + rest)[:limit])
+
+
+@router.post("/itinerary/reject")
+async def reject_request(body: RejectRequest, current_agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    """Decline a request: every pending option for the event is rejected and the plan stays as it is."""
+    from sqlmodel import Session, select
+
+    from app.core.db import engine
+    from app.models.itinerary_option import ItineraryOptionDB, OptionStatus
+
+    agent_uuid = UUID(current_agent.sub) if current_agent.sub else None
+    with Session(engine) as session:
+        opts = session.exec(
+            select(ItineraryOptionDB).where(ItineraryOptionDB.event_id == body.event_id)
+        ).all()
+        if not opts:
+            raise HTTPException(status_code=404, detail="Request not found")
+        pending = [o for o in opts if o.status == OptionStatus.PENDING]
+        if not pending:
+            raise HTTPException(status_code=409, detail="That request has already been decided")
+        now = datetime.utcnow()
+        for o in pending:
+            o.status = OptionStatus.REJECTED
+            o.approved_by = agent_uuid
+            o.approved_at = now
+            session.add(o)
+        session.commit()
+    logger.info(f"Agent {current_agent.sub} declined event {body.event_id} ({len(pending)} options)")
+    return {"event_id": body.event_id, "declined": len(pending), "reason": body.reason}
+
+
+@router.get("/analytics")
+async def agent_analytics(current_agent: TokenPayload = Depends(get_current_agent)) -> Any:
+    """Business metrics across trips, versions, approvals, agent jobs and customers. Agents only."""
+    from app.services.analytics_service import compute_analytics
+
+    return compute_analytics()

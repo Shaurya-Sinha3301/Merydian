@@ -110,7 +110,7 @@ async def signup(
     if user_in.agent_code:
         import secrets
         configured = settings.AGENT_SIGNUP_CODE
-        if not configured or not secrets.compare_digest(user_in.agent_code.encode(), configured.encode()):
+        if not configured or not secrets.compare_digest(user_in.agent_code.strip().casefold().encode(), configured.strip().casefold().encode()):
             raise HTTPException(status_code=400, detail="That agency code is not valid")
         role = "agent"
 
