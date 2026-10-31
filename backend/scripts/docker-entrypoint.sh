@@ -18,17 +18,27 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 
 # ── Wait for Postgres ─────────────────────────────────────────────────────────
 wait_for_postgres() {
-    echo "⏳  Waiting for PostgreSQL at ${DB_HOST:-db}:${DB_PORT:-5432} …"
+    echo "⏳  Waiting for PostgreSQL …"
+    local tries=0
     until python -c "
 import psycopg2, os, sys
+uri = os.environ.get('SQLALCHEMY_DATABASE_URI', '')
+if not uri:
+    print('   SQLALCHEMY_DATABASE_URI is empty'); sys.exit(1)
+uri = uri.strip().strip('\"').strip(\"'\")
+uri = uri.replace('postgresql+psycopg2://', 'postgresql://', 1)
 try:
-    conn = psycopg2.connect(os.environ['SQLALCHEMY_DATABASE_URI'])
-    conn.close()
-    sys.exit(0)
+    psycopg2.connect(uri, connect_timeout=10).close()
 except Exception as e:
+    print('   ' + type(e).__name__ + ': ' + str(e).strip().splitlines()[0])
     sys.exit(1)
-" 2>/dev/null; do
-        echo "   … not ready yet, retrying in 2s"
+"; do
+        tries=$((tries + 1))
+        if [ "$tries" -ge 30 ]; then
+            echo "❌  PostgreSQL did not become reachable. Check SQLALCHEMY_DATABASE_URI."
+            exit 1
+        fi
+        echo "   … not ready yet (attempt ${tries}/30), retrying in 2s"
         sleep 2
     done
     echo "✅  PostgreSQL is ready."
