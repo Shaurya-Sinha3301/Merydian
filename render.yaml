@@ -12,7 +12,6 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    dockerCommand: all            # entrypoint mode: migrate, worker + API in one container
     healthCheckPath: /health/live
     autoDeploy: true
     envVars:

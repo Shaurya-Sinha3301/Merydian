@@ -50,4 +50,4 @@ ENV PORT=8000
 EXPOSE 8000
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["api"]
+CMD ["all"]
