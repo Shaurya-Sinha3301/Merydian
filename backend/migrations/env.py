@@ -27,6 +27,7 @@ if config.config_file_name is not None:
 # Overwrite sqlalchemy.url with env var
 db_url = os.getenv("SQLALCHEMY_DATABASE_URI")
 if db_url:
+    db_url = db_url.strip().strip("\"'")
     # Name the driver (a bare "postgresql://" can default to psycopg 3 on newer SQLAlchemy)
     if db_url.startswith("postgres://"):
         db_url = "postgresql://" + db_url[len("postgres://"):]

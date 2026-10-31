@@ -98,6 +98,8 @@ class Settings(BaseSettings):
     @field_validator("SQLALCHEMY_DATABASE_URI")
     @classmethod
     def _normalize_db_uri(cls, v: str) -> str:
+        # A value pasted from a provider's snippet often keeps its surrounding quotes.
+        v = v.strip().strip("\"'")
         # Hosted Postgres providers often hand out the legacy "postgres://" scheme,
         # which SQLAlchemy 1.4+ rejects.
         if v.startswith("postgres://"):
