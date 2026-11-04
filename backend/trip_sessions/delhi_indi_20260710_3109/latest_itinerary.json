@@ -1,0 +1,180 @@
+{
+  "days": [
+    {
+      "day": 1,
+      "pois": [
+        {
+          "location_id": "LOC_003",
+          "poi_id": "LOC_003",
+          "name": "India Gate",
+          "category": "activity",
+          "role": "SKELETON",
+          "time_window_start": "09:00",
+          "time_window_end": "09:45",
+          "planned_visit_time_min": 45,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_LUNCH",
+          "poi_id": "LOC_LUNCH",
+          "name": "Connaught Place Restaurants (Lunch)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "12:30",
+          "time_window_end": "13:30",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_013",
+          "poi_id": "LOC_013",
+          "name": "Lodhi Gardens",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "14:00",
+          "time_window_end": "15:00",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_DINNER",
+          "poi_id": "LOC_DINNER",
+          "name": "Evening Fine Dining (Dinner)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "19:00",
+          "time_window_end": "20:30",
+          "planned_visit_time_min": 90,
+          "comment": null
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "pois": [
+        {
+          "location_id": "LOC_005",
+          "poi_id": "LOC_005",
+          "name": "Humayun Tomb",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "09:00",
+          "time_window_end": "10:00",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_LUNCH",
+          "poi_id": "LOC_LUNCH",
+          "name": "Connaught Place Restaurants (Lunch)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "12:30",
+          "time_window_end": "13:30",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_014",
+          "poi_id": "LOC_014",
+          "name": "National Museum",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "14:00",
+          "time_window_end": "16:00",
+          "planned_visit_time_min": 120,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_DINNER",
+          "poi_id": "LOC_DINNER",
+          "name": "Evening Fine Dining (Dinner)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "19:00",
+          "time_window_end": "20:30",
+          "planned_visit_time_min": 90,
+          "comment": null
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "pois": [
+        {
+          "location_id": "LOC_019",
+          "poi_id": "LOC_019",
+          "name": "Garden of Five Senses",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "09:00",
+          "time_window_end": "10:30",
+          "planned_visit_time_min": 90,
+          "comment": "Added: the Garden of Five Senses has paved, level paths, while Red Fort has long uneven approaches"
+        },
+        {
+          "location_id": "LOC_LUNCH",
+          "poi_id": "LOC_LUNCH",
+          "name": "Connaught Place Restaurants (Lunch)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "12:30",
+          "time_window_end": "13:30",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_020",
+          "poi_id": "LOC_020",
+          "name": "National Gallery of Modern Art",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "14:00",
+          "time_window_end": "15:30",
+          "planned_visit_time_min": 90,
+          "comment": null
+        }
+      ]
+    },
+    {
+      "day": 4,
+      "pois": [
+        {
+          "location_id": "LOC_004",
+          "poi_id": "LOC_004",
+          "name": "Lotus Temple",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "09:00",
+          "time_window_end": "11:00",
+          "planned_visit_time_min": 120,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_LUNCH",
+          "poi_id": "LOC_LUNCH",
+          "name": "Connaught Place Restaurants (Lunch)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "12:30",
+          "time_window_end": "13:30",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_012",
+          "poi_id": "LOC_012",
+          "name": "Dilli Haat INA",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "14:00",
+          "time_window_end": "15:30",
+          "planned_visit_time_min": 90,
+          "comment": "Added: Dilli Haat is a flat, covered market, replacing a tomb with steps at the entrance"
+        }
+      ]
+    }
+  ],
+  "total_cost": 2580.0,
+  "total_satisfaction": 7.0
+}

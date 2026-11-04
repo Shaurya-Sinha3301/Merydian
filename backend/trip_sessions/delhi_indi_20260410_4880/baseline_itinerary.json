@@ -1,0 +1,191 @@
+{
+  "days": [
+    {
+      "day": 1,
+      "pois": [
+        {
+          "location_id": "LOC_003",
+          "poi_id": "LOC_003",
+          "name": "India Gate",
+          "category": "activity",
+          "role": "SKELETON",
+          "time_window_start": "09:00",
+          "time_window_end": "09:45",
+          "planned_visit_time_min": 45,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_LUNCH",
+          "poi_id": "LOC_LUNCH",
+          "name": "Connaught Place Restaurants (Lunch)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "12:30",
+          "time_window_end": "13:30",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_009",
+          "poi_id": "LOC_009",
+          "name": "Purana Qila",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "14:00",
+          "time_window_end": "15:00",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_DINNER",
+          "poi_id": "LOC_DINNER",
+          "name": "Evening Fine Dining (Dinner)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "19:00",
+          "time_window_end": "20:30",
+          "planned_visit_time_min": 90,
+          "comment": null
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "pois": [
+        {
+          "location_id": "LOC_001",
+          "poi_id": "LOC_001",
+          "name": "Red Fort",
+          "category": "activity",
+          "role": "SKELETON",
+          "time_window_start": "09:00",
+          "time_window_end": "09:45",
+          "planned_visit_time_min": 45,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_LUNCH",
+          "poi_id": "LOC_LUNCH",
+          "name": "Connaught Place Restaurants (Lunch)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "12:30",
+          "time_window_end": "13:30",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_017",
+          "poi_id": "LOC_017",
+          "name": "Khan Market",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "14:00",
+          "time_window_end": "15:30",
+          "planned_visit_time_min": 90,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_DINNER",
+          "poi_id": "LOC_DINNER",
+          "name": "Evening Fine Dining (Dinner)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "19:00",
+          "time_window_end": "20:30",
+          "planned_visit_time_min": 90,
+          "comment": null
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "pois": [
+        {
+          "location_id": "LOC_005",
+          "poi_id": "LOC_005",
+          "name": "Humayun Tomb",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "09:00",
+          "time_window_end": "10:00",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_LUNCH",
+          "poi_id": "LOC_LUNCH",
+          "name": "Connaught Place Restaurants (Lunch)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "12:30",
+          "time_window_end": "13:30",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_012",
+          "poi_id": "LOC_012",
+          "name": "Dilli Haat INA",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "14:00",
+          "time_window_end": "15:30",
+          "planned_visit_time_min": 90,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_DINNER",
+          "poi_id": "LOC_DINNER",
+          "name": "Evening Fine Dining (Dinner)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "19:00",
+          "time_window_end": "20:30",
+          "planned_visit_time_min": 90,
+          "comment": null
+        }
+      ]
+    },
+    {
+      "day": 4,
+      "pois": [
+        {
+          "location_id": "LOC_014",
+          "poi_id": "LOC_014",
+          "name": "National Museum",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "09:00",
+          "time_window_end": "11:00",
+          "planned_visit_time_min": 120,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_LUNCH",
+          "poi_id": "LOC_LUNCH",
+          "name": "Connaught Place Restaurants (Lunch)",
+          "category": "meal",
+          "role": "SKELETON",
+          "time_window_start": "12:30",
+          "time_window_end": "13:30",
+          "planned_visit_time_min": 60,
+          "comment": null
+        },
+        {
+          "location_id": "LOC_011",
+          "poi_id": "LOC_011",
+          "name": "Hauz Khas Village",
+          "category": "activity",
+          "role": "OPTIONAL",
+          "time_window_start": "14:00",
+          "time_window_end": "16:00",
+          "planned_visit_time_min": 120,
+          "comment": null
+        }
+      ]
+    }
+  ],
+  "total_cost": 4980.0,
+  "total_satisfaction": 7.65
+}
