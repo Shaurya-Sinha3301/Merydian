@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # Background jobs: a RUNNING job with no update for this long is presumed abandoned by a dead worker.
+    # Must stay above Celery's hard task limit (150 s) so a healthy job is never taken over.
+    JOB_LEASE_SECONDS: int = 180
+    # Login protection: this many wrong passwords for one account within the window locks sign-in for the window.
+    LOGIN_MAX_FAILURES: int = 5
+    LOGIN_LOCK_SECONDS: int = 900
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # Refresh tokens valid for 7 days
 
     # DATABASE

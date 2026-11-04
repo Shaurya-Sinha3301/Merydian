@@ -69,22 +69,18 @@ class ItineraryService:
             Created Itinerary object
         """
         with Session(engine) as session:
-            # Get the current max version for this family
-            statement = (
-                select(Itinerary)
-                .where(Itinerary.family_id == family_id)
-                .order_by(Itinerary.version.desc())
-                .limit(1)
-            )
-            latest = session.exec(statement).first()
-            new_version = (latest.version + 1) if latest else 1
-            
-            # Calculate statistics from data
+            # Lock the family row first: concurrent writers for one family queue up here, so each
+            # reads the true latest version and the version numbers can never collide.
+            family = session.exec(select(Family).where(Family.id == family_id).with_for_update()).first()
+            latest = session.exec(
+                select(Itinerary.version).where(Itinerary.family_id == family_id).order_by(Itinerary.version.desc())
+            ).first()
+            new_version = (latest or 0) + 1
+
             total_cost = itinerary_data.get('total_cost', 0.0)
             total_satisfaction = itinerary_data.get('total_satisfaction', 0.0)
             duration_days = len(itinerary_data.get('days', []))
-            
-            # Create new itinerary
+
             itinerary = Itinerary(
                 family_id=family_id,
                 version=new_version,
@@ -95,22 +91,20 @@ class ItineraryService:
                 total_satisfaction=total_satisfaction,
                 duration_days=duration_days
             )
-            
             session.add(itinerary)
+            session.flush()
+
+            # Pointing the family at the new version happens in the same transaction, so the
+            # "current" pointer can never end up on an older version than the newest one saved.
+            if set_as_current and family:
+                family.current_itinerary_version = itinerary.id
+                family.updated_at = datetime.utcnow()
+                session.add(family)
+
             session.commit()
             session.refresh(itinerary)
-            
-            # Update family's current itinerary if requested
-            if set_as_current:
-                family = session.get(Family, family_id)
-                if family:
-                    family.current_itinerary_version = itinerary.id
-                    family.updated_at = datetime.utcnow()
-                    session.add(family)
-                    session.commit()
-            
             return itinerary
-    
+
     @staticmethod
     def get_itinerary_history(family_id: UUID, limit: int = 10) -> List[Itinerary]:
         """Get itinerary version history for a family."""
@@ -166,7 +160,7 @@ class ItineraryService:
         with Session(engine) as session:
             for fam_code in family_ids:
                 # Look up family by family_code
-                statement = select(Family).where(Family.family_code == fam_code)
+                statement = select(Family).where(Family.family_code == fam_code).with_for_update()
                 family = session.exec(statement).first()
 
                 if not family:

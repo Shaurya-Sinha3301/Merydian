@@ -30,6 +30,23 @@ import app.models as models_pkg
 from app.core.db import engine
 
 
+def ensure_constraints() -> None:
+    """Add rules that create_all cannot add to a table that already exists. Safe to repeat."""
+    from sqlalchemy import text
+
+    statements = {
+        "one version number per family": "CREATE UNIQUE INDEX IF NOT EXISTS uq_itineraries_family_version ON itineraries (family_id, version)",
+    }
+    with engine.begin() as conn:
+        for label, sql in statements.items():
+            try:
+                with conn.begin_nested():
+                    conn.execute(text(sql))
+                print(f"Rule in place: {label}")
+            except Exception as exc:  # existing rows that already break the rule must be cleaned up by hand
+                print(f"WARNING: could not add rule '{label}': {str(exc).splitlines()[0]}")
+
+
 def main() -> None:
     # Register every table on SQLModel.metadata
     for mod in pkgutil.iter_modules(models_pkg.__path__):
@@ -46,6 +63,8 @@ def main() -> None:
         print("Untracked database: creating tables from models, then stamping head ...")
         SQLModel.metadata.create_all(engine)
         command.stamp(cfg, "head")
+
+    ensure_constraints()
 
     tables = sorted(inspect(engine).get_table_names())
     print(f"Schema ready ({len(tables)} tables): {', '.join(tables)}")

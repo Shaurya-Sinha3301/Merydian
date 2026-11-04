@@ -9,6 +9,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel, Column
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 
 
@@ -22,6 +23,8 @@ class Itinerary(SQLModel, table=True):
     The 'data' field contains the complete itinerary structure as JSON.
     """
     __tablename__ = "itineraries"
+    # One family can never hold two itineraries with the same version number
+    __table_args__ = (UniqueConstraint("family_id", "version", name="uq_itineraries_family_version"),)
     
     # Primary Key
     id: UUID = Field(default_factory=uuid4, primary_key=True)

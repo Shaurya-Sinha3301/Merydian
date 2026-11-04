@@ -36,4 +36,7 @@ celery_app.conf.worker_prefetch_multiplier = 1
 celery_app.conf.task_soft_time_limit = 120
 celery_app.conf.task_time_limit = 150
 celery_app.conf.task_acks_late = True
+# Redis re-delivers a task its worker never acknowledged after this long. The default is one hour,
+# so a job lost to a crash would sit idle. Keep it above task_time_limit so live tasks are not repeated.
+celery_app.conf.broker_transport_options = {"visibility_timeout": 200}
 celery_app.conf.task_reject_on_worker_lost = True

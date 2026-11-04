@@ -100,6 +100,7 @@ It creates test accounts, so point it at a staging copy.
 | File | Contents |
 |---|---|
 | [docs/DEPLOY.md](docs/DEPLOY.md) | Deployment runbook and troubleshooting |
+| [docs/PRODUCTION_HARDENING.md](docs/PRODUCTION_HARDENING.md) | What the backend lacked, why, how it would fail, and what was built |
 | [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md) | A scripted agent-and-customer walkthrough with a talk track |
 | [docs/USE_AND_EXTEND.md](docs/USE_AND_EXTEND.md) | How the system can be used and extended |
 | [PROJECT_ARCHITECTURE.md](PROJECT_ARCHITECTURE.md) | Architecture notes from earlier phases |

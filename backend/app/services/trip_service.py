@@ -112,6 +112,7 @@ class TripService:
                     baseline_data = json.load(f)
                 
                 # 2. Create Itinerary Record (Version 1)
+                from sqlmodel import select
                 from app.models.itinerary import Itinerary
                 from app.models.family import Family
                 from app.models.preference import Preference, PreferenceType
@@ -131,10 +132,15 @@ class TripService:
                         logger.warning(f"Family {fam_id_str} not found during schema population")
                         continue
                         
-                    # Create Itinerary
+                    # Create Itinerary: the next version for this family. Lock the family row first so a
+                    # second trip started for the same family at the same moment cannot take the same number.
+                    session.exec(select(Family).where(Family.id == fam.id).with_for_update()).first()
+                    latest_version = session.exec(
+                        select(Itinerary.version).where(Itinerary.family_id == fam.id).order_by(Itinerary.version.desc())
+                    ).first()
                     itinerary = Itinerary(
                         family_id=fam.id,
-                        version=1,
+                        version=(latest_version or 0) + 1,
                         data=baseline_data,
                         created_reason="Trip Initialization",
                         created_by="system",

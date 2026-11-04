@@ -1,4 +1,5 @@
 from datetime import timedelta, datetime, timezone
+from app.core import login_throttle
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
@@ -35,10 +36,14 @@ async def login_access_token(
     OAuth2 compatible token login, get an access token for future requests.
     Validates username/password against database and issues JWT.
     """
+    # Locked accounts are refused before the password is even checked
+    await login_throttle.check(form_data.username)
+
     # Authenticate user against database
     user = UserService.authenticate_user(form_data.username, form_data.password)
     
     if not user:
+        await login_throttle.record_failure(form_data.username)
         logger.warning(f"Failed login attempt for email: {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -53,6 +58,8 @@ async def login_access_token(
             detail="User account is inactive"
         )
     
+    await login_throttle.clear(form_data.username)
+
     # Get device info for session tracking
     device_info = get_device_info(request)
     
