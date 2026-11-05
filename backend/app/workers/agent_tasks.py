@@ -182,6 +182,10 @@ def _run_job(job, beat):
         from app.services import trip_jobs
 
         result, announcements = trip_jobs.run(job)
+    elif job.job_type == JobType.POI_PROPOSAL:
+        from app.services import trip_jobs
+
+        result, announcements = trip_jobs.run_place_request(job)
     else:
         raise ValueError(f"Unsupported job type: {job.job_type}")
 
@@ -223,6 +227,7 @@ def execute_agent_job_task(self, job_id_str: str):
                                              "Please send it again.", error_type="WaitDeadline")
             return
         logger.info(f"Job {job_id} waits: {waiting}")
+        AgentJobService.touch(job_id)
         raise self.retry(countdown=WAIT_SECONDS)
 
     fence = None

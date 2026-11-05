@@ -410,6 +410,14 @@ class AgentJobService:
             ).first() is not None
 
     @staticmethod
+    def touch(job_id: uuid.UUID) -> None:
+        """A waiting job shows it is alive, so the scheduler does not take it for lost and publish it again."""
+        with Session(engine) as session:
+            session.execute(update(AgentJob).where(AgentJob.id == job_id, AgentJob.status == JobStatus.QUEUED)
+                            .values(updated_at=_DB_NOW))
+            session.commit()
+
+    @staticmethod
     def past_wait_deadline(job: AgentJob) -> bool:
         from app.core.config import settings
 

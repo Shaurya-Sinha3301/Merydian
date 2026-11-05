@@ -54,8 +54,17 @@ def _stop_ids(itinerary: Dict[str, Any]) -> Dict[str, str]:
     return out
 
 
-def propose_place(trip_id: str, family_id: UUID, place: Dict[str, Any], note: Optional[str] = None) -> Dict[str, Any]:
-    """Create the pending options for adding `place` to the trip. Returns the new event id and the options."""
+def propose_place(trip_id: str, family_id: UUID, place: Dict[str, Any], note: Optional[str] = None,
+                  event_id: Optional[str] = None) -> Dict[str, Any]:
+    """Create the pending options for adding `place` to the trip. Returns the new event id and the options.
+
+    A background job passes its own event id, so running it twice finds the options already made and
+    returns them instead of creating a second set.
+    """
+    if event_id:
+        existing = ItineraryOptionService.get_options_for_event(event_id=event_id)
+        if existing:
+            return {"event_id": event_id, "options": [str(o.id) for o in existing], "optimizer_ran": True}
     from ml_or.demos.reopt_hard_constraints.feedback_processor import FeedbackProcessor
     from app.services.preference_service import PreferenceService
 
@@ -133,7 +142,7 @@ def propose_place(trip_id: str, family_id: UUID, place: Dict[str, Any], note: Op
     if not new_itinerary:
         raise ValueError(f"We could not fit {place['name']} into this plan without breaking its opening hours or travel times")
 
-    event_id = f"poi_req_{family_id}_{int(time.time())}"
+    event_id = event_id or f"poi_req_{family_id}_{int(time.time())}"
     keep = ItineraryOptionService.create_option(
         event_id=event_id,
         trip_id=trip_id,

@@ -23,6 +23,7 @@ from app.models.outbox import OutboxMessage
 logger = logging.getLogger(__name__)
 
 MAX_ATTEMPTS = 8
+JOB_TASK = "app.workers.agent_tasks.execute_agent_job_task"
 STUCK_AFTER = timedelta(seconds=60)
 _fast_path = True  # turned off only by tests that simulate a process dying right after its commit
 
@@ -130,9 +131,10 @@ def _deliver(row: OutboxMessage) -> None:
     p = row.payload or {}
     eid = str(row.event_id)
     if row.kind == "publish_job":
-        from app.workers.agent_tasks import execute_agent_job_task
+        from app.core.celery_app import celery_app
 
-        execute_agent_job_task.apply_async(args=[p["job_id"]])
+        # By name: the API image has no worker code to import, and needs none to queue a job
+        celery_app.send_task(JOB_TASK, args=[p["job_id"]])
     elif row.kind == "run_task":
         from app.core.celery_app import celery_app
 

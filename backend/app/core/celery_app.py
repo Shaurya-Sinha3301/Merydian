@@ -15,6 +15,9 @@ celery_app = Celery(
 
 # Task routing — booking tasks go to dedicated queue
 celery_app.conf.task_routes = {
+    # Solver and language-model work: the optimizer worker only. Everything else stays off this queue,
+    # so a burst of replans never delays a notification or an email.
+    "app.workers.agent_tasks.execute_agent_job_task": {"queue": "optimizer"},
     "app.worker.process_hotel_booking": {"queue": "booking_queue"},
     'app.worker.process_event_task': {'queue': 'event_queue'},
     'app.worker.process_notification_task': {'queue': 'notification_queue'},
@@ -48,7 +51,7 @@ celery_app.conf.task_reject_on_worker_lost = True
 
 # The outbox dispatcher runs inside the worker: it publishes jobs and delivers announcements that were
 # recorded in the database but not delivered straight away (see app/services/outbox_service.py).
-from celery.signals import worker_ready  # noqa: E402
+from celery.signals import worker_ready, worker_shutdown  # noqa: E402
 
 
 @worker_ready.connect
@@ -59,3 +62,22 @@ def _start_outbox_dispatcher(**_kwargs):
         from app.services import outbox_service
 
         outbox_service.start_dispatcher(float(os.getenv("OUTBOX_POLL_SECONDS", "1")))
+
+
+@worker_ready.connect
+def _start_worker_heartbeat(sender=None, **_kwargs):
+    """Tell the API this worker is alive and which queues it serves (app/workers/worker_heartbeat.py)."""
+    from app.workers import worker_heartbeat
+
+    try:
+        queues = sorted(sender.app.amqp.queues.consume_from.keys()) if sender is not None else []
+    except Exception:
+        queues = []
+    worker_heartbeat.start(getattr(sender, "hostname", None) or "worker", queues)
+
+
+@worker_shutdown.connect
+def _stop_worker_heartbeat(**_kwargs):
+    from app.workers import worker_heartbeat
+
+    worker_heartbeat.stop()

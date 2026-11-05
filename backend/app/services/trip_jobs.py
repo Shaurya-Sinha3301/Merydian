@@ -140,3 +140,31 @@ def _auto_publish(option_id: str, family_code: Optional[str]) -> bool:
     except Exception as e:
         logger.error(f"Auto-publish failed for option {option_id}: {e}", exc_info=True)
     return False
+
+
+
+# ---------------------------------------------------------------------------------------------------
+# A traveller asks to add a place: the solver works out an "add it" option, an agent decides
+# ---------------------------------------------------------------------------------------------------
+def start_place_request(trip, family_id: uuid.UUID, place: Dict[str, Any], note: Optional[str], requested_by: Optional[str]) -> AgentJob:
+    return AgentJobService.create_job(
+        JobType.POI_PROPOSAL, trip_id=trip.trip_id, publish=True,
+        created_by_user_id=uuid.UUID(requested_by) if requested_by else None,
+        input_payload={"family_id": str(family_id), "place": place, "note": note, "trip_name": trip.trip_name})
+
+
+def run_place_request(job: AgentJob) -> Tuple[Any, List[Dict[str, Any]]]:
+    from app.services import notification_service as ns
+    from app.services.poi_proposal_service import propose_place
+
+    p = job.input_payload or {}
+    place = p["place"]
+    try:
+        proposal = propose_place(job.trip_id, uuid.UUID(p["family_id"]), place, note=p.get("note"), event_id=f"poi_req_{job.id}")
+    except ValueError as e:
+        return SimpleNamespace(success=False, result=None, error=f"ValueError: {e}"), []
+    note = ns.announcement("notify_agents", type="decision.created", title=f"Request: add {place['name']}",
+                           body=p.get("note") or f"For {p.get('trip_name') or job.trip_id}", link="/app/desk",
+                           data={"trip_id": job.trip_id, "event_id": proposal["event_id"]})
+    result = {"event_id": proposal["event_id"], "place": place["name"], "optimizer_ran": proposal.get("optimizer_ran")}
+    return SimpleNamespace(success=True, result=result, error=None), [{"kind": "notify_agents", "payload": note}]

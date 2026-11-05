@@ -2,8 +2,8 @@
 # =============================================================================
 # docker-entrypoint.sh
 #
-# Single entrypoint for all MeiliAI backend service modes.
-# Usage: set CMD to one of: api | worker | beat | flower | migrate
+# Single entrypoint for all Merydian backend service modes.
+# Usage: set CMD to one of: api | worker | worker-optimizer | worker-default | scheduler | all | migrate
 # =============================================================================
 set -euo pipefail
 
@@ -77,6 +77,10 @@ case "$MODE" in
         echo "🔄  Bootstrapping schema …"
         python scripts/db_bootstrap.py
         echo "✅  Schema ready."
+        if [ "${SEED_ON_START:-false}" = "true" ]; then
+            echo "🌱  Seeding data …"
+            python -m scripts.seed || echo "⚠️  Seeding failed (continuing)"
+        fi
         ;;
 
     # ── Start FastAPI application ─────────────────────────────────────────────
@@ -92,17 +96,26 @@ case "$MODE" in
             --log-level "${LOG_LEVEL:-info}"
         ;;
 
-    # ── Start Celery worker (handles: booking jobs, agent tasks, events) ──────
-    worker)
+    # ── Celery workers ─────────────────────────────────────────────────────────
+    #   worker-optimizer  solver and language-model jobs only; one job per core by default
+    #   worker-default    outbox dispatch, email, SMS, webhooks, events, bookings
+    #   worker            any queues you name in CELERY_QUEUES (default: all of them)
+    worker|worker-optimizer|worker-default)
         wait_for_postgres
         wait_for_schema
         wait_for_redis
-        echo "⚙️   Starting Celery worker …"
-        exec celery -A app.core.celery_app:celery_app worker \
-            --loglevel="${LOG_LEVEL:-info}" \
-            --concurrency="${CELERY_CONCURRENCY:-4}" \
-            --queues="${CELERY_QUEUES:-default,booking_queue,event_queue,notification_queue}" \
-            --hostname="worker@%h"
+        case "$MODE" in
+            worker-optimizer)
+                QUEUES="optimizer"; CONCURRENCY="${CELERY_CONCURRENCY:-1}"
+                export OUTBOX_DISPATCHER=false ;;
+            worker-default)
+                QUEUES="default,booking_queue,event_queue,notification_queue"; CONCURRENCY="${CELERY_CONCURRENCY:-4}" ;;
+            *)
+                QUEUES="${CELERY_QUEUES:-optimizer,default,booking_queue,event_queue,notification_queue}"; CONCURRENCY="${CELERY_CONCURRENCY:-2}" ;;
+        esac
+        echo "Starting Celery ${MODE} on queues ${QUEUES} ..."
+        # On SIGTERM Celery finishes the running job (or hands it back: tasks are acknowledged late)
+        exec celery -A app.core.celery_app:celery_app worker             --loglevel="${LOG_LEVEL:-info}"             --concurrency="${CONCURRENCY}"             --prefetch-multiplier=1             --max-tasks-per-child=50             --queues="${QUEUES}"             --hostname="${MODE}@%h"
         ;;
 
     # ── Single-container mode for free hosts (Render): migrate, worker + API ──
@@ -120,10 +133,13 @@ case "$MODE" in
             --loglevel="${LOG_LEVEL:-info}" \
             --concurrency="${CELERY_CONCURRENCY:-1}" \
             --max-tasks-per-child=20 \
-            --queues="${CELERY_QUEUES:-default,booking_queue,event_queue,notification_queue}" \
+            --queues="${CELERY_QUEUES:-optimizer,default,booking_queue,event_queue,notification_queue}" \
             --hostname="worker@%h" &
         WORKER_PID=$!
-        trap 'kill "$WORKER_PID" 2>/dev/null || true' EXIT TERM INT
+        echo "Starting the scheduler in background ..."
+        python -m app.scheduler &
+        SCHEDULER_PID=$!
+        trap 'kill "$WORKER_PID" "$SCHEDULER_PID" 2>/dev/null || true' EXIT TERM INT
         echo "🚀  Starting FastAPI (uvicorn) on port ${PORT:-8000} …"
         uvicorn app.main:app \
             --host 0.0.0.0 \
@@ -133,28 +149,18 @@ case "$MODE" in
             --log-level "${LOG_LEVEL:-info}"
         ;;
 
-    # ── Start Celery Beat scheduler ───────────────────────────────────────────
-    beat)
+    # ── Scheduler: one process that sweeps for stuck work (app/scheduler.py) ──────
+    scheduler)
+        wait_for_postgres
+        wait_for_schema
         wait_for_redis
-        echo "🕐  Starting Celery Beat scheduler …"
-        exec celery -A app.core.celery_app:celery_app beat \
-            --loglevel="${LOG_LEVEL:-info}"
-        ;;
-
-    # ── Flower monitoring dashboard ───────────────────────────────────────────
-    flower)
-        wait_for_redis
-        echo "🌸  Starting Flower monitoring …"
-        exec celery -A app.core.celery_app:celery_app flower \
-            --port=5555 \
-            --address=0.0.0.0 \
-            --basic_auth="${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-admin}" \
-            --loglevel="${LOG_LEVEL:-info}"
+        echo "Starting the scheduler ..."
+        exec python -m app.scheduler
         ;;
 
     *)
         echo "❌  Unknown mode: ${MODE}"
-        echo "    Valid modes: api | worker | all | beat | flower | migrate"
+        echo "    Valid modes: api | worker | worker-optimizer | worker-default | scheduler | all | migrate"
         exit 1
         ;;
 esac

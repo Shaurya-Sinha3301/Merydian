@@ -5,7 +5,7 @@ from enum import Enum
 import uuid as uuid_lib
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Path
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Path
 from pydantic import BaseModel, Field
 from app.core.dependencies import get_current_user, get_optional_user, get_agent_workflow_service, verify_trip_access
 from app.schemas.auth import TokenPayload
@@ -415,13 +415,14 @@ async def process_agent_feedback(
 @router.post("/poi-request", response_model=POIRequestResponse)
 async def submit_poi_request(
     poi_request: POIRequest,
-    current_user: TokenPayload = Depends(get_current_user)
+    current_user: TokenPayload = Depends(get_current_user),
+    prefer: Optional[str] = Header(default=None),
 ) -> Any:
     """
     Ask for a specific place. The optimizer builds an "add it" option and a "keep the plan" option,
     and a travel agent accepts or declines. Nothing changes for the traveller until then.
     """
-    from app.services.poi_proposal_service import find_place, propose_place
+    from app.services.poi_proposal_service import find_place
     from app.services.trip_service import TripService
 
     if not current_user.family_id:
@@ -435,27 +436,25 @@ async def submit_poi_request(
     if not trip:
         raise HTTPException(status_code=404, detail="You do not have a trip to add this to yet")
 
-    try:
-        proposal = propose_place(trip.trip_id, family_id, place, note=poi_request.note)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"POI proposal failed: {e}", exc_info=True)
+    # The solver works out the "add it" option in a background job (app/services/trip_jobs.py); this request
+    # waits for it without blocking, and answers 202 with the job to follow if it takes longer
+    from fastapi.responses import JSONResponse
+    from app.models.agent_job import JobStatus
+    from app.services import trip_jobs
+
+    job = trip_jobs.start_place_request(trip, family_id, place, poi_request.note, current_user.sub)
+    job = await trip_jobs.wait(job.id, trip_jobs.wait_seconds(prefer))
+    if job.status == JobStatus.COMPLETED:
+        return POIRequestResponse(message=f"Your request for {place['name']} is with your travel agent.",
+                                  request_id=(job.result_payload or {}).get("event_id", ""))
+    if job.status in (JobStatus.FAILED, JobStatus.CANCELLED):
+        message = job.error_message or "We could not prepare that request. Please try again."
+        if message.startswith("ValueError: "):
+            raise HTTPException(status_code=400, detail=message[len("ValueError: "):])
         raise HTTPException(status_code=500, detail="We could not prepare that request. Please try again.")
-
-    from app.services import notification_service as ns
-
-    ns.notify_agents(
-        "decision.created",
-        f"Request: add {place['name']}",
-        (poi_request.note or f"For {trip.trip_name}"),
-        "/app/desk",
-        {"trip_id": trip.trip_id, "event_id": proposal["event_id"]},
-    )
-    return POIRequestResponse(
-        message=f"Your request for {place['name']} is with your travel agent.",
-        request_id=proposal["event_id"],
-    )
+    body = trip_jobs.accepted(job)
+    body["message"] = f"Preparing your request for {place['name']}."
+    return JSONResponse(body, status_code=202, headers={"Location": body["poll"]})
 
 
 # ---------------------------------------------------------------------------
