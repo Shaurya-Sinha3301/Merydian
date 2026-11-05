@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 from app.core.rate_limit import RateLimiter
 
-_rate_limiter = RateLimiter(times=100, seconds=60)
+_rate_limiter = RateLimiter()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -79,7 +79,11 @@ app.middleware("http")(_idempotency.middleware)
 async def rate_limit_middleware(request: Request, call_next):
     # Skip rate limiting for WebSocket upgrade requests
     if request.headers.get("upgrade", "").lower() != "websocket":
-        await _rate_limiter(request)
+        try:
+            await _rate_limiter(request)
+        except StarletteHTTPException as exc:
+            # Raised outside a route, so FastAPI's handlers never see it: answer here, or it becomes a 500
+            return JSONResponse({"detail": exc.detail}, status_code=exc.status_code, headers=exc.headers or {})
     return await call_next(request)
 
 @app.middleware("http")

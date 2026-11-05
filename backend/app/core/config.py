@@ -60,7 +60,12 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # PUBLIC DEMO SANDBOX
+    # "showcase" opens the demo door and lets DEV_OUTBOX work; "production" shuts both whatever their own
+    # settings say, so a forgotten flag cannot leave a real deployment open. Production is the default.
+    APP_MODE: str = "production"
     DEMO_ENABLED: bool = True
+    # Number of proxies in front of the app that append to X-Forwarded-For (0 = no proxy, use the socket address)
+    TRUSTED_PROXY_HOPS: int = 0
     # Required (header X-Admin-Key) to reset demo data; reset is disabled when empty.
     DEMO_ADMIN_KEY: str = ""
     # Password for the seeded demo accounts; random per seed run when empty,
@@ -105,6 +110,10 @@ class Settings(BaseSettings):
             if candidate.exists():
                 return str(candidate)
         return str(repo_root / configured)
+
+    @property
+    def showcase(self) -> bool:
+        return str(self.APP_MODE).strip().lower() == "showcase"
 
     @field_validator("SQLALCHEMY_DATABASE_URI")
     @classmethod

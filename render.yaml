@@ -64,10 +64,14 @@ services:
         sync: false
       - key: GROQ_MODEL
         value: openai/gpt-oss-20b
-      - key: SEED_ON_START        # idempotent; also rewrites itinerary files on the ephemeral disk
+      - key: SEED_ON_START        # idempotent; demo trips are recorded in the database
         value: "true"
+      - key: APP_MODE             # "showcase" keeps the demo door open; "production" shuts it whatever DEMO_ENABLED says
+        value: showcase
       - key: DEMO_ENABLED
         value: "true"
+      - key: TRUSTED_PROXY_HOPS   # Render's proxy appends the visitor's address to X-Forwarded-For
+        value: "1"
       - key: DEMO_ADMIN_KEY       # needed to call POST /api/v1/demo/reset (X-Admin-Key header)
         generateValue: true
       - key: CELERY_CONCURRENCY

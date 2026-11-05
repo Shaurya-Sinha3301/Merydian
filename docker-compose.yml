@@ -43,6 +43,7 @@ x-backend-env:
 
   # ── Logging & performance ────────────────────────────────────────────────────
   LOG_LEVEL: "info"
+  APP_MODE: "showcase"
   UVICORN_WORKERS: "2"
   CELERY_CONCURRENCY: "4"
 
