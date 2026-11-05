@@ -68,14 +68,14 @@ async def get_current_itinerary(
                 status_code=400,
                 detail="User is not associated with a family"
             )
-        
+
         family_id = uuid_lib.UUID(current_user.family_id)
-        
+
         # Check Cache
         redis = await get_redis()
         cache_key = f"itinerary:current:{family_id}"
         cached_data = await redis.get(cache_key)
-        
+
         if cached_data:
             try:
                 return json.loads(cached_data)
@@ -84,17 +84,17 @@ async def get_current_itinerary(
 
         # Get current itinerary from database
         itinerary_data = ItineraryService.get_current_itinerary(family_id)
-        
+
         if not itinerary_data:
             logger.info(f"No active itinerary found for {family_id}. Returning empty state.")
-            
+
             return {
                 "status": "NO_ACTIVE_ITINERARY",
                 "trip_id": None, # We don't have trip_id in this context natively unless we look it up from the family, but the spec says "trip_id": "...", let's try to get it if we can, else null.
                 "current_itinerary": None,
                 "message": "No itinerary has been generated yet."
             }
-        
+
         # Set Cache (expire in 60 seconds)
         try:
             await redis.setex(cache_key, 60, json.dumps(itinerary_data, default=str))
@@ -102,7 +102,7 @@ async def get_current_itinerary(
             logger.error(f"Failed to cache itinerary: {e}")
 
         return itinerary_data
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid family ID: {str(e)}")
     except HTTPException:
@@ -145,12 +145,12 @@ async def get_itinerary_diff(
             status_code=404,
             detail=f"One or both itinerary versions not found (v{version_a}, v{version_b})",
         )
-    
+
     # Transform raw diff into DiffDTO
     added = []
     removed = []
     modified = []
-    
+
     # diff_itineraries returns a plain dict of day changes
     for dc in diff_raw.get("day_changes", []):
         for pc in dc.get("poi_changes", []):
@@ -167,7 +167,7 @@ async def get_itinerary_diff(
                 removed.append(item)
             else:
                 modified.append(item)
-    
+
     return DiffDTO(
         trip_id=str(family_id),
         version_a=version_a,
@@ -219,10 +219,10 @@ async def get_itinerary_timeline(
                 itin = db.get(Itinerary, session.current_itinerary_id)
             data = itin.data if itin else None
         if not data:
-            itinerary_path = session.latest_itinerary_path or session.baseline_itinerary_path
-            if itinerary_path and os.path.exists(itinerary_path):
-                with open(itinerary_path, 'r') as f:
-                    data = json.load(f)
+            # Not approved yet: the newest optimizer iteration recorded for this trip
+            from app.services import iteration_service
+
+            data = iteration_service.latest_result(trip_id, current_user.family_id if current_user.role != "agent" else None)
         if not data:
             raise HTTPException(status_code=404, detail="Itinerary not generated yet")
         from app.services.itinerary_format import normalize_itinerary
@@ -266,7 +266,7 @@ async def submit_feedback(
         # Get user and family context
         user_id = uuid_lib.UUID(current_user.sub) if current_user.sub else None
         family_id = uuid_lib.UUID(current_user.family_id) if current_user.family_id else None
-        
+
         # Create feedback event with payload
         event_create = EventCreate(
             event_type=ModelEventType.FEEDBACK,
@@ -279,20 +279,20 @@ async def submit_feedback(
                 "node_id": feedback.node_id
             }
         )
-        
+
         # Store event in database
         db_event = EventService.create_event(
             event_data=event_create,
             user_id=user_id,
             family_id=family_id
         )
-        
+
         logger.info(f"Created feedback event: {db_event.id} for POI {feedback.node_id}")
-        
+
         # Trigger agentic processing async
         from app.worker import process_event_task
         process_event_task.delay(str(db_event.id))
-        
+
         # Determine feedback sentiment for response message
         if feedback.rating <= 2:
             message = "Thank you for your feedback. We're looking into this concern."
@@ -300,12 +300,12 @@ async def submit_feedback(
             message = "Thank you for your feedback. We'll work to improve your experience."
         else:
             message = "Thank you for your positive feedback!"
-        
+
         return FeedbackResponse(
             message=message,
             event_created=EventResponse(event_id=db_event.id, status=db_event.status)
         )
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -333,20 +333,20 @@ async def process_agent_feedback(
 ) -> Any:
     """
     Process feedback through the agent pipeline.
-    
+
     This endpoint uses the full agentic workflow:
     - FeedbackAgent parses natural language
     - DecisionPolicyAgent determines action
     - OptimizerAgent runs ML optimizer if needed
     - ExplainabilityAgent generates explanations
-    
+
     Returns optimized itinerary + explanations + cost analysis.
-    
+
     Note: Authentication is optional for testing. In production, this should require auth.
     """
     try:
         from app.services.trip_service import TripService
-        
+
         # Use default test family if not authenticated
         if not current_user or not current_user.family_id:
             # Default test family for demo/testing
@@ -354,20 +354,20 @@ async def process_agent_feedback(
             logger.info(f"Using default test family: {family_id}")
         else:
             family_id = current_user.family_id
-        
+
         # Get active trip for this family (instead of requiring trip_id in request)
         trip_session = TripService.get_active_trip_for_family(family_id)
-        
+
         if not trip_session:
             raise HTTPException(
                 status_code=404,
                 detail=f"No active trip found for family {family_id}. Please initialize a trip first."
             )
-        
+
         trip_id = trip_session.trip_id
-        
+
         logger.info(f"Processing: '{feedback.message}' for family {family_id}, trip {trip_id}")
-        
+
         # Process through agent pipeline via Workflow Service
         # NOTE: This handles the full workflow: agents → optimizer → session update
         result = workflow_service.enqueue_feedback_optimization(
@@ -376,7 +376,7 @@ async def process_agent_feedback(
             message=feedback.message,
             agent_id=current_user.sub if current_user else None
         )
-        
+
         logger.info("Queued feedback optimization job_id=%s status=%s", result.get("job_id"), result.get("status"))
 
         from app.services import notification_service as ns
@@ -393,7 +393,7 @@ async def process_agent_feedback(
             status=result["status"],
             message=result["message"]
         )
-        
+
     except ImportError as e:
         raise HTTPException(
             status_code=503,

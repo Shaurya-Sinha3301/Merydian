@@ -81,25 +81,25 @@ def _record_feedback_outcome(job, trip_session, message: str) -> None:
 def execute_agent_job_task(self, job_id_str: str):
     from app.core.context import set_log_context, clear_log_context
     job_id = uuid.UUID(job_id_str)
-    
+
     # Check if job exists
     job = AgentJobService.get_job(job_id)
     if not job:
         logger.error(f"Task executed for unknown job_id: {job_id}")
         return
-        
+
     set_log_context(
         correlation_id=job.correlation_id,
         agent_job_id=job_id_str,
         trip_id=job.trip_id,
         itinerary_id=job.itinerary_id
     )
-        
+
     # Idempotency check
     if job.status in [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED]:
         logger.warning(f"Job {job_id} already in terminal state {job.status}. Skipping.")
         return
-        
+
     # One plan at a time per trip: a second job for the same trip waits and tries again shortly,
     # so two replans never start from the same old plan and overwrite each other.
     # The hold expires on its own (just above Celery's hard limit), so a crash cannot block a trip.
@@ -116,12 +116,12 @@ def execute_agent_job_task(self, job_id_str: str):
         if not AgentJobService.claim_job(job_id):
             logger.warning(f"Failed to claim job {job_id}. Another worker may be processing it.")
             return
-            
+
         logger.info(f"Executing agent job {job_id} [Correlation ID: {job.correlation_id}]")
-        
+
         # Instantiate runtime
         runtime = AgentRuntime()
-        
+
         # Build Typed Request
         if job.job_type == JobType.AGENT_TOOLS:
             request = ToolsAgentRequest(
@@ -132,7 +132,7 @@ def execute_agent_job_task(self, job_id_str: str):
                 details=job.input_payload.get("details")
             )
             result = runtime.execute_tools_agent(request)
-            
+
         elif job.job_type == JobType.AGENT_COMMUNICATION:
             request = CommunicationAgentRequest(
                 job_id=str(job.id),
@@ -142,7 +142,7 @@ def execute_agent_job_task(self, job_id_str: str):
                 event_id=job.input_payload.get("event_id")
             )
             result = runtime.execute_communication_agent(request)
-            
+
         elif job.job_type == JobType.AGENT_FEEDBACK:
             # 1. Fetch Pure Context
             from app.travel_context.travel_context_service import TravelContextService
@@ -157,20 +157,20 @@ def execute_agent_job_task(self, job_id_str: str):
                 message=job.input_payload.get("message"),
                 context=context
             )
-            
+
             # 3. Execute Pure Runtime (uses architecture contracts internally)
             result = runtime.execute_feedback_optimization(request)
-            
+
             # 4. Persist optimization result to database (NOT filesystem)
             if result.success:
                 try:
                     from app.services.itinerary_service import ItineraryService
                     from app.services.trip_service import TripService
                     from datetime import datetime
-                    
+
                     opt_res = result.result.get("optimization_result", {})
                     solution = opt_res.get("solution")
-                    
+
                     if solution and isinstance(solution, dict) and solution.get("days"):
                         # Get all family codes for this trip
                         trip_session = TripService.get_trip(job.trip_id)
@@ -197,7 +197,27 @@ def execute_agent_job_task(self, job_id_str: str):
                                 itinerary_data=solution,
                                 created_reason=f"Feedback optimization (job {job_id})",
                             )
-                            
+
+                            # Keep what went in and what came out of this replan in the trip's iteration record
+                            if itinerary_ids:
+                                try:
+                                    from app.services import iteration_service
+
+                                    iteration_service.record(
+                                        job.trip_id, "replan",
+                                        family_id=str((job.input_payload or {}).get("family_id") or "") or None,
+                                        job_id=job.id,
+                                        input_snapshot={
+                                            "message": (job.input_payload or {}).get("message"),
+                                            "families": target_codes,
+                                            "base_itinerary_id": str(trip_session.current_itinerary_id) if trip_session.current_itinerary_id else None,
+                                            "decision": (result.result or {}).get("decision"),
+                                        },
+                                        result=solution,
+                                    )
+                                except Exception as rec_err:
+                                    logger.error(f"Could not record the replan iteration: {rec_err}")
+
                             # Update TripSession with current_itinerary_id
                             if itinerary_ids:
                                 TripService.update_trip_itinerary(
@@ -205,17 +225,17 @@ def execute_agent_job_task(self, job_id_str: str):
                                     itinerary_id=itinerary_ids[0],
                                     iteration_count_increment=True,
                                 )
-                            
+
                             logger.info(f"Persisted optimization result to DB: {len(itinerary_ids)} itinerary records")
                             _record_feedback_outcome(job, trip_session, job.input_payload.get("message") or "")
                     else:
                         logger.warning("Optimization result had no solution to persist")
-                        
+
                 except Exception as save_err:
                     logger.error(f"Failed to persist optimization result to DB: {save_err}", exc_info=True)
         else:
             raise ValueError(f"Unsupported job type: {job.job_type}")
-        
+
         # Handle Result
         if result.success:
             AgentJobService.complete_job(job_id, result_payload=result.result)
@@ -234,7 +254,7 @@ def execute_agent_job_task(self, job_id_str: str):
                     )
             except Exception as notify_err:
                 logger.error(f"Could not notify about processed feedback: {notify_err}")
-            
+
             # Publish to Redis for WebSocket real-time updates
             try:
                 import redis
@@ -252,19 +272,19 @@ def execute_agent_job_task(self, job_id_str: str):
                 r.publish("traveller_notifications", json.dumps(notification))
             except Exception as pub_err:
                 logger.error(f"Failed to publish to redis: {pub_err}")
-                
+
             return result.result
         else:
             # Check for retryability based on error name
             is_retryable = "AgentProviderError" in result.error or "AgentTimeoutError" in result.error
-            
+
             if is_retryable:
                 AgentJobService.retry_job(job_id, reason=result.error)
                 raise self.retry(exc=Exception(result.error), max_retries=3, countdown=5)
             else:
                 AgentJobService.fail_job(job_id, error_message=result.error)
                 raise RuntimeError(result.error)
-                
+
     except Retry:  # celery retry signal: let it propagate
         raise
     except Exception as e:

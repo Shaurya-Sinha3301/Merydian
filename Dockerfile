@@ -34,13 +34,10 @@ RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
 ENV PYTHONPATH=/app/backend:/app \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    ML_OPTIMIZER_BASE_DATA=/app/ml_or/data \
-    TRIP_SESSION_STORAGE=/app/backend/trip_sessions \
-    OPTIMIZER_OUTPUT_DIR=/app/backend/optimizer_outputs
+    ML_OPTIMIZER_BASE_DATA=/app/ml_or/data
 
 RUN groupadd --gid 1001 appgroup \
     && useradd --uid 1001 --gid appgroup --shell /bin/bash --create-home appuser \
-    && mkdir -p /app/backend/trip_sessions /app/backend/optimizer_outputs \
     && chown -R appuser:appgroup /app
 
 USER appuser

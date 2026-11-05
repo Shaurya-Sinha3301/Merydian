@@ -38,6 +38,8 @@ class Settings(BaseSettings):
 
     # ML OPTIMIZER PATHS
     ML_OPTIMIZER_BASE_DATA: str = "ml_or/data"
+    # No longer used: optimizer state lives in the trip_iterations table. Kept so older environments that
+    # still set these variables start without error.
     TRIP_SESSION_STORAGE: str = "./trip_sessions"
     OPTIMIZER_OUTPUT_DIR: str = "./optimizer_outputs"
 

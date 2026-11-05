@@ -79,6 +79,15 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    # A caller that is already inside a transaction (scripts/db_bootstrap.py adopting an old database)
+    # passes its connection, so the migrations join that transaction and can be rolled back with it.
+    shared = config.attributes.get("connection")
+    if shared is not None:
+        context.configure(connection=shared, target_metadata=target_metadata, compare_type=True)
+        with context.begin_transaction():
+            context.run_migrations()
+        return
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

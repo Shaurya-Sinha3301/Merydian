@@ -25,10 +25,6 @@ from sqlmodel import SQLModel
 LEGACY_REVISIONS = {"5fa08801567f", "6a82bcd837ab"}
 BASELINE_REVISION = "0001"
 
-# What a database adopted from the legacy setup is allowed to lack: the rule added as revision 0002,
-# which the upgrade that follows adoption supplies.
-KNOWN_LATER_CHANGES = {"uq_itineraries_family_version"}
-
 
 def alembic_config() -> Config:
     return Config(os.path.join(BACKEND_DIR, "alembic.ini"))
@@ -57,7 +53,7 @@ def has_application_tables(conn) -> bool:
     return any(name != "alembic_version" for name in inspect(conn).get_table_names())
 
 
-def drift(conn, ignore_known_later: bool = False) -> List[str]:
+def drift(conn) -> List[str]:
     """Human-readable differences between the live schema and the models. Empty means they match."""
     register_models()
     ctx = MigrationContext.configure(conn, opts={"compare_type": True})
@@ -79,9 +75,6 @@ def drift(conn, ignore_known_later: bool = False) -> List[str]:
         for item in diff:
             if isinstance(item, list):
                 walk(item)
-                continue
-            name = getattr(item[1], "name", None) if len(item) > 1 else None
-            if ignore_known_later and item[0] in ("add_index", "remove_index", "remove_constraint") and name in KNOWN_LATER_CHANGES:
                 continue
             found.append(describe(item))
 

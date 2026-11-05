@@ -7,10 +7,10 @@ What it does, in order:
   2. Looks at where the database stands:
        * empty                              -> builds everything from the migrations
        * stamped with an old revision, or has
-         tables but no version at all       -> a database from the "create missing tables" era. It is checked
-                                               against the models and, if it matches, adopted (stamped at the
-                                               baseline) without being rebuilt. If it does not match, nothing is
-                                               touched and the differences are listed.
+         tables but no version at all       -> a database from the "create missing tables" era. In ONE transaction
+                                               it is stamped at the baseline, migrated, and compared with the
+                                               models. If it matches it is committed (adopted, never rebuilt). If
+                                               not, the whole transaction is rolled back and the differences listed.
        * already at a current revision      -> nothing special
   3. Runs every pending migration.
   4. Checks the result against the models. A schema that still differs stops the start-up, because code run
@@ -50,6 +50,40 @@ def _take_lock(conn) -> None:
         time.sleep(1)
 
 
+def _adopt(engine, cfg) -> None:
+    """Adopt a database from the "create missing tables" era, all or nothing.
+
+    The question is not "does it match today's models" (it will lack whatever later migrations add) but
+    "does it match once the later migrations have run". Postgres runs schema changes inside a
+    transaction, so this stamps the baseline, runs every migration and compares, all in one
+    transaction, and rolls the whole thing back if anything still differs. Nothing is ever half done.
+    """
+    with engine.connect() as conn:
+        trans = conn.begin()
+        cfg.attributes["connection"] = conn
+        try:
+            command.stamp(cfg, mt.BASELINE_REVISION, purge=True)
+            command.upgrade(cfg, "head")
+            differences = mt.drift(conn)
+            if differences:
+                trans.rollback()
+                print("Not adopting it. Even after the migrations these differ from the models, and need a human decision:")
+                for line in differences:
+                    print("  -", line)
+                print("Nothing was changed.")
+                raise SystemExit(2)
+            trans.commit()
+            print(f"It matches once migrated. Adopting it at baseline {mt.BASELINE_REVISION} without rebuilding anything.")
+        except SystemExit:
+            raise
+        except Exception:
+            if trans.is_active:
+                trans.rollback()
+            raise
+        finally:
+            cfg.attributes.pop("connection", None)
+
+
 def main() -> None:
     primary = os.environ["SQLALCHEMY_DATABASE_URI"]
     explicit = os.environ.get("MIGRATION_DATABASE_URI", "")
@@ -75,21 +109,13 @@ def main() -> None:
 
             if not populated:
                 print("Empty database: building it from the migrations ...")
+                command.upgrade(cfg, "head")
             elif version in mt.LEGACY_REVISIONS or version is None:
                 print(f"Database from before migrations took over (version: {version or 'none'}): checking it against the models ...")
-                with engine.connect() as conn:
-                    differences = mt.drift(conn, ignore_known_later=True)
-                if differences:
-                    print("Not adopting it. These differ from the models and need a human decision:")
-                    for line in differences:
-                        print("  -", line)
-                    raise SystemExit(2)
-                print(f"It matches. Adopting it at baseline {mt.BASELINE_REVISION} without rebuilding anything.")
-                command.stamp(cfg, mt.BASELINE_REVISION, purge=True)
+                _adopt(engine, cfg)
             else:
                 print(f"Database at revision {version}.")
-
-            command.upgrade(cfg, "head")
+                command.upgrade(cfg, "head")
 
             with engine.connect() as conn:
                 final = mt.drift(conn)

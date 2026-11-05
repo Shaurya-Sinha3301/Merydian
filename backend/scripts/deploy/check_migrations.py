@@ -9,6 +9,7 @@ Checks:
   2. an empty database built from the migrations matches the models (no drift)
   3. every migration can be undone and applied again
   4. a database from the "create missing tables" era is adopted without being rebuilt, and ends matching the models
+     (including one that holds the version rule as a constraint)
   5. a legacy database that really differs from the models is refused and left untouched
 """
 import os
@@ -98,6 +99,14 @@ try:
     check("a database from the old setup is adopted and brought up to date", r.returncode == 0 and "Adopting it" in r.stdout, r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr.strip()[-120:])
     d = drift_of(legacy)
     check("and ends up matching the models", not d, "; ".join(d[:3]))
+
+    held = scratch("constraint")
+    run(held, "-m", "alembic", "upgrade", "0001")
+    sql(held, "ALTER TABLE itineraries ADD CONSTRAINT uq_itineraries_family_version UNIQUE (family_id, version)")
+    sql(held, "UPDATE alembic_version SET version_num = '6a82bcd837ab'")
+    r = run(held, "scripts/db_bootstrap.py")
+    d = drift_of(held)
+    check("an old database holding the version rule as a constraint is adopted and ends matching", r.returncode == 0 and not d, "; ".join(d[:3]) or f"exit {r.returncode}")
 
     drifted = scratch("drift")
     run(drifted, "-m", "alembic", "upgrade", "0001")
