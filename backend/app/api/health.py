@@ -26,15 +26,30 @@ async def health_ready(response: Response, session: Session = Depends(get_sessio
         "llm_provider": "unknown",
         "travel_data_provider": "unknown"
     }
-    
+
     is_ready = True
-    
+
     # 1. Check Database
     try:
         session.exec(text("SELECT 1"))
         health_status["database"] = "connected"
     except Exception as e:
         health_status["database"] = f"error: {str(e)}"
+        is_ready = False
+
+    # 1b. Schema version: the code must not serve traffic against a schema it does not expect
+    try:
+        from sqlalchemy import text as _text
+        from scripts import migration_tools as _mt
+
+        have = session.exec(_text("SELECT version_num FROM alembic_version")).first()
+        have = have[0] if have else None
+        want = _mt.head_revisions()
+        health_status["schema"] = "current" if [have] == want else f"at {have}, code expects {', '.join(want)}"
+        if [have] != want:
+            is_ready = False
+    except Exception as e:
+        health_status["schema"] = f"error: {str(e)[:80]}"
         is_ready = False
 
     # 2. Check Redis
@@ -49,38 +64,56 @@ async def health_ready(response: Response, session: Session = Depends(get_sessio
     except Exception as e:
         health_status["redis"] = f"error: {str(e)}"
         is_ready = False
-        
-    # 3. Check Celery
+
+    # 2b. The ephemeral Redis (cache, live pub/sub). Losing it costs speed, not correctness, so it is
+    # reported but does not make the service unready.
     try:
-        from app.workers.celery_app import celery_app
-        # Send ping to all workers. If any responds, we consider it connected.
-        # Note: control.ping() can take time if workers are busy, so set timeout.
-        ping_result = celery_app.control.ping(timeout=1.0)
-        if ping_result:
+        from app.core.redis import ephemeral_url, get_ephemeral_redis, queue_url
+        if ephemeral_url() != queue_url():
+            health_status["redis_ephemeral"] = "connected" if await (await get_ephemeral_redis()).ping() else "disconnected"
+    except Exception as e:
+        health_status["redis_ephemeral"] = f"degraded: {str(e)[:80]}"
+
+    # 3. Workers: every worker writes a heartbeat (app/workers/worker_heartbeat.py). Ready means at least one
+    # worker is alive and one serves the optimizer queue, so plans will actually be built.
+    try:
+        from app.workers import worker_heartbeat
+
+        workers = worker_heartbeat.alive()
+        health_status["workers"] = [{"name": w["name"], "queues": w.get("queues", []), "age_seconds": w["age_seconds"]} for w in workers]
+        serves_optimizer = any("optimizer" in (w.get("queues") or []) for w in workers)
+        if workers and serves_optimizer:
             health_status["celery"] = "connected"
+        elif workers:
+            health_status["celery"] = "no_optimizer_worker"
+            is_ready = False
         else:
             health_status["celery"] = "no_workers_available"
             is_ready = False
     except Exception as e:
         health_status["celery"] = f"error: {str(e)}"
         is_ready = False
-        
-    # 4. Check LLM Provider
+
+    # 4. Language model. The key lives with the workers that call the model (least privilege: the API needs
+    # none), so this comes from the optimizer workers' heartbeats; a process holding the key itself (the
+    # single-container mode) also counts.
     try:
-        from app.core.config import settings
-        key = os.environ.get("GROQ_API_KEY") or settings.GROQ_API_KEY
-        if not key:
-            health_status["llm_provider"] = "missing_api_key"
-            is_ready = False
-        elif any(marker in key.lower() for marker in ("your", "here", "xxx", "placeholder")):
-            health_status["llm_provider"] = "placeholder_api_key"
-            is_ready = False
-        else:
+        from app.workers import worker_heartbeat
+
+        own = worker_heartbeat._llm_status()
+        try:
+            reported = [x.get("llm") for x in worker_heartbeat.alive() if "optimizer" in (x.get("queues") or [])]
+        except Exception:
+            reported = []
+        if own == "configured" or "configured" in reported:
             health_status["llm_provider"] = "configured"
+        else:
+            health_status["llm_provider"] = next((r for r in reported if r), own)
+            is_ready = False
     except Exception as e:
         health_status["llm_provider"] = f"error: {str(e)}"
         is_ready = False
-        
+
     # 5. Check TravelDataProvider
     try:
         from app.services.travel_data_provider import TravelDataProvider
@@ -94,5 +127,5 @@ async def health_ready(response: Response, session: Session = Depends(get_sessio
     if not is_ready:
         health_status["status"] = "not_ready"
         response.status_code = 503
-        
+
     return health_status

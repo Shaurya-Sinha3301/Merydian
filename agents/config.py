@@ -44,7 +44,8 @@ class Config:
     def setup_logging(cls):
         """Configure logging for the agent system."""
         logging.basicConfig(
-            level=getattr(logging, cls.LOG_LEVEL),
+            # LOG_LEVEL is usually lower case ("info"); getattr would then return the logging.info function
+            level=getattr(logging, str(cls.LOG_LEVEL).upper(), logging.INFO),
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )

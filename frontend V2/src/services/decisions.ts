@@ -1,4 +1,5 @@
 import apiClient from './client';
+import { jobsService } from './jobs';
 
 export interface DecisionOption {
   option_id: string;
@@ -98,6 +99,14 @@ export const decisionsService = {
   decline: async (eventId: string, reason?: string) =>
     (await apiClient.post('/agent/itinerary/reject', { event_id: eventId, reason })).data,
   analytics: async (): Promise<Analytics> => (await apiClient.get<Analytics>('/agent/analytics')).data,
-  requestPlace: async (poiName: string, note?: string) =>
-    (await apiClient.post<{ message: string; request_id: string }>('/itinerary/poi-request', { poi_name: poiName, note, urgency: 'medium' }, { timeout: 120_000 })).data,
+  /** Answered at once when the plan check is quick; otherwise (202) this follows the background job. */
+  requestPlace: async (poiName: string, note?: string): Promise<{ message: string; request_id: string }> => {
+    const res = await apiClient.post<{ message: string; request_id?: string; job_id?: string }>(
+      '/itinerary/poi-request', { poi_name: poiName, note, urgency: 'medium' }, { timeout: 30_000 });
+    if (res.status === 202 && res.data.job_id) {
+      const done = await jobsService.followJob<{ event_id: string; place: string }>(res.data.job_id);
+      return { message: `Your request for ${done.place} is with your travel agent.`, request_id: done.event_id };
+    }
+    return { message: res.data.message, request_id: res.data.request_id ?? '' };
+  },
 };

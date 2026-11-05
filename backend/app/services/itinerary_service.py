@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 
 class ItineraryService:
     """Service for managing itineraries with versioning."""
-    
+
     @staticmethod
     def get_current_itinerary(family_id: UUID) -> Optional[dict]:
         """
         Get the current itinerary for a family.
-        
+
         Returns the itinerary data as a dictionary.
         """
         with Session(engine) as session:
@@ -33,20 +33,20 @@ class ItineraryService:
             family = session.get(Family, family_id)
             if not family or not family.current_itinerary_version:
                 return None
-            
+
             # Get the current itinerary version
             itinerary = session.get(Itinerary, family.current_itinerary_version)
             if not itinerary:
                 return None
-            
+
             return itinerary.data
-    
+
     @staticmethod
     def get_itinerary(itinerary_id: UUID) -> Optional[Itinerary]:
         """Get a specific itinerary by ID."""
         with Session(engine) as session:
             return session.get(Itinerary, itinerary_id)
-    
+
     @staticmethod
     def create_itinerary(
         family_id: UUID,
@@ -57,14 +57,14 @@ class ItineraryService:
     ) -> Itinerary:
         """
         Create a new itinerary version.
-        
+
         Args:
             family_id: Family this itinerary belongs to
             itinerary_data: Complete itinerary data as dict
             created_reason: Reason for creation
             created_by: User ID or "system"
             set_as_current: Whether to set this as the current version
-            
+
         Returns:
             Created Itinerary object
         """
@@ -117,7 +117,7 @@ class ItineraryService:
             )
             results = session.exec(statement)
             return list(results.all())
-    
+
     @staticmethod
     def get_latest_version(family_id: UUID) -> Optional[Itinerary]:
         """Get the latest itinerary version for a family."""
@@ -136,6 +136,7 @@ class ItineraryService:
         family_ids: List[str],
         itinerary_data: dict,
         created_reason: str = "Base itinerary approved by agent",
+        session: Optional[Session] = None,
     ) -> List[UUID]:
         """
         Publish an approved base itinerary to all families in a trip.
@@ -157,7 +158,9 @@ class ItineraryService:
 
         created_ids: List[UUID] = []
 
-        with Session(engine) as session:
+        own = session is None
+        session = session or Session(engine)
+        try:
             for fam_code in family_ids:
                 # Look up family by family_code
                 statement = select(Family).where(Family.family_code == fam_code).with_for_update()
@@ -214,7 +217,14 @@ class ItineraryService:
                         trip.family_ids = ids
                     session.add(trip)
 
-            session.commit()
+            # Inside a caller's transaction (a job completing under its fence) nothing commits here
+            if own:
+                session.commit()
+            else:
+                session.flush()
+        finally:
+            if own:
+                session.close()
 
         logger.info(
             f"Published base itinerary for trip {trip_id} to "

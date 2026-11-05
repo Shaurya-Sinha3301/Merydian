@@ -6,6 +6,7 @@ from celery.exceptions import Retry
 
 from app.workers.celery_app import celery_app
 from app.services.agent_job_service import AgentJobService
+from app.workers.heartbeat import Heartbeat, OwnershipLost
 from app.models.agent_job import JobType, JobStatus
 from app.agent_runtime import (
     AgentRuntime,
@@ -77,199 +78,219 @@ def _record_feedback_outcome(job, trip_session, message: str) -> None:
             session.commit()
 
 
-@celery_app.task(bind=True, max_retries=3)
+WAIT_SECONDS = 8
+TERMINAL = (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED)
+
+
+def _family_targets(job, trip_session):
+    """Only the family that asked gets the new branch; the others keep their plan."""
+    target_codes = trip_session.family_ids
+    try:
+        from sqlmodel import Session as _S, select as _sel
+        from app.core.db import engine as _e
+        from app.models.family import Family as _F
+
+        asked = (job.input_payload or {}).get("family_id")
+        if asked:
+            with _S(_e) as _s:
+                fam = _s.exec(_sel(_F).where((_F.family_code == str(asked)) | (_F.id == asked if len(str(asked)) == 36 else False))).first()
+            if fam:
+                target_codes = [fam.family_code]
+    except Exception as _err:
+        logger.warning(f"Could not narrow the feedback to one family: {_err}")
+    return target_codes
+
+
+def _run_job(job, beat):
+    """Do the work. Returns (result, apply, announcements, applied).
+
+    Nothing is written here. `apply` is a function that writes the result (plan version, iteration record,
+    trip pointer) into the session of the transaction that completes the job, so the result and the
+    completion are saved together, under the owner's fence, or not at all.
+    """
+    runtime = AgentRuntime()
+    apply, applied, announcements = None, False, []
+
+    if job.job_type == JobType.AGENT_TOOLS:
+        result = runtime.execute_tools_agent(ToolsAgentRequest(
+            job_id=str(job.id), trip_id=job.trip_id, option_id=job.itinerary_id,
+            event_id=job.input_payload.get("event_id"), details=job.input_payload.get("details")))
+
+    elif job.job_type == JobType.AGENT_COMMUNICATION:
+        result = runtime.execute_communication_agent(CommunicationAgentRequest(
+            job_id=str(job.id), trip_id=job.trip_id,
+            user_id=str(job.created_by_user_id) if job.created_by_user_id else None,
+            option_id=job.itinerary_id, event_id=job.input_payload.get("event_id")))
+
+    elif job.job_type == JobType.AGENT_FEEDBACK:
+        from app.travel_context.travel_context_service import TravelContextService
+
+        context = TravelContextService.build_context(job.trip_id)
+        result = runtime.execute_feedback_optimization(FeedbackOptimizationRequest(
+            job_id=str(job.id), trip_id=job.trip_id,
+            user_id=str(job.created_by_user_id) if job.created_by_user_id else None,
+            family_id=job.input_payload.get("family_id"), message=job.input_payload.get("message"), context=context))
+        beat.check()
+
+        solution = ((result.result or {}).get("optimization_result") or {}).get("solution") if result.success else None
+        if solution and isinstance(solution, dict) and solution.get("days"):
+            from app.services.trip_service import TripService
+
+            trip_session = TripService.get_trip(job.trip_id)
+            if trip_session:
+                target_codes = _family_targets(job, trip_session)
+                base_id = str(trip_session.current_itinerary_id) if trip_session.current_itinerary_id else None
+                applied = True
+
+                def apply(session):
+                    from datetime import datetime
+                    from sqlmodel import select
+                    from app.models.trip_session import TripSession
+                    from app.services import iteration_service
+                    from app.services.itinerary_service import ItineraryService
+
+                    ids = ItineraryService.publish_base_itinerary(
+                        trip_id=job.trip_id, family_ids=target_codes, itinerary_data=solution,
+                        created_reason=f"Feedback optimization (job {job.id})", session=session)
+                    if not ids:
+                        return
+                    # What went in and what came out of this replan, in the trip's iteration record
+                    iteration_service.record(
+                        job.trip_id, "replan", session=session,
+                        family_id=str((job.input_payload or {}).get("family_id") or "") or None, job_id=job.id,
+                        input_snapshot={"message": (job.input_payload or {}).get("message"), "families": target_codes,
+                                        "base_itinerary_id": base_id, "decision": (result.result or {}).get("decision")},
+                        result=solution)
+                    trip = session.exec(select(TripSession).where(TripSession.trip_id == job.trip_id)).first()
+                    if trip:
+                        trip.iteration_count = (trip.iteration_count or 0) + 1
+                        trip.last_optimization_at = datetime.utcnow()
+                        session.add(trip)
+        elif result.success:
+            logger.warning("Optimization result had no solution to persist")
+
+        if result.success and job.trip_id:
+            from app.services import notification_service as ns
+
+            announcements.append({"kind": "notify_trip_travellers", "payload": ns.announcement(
+                "notify_trip_travellers", trip_id=job.trip_id, type="feedback.processed",
+                title="Your plan was updated" if applied else "Your feedback was saved",
+                body=(job.input_payload or {}).get("message", "")[:200],
+                link=f"/app/trip/{job.trip_id}/changes" if applied else f"/app/trip/{job.trip_id}/feedback",
+                data={"trip_id": job.trip_id, "applied": applied})})
+    elif job.job_type == JobType.TRIP_INIT:
+        from app.services import trip_jobs
+
+        result, announcements = trip_jobs.run(job)
+    elif job.job_type == JobType.POI_PROPOSAL:
+        from app.services import trip_jobs
+
+        result, announcements = trip_jobs.run_place_request(job)
+    else:
+        raise ValueError(f"Unsupported job type: {job.job_type}")
+
+    return result, apply, announcements, applied
+
+
+@celery_app.task(bind=True, max_retries=None)
 def execute_agent_job_task(self, job_id_str: str):
     from app.core.context import set_log_context, clear_log_context
     job_id = uuid.UUID(job_id_str)
-    
-    # Check if job exists
+
     job = AgentJobService.get_job(job_id)
     if not job:
         logger.error(f"Task executed for unknown job_id: {job_id}")
         return
-        
-    set_log_context(
-        correlation_id=job.correlation_id,
-        agent_job_id=job_id_str,
-        trip_id=job.trip_id,
-        itinerary_id=job.itinerary_id
-    )
-        
-    # Idempotency check
-    if job.status in [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED]:
+    set_log_context(correlation_id=job.correlation_id, agent_job_id=job_id_str, trip_id=job.trip_id, itinerary_id=job.itinerary_id)
+
+    # A repeated message for a finished job does nothing
+    if job.status in TERMINAL:
         logger.warning(f"Job {job_id} already in terminal state {job.status}. Skipping.")
+        clear_log_context()
         return
-        
-    # One plan at a time per trip: a second job for the same trip waits and tries again shortly,
-    # so two replans never start from the same old plan and overwrite each other.
-    # The hold expires on its own (just above Celery's hard limit), so a crash cannot block a trip.
+
+    # Wait for earlier requests in the same stream, and for the trip, until the job's own deadline.
+    # The trip lock only saves effort (two replans starting from the same old plan); correctness comes from
+    # the fence checked when the result is saved.
     lock_name = f"trip:{job.trip_id}" if job.trip_id else None
-    lock_token = None
-    if lock_name:
+    lock_token, waiting = None, None
+    if AgentJobService.predecessor_pending(job):
+        waiting = "an earlier request for this trip is still being handled"
+    elif lock_name:
         lock_token = locks.acquire(lock_name, 170)
         if lock_token is None:
-            logger.info(f"Trip {job.trip_id} is being replanned by another job; job {job_id} will retry shortly.")
-            clear_log_context()
-            raise self.retry(countdown=8, max_retries=30)
-
-    try:
-        if not AgentJobService.claim_job(job_id):
-            logger.warning(f"Failed to claim job {job_id}. Another worker may be processing it.")
+            waiting = "this trip is being updated by another request"
+    if waiting:
+        clear_log_context()
+        if AgentJobService.past_wait_deadline(job):
+            AgentJobService.fail_job(job_id, "This trip was busy for too long, so your request was not processed. "
+                                             "Please send it again.", error_type="WaitDeadline")
             return
-            
-        logger.info(f"Executing agent job {job_id} [Correlation ID: {job.correlation_id}]")
-        
-        # Instantiate runtime
-        runtime = AgentRuntime()
-        
-        # Build Typed Request
-        if job.job_type == JobType.AGENT_TOOLS:
-            request = ToolsAgentRequest(
-                job_id=str(job.id),
-                trip_id=job.trip_id,
-                option_id=job.itinerary_id,
-                event_id=job.input_payload.get("event_id"),
-                details=job.input_payload.get("details")
-            )
-            result = runtime.execute_tools_agent(request)
-            
-        elif job.job_type == JobType.AGENT_COMMUNICATION:
-            request = CommunicationAgentRequest(
-                job_id=str(job.id),
-                trip_id=job.trip_id,
-                user_id=str(job.created_by_user_id) if job.created_by_user_id else None,
-                option_id=job.itinerary_id,
-                event_id=job.input_payload.get("event_id")
-            )
-            result = runtime.execute_communication_agent(request)
-            
-        elif job.job_type == JobType.AGENT_FEEDBACK:
-            # 1. Fetch Pure Context
-            from app.travel_context.travel_context_service import TravelContextService
-            context = TravelContextService.build_context(job.trip_id)
+        logger.info(f"Job {job_id} waits: {waiting}")
+        AgentJobService.touch(job_id)
+        raise self.retry(countdown=WAIT_SECONDS)
 
-            # 2. Build Request
-            request = FeedbackOptimizationRequest(
-                job_id=str(job.id),
-                trip_id=job.trip_id,
-                user_id=str(job.created_by_user_id) if job.created_by_user_id else None,
-                family_id=job.input_payload.get("family_id"),
-                message=job.input_payload.get("message"),
-                context=context
-            )
-            
-            # 3. Execute Pure Runtime (uses architecture contracts internally)
-            result = runtime.execute_feedback_optimization(request)
-            
-            # 4. Persist optimization result to database (NOT filesystem)
+    fence = None
+    try:
+        owner = f"{self.request.hostname or 'worker'}/{self.request.id or 'local'}"
+        fence = AgentJobService.claim_job(job_id, owner=owner)
+        if fence is None:
+            logger.warning(f"Job {job_id} is owned by another worker; nothing to do.")
+            return
+
+        logger.info(f"Executing agent job {job_id} as fence {fence} [Correlation ID: {job.correlation_id}]")
+        with Heartbeat(job_id, fence) as beat:
+            result, apply, announcements, applied = _run_job(job, beat)
+            beat.check()
+
             if result.success:
-                try:
-                    from app.services.itinerary_service import ItineraryService
-                    from app.services.trip_service import TripService
-                    from datetime import datetime
-                    
-                    opt_res = result.result.get("optimization_result", {})
-                    solution = opt_res.get("solution")
-                    
-                    if solution and isinstance(solution, dict) and solution.get("days"):
-                        # Get all family codes for this trip
-                        trip_session = TripService.get_trip(job.trip_id)
-                        if trip_session:
-                            # Create itinerary records via ItineraryService
-                            # Only the family that asked gets the new branch; the others keep their plan
-                            target_codes = trip_session.family_ids
-                            try:
-                                from sqlmodel import Session as _S, select as _sel
-                                from app.core.db import engine as _e
-                                from app.models.family import Family as _F
+                # Result, iteration record, trip pointer, completion and announcements: one transaction,
+                # only while this fence still owns the job
+                if not AgentJobService.finish(job_id, fence, result.result, announcements, apply):
+                    logger.warning(f"Job {job_id}: ownership lost before saving; this result was discarded")
+                    return
+                if applied:
+                    try:
+                        from app.services.trip_service import TripService
 
-                                asked = (job.input_payload or {}).get("family_id")
-                                if asked:
-                                    with _S(_e) as _s:
-                                        fam = _s.exec(_sel(_F).where((_F.family_code == str(asked)) | (_F.id == asked if len(str(asked)) == 36 else False))).first()
-                                    if fam:
-                                        target_codes = [fam.family_code]
-                            except Exception as _err:
-                                logger.warning(f"Could not narrow the feedback to one family: {_err}")
-                            itinerary_ids = ItineraryService.publish_base_itinerary(
-                                trip_id=job.trip_id,
-                                family_ids=target_codes,
-                                itinerary_data=solution,
-                                created_reason=f"Feedback optimization (job {job_id})",
-                            )
-                            
-                            # Update TripSession with current_itinerary_id
-                            if itinerary_ids:
-                                TripService.update_trip_itinerary(
-                                    trip_id=job.trip_id,
-                                    itinerary_id=itinerary_ids[0],
-                                    iteration_count_increment=True,
-                                )
-                            
-                            logger.info(f"Persisted optimization result to DB: {len(itinerary_ids)} itinerary records")
-                            _record_feedback_outcome(job, trip_session, job.input_payload.get("message") or "")
-                    else:
-                        logger.warning("Optimization result had no solution to persist")
-                        
-                except Exception as save_err:
-                    logger.error(f"Failed to persist optimization result to DB: {save_err}", exc_info=True)
-        else:
-            raise ValueError(f"Unsupported job type: {job.job_type}")
-        
-        # Handle Result
-        if result.success:
-            AgentJobService.complete_job(job_id, result_payload=result.result)
-            try:
-                if str(job.job_type.value if hasattr(job.job_type, "value") else job.job_type) == "AGENT_FEEDBACK" and job.trip_id:
-                    from app.services import notification_service as ns
+                        _record_feedback_outcome(job, TripService.get_trip(job.trip_id), job.input_payload.get("message") or "")
+                    except Exception as exp_err:
+                        logger.error(f"Could not record explanations: {exp_err}", exc_info=True)
+                return result.result
 
-                    applied = bool((result.result.get("optimization_result") or {}).get("solution"))
-                    ns.notify_trip_travellers(
-                        job.trip_id,
-                        "feedback.processed",
-                        "Your plan was updated" if applied else "Your feedback was saved",
-                        (job.input_payload or {}).get("message", "")[:200],
-                        f"/app/trip/{job.trip_id}/changes" if applied else f"/app/trip/{job.trip_id}/feedback",
-                        {"trip_id": job.trip_id, "applied": applied},
-                    )
-            except Exception as notify_err:
-                logger.error(f"Could not notify about processed feedback: {notify_err}")
-            
-            # Publish to Redis for WebSocket real-time updates
-            try:
-                import redis
-                from app.core.config import settings
-                import json
-                r = redis.from_url(settings.REDIS_URL)
-                notification = {
-                    "type": "JOB_COMPLETED",
-                    "job_id": str(job_id),
-                    "trip_id": job.trip_id,
-                    "agent_id": str(job.created_by_user_id) if job.created_by_user_id else None
-                }
-                # Publish to both channels to ensure appropriate dashboards update
-                r.publish("booking_notifications", json.dumps(notification))
-                r.publish("traveller_notifications", json.dumps(notification))
-            except Exception as pub_err:
-                logger.error(f"Failed to publish to redis: {pub_err}")
-                
-            return result.result
-        else:
-            # Check for retryability based on error name
-            is_retryable = "AgentProviderError" in result.error or "AgentTimeoutError" in result.error
-            
-            if is_retryable:
-                AgentJobService.retry_job(job_id, reason=result.error)
-                raise self.retry(exc=Exception(result.error), max_retries=3, countdown=5)
-            else:
-                AgentJobService.fail_job(job_id, error_message=result.error)
-                raise RuntimeError(result.error)
-                
+            retryable = "AgentProviderError" in (result.error or "") or "AgentTimeoutError" in (result.error or "")
+            current = AgentJobService.get_job(job_id)
+            if retryable and current.attempt_count < current.max_attempts:
+                if AgentJobService.retry_job(job_id, reason=result.error, fence=fence) is None:
+                    return
+                raise self.retry(exc=Exception(result.error), countdown=5)
+            AgentJobService.fail_job(job_id, error_message=result.error, fence=fence)
+            return None
+
     except Retry:  # celery retry signal: let it propagate
         raise
+    except OwnershipLost:
+        logger.warning(f"Job {job_id}: taken over by another worker while running; stopped and discarded")
+        return None
     except Exception as e:
-        if not isinstance(e, RuntimeError): # If it wasn't already explicitly failed
-            AgentJobService.fail_job(job_id, error_message=str(e), error_type=type(e).__name__)
+        from sqlalchemy.exc import DBAPIError, InterfaceError, OperationalError
+
+        if isinstance(e, (OperationalError, InterfaceError)) or (isinstance(e, DBAPIError) and e.connection_invalidated):
+            # The database went away (a restart, a network blip). That is an outage, not a fault in this job:
+            # hand it back and try again shortly. If even that fails, the lease runs out and the scheduler
+            # sends the job again for a takeover.
+            logger.warning(f"Job {job_id} hit a database outage; handing it back for a retry: {e.__class__.__name__}")
+            try:
+                if fence is not None:
+                    AgentJobService.retry_job(job_id, reason="database unavailable", fence=fence)
+            except Exception:
+                pass
+            raise self.retry(countdown=15)
+        from app.core import errors
+
+        errors.record(e, job.correlation_id, f"job {job.job_type.value if hasattr(job.job_type, 'value') else job.job_type}")
+        if fence is not None:
+            AgentJobService.fail_job(job_id, error_message=str(e), error_type=type(e).__name__, fence=fence)
         raise
     finally:
         if lock_token:

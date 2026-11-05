@@ -2,7 +2,7 @@
 
 The system design we are building toward. It is made on engineering merit alone, with no hosting-cost compromises, and with over-engineering excluded. It includes every correction from the design review (`DESIGN_REVIEW_AND_FIXES.md`). The milestone-by-milestone work plan is in `ARCHITECTURE_PLAN.md`.
 
-No code. **Built so far: milestone 1 only** (controlled migrations, see `ARCHITECTURE_PLAN.md`). Everything else here is design.
+No code. **Built: every part of this document** (milestones M1 to M12, see the build log in `ARCHITECTURE_PLAN.md`), each proven by a script and summarised in `DRILL_REPORT.md`. Only M1 is deployed so far.
 
 ---
 
@@ -159,6 +159,17 @@ Split by **what happens when a key disappears.** Pub/sub is not a third category
 
 **Other details.** The Celery result backend is off, since job state lives in Postgres. Each role has its own connection setting, falling back to a single setting.
 
+**The ephemeral instance is optional for every request.** Calls to it wait at most half a second. After one failure a process stops trying it for five seconds, so an outage costs one slow call every few seconds instead of a stall on every request. Low-value rate limits are skipped while it is down; the security limits are on the queue instance and are never skipped.
+
+### 3.6a The plan read cache
+A family's current plan is read far more often than it changes, and each change makes every open page for that trip fetch it again at the same moment. The cache takes those reads off Postgres without ever being trusted over it.
+
+- **Every change refreshes it, and no writer has to remember to.** A hook on every database session sees any write that moves a family's "current plan" pointer: a new version, a revert or a reset. In the same UPDATE it raises the family's **plan revision**, a counter that only goes up, and in the same transaction it writes a "refresh the plan cache" outbox row. The refresh runs right after the commit, before the live notification brings browsers back. If the process dies first, the dispatcher delivers the row.
+- **Old never overwrites new.** Each cache entry carries the revision it was read at, and Redis accepts a write only if its revision is higher. One script does the check and the write together, so they cannot be split. A repeated refresh, a slow reader filling the cache late, or two refreshes arriving out of order all leave the newest plan in place. The plan's own version number cannot do this job, because a revert points the family back at an older version.
+- **A missing entry is rebuilt once.** When the entry is gone, one request per family takes a short lock and reads Postgres; the others wait up to a second for it instead of all reading Postgres at once.
+- **An unchanged plan costs no body.** The ETag is the family and the revision. A browser that already holds the current revision gets 304 Not Modified.
+- **The cache is never needed.** If it is down, reads go to Postgres, and the refresh rows wait in the outbox and fill the cache when it returns.
+
 ### 3.7 Live updates
 - A notification is written to the database first, then announced on the ephemeral channel. Every API copy listens and forwards to its connected browsers over SSE.
 - **Live delivery is best-effort. Delivery on reload is guaranteed.** A browser that missed a message fetches it from the database on reconnect, using the last notification number it saw. The existing stream already resumes from a number.
@@ -198,6 +209,8 @@ States: **CREATED** (job and outbox row saved, not yet published), **QUEUED** (p
 | A repeated request does not repeat its effects | Idempotency keys in the database |
 | A lost Redis message costs time, not data | The database is the record, and the scheduler re-publishes |
 | A cache flush costs speed, not correctness | Nothing in the ephemeral Redis is the only copy of anything |
+| The cache never serves a plan older than one it has served | A plan revision raised with every change, a refresh in the same transaction, and a write that Redis keeps only if newer |
+| The cache being down never fails a request | Short time limits, a breaker that skips the instance for a few seconds, and Postgres behind every read |
 | An announcement survives a crash after the plan is saved | The outbox |
 | Guessing passwords on one account is bounded | Account-based lockout, with its counters on the queue Redis |
 
@@ -292,5 +305,6 @@ Each line is true only when its milestone is done and its drill passes.
 | Redis split | Redis is split by failure behaviour: a queue instance that never evicts, and an evicting instance for cache and live fan-out |
 | Services split | The API and workers are separate services, with the solver isolated on its own queue |
 | Drills | A failure-drill suite that kills workers, Redis and the API and checks recovery |
+| Plan cache | The plan read cache is refreshed in the same transaction as every change and refuses older writes; in a drill, 50 simultaneous reads after an update cost zero Postgres reads, and one when the entry was gone |
 
 Do not claim "zero message loss", throughput, user counts or latency under load. Nothing here measures the last three, and an interviewer will ask.

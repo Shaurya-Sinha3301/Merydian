@@ -7,10 +7,9 @@ a family and traveller account, a baseline itinerary (v1) and an optimized one
 event, a pending POI request with options waiting for agent approval, and agent
 job history including one retry. A demo travel-agent account is created too.
 
-The timeline endpoint still reads itinerary JSON from disk, so the same itineraries
-are also written under TRIP_SESSION_STORAGE (rewritten on every run, since a
-free host's disk does not survive restarts). Everything is deterministic and
-idempotent: running the seed twice changes nothing.
+Nothing is written to disk: the baseline and optimized itineraries are recorded as the trip's first
+two iterations in the database, like any other trip. Everything is deterministic and idempotent:
+running the seed twice changes nothing.
 """
 import json
 import logging
@@ -31,6 +30,7 @@ from app.models.itinerary import Itinerary
 from app.models.itinerary_explanation import ItineraryExplanation
 from app.models.itinerary_option import ItineraryOptionDB, OptionStatus
 from app.models.preference import Preference, PreferenceType
+from app.models.trip_iteration import TripIteration
 from app.models.trip_session import TripSession
 from app.models.token_blacklist import TokenBlacklist
 from app.models.user import User
@@ -217,19 +217,6 @@ def _apply_swaps(days: List[List[str]], swaps: List[Tuple]) -> List[List[str]]:
     return new_days
 
 
-def _write_session_files(trip_id: str, baseline: Dict[str, Any], latest: Dict[str, Any]) -> Tuple[str, str]:
-    base = Path(settings.TRIP_SESSION_STORAGE)
-    if not base.is_absolute():
-        base = Path.cwd() / base
-    folder = base / trip_id
-    folder.mkdir(parents=True, exist_ok=True)
-    baseline_path = folder / "baseline_itinerary.json"
-    latest_path = folder / "latest_itinerary.json"
-    baseline_path.write_text(json.dumps(baseline, indent=2), encoding="utf-8")
-    latest_path.write_text(json.dumps(latest, indent=2), encoding="utf-8")
-    return str(baseline_path), str(latest_path)
-
-
 def _password_hash() -> str:
     return get_password_hash(settings.DEMO_PASSWORD or secrets.token_urlsafe(24))
 
@@ -297,7 +284,6 @@ def _seed_persona(session: Session, persona: str, config: Dict[str, Any], agent:
     v1 = _build_itinerary(v1_days, locs, members, interests)
     v2 = _build_itinerary(v2_days, locs, members, interests, why)
 
-    baseline_path, latest_path = _write_session_files(trip_id, v1, v2)
 
     if session.exec(select(TripSession).where(TripSession.trip_id == trip_id)).first():
         logger.info("Skipping %s: trip %s already seeded (files refreshed)", persona, trip_id)
@@ -343,7 +329,6 @@ def _seed_persona(session: Session, persona: str, config: Dict[str, Any], agent:
     session.add(TripSession(
         trip_id=trip_id, trip_name=config["trip_name"], destination=config["destination"],
         start_date=start, end_date=end, family_ids=[family.family_code, str(family.id)], current_itinerary_id=it2.id,
-        baseline_itinerary_path=baseline_path, latest_itinerary_path=latest_path,
         iteration_count=2, last_optimization_at=created2, initial_preferences=initial_prefs,
         current_preferences=current_prefs,
         feedback_history=[{"iteration": 1, "timestamp": created2.isoformat(), "family_id": fam_cfg["family_id"],
@@ -353,6 +338,11 @@ def _seed_persona(session: Session, persona: str, config: Dict[str, Any], agent:
                              "trigger": "feedback"} for _d, old, new, *_ in swaps],
         status="active", created_at=created1, updated_at=created2,
     ))
+    session.add(TripIteration(trip_id=trip_id, iteration=0, kind="seed", family_id=fam_cfg["family_id"],
+                              input_snapshot={"preferences": initial_prefs}, result=v1, created_at=created1))
+    session.add(TripIteration(trip_id=trip_id, iteration=1, kind="seed", family_id=fam_cfg["family_id"],
+                              input_snapshot={"preferences": current_prefs, "message": scenario["feedback"]},
+                              result=v2, created_at=created2))
 
     # Feedback event (processed)
     fb_event = Event(
@@ -501,6 +491,7 @@ def reset_all() -> None:
                 session.exec(delete(AgentJobEvent).where(AgentJobEvent.job_id.in_(job_ids)))
                 session.exec(delete(AgentJob).where(AgentJob.id.in_(job_ids)))
             session.exec(delete(ItineraryOptionDB).where(ItineraryOptionDB.trip_id.in_(trip_ids)))
+            session.exec(delete(TripIteration).where(TripIteration.trip_id.in_(trip_ids)))
             session.exec(delete(ItineraryExplanation).where(ItineraryExplanation.trip_id.in_(trip_ids)))
         # Trip sessions and families point at itineraries, so release those first
         for t in trips:

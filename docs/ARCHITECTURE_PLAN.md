@@ -2,7 +2,7 @@
 
 The milestone-by-milestone plan for reaching the system described in `TARGET_ARCHITECTURE.md`. The reasoning for each correction is in `DESIGN_REVIEW_AND_FIXES.md`.
 
-No code. **Status: milestone 1 is built and checked (branch `arch/m1-migrations-baseline`, not yet deployed). Everything else in this plan is still design.** Estimates are rough, one person working, and are the least certain part of this document.
+No code. **Status: every milestone (M1 to M12) is built and checked; M1 is deployed, M2 to M12 are not yet. The build log at the end records what was built, where it differs from this plan, and the defects found on the way.** Estimates are rough, one person working, and are the least certain part of this document.
 
 ---
 
@@ -60,7 +60,7 @@ Estimated total: about **18 to 22 working days.**
 
 ---
 
-## M1. Migrations baseline  (about 1.5 days)  **BUILT, not yet deployed**
+## M1. Migrations baseline  (about 1.5 days)  **BUILT, deployed**
 
 **Goal:** every schema change from here on is a controlled, repeatable migration.
 
@@ -102,7 +102,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M2. Working state from files into the database  (about 2.5 days)
+## M2. Working state from files into the database  (about 2.5 days)  **BUILT**
 
 **Goal:** the optimizer needs no disk, so any worker can run any job.
 
@@ -126,7 +126,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M3. Idempotency keys  (about 1.5 days)
+## M3. Idempotency keys  (about 1.5 days)  **BUILT**
 
 **Goal:** repeating a request does not repeat its effects.
 
@@ -144,7 +144,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M4. Demo mode, client address and limiter  (about 1 day)
+## M4. Demo mode, client address and limiter  (about 1 day)  **BUILT**
 
 **Goal:** a showcase flag cannot accidentally leave production open, and rate limits cannot be dodged.
 
@@ -159,7 +159,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M5. Transactional outbox  (about 2 days)
+## M5. Transactional outbox  (about 2 days)  **BUILT**
 
 **Goal:** nothing accepted is lost to a crash between the database and the queue, and no announcement is lost between saving a plan and telling anyone.
 
@@ -177,7 +177,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M5a. Lease with fencing and heartbeat renewal  (about 1.5 days)
+## M5a. Lease with fencing and heartbeat renewal  (about 1.5 days)  **BUILT**
 
 **Goal:** a paused or late worker can never overwrite a result.
 
@@ -199,7 +199,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M5b. Waiting jobs retry to a deadline  (about 0.5 to 1 day)
+## M5b. Waiting jobs retry to a deadline  (about 0.5 to 1 day)  **BUILT**
 
 **Goal:** a job turned away by a trip lock is never abandoned early or failed with a misleading message.
 
@@ -212,7 +212,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M6. Trip creation as a job  (about 2 days)
+## M6. Trip creation as a job  (about 2 days)  **BUILT**
 
 **Goal:** the API never blocks on a solve.
 
@@ -227,7 +227,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M7. Redis split into queue and ephemeral  (about 1 day)
+## M7. Redis split into queue and ephemeral  (about 1 day)  **BUILT**
 
 **Goal:** memory pressure from the cache can never evict queued messages or lockout counters.
 
@@ -243,7 +243,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M8. Two images, two services, one Compose file  (about 1.5 days)
+## M8. Two images, two services, one Compose file  (about 1.5 days)  **BUILT**
 
 **Goal:** the API and the workers are separate deployables, and one command runs the whole architecture.
 
@@ -260,7 +260,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M9. Two queues and worker heartbeats  (about 1 day)
+## M9. Two queues and worker heartbeats  (about 1 day)  **BUILT**
 
 **Goal:** a burst of replans can never delay a notification, and the system can tell whether plans will be built.
 
@@ -274,7 +274,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M10. Scheduler  (about 1 day)
+## M10. Scheduler  (about 1 day)  **BUILT**
 
 **Goal:** repairs happen without anyone looking.
 
@@ -289,7 +289,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M11. Metrics, error tracking and readiness  (about 1.5 days)
+## M11. Metrics, error tracking and readiness  (about 1.5 days)  **BUILT**
 
 **Goal:** failures are visible without a user complaining.
 
@@ -303,7 +303,7 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 
 ---
 
-## M12. Failure drills and delivery pipeline  (about 2 days)
+## M12. Failure drills and delivery pipeline  (about 2 days)  **BUILT**
 
 **Goal:** every claim is proven by a script, and every change is tested before it ships.
 
@@ -339,3 +339,44 @@ The Docker image build, the full smoke test on the new start-up, and a run again
 | A double-click | Two jobs | One |
 | A schema change shipped without a manual step | Not possible | Routine (built in milestone 1, to be confirmed on the live database) |
 | Time to notice no worker is running | When a user complains | Readiness shows it |
+
+---
+
+## Build log (M2 to M12)
+
+Every milestone ends with a script under `backend/scripts/deploy/` that proves it, and
+`backend/scripts/deploy/drills.py` runs all of them and writes `docs/DRILL_REPORT.md`.
+
+| Milestone | Proof script | Where it differs from the plan |
+|---|---|---|
+| M2 | `stateless_check.py` | The live replan path already read the database and solved in a temporary folder. The remaining disk use was first-plan creation, folder creation, the demo seed and two read endpoints. A per-trip `trip_iterations` table now records every optimizer run (inputs and result). |
+| M3 | `idempotency_check.py` | Implemented as middleware for any write under `/api/v1` carrying an `Idempotency-Key`, scoped to a hash of the caller's credential. |
+| M4 | `limits_check.py` | `APP_MODE` defaults to production. Render runs in showcase mode. |
+| M5 | `outbox_check.py` | Also used for every announcement, so `notify_*` calls are now durable everywhere, not only on the plan path. |
+| M5a, M5b | `fencing_check.py` | Lease 90 s, heartbeat every 30 s. The waiting job touches its row so the scheduler does not take it for lost. |
+| M6 | `nonblocking_check.py` | Both trip endpoints (agent and traveller) became `TRIP_INIT` jobs. `Prefer: respond-async` asks for the 202 at once. |
+| M7 | `redis_split_check.py` | The single Render instance is set to never evict, since it plays both roles. |
+| M8, M9 | `queues_check.py` via `image_stack.py` | The traveller's "add this place" also ran the solver inside a request; it became a `POI_PROPOSAL` job so the API image could be solver-free. The language-model key moved to the optimizer worker, and readiness learns whether it is configured from the heartbeat. |
+| M10 | `scheduler_check.py` | Added a sweep the plan did not have: a running job whose lease expired, with attempts left, is sent again for a takeover. |
+| M11 | `observability_check.py` | Error tracking is built in (grouped by type and code location in `error_groups`) rather than an external service. |
+| M12 | `resilience_check.py`, `drills.py`, `.github/workflows/ci.yml`, `.github/dependabot.yml` | Session revocation: "sign out everywhere" now also refuses access tokens issued before it. |
+| M13 (added) | `plan_cache_check.py` | Not in the original plan. The plan read cache now follows Postgres: a plan revision (migration 0011) raised with every pointer change, a refresh written to the outbox in the same transaction by a session hook, newer-only writes in Redis, one rebuild per missing entry, ETag and 304, and a breaker that skips the ephemeral instance for a few seconds after a failure. |
+
+### Defects found while building (each fixed, each now covered by a check)
+
+- **The rate limiter's 429 surfaced as a 500.** It was raised from a middleware, where FastAPI's handlers never see it (M4).
+- **An older replan path called a method that did not exist** (`ItineraryService.create_version`) (M2).
+- **A lower-case `LOG_LEVEL` broke the agents' logging setup** in a process that had not configured logging first (M2).
+- **The outbox fast path silently failed every time**, a detached database row, so everything waited for the dispatcher (M5).
+- **Adopting an old database compared it with today's models**, so any table added after the baseline would have refused adoption. Adoption now stamps, migrates and compares inside one transaction (M2).
+- **The live Redis evicted keys under pressure**, which could have dropped queued jobs (M7).
+- **A database restart permanently failed the job that was running.** A lost connection is now treated as an outage: the job is handed back and retried, and the scheduler re-sends it if even that fails (M12).
+- **The smoke test only worked with one particular agent code** (found before M2).
+- **A new plan could stay hidden for up to a minute.** The old plan cache was never cleared when a version was saved, so readers got the previous plan until it expired (M13).
+- **A stopped cache Redis broke the plan page and slowed every request.** The plan read had no fallback and returned 500, and the rate limiter waited about two seconds on the dead instance for every request (M13).
+
+### Not verified
+
+- The GitHub Actions workflow has been checked for syntax only; it has not run on GitHub yet.
+- `pip-audit` failed on its first run on GitHub: python-jose 3.5.0 and its `ecdsa` dependency had advisories with no fixed version. python-jose was replaced with PyJWT (same HS256 tokens, so existing sign-ins stay valid). One advisory is ignored with a recorded reason: CVE-2026-114605 in dnspython's DNS message parser, which the app never reaches, and whose fix is not on PyPI yet.
+- None of M2 to M12 has run on the live Render and Neon services.

@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 from app.core.rate_limit import RateLimiter
 
-_rate_limiter = RateLimiter(times=100, seconds=60)
+_rate_limiter = RateLimiter()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -58,6 +58,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    # Group it with earlier occurrences of the same fault (app/core/errors.py)
+    from starlette.concurrency import run_in_threadpool
+    from app.core import errors
+    from app.core.context import correlation_id_ctx
+
+    await run_in_threadpool(errors.record, exc, correlation_id_ctx.get(), f"{request.method} {request.url.path}")
     return JSONResponse(
         status_code=500,
         content=ApiErrorResponse(
@@ -69,33 +75,48 @@ async def global_exception_handler(request: Request, exc: Exception):
         ).dict()
     )
 
+# Requests carrying an Idempotency-Key are not repeated (see app/core/idempotency.py). Registered before the
+# rate limiter so the limiter wraps it and still counts repeats.
+from app.core import idempotency as _idempotency
+
+app.middleware("http")(_idempotency.middleware)
+
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     # Skip rate limiting for WebSocket upgrade requests
     if request.headers.get("upgrade", "").lower() != "websocket":
-        await _rate_limiter(request)
+        try:
+            await _rate_limiter(request)
+        except StarletteHTTPException as exc:
+            # Raised outside a route, so FastAPI's handlers never see it: answer here, or it becomes a 500
+            return JSONResponse({"detail": exc.detail}, status_code=exc.status_code, headers=exc.headers or {})
     return await call_next(request)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     import uuid
     from app.core.context import set_log_context, clear_log_context
-    
-    correlation_id = str(uuid.uuid4())
+
+    # A caller (or a proxy in front of us) may send its own id; it then follows the request into any job it
+    # creates and into the worker's logs, so one id traces the whole path. Anything odd is replaced.
+    incoming = request.headers.get("x-request-id") or request.headers.get("x-correlation-id") or ""
+    valid = 8 <= len(incoming) <= 64 and all(c.isalnum() or c in "-_." for c in incoming)
+    correlation_id = incoming if valid else str(uuid.uuid4())
     request_id = str(uuid.uuid4())
     set_log_context(correlation_id=correlation_id, request_id=request_id)
-    
+
     start_time = time.time()
     try:
         response = await call_next(request)
         duration = time.time() - start_time
-        
+
         logger.info(
             f"Request: {request.method} {request.url.path} "
             f"Status: {response.status_code} Duration: {duration:.4f}s"
         )
         # Inject correlation_id in response headers if needed
         response.headers["X-Correlation-ID"] = correlation_id
+        response.headers["X-Request-ID"] = correlation_id
         return response
     finally:
         clear_log_context()
@@ -119,6 +140,11 @@ app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["aut
 
 from app.api import health
 app.include_router(health.router, tags=["health"])
+
+# Metrics, error groups and the operations page (app/api/ops.py)
+from app.api import ops as _ops
+
+app.include_router(_ops.router, tags=["ops"])
 
 from app.api import events
 app.include_router(events.router, prefix=f"{settings.API_V1_STR}/events", tags=["events"])

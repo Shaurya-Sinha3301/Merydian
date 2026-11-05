@@ -68,8 +68,10 @@ async def get_job_status(
                 updated_at=agent_job.updated_at.isoformat() if agent_job.updated_at else "",
                 estimated_remaining_seconds=None,
                 result_available=result_available,
+                result=(agent_job.result_payload if status_str == "COMPLETED"
+                        and str(getattr(agent_job.job_type, "value", agent_job.job_type)) in ("TRIP_INIT", "POI_PROPOSAL") else None),
             )
-        
+
         # Determine stages and percentages based on event status and payload
         # EventStatus: QUEUED, PROCESSING, COMPLETED, FAILED
         stage_mapping = {
@@ -78,15 +80,15 @@ async def get_job_status(
             "COMPLETED": ("COMPLETED", 100),
             "FAILED": ("FAILED", 100)
         }
-        
+
         event_status_str = event.status.value if hasattr(event.status, 'value') else str(event.status)
         current_stage, progress_percentage = stage_mapping.get(event_status_str, ("UNKNOWN", 0))
-        
+
         # If detailed progress is in processing_result, override
         if event.processing_result:
             current_stage = event.processing_result.get("stage", current_stage)
             progress_percentage = event.processing_result.get("progress_percentage", progress_percentage)
-            
+
         description = "Processing job..."
         if current_stage == "PENDING":
             description = "Job is queued and waiting for an agent."
@@ -102,7 +104,7 @@ async def get_job_status(
             description = "Job completed successfully."
         elif current_stage == "FAILED":
             description = event.error_message or "Job failed during processing."
-            
+
         return JobDTO(
             job_id=str(event.id),
             status=event_status_str,
@@ -114,7 +116,7 @@ async def get_job_status(
             estimated_remaining_seconds=None,
             result_available=event_status_str == "COMPLETED"
         )
-        
+
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid job ID format")
     except Exception as e:

@@ -9,7 +9,7 @@ Merydian plans one trip for several families at once, lets travellers change it 
 | Baseline plus branch planning: one shared itinerary evolves into family-specific plans | `ml_or/itinerary_optimizer.py`, `ItineraryService.publish_base_itinerary`, the **Group** tab on a trip | The optimizer plans every family together. Each family gets its own stored branch, and the Group tab shows what is shared and what is not. In practice most stops are shared; branches appear only when a family's plan genuinely differs. |
 | Background pipeline: Celery workers, Redis, no polling, no duplicate processing | `backend/app/worker.py`, `app/workers/agent_tasks.py`, `app/core/websocket.py` (Redis pub/sub bridge), `AgentJobService` | Jobs run in Celery with retries and a status trail. The browser is pushed updates over **server-sent events** (`/notifications/stream`) which read the notification table every 2 seconds. The Redis pub/sub to WebSocket bridge exists but the new UI does not use it yet (see roadmap). |
 | 10,000 simulated scenarios, 144 ms median solve | `backend/scripts/benchmark/` (`resume_metrics.json`) | Real and reproducible. Shown live on the **Agents** tab, beside the whole-job time seen here (about 38 s, dominated by the language model). |
-| Caching: in-memory plus shared Redis | `app/api/itinerary.py` (Redis cache of the current itinerary) | Present for the current-itinerary read. Not yet used elsewhere. |
+| Caching: in-memory plus shared Redis | `app/services/plan_cache.py` (the current plan, refreshed on every change, newer-only writes, ETag) | Used for the current-plan read. The same pattern (a revision counter plus an outbox refresh) fits the trip list and the agent's Desk. |
 
 ## 2. What each side can do now
 

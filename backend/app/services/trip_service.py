@@ -552,6 +552,7 @@ class TripService:
         end_date: str,
         family_ids: List[str],
         num_travellers: Optional[int] = None,
+        trip_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Initialize a trip, auto-fetch family preferences, run optimizer iteration 0,
@@ -627,7 +628,8 @@ class TripService:
         # -------------------------------------------------------------------
         # 2. Generate trip ID and prepare data
         # -------------------------------------------------------------------
-        trip_id = TripService._generate_trip_id(destination, start_date)
+        # A background job chooses the id up front, so running it twice finds the same trip
+        trip_id = trip_id or TripService._generate_trip_id(destination, start_date)
         optimizer_prefs = TripService._convert_to_optimizer_format(families_data)
 
         # Auto-resolve baseline based on destination

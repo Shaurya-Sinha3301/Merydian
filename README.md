@@ -42,6 +42,28 @@ Vercel (React app) --> Render (FastAPI + Celery worker, one Docker container) --
 
 The look of the app is "The Printed Timetable": ruled tables, hairlines and small radii. See [DESIGN.md](DESIGN.md) and [PRODUCT.md](PRODUCT.md).
 
+### How the backend stays correct when things fail
+
+The full design is in [docs/TARGET_ARCHITECTURE.md](docs/TARGET_ARCHITECTURE.md). In short:
+
+- **Separate services from two images.** An API image with no solver or model client, and a worker image. An optimizer
+  worker takes solver and language-model jobs; a default worker takes email, SMS, webhooks and the outbox. A scheduler
+  repairs stuck work. `docker compose up --build` runs all of it; Render runs it in one container.
+- **Postgres is the record, Redis only delivers.** Jobs and their "publish this" rows commit together (a transactional
+  outbox), so a crash between the database and the queue cannot lose an accepted request. Announcements carry stable
+  event ids, so a repeat delivery changes nothing.
+- **Fenced job ownership.** A worker owns a job under a fence number and a lease it renews; a paused or late worker's
+  result is refused. The result, the plan version and the completion commit in one transaction.
+- **Idempotent requests.** An `Idempotency-Key` makes a retried request return the saved answer instead of doing the work again.
+- **The API never runs a solve.** Trip creation and place requests are background jobs; the endpoint waits without
+  blocking and answers 202 if the plan takes longer.
+- **Redis split by what happens when a key disappears.** A queue instance that never evicts; an ephemeral one for
+  cache and live notifications.
+- **A plan cache that follows Postgres.** Every change to a family's plan raises a revision and refreshes the cache
+  in the same transaction (through the outbox). Redis keeps a write only if it is newer, a missing entry is rebuilt
+  once, and an unchanged plan answers 304. If the cache is down, reads go to Postgres.
+- **Visible failures.** `/metrics`, `/ops` with grouped errors, and readiness that names what is wrong.
+
 ## Run it locally
 
 You need Python 3.11, Node 20 or newer, and Docker.
@@ -95,11 +117,28 @@ python backend/scripts/deploy/smoke_test.py https://<your-api> <AGENT_SIGNUP_COD
 
 It creates test accounts, so point it at a staging copy.
 
+## Checks and failure drills
+
+Every guarantee above has a script under `backend/scripts/deploy/` that proves it against a real Postgres, Redis,
+API and worker. One command runs them all and writes [docs/DRILL_REPORT.md](docs/DRILL_REPORT.md):
+
+```bash
+cd backend && python scripts/deploy/drills.py --images
+```
+
+The drills include killing a worker mid-job, restarting Postgres, losing Redis messages, filling and wiping the cache,
+an API copy dying under a live stream, a paused worker waking after a takeover, and ten identical requests at once.
+The same checks run in CI on every pull request ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+
 ## Documentation
 
 | File | Contents |
 |---|---|
 | [docs/DEPLOY.md](docs/DEPLOY.md) | Deployment runbook and troubleshooting |
+| [docs/TARGET_ARCHITECTURE.md](docs/TARGET_ARCHITECTURE.md) | The system design: services, guarantees, and what provides each |
+| [docs/ARCHITECTURE_PLAN.md](docs/ARCHITECTURE_PLAN.md) | The milestone plan and the build log, with the defects found on the way |
+| [docs/DESIGN_REVIEW_AND_FIXES.md](docs/DESIGN_REVIEW_AND_FIXES.md) | The design review: each problem raised, the verdict and the fix |
+| [docs/DRILL_REPORT.md](docs/DRILL_REPORT.md) | The latest run of every check and failure drill |
 | [docs/PRODUCTION_HARDENING.md](docs/PRODUCTION_HARDENING.md) | What the backend lacked, why, how it would fail, and what was built |
 | [docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md) | A scripted agent-and-customer walkthrough with a talk track |
 | [docs/USE_AND_EXTEND.md](docs/USE_AND_EXTEND.md) | How the system can be used and extended |

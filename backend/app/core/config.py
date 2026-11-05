@@ -12,9 +12,17 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    # Background jobs: a RUNNING job with no update for this long is presumed abandoned by a dead worker.
-    # Must stay above Celery's hard task limit (150 s) so a healthy job is never taken over.
-    JOB_LEASE_SECONDS: int = 180
+    # Background jobs. An owner renews its lease every JOB_HEARTBEAT_SECONDS; a lease not renewed for
+    # JOB_LEASE_SECONDS lets another worker take the job over (with a higher fence, so the old owner can no
+    # longer write). A job waiting for its trip or for an earlier job gives up after JOB_WAIT_DEADLINE_SECONDS.
+    JOB_LEASE_SECONDS: int = 90
+    JOB_HEARTBEAT_SECONDS: int = 30
+    JOB_WAIT_DEADLINE_SECONDS: int = 600
+    # How long a trip-creation request waits (without blocking) for its plan before answering 202 Accepted
+    TRIP_INIT_WAIT_SECONDS: float = 8
+    # How long a cached plan lives without being read or refreshed. Every change refreshes it at once, so this
+    # only bounds how long an unread plan takes up memory and how long a missed refresh could go unnoticed.
+    PLAN_CACHE_TTL_SECONDS: int = 900
     # Login protection: this many wrong passwords for one account within the window locks sign-in for the window.
     LOGIN_MAX_FAILURES: int = 5
     LOGIN_LOCK_SECONDS: int = 900
@@ -38,6 +46,8 @@ class Settings(BaseSettings):
 
     # ML OPTIMIZER PATHS
     ML_OPTIMIZER_BASE_DATA: str = "ml_or/data"
+    # No longer used: optimizer state lives in the trip_iterations table. Kept so older environments that
+    # still set these variables start without error.
     TRIP_SESSION_STORAGE: str = "./trip_sessions"
     OPTIMIZER_OUTPUT_DIR: str = "./optimizer_outputs"
 
@@ -53,12 +63,24 @@ class Settings(BaseSettings):
     TBO_AIR_PASSWORD: str = ""
 
     # CELERY / REDIS
-    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
+    # The broker lives on the queue Redis unless set explicitly. Celery results are not stored: job state
+    # lives in Postgres, so CELERY_RESULT_BACKEND is ignored.
+    CELERY_BROKER_URL: str = ""
+    CELERY_RESULT_BACKEND: str = ""
     REDIS_URL: str = "redis://localhost:6379/0"
+    # Split Redis roles (see app/core/redis.py); each falls back to REDIS_URL
+    REDIS_QUEUE_URL: str = ""
+    REDIS_EPHEMERAL_URL: str = ""
 
     # PUBLIC DEMO SANDBOX
+    # "showcase" opens the demo door and lets DEV_OUTBOX work; "production" shuts both whatever their own
+    # settings say, so a forgotten flag cannot leave a real deployment open. Production is the default.
+    APP_MODE: str = "production"
     DEMO_ENABLED: bool = True
+    # Number of proxies in front of the app that append to X-Forwarded-For (0 = no proxy, use the socket address)
+    TRUSTED_PROXY_HOPS: int = 0
+    # Bearer token for /metrics, /ops and /ops/errors. Without one they are open in showcase mode and hidden in production.
+    METRICS_TOKEN: str = ""
     # Required (header X-Admin-Key) to reset demo data; reset is disabled when empty.
     DEMO_ADMIN_KEY: str = ""
     # Password for the seeded demo accounts; random per seed run when empty,
@@ -103,6 +125,10 @@ class Settings(BaseSettings):
             if candidate.exists():
                 return str(candidate)
         return str(repo_root / configured)
+
+    @property
+    def showcase(self) -> bool:
+        return str(self.APP_MODE).strip().lower() == "showcase"
 
     @field_validator("SQLALCHEMY_DATABASE_URI")
     @classmethod

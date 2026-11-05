@@ -1,6 +1,9 @@
 .conda/
 
-.github/
+.github/*
+# ...except the CI pipeline and dependency updates
+!.github/workflows/
+!.github/dependabot.yml
 
 .vscode/
 
@@ -41,3 +44,11 @@ backend/Api_credentials.pdf
 .env.*
 !.env.example
 !.env.test
+
+# Runtime output; optimizer state lives in the database
+backend/trip_sessions/
+backend/optimizer_outputs/
+agents/tests/run_*/
+
+# Local check output
+backend/worker_check.log

@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column
+from sqlalchemy import Column, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
 
@@ -15,6 +15,8 @@ class Notification(SQLModel, table=True):
     """One notice for one user. Shown in the bell and pushed live over the stream."""
 
     __tablename__ = "notifications"
+    # A repeat delivery of the same announcement (the outbox is at-least-once) is refused here
+    __table_args__ = (UniqueConstraint("user_id", "event_id", name="uq_notifications_user_event"),)
 
     id: int = Field(default=None, primary_key=True)  # increasing, so the stream can resume after the last id
     user_id: UUID = Field(index=True)
@@ -25,6 +27,7 @@ class Notification(SQLModel, table=True):
     data: dict = Field(default_factory=dict, sa_column=Column(JSONB))
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     read_at: Optional[datetime] = Field(default=None)
+    event_id: Optional[str] = Field(default=None, max_length=64)
 
 
 class WebhookEndpoint(SQLModel, table=True):
@@ -49,6 +52,7 @@ class WebhookDelivery(SQLModel, table=True):
     """One attempt to deliver one event to one endpoint."""
 
     __tablename__ = "webhook_deliveries"
+    __table_args__ = (UniqueConstraint("endpoint_id", "event_id", name="uq_webhook_deliveries_endpoint_event"),)
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     endpoint_id: UUID = Field(index=True)
@@ -59,6 +63,7 @@ class WebhookDelivery(SQLModel, table=True):
     error: Optional[str] = Field(default=None, max_length=300)
     attempts: int = Field(default=1)
     duration_ms: Optional[int] = Field(default=None)
+    event_id: Optional[str] = Field(default=None, max_length=64)
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
 
 

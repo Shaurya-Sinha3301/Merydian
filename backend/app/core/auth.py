@@ -6,9 +6,10 @@ Handles token generation, validation, and session management.
 
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
-from jose import jwt, JWTError
+import jwt
+from jwt import PyJWTError as JWTError
 from sqlmodel import Session, select
 
 from app.core.config import settings
@@ -48,7 +49,7 @@ class TokenManager:
         # Access token (short-lived)
         access_exp = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token_data = {
-            "sub": user_id,
+            "sub": str(user_id),
             "role": role,
             "family_id": family_id,
             "jti": access_jti,
@@ -65,7 +66,7 @@ class TokenManager:
         # Refresh token (long-lived)
         refresh_exp = now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         refresh_token_data = {
-            "sub": user_id,
+            "sub": str(user_id),
             "jti": refresh_jti,
             "type": "refresh",
             "exp": refresh_exp,
@@ -127,6 +128,10 @@ class TokenManager:
             jti = payload.get("jti")
             if jti and TokenManager.is_token_blacklisted(jti):
                 return None
+
+            # Signed out everywhere after this token was issued: refuse it now, not when it expires
+            if TokenManager.issued_before_cutoff(payload):
+                return None
             
             # Check expiration
             exp = payload.get("exp")
@@ -183,9 +188,34 @@ class TokenManager:
                 session.commit()
     
     @staticmethod
+    def issued_before_cutoff(payload: Dict[str, Any]) -> bool:
+        """True if the token was issued before its user last signed out everywhere."""
+        from app.models.user import User
+
+        sub, iat = payload.get("sub"), payload.get("iat")
+        if not sub or iat is None:
+            return False
+        try:
+            with Session(engine) as session:
+                user = session.get(User, UUID(str(sub)))
+        except (ValueError, TypeError):
+            return False
+        if not user or not user.tokens_valid_after:
+            return False
+        cutoff = int(user.tokens_valid_after.replace(tzinfo=timezone.utc).timestamp())
+        issued = int(iat.timestamp()) if isinstance(iat, datetime) else int(iat)
+        return issued < cutoff
+
+    @staticmethod
     def revoke_all_user_sessions(user_id: str, reason: Optional[str] = None):
-        """Revoke all active sessions for a user."""
+        """Revoke all active sessions for a user, and every access token already issued to them."""
+        from app.models.user import User
+
         with Session(engine) as session:
+            user = session.get(User, UUID(str(user_id)))
+            if user:
+                user.tokens_valid_after = datetime.utcnow()
+                session.add(user)
             statement = select(UserSession).where(
                 UserSession.user_id == user_id,
                 UserSession.is_active == True

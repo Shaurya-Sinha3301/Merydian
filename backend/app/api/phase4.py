@@ -129,7 +129,7 @@ async def my_messages(me: TokenPayload = Depends(get_current_user)) -> Any:
 @router.get("/dev/outbox")
 async def dev_outbox(to: Optional[str] = None) -> Any:
     """Local testing only (DEV_OUTBOX=true): the latest messages with their bodies, so a reset link can be read."""
-    if not settings.DEV_OUTBOX:
+    if not (settings.showcase and settings.DEV_OUTBOX):
         raise HTTPException(status_code=404, detail="Not found")
     with Session(engine) as session:
         stmt = select(OutboundMessage).order_by(col(OutboundMessage.created_at).desc()).limit(20)
@@ -172,7 +172,13 @@ class ResetIn(BaseModel):
 async def forgot_password(body: ForgotIn) -> Any:
     """Always answers the same way, so it cannot be used to find out who has an account."""
     user = UserService.get_user_by_email(body.email.strip())
-    if user and user.is_active:
+    # At most 3 reset emails per address per hour; the answer stays the same either way
+    import hashlib
+
+    from app.core.rate_limit import allow
+
+    within = await allow("forgot:" + hashlib.sha256(body.email.strip().lower().encode()).hexdigest()[:24], 3, 3600, True)
+    if user and user.is_active and within:
         raw = issue_token(user.id, "reset", 1)
         link = ms.app_url(f"/reset?token={raw}")
         ms.queue_message("email", user.email, f"Someone asked to reset the password for this Merydian account.\n\nChoose a new password:\n{link}\n\nThis link works once and expires in an hour. If it was not you, ignore this message.", subject="Reset your Merydian password", user_id=user.id, kind="reset")

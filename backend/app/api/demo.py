@@ -19,7 +19,8 @@ AGENT_PERSONA = "Agent"
 
 
 def _require_demo_enabled() -> None:
-    if not settings.DEMO_ENABLED:
+    # Production mode shuts the demo door regardless of DEMO_ENABLED
+    if not (settings.showcase and settings.DEMO_ENABLED):
         raise HTTPException(status_code=404, detail="Demo sandbox is disabled.")
 
 

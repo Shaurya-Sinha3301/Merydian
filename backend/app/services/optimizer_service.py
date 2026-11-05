@@ -39,14 +39,14 @@ def get_db_session():
 class OptimizerService:
     """
     Service for managing ML optimizer integration and trip sessions.
-    
+
     Responsibilities:
     - Create and manage trip sessions
     - Process feedback through agent pipeline
     - Coordinate with ML optimizer
     - Track optimization iterations
     """
-    
+
     @staticmethod
     def create_trip_session(
         trip_id: str,
@@ -56,38 +56,29 @@ class OptimizerService:
     ) -> TripSession:
         """
         Create a new trip session for agentic optimization.
-        
+
         Args:
             trip_id: Unique identifier for the trip
             family_ids: List of family IDs involved in the trip
             baseline_itinerary_path: Path to the baseline itinerary skeleton
             trip_name: Optional human-readable trip name
-            
+
         Returns:
             Created TripSession instance
         """
         logger.info(f"Creating trip session: {trip_id}")
-        
-        # Create session storage directory
-        session_dir = Path(settings.TRIP_SESSION_STORAGE) / trip_id
-        session_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Create output directory
-        output_dir = Path(settings.OPTIMIZER_OUTPUT_DIR) / trip_id
-        output_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Create trip session
+
+        # No folders: the optimizer's working state lives in the trip_iterations table, so any worker can
+        # pick up this trip. baseline_itinerary_path points at read-only reference data shipped with the code.
         trip_session = TripSession(
             trip_id=trip_id,
             family_ids=family_ids,
             baseline_itinerary_path=baseline_itinerary_path,
             trip_name=trip_name,
-            session_storage_dir=str(session_dir),
-            output_dir=str(output_dir),
             preferences={},
             feedback_history=[]
         )
-        
+
         # Save to database
         with get_db_session() as db:
             db.add(trip_session)
@@ -95,18 +86,18 @@ class OptimizerService:
             db.refresh(trip_session)
             # Expunge to avoid detached instance errors
             db.expunge(trip_session)
-        
+
         logger.info(f"Trip session created: {trip_id}")
         return trip_session
-    
+
     @staticmethod
     def get_trip_session(trip_id: str) -> Optional[TripSession]:
         """
         Get a trip session by trip_id.
-        
+
         Args:
             trip_id: Trip identifier
-            
+
         Returns:
             TripSession or None if not found
         """
@@ -119,37 +110,37 @@ class OptimizerService:
                 _ = session.initial_preferences
                 _ = session.preference_history
                 _ = session.family_ids
-                
+
                 # Expunge from session to avoid detached instance errors
                 db.expunge(session)
             return session
-    
+
     @staticmethod
     def update_trip_session(trip_session: TripSession) -> TripSession:
         """
         Update a trip session in the database.
-        
+
         Args:
             trip_session: TripSession instance to update
-            
+
         Returns:
             Updated TripSession
         """
         trip_session.updated_at = datetime.utcnow()
-        
+
         with get_db_session() as db:
             # Use merge for detached instances to properly track changes
             # This creates a NEW attached instance with the data from trip_session
             merged_session = db.merge(trip_session)
             db.commit()
-            
+
             # Refresh to get any DB-side changes (like timestamps)
             db.refresh(merged_session)
-            
+
             # Expunge to return a usable detached instance
             db.expunge(merged_session)
             return merged_session
-    
+
     @staticmethod
     def save_preferences_after_optimization(
         trip_id: str,
@@ -157,34 +148,34 @@ class OptimizerService:
     ) -> None:
         """
         Save updated preferences to Supabase after optimization.
-        
+
         This is called after the agent pipeline processes feedback
         and updates preferences through the ML optimizer.
-        
+
         Args:
             trip_id: Trip identifier
             updated_preferences: Dictionary of updated family preferences
-            
+
         Raises:
             ValueError: If trip session not found
         """
         trip_session = OptimizerService.get_trip_session(trip_id)
         if not trip_session:
             raise ValueError(f"Trip session {trip_id} not found")
-        
+
         # Update current preferences in Supabase
         trip_session.current_preferences = updated_preferences
         trip_session.last_optimization_at = datetime.utcnow()
         trip_session.iteration_count += 1
-        
+
         # Save to Supabase database
         OptimizerService.update_trip_session(trip_session)
-        
+
         logger.info(
             f"Saved preferences for trip {trip_id}, iteration {trip_session.iteration_count}"
         )
 
-    
+
     @staticmethod
     def run_initial_optimization(
         trip_id: str,
@@ -227,9 +218,11 @@ class OptimizerService:
 
             from ml_or.demos.reopt_hard_constraints.feedback_processor import FeedbackProcessor
 
-            # Prepare output dir for this run
-            output_dir = Path(settings.OPTIMIZER_OUTPUT_DIR) / trip_id / "iteration_0"
-            output_dir.mkdir(parents=True, exist_ok=True)
+            import tempfile
+
+            # The optimizer library works in a folder; give it a private one that disappears with this call
+            scratch = tempfile.TemporaryDirectory(prefix=f"opt_{trip_id}_")
+            output_dir = Path(scratch.name)
 
             # Convert preferences dict to the list format the optimizer expects
             pref_list = []
@@ -276,6 +269,8 @@ class OptimizerService:
                 satisfaction = itinerary_data.get("total_satisfaction", 0.0)
 
                 logger.info(f"ML optimizer succeeded for trip {trip_id}")
+                scratch.cleanup()
+                OptimizerService._record_initial(trip_id, baseline_path, pref_list, itinerary_data, True)
                 return {
                     "itinerary_data": itinerary_data,
                     "cost": cost,
@@ -284,6 +279,7 @@ class OptimizerService:
                 }
 
             # Optimizer ran but no output file – fall through to baseline
+            scratch.cleanup()
             logger.warning("Optimizer ran but produced no output file, using baseline")
 
         except ImportError as e:
@@ -296,12 +292,27 @@ class OptimizerService:
         num_pois = sum(len(day.get("pois", [])) for day in baseline_data.get("days", []))
         satisfaction = min(0.5 + num_pois * 0.02, 1.0)  # rough heuristic
 
+        OptimizerService._record_initial(trip_id, baseline_path, preferences, baseline_data, False)
         return {
             "itinerary_data": baseline_data,
             "cost": cost,
             "satisfaction": satisfaction,
             "optimizer_ran": False,
         }
+
+    @staticmethod
+    def _record_initial(trip_id: str, baseline_path: str, preferences: Any, result: Dict[str, Any], optimizer_ran: bool) -> None:
+        """Keep what went into the first plan and what came out, so the plan is reproducible."""
+        from app.services import iteration_service
+
+        try:
+            iteration_service.record(
+                trip_id, "initial",
+                input_snapshot={"baseline_source": Path(str(baseline_path)).name, "preferences": preferences},
+                result=result, optimizer_ran=optimizer_ran,
+            )
+        except Exception as e:  # the trip still gets its plan; the record is reported, not fatal
+            logger.error(f"Could not record the initial iteration for {trip_id}: {e}")
 
     @staticmethod
     def process_feedback_with_agents(
@@ -372,14 +383,14 @@ class OptimizerService:
             import tempfile
             from app.services.preference_service import PreferenceService
             from app.models.preference import PreferenceType
-            
+
             locations_path = Path(__file__).parent.parent.parent / "ml_or" / "data" / "locations.json"
             available_pois = []
             if locations_path.exists():
                 with open(locations_path, "r") as f:
                     locs_data = json.load(f)
                     available_pois = [(loc.get("location_id"), loc.get("name")) for loc in locs_data if "location_id" in loc]
-            
+
             parsed_constraints = processor.parse_user_feedback(message, available_pois)
 
             # --- 3. Update Preferences in DB ---
@@ -397,10 +408,10 @@ class OptimizerService:
                 with tempfile.TemporaryDirectory() as temp_dir:
                     base_path = os.path.join(temp_dir, "base_itinerary.json")
                     prefs_path = os.path.join(temp_dir, "family_prefs.json")
-                    
+
                     with open(base_path, "w") as f:
                         json.dump(old_itinerary, f)
-                        
+
                     # Start from the stored family profile so the optimizer gets every field it needs
                     stored = (trip_session.current_preferences or {}).get(family_id) or next(
                         iter((trip_session.initial_preferences or {}).values()), {}) or {}
@@ -417,7 +428,7 @@ class OptimizerService:
                     }]
                     with open(prefs_path, "w") as f:
                         json.dump(family_prefs, f)
-                    
+
                     opt_result = processor.run_optimizer(base_path, prefs_path, temp_dir)
                     if opt_result.get("optimizer_ran") and opt_result.get("optimized_itinerary"):
                         from app.services.itinerary_format import normalize_itinerary
@@ -428,9 +439,21 @@ class OptimizerService:
             # --- 5. Save New Itinerary to DB ---
             if optimization_ran and new_itinerary:
                 if not simulate:
-                    new_itin_record = ItineraryService.create_version(family_uuid, new_itinerary)
+                    new_itin_record = ItineraryService.create_itinerary(family_uuid, new_itinerary, created_reason="Re-optimized after feedback", created_by="agent")
                     new_itinerary_id = new_itin_record.id
                     trip_session.iteration_count += 1
+                    from app.services import iteration_service
+
+                    iteration_service.record(
+                        trip_id, "replan", family_id=family_id,
+                        input_snapshot={
+                            "base_itinerary_id": str(prev_itinerary_id) if prev_itinerary_id else None,
+                            "family_preferences": family_prefs,
+                            "constraints": parsed_constraints,
+                            "message": message,
+                        },
+                        result=new_itinerary,
+                    )
                 else:
                     new_itinerary_id = prev_itinerary_id # Mock ID for simulation
             else:
@@ -511,149 +534,3 @@ class OptimizerService:
             "iteration": trip_session.iteration_count,
             "cost_analysis": None,
         }
-    
-    @staticmethod
-    def _extract_cost_analysis(iteration_dir: Path) -> Optional[Dict[str, Any]]:
-        """
-        Extract cost analysis from optimization results.
-        
-        Args:
-            iteration_dir: Path to iteration output directory
-            
-        Returns:
-            Cost analysis dictionary or None
-        """
-        try:
-            # Load enriched diffs if available
-            diffs_path = iteration_dir / "enriched_diffs.json"
-            if diffs_path.exists():
-                with open(diffs_path, 'r') as f:
-                    diffs = json.load(f)
-                
-                # Extract cost deltas
-                cost_changes = []
-                for diff in diffs.get("changes", []):
-                    if "cost_delta" in diff:
-                        cost_changes.append({
-                            "poi_name": diff.get("poi_name"),
-                            "day": diff.get("day"),
-                            "cost_delta": diff["cost_delta"],
-                            "reason": diff.get("reason")
-                        })
-                
-                return {
-                    "total_cost_change": sum(c["cost_delta"] for c in cost_changes),
-                    "changes": cost_changes
-                }
-            
-            return None
-            
-        except Exception as e:
-            logger.error(f"Error extracting cost analysis: {e}")
-            return None
-
-
-class DatabaseSessionManagerAdapter:
-    """
-    Adapter to make TripSession work with FeedbackProcessor.
-    
-    This adapter bridges the database-backed TripSession model with the
-    file-based session manager expected by the FeedbackProcessor.
-    """
-    
-    def __init__(self, trip_session: TripSession):
-        self.trip_session = trip_session
-    
-    def get_session(self, trip_id: str):
-        """Return a session-like object for the FeedbackProcessor."""
-        class SessionAdapter:
-            def __init__(self, db_session):
-                self.db_session = db_session
-                self.trip_id = db_session.trip_id
-                self.baseline_itinerary_path = db_session.baseline_itinerary_path
-                self.latest_itinerary_path = db_session.latest_itinerary_path
-                self.iteration_count = db_session.iteration_count
-                self.preferences = db_session.current_preferences
-                self.feedback_history = db_session.feedback_history
-            
-            def add_feedback(self, text: str, family_id: str, event_type: str):
-                """Add feedback to history."""
-                self.db_session.feedback_history.append({
-                    "iteration": self.iteration_count,
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "family_id": family_id,
-                    "message": text,
-                    "event_type": event_type
-                })
-                self.feedback_history = self.db_session.feedback_history
-            
-            def update_itinerary(self, new_itinerary_path: str):
-                """Update the latest itinerary path."""
-                self.db_session.latest_itinerary_path = new_itinerary_path
-                self.db_session.iteration_count += 1
-                self.latest_itinerary_path = new_itinerary_path
-                self.iteration_count = self.db_session.iteration_count
-        
-        return SessionAdapter(self.trip_session)
-    
-    def get_latest_itinerary(self, trip_id: str) -> Optional[Path]:
-        """Get the path to the latest optimized itinerary."""
-        if self.trip_session.latest_itinerary_path:
-            return Path(self.trip_session.latest_itinerary_path)
-        return Path(self.trip_session.baseline_itinerary_path)
-    
-    def save_preferences_to_file(self, trip_id: str, file_path: Path):
-        """Save current preferences to a file for the optimizer."""
-        with open(file_path, 'w') as f:
-            json.dump(self.trip_session.current_preferences, f, indent=2)
-    
-    def update_preferences(self, trip_id: str, family_id: str, event_type: str, poi_id: Optional[str]):
-        """Update preferences based on event and track history in Supabase."""
-        if family_id not in self.trip_session.current_preferences:
-            self.trip_session.current_preferences[family_id] = {
-                "must_visit": [],
-                "never_visit": [],
-                "ratings": {}
-            }
-        
-        family_prefs = self.trip_session.current_preferences[family_id]
-        
-        # Capture old state for history tracking
-        old_must_visit = family_prefs.get("must_visit", []).copy()
-        old_never_visit = family_prefs.get("never_visit", []).copy()
-        change_recorded = False
-        
-        if event_type == "MUST_VISIT_ADDED" and poi_id:
-            if poi_id not in family_prefs["must_visit"]:
-                family_prefs["must_visit"].append(poi_id)
-                change_recorded = True
-        elif event_type == "NEVER_VISIT_ADDED" and poi_id:
-            if poi_id not in family_prefs["never_visit"]:
-                family_prefs["never_visit"].append(poi_id)
-                change_recorded = True
-        
-        # Track preference history in Supabase
-        if change_recorded:
-            history_entry = {
-                "timestamp": datetime.utcnow().isoformat(),
-                "iteration": self.trip_session.iteration_count,
-                "family_id": family_id,
-                "change_type": event_type,
-                "poi_id": poi_id,
-                "old_value": {"must_visit": old_must_visit, "never_visit": old_never_visit},
-                "new_value": {"must_visit": family_prefs["must_visit"], "never_visit": family_prefs["never_visit"]},
-                "trigger": "AGENT_FEEDBACK"
-            }
-            
-            if not hasattr(self.trip_session, 'preference_history') or self.trip_session.preference_history is None:
-                self.trip_session.preference_history = []
-            
-            self.trip_session.preference_history.append(history_entry)
-    
-    def _save_session(self, session):
-        """Called by FeedbackProcessor - we handle this through the trip_session reference."""
-        pass  # Changes are already in self.trip_session
-    
-    def get_db_session(self) -> TripSession:
-        """Get the underlying database session for saving."""
-        return self.trip_session

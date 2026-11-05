@@ -39,7 +39,7 @@
 | ORM | SQLModel + SQLAlchemy 2 | `backend/app/core/db.py` |
 | Database | PostgreSQL 15 | `docker-compose.yml` service `postgres` |
 | Migration | Alembic | `backend/alembic.ini`, `backend/migrations/` |
-| Auth | python-jose (JWT HS256) | `backend/app/core/auth.py` |
+| Auth | PyJWT (JWT HS256) | `backend/app/core/auth.py` |
 | Password Hashing | passlib + bcrypt | `backend/requirements/base.txt` |
 | Task Queue | Celery 5.x | `backend/requirements/worker.txt` |
 | Message Broker | Redis (Kombu AMQP abstraction) | `docker-compose.yml` CELERY_BROKER_URL |
@@ -1551,13 +1551,13 @@ At 100K users:
 **Q: Explain exactly how a Celery PUBLISH reaches a browser WebSocket.**
 
 1. Celery worker (OS PID A) holds a synchronous `redis-py` connection. Calls `redis.publish("booking_notifications", json_str)`.
-2. `redis-py` sends RESP2: `*3
-$7
-PUBLISH
-$21
-booking_notifications
-$N
-<json>
+2. `redis-py` sends RESP2: `*3
+$7
+PUBLISH
+$21
+booking_notifications
+$N
+<json>
 ` over TCP to Redis server.
 3. Redis server (single-threaded) receives bytes on socket. Parses PUBLISH command. Looks up the "booking_notifications" channel in its internal subscriber hash. Finds one entry: the FastAPI process's async Redis connection. Writes the message bytes to that connection's kernel socket output buffer.
 4. Linux kernel: FastAPI process (OS PID B) is blocked in `epoll_wait()`. Redis's write to the socket triggers an epoll event: "socket fd X is readable."

@@ -9,6 +9,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel, Column
+from sqlalchemy import BigInteger
 from sqlalchemy.dialects.postgresql import JSONB
 
 
@@ -36,7 +37,10 @@ class Family(SQLModel, table=True):
         default=None, 
         foreign_key="itineraries.id"
     )
-    
+    # Goes up by one whenever current_itinerary_version changes (see app/services/plan_cache.py). The read
+    # cache keeps only the highest revision, so a late or repeated refresh can never bring back an older plan.
+    plan_rev: int = Field(default=0, sa_column=Column(BigInteger, nullable=False, server_default="0"))
+
     # Trip Details
     trip_name: Optional[str] = Field(default=None, max_length=255)
     destination: Optional[str] = Field(default=None, max_length=255)

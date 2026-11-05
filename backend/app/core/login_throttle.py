@@ -12,7 +12,8 @@ import logging
 from fastapi import HTTPException, status
 
 from app.core.config import settings
-from app.core.redis import get_redis
+# Lockout counters live on the queue Redis: on an evicting instance a flood could push them out
+from app.core.redis import get_queue_redis as get_redis
 
 logger = logging.getLogger(__name__)
 

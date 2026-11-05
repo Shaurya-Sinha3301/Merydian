@@ -1,84 +1,66 @@
-version: '3.9'
+# The whole architecture on one machine: `docker compose up --build`
+#
+#   postgres, redis (queue role), redis-ephemeral      infrastructure
+#   migrate                                            runs the migrations once, then exits
+#   api-1, api-2                                       two copies of the API (API image: no solver, no model client)
+#   worker-optimizer                                   solver and language-model jobs (worker image)
+#   worker-default                                     outbox dispatch, email, SMS, webhooks, events (worker image)
+#   scheduler                                          sweeps for stuck work on a timer (API image)
+#
+# Built from the images, not from mounted source, so each container holds exactly what its image holds.
+# Secrets come from the environment or an .env file next to this one (GROQ_API_KEY, SECRET_KEY).
 
-# ─── Shared environment — all credentials loaded from .env ───────────────
-x-backend-env:
-  &backend-env
-  # ── Database
-  SQLALCHEMY_DATABASE_URI: "${SQLALCHEMY_DATABASE_URI}"
+x-backend-env: &backend-env
+  # ── Database (the postgres service below; override to point elsewhere)
+  SQLALCHEMY_DATABASE_URI: "${COMPOSE_DATABASE_URI:-postgresql://meiliai:meiliai_secret@postgres:5432/meiliai}"
 
-  # ── Security ────────────────────────────────────────────────────────────────
-  SECRET_KEY: "${SECRET_KEY}"
+  # ── Security
+  SECRET_KEY: "${SECRET_KEY:-change-me-for-anything-but-local-use-0123456789}"
   ALGORITHM: "HS256"
   ACCESS_TOKEN_EXPIRE_MINUTES: "30"
   REFRESH_TOKEN_EXPIRE_DAYS: "7"
 
-  # ── CORS ────────────────────────────────────────────────────────────────────
-  BACKEND_CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000","http://localhost:5173","http://127.0.0.1:5173","http://localhost:8443","http://127.0.0.1:8443"]'
+  # ── CORS
+  BACKEND_CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173","http://localhost:8000","http://localhost:8001"]'
 
-  # ── AI Agents ───────────────────────────────────────────────────────────────
-  GROQ_API_KEY: "${GROQ_API_KEY}"
-  GEMINI_API_KEY: "${GEMINI_API_KEY}"
+  # ── Language model (only the optimizer worker uses it)
   GROQ_MODEL: "openai/gpt-oss-20b"
 
-  # ── TBO Hotel API ──────────────────────────────────────────────────
-  TBO_API_URL: "${TBO_API_URL}"
-  TBO_USERNAME: "${TBO_USERNAME}"
-  TBO_PASSWORD: "${TBO_PASSWORD}"
-
-  # ── TBO Air API ────────────────────────────────────────
-  TBO_AIR_AUTHENTICATE_URL: "${TBO_AIR_AUTHENTICATE_URL}"
-  TBO_AIR_SERVICE_URL: "${TBO_AIR_SERVICE_URL}"
-  TBO_AIR_USERNAME: "${TBO_AIR_USERNAME}"
-  TBO_AIR_PASSWORD: "${TBO_AIR_PASSWORD}"
-
-  # ── Redis / Celery ───────────────────────────────────────────────────────────
-  CELERY_BROKER_URL: "redis://redis:6379/0"
-  CELERY_RESULT_BACKEND: "redis://redis:6379/1"
+  # ── Two Redis roles (backend/app/core/redis.py): the queue never evicts, the ephemeral one may
   REDIS_URL: "redis://redis:6379/0"
+  REDIS_QUEUE_URL: "redis://redis:6379/0"
+  REDIS_EPHEMERAL_URL: "redis://redis-ephemeral:6379/0"
 
-  # ── ML Optimizer paths (inside container) ───────────────────────────────────
+  # ── Behaviour
   ML_OPTIMIZER_BASE_DATA: "/app/ml_or/data"
-  TRIP_SESSION_STORAGE: "/app/backend/trip_sessions"
-  OPTIMIZER_OUTPUT_DIR: "/app/backend/optimizer_outputs"
-
-  # ── Logging & performance ────────────────────────────────────────────────────
   LOG_LEVEL: "info"
-  UVICORN_WORKERS: "2"
-  CELERY_CONCURRENCY: "4"
+  APP_MODE: "showcase"
+  DEMO_ENABLED: "true"
+  SEED_ON_START: "true"
+  AGENT_SIGNUP_CODE: "${AGENT_SIGNUP_CODE:-local-agent-code}"
+  WORKER_HEARTBEAT_SECONDS: "20"
 
-# ─── Shared volume mounts ─────────────────────────────────────────────────────
-x-backend-volumes: &backend-volumes
-  - ./backend:/app/backend
-  - ./agents:/app/agents
-  - ./ml_or:/app/ml_or
-  - trip_sessions:/app/backend/trip_sessions
-  - optimizer_outputs:/app/backend/optimizer_outputs
-
-# ─── Shared build config ──────────────────────────────────────────────────────
-x-backend-build: &backend-build
+x-api-build: &api-build
   context: .
   dockerfile: Dockerfile
+  target: api
+
+x-worker-build: &worker-build
+  context: .
+  dockerfile: Dockerfile
+  target: worker
+
+x-after-migrate: &after-migrate
+  redis:
+    condition: service_healthy
+  redis-ephemeral:
+    condition: service_healthy
+  migrate:
+    condition: service_completed_successfully
 
 services:
 
-  # ── 1. Redis (broker + result backend + cache) ──────────────────────────────
-  redis:
-    image: redis:7-alpine
-    container_name: meiliai_redis
-    restart: unless-stopped
-    command: >
-      redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 1 --loglevel warning
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
-  # ── 1.5 Postgres Database ───────────────────────────────────────────────────
+  # ── Infrastructure ────────────────────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
     container_name: meiliai_postgres
@@ -97,97 +79,117 @@ services:
       timeout: 5s
       retries: 5
 
+  # The queue role: broker, locks, security counters, heartbeats. Never evicts (a full instance refuses
+  # writes loudly instead of dropping queued work); append-only file synced once a second.
+  redis:
+    image: redis:7-alpine
+    container_name: meiliai_redis
+    restart: unless-stopped
+    command: >
+      redis-server --maxmemory 256mb --maxmemory-policy noeviction --appendonly yes --appendfsync everysec --loglevel warning
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
-  # ── 2. DB Migration (runs Alembic, then exits) ──────────────────────────────
+  # The ephemeral role: read cache, low-value rate limits, live-notification pub/sub. No persistence, and it
+  # evicts the least recently used keys when full, which only costs speed.
+  redis-ephemeral:
+    image: redis:7-alpine
+    container_name: meiliai_redis_ephemeral
+    restart: unless-stopped
+    command: >
+      redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru --save "" --appendonly no --loglevel warning
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── Release step: migrate once, then exit ──────────────────────────────────────
   migrate:
-    build: *backend-build
-    container_name: meiliai_migrate
+    build: *api-build
     command: [ "migrate" ]
     environment: *backend-env
-    volumes: *backend-volumes
     restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-  # ── 3. FastAPI Application ──────────────────────────────────────────────────
-  api:
-    build: *backend-build
-    container_name: meiliai_api
+  # ── API: two copies, so live notifications must reach a browser on either ─────
+  api-1:
+    build: *api-build
+    image: merydian-api:local
     restart: unless-stopped
     command: [ "api" ]
     environment: *backend-env
-    volumes: *backend-volumes
     ports:
       - "8000:8000"
-    depends_on:
-      redis:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
+    depends_on: *after-migrate
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
-      interval: 30s
-      timeout: 10s
+      test: [ "CMD", "curl", "-fs", "http://localhost:8000/health/live" ]
+      interval: 15s
+      timeout: 5s
       retries: 3
-      start_period: 20s
+      start_period: 30s
 
-  # ── 4. Celery Worker (booking jobs + agent tasks + events) ──────────────────
-  celery_worker:
-    build: *backend-build
-    container_name: meiliai_celery_worker
+  api-2:
+    image: merydian-api:local
     restart: unless-stopped
-    command: [ "worker" ]
+    command: [ "api" ]
     environment: *backend-env
-    volumes: *backend-volumes
+    ports:
+      - "8001:8000"
     depends_on:
-      redis:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: '2'
-          memory: 1G
+      api-1:
+        condition: service_started
 
-  # ── 5. Celery Beat (periodic scheduler) ────────────────────────────────────
-  celery_beat:
-    build: *backend-build
-    container_name: meiliai_celery_beat
+  # ── Workers ────────────────────────────────────────────────────────────────────
+  # Solver and language-model jobs. One job per core is the safe default (the solver uses threads itself).
+  worker-optimizer:
+    build: *worker-build
+    image: merydian-worker:local
     restart: unless-stopped
-    command: [ "beat" ]
-    environment: *backend-env
-    volumes: *backend-volumes
-    depends_on:
-      redis:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-
-  # ── 6. Flower (Celery monitoring UI — admin/admin) ──────────────────────────
-  flower:
-    build: *backend-build
-    container_name: meiliai_flower
-    restart: unless-stopped
-    command: [ "flower" ]
+    command: [ "worker-optimizer" ]
     environment:
       <<: *backend-env
-      FLOWER_USER: "admin"
-      FLOWER_PASSWORD: "admin"
-    volumes: *backend-volumes
-    ports:
-      - "5555:5555"
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+      CELERY_CONCURRENCY: "1"
+    depends_on: *after-migrate
+    stop_grace_period: 60s
+
+  # Small, frequent, I/O-bound work: never waits behind a solve. Runs the outbox dispatcher.
+  worker-default:
+    image: merydian-worker:local
+    restart: unless-stopped
+    command: [ "worker-default" ]
+    environment:
+      <<: *backend-env
+      CELERY_CONCURRENCY: "4"
     depends_on:
-      redis:
-        condition: service_healthy
+      worker-optimizer:
+        condition: service_started
+    stop_grace_period: 30s
+
+  # ── Scheduler: one copy that sweeps for stuck work (needs no solver: the API image) ─────
+  scheduler:
+    image: merydian-api:local
+    restart: unless-stopped
+    command: [ "scheduler" ]
+    environment: *backend-env
+    depends_on:
+      api-1:
+        condition: service_started
 
 volumes:
   redis_data:
     driver: local
   postgres_data:
-    driver: local
-  trip_sessions:
-    driver: local
-  optimizer_outputs:
     driver: local
 
 networks:

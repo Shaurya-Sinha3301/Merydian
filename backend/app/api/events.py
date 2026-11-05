@@ -39,13 +39,12 @@ async def create_event(
         db_event = EventService.create_event(
             event_data=event,
             user_id=user_id,
-            family_id=family_id
+            family_id=family_id,
+            process=True,
         )
 
         logger.info(f"Created event: {db_event.event_type} | ID: {db_event.id} | Family: {family_id}")
 
-        from app.worker import process_event_task
-        process_event_task.delay(str(db_event.id))
 
         return EventResponse(event_id=db_event.id, status=db_event.status)
 

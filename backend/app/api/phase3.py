@@ -96,7 +96,9 @@ async def notification_stream(token: str = Query(...), after: int = Query(0, ge=
         try:
             import redis.asyncio as aioredis
 
-            client = aioredis.from_url(settings.REDIS_URL)
+            from app.core.redis import ephemeral_url
+
+            client = aioredis.from_url(ephemeral_url())
             wake = client.pubsub()
             await wake.subscribe(f"notif:{uid}")
         except Exception as e:

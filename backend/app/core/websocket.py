@@ -128,7 +128,9 @@ async def start_redis_listener(manager: ConnectionManager):
         import redis.asyncio as aioredis
         from app.core.config import settings
 
-        redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        from app.core.redis import ephemeral_url
+
+        redis_client = aioredis.from_url(ephemeral_url(), decode_responses=True)
         pubsub = redis_client.pubsub()
         await pubsub.subscribe("booking_notifications", "traveller_notifications")
         logger.info("Redis pub/sub listener started on 'booking_notifications' + 'traveller_notifications'")

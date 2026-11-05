@@ -12,12 +12,12 @@ Related, already delivered: `PRODUCTION_HARDENING.md` covers the first round of 
 
 | # | Problem raised | Verdict | Fix | Built? |
 |---|---|---|---|---|
-| 1 | Job creation and Redis publishing are not atomic. A crash between them loses the job | **Correct** | Transactional outbox for job publishing, plus a scheduler that re-publishes lost jobs | No |
-| 2 | The lease needs stronger ownership guarantees | **Correct, and the current build has the gap** | Job ownership with a fencing number, heartbeat renewal, database-clock times | No |
-| 3 | Redis persistence does not mean zero message loss | **Correct** | Stop depending on Redis keeping messages. The database is the record, Redis only delivers | No (wording and design) |
-| 4 | Three Redis instances may be unnecessary | **Mostly correct** | Two instances: a queue instance and an ephemeral one. One is acceptable for the demo | No |
-| 5 | Webhooks are not needed, since SSE covers event notification | **Correct that they are not required.** Decision: the feature is **kept** | Keep it as an optional outbound channel, not extended. Delivery moves to the outbox | Decided, not built |
-| 6 | (Found during review) A job turned away by a trip lock gives up after about four minutes and fails with a misleading message. Waiting jobs can also run out of order | A real gap in the current build | Retry until the job's own deadline, with sequence numbers where order matters | No |
+| 1 | Job creation and Redis publishing are not atomic. A crash between them loses the job | **Correct** | Transactional outbox for job publishing, plus a scheduler that re-publishes lost jobs | Built |
+| 2 | The lease needs stronger ownership guarantees | **Correct, and the current build has the gap** | Job ownership with a fencing number, heartbeat renewal, database-clock times | Built |
+| 3 | Redis persistence does not mean zero message loss | **Correct** | Stop depending on Redis keeping messages. The database is the record, Redis only delivers | Built |
+| 4 | Three Redis instances may be unnecessary | **Mostly correct** | Two instances: a queue instance and an ephemeral one. One is acceptable for the demo | Built |
+| 5 | Webhooks are not needed, since SSE covers event notification | **Correct that they are not required.** Decision: the feature is **kept** | Keep it as an optional outbound channel, not extended. Delivery moves to the outbox | Built |
+| 6 | (Found during review) A job turned away by a trip lock gives up after about four minutes and fails with a misleading message. Waiting jobs can also run out of order | A real gap in the current build | Retry until the job's own deadline, with sequence numbers where order matters | Built |
 
 ---
 
@@ -287,4 +287,4 @@ Do not claim "zero message loss". The honest wording is: **at-least-once deliver
 
 1. **Webhooks:** decided. The feature is kept as an optional channel and not extended. Its delivery moves to the outbox (milestone 5).
 2. **Documents:** aligned. `TARGET_ARCHITECTURE.md` and `ARCHITECTURE_PLAN.md` are at version 2 and match this report.
-3. **Where to start:** decided and done. Milestone 1 (the migrations baseline) is built, since every later step changes the schema. The next step in the plan is milestone 2, moving the optimizer's working state from files into the database.
+3. **Where to start:** done. All milestones are built; every fix in this report has a passing check (see `DRILL_REPORT.md`).

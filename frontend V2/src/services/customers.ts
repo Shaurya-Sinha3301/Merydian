@@ -1,4 +1,15 @@
 import apiClient from './client';
+import { jobsService } from './jobs';
+
+/**
+ * Trip creation runs as a background job. A quick plan comes back in the response (201); a slow one is
+ * answered with 202 and the job to follow, which this waits for.
+ */
+async function planned<T>(url: string, body: unknown): Promise<T> {
+  const res = await apiClient.post<T & { job_id?: string }>(url, body, { timeout: 30_000 });
+  if (res.status === 202 && res.data.job_id) return jobsService.followJob<T>(res.data.job_id);
+  return res.data;
+}
 
 export interface CustomerDTO {
   user_id: string;
@@ -71,12 +82,11 @@ export const customersService = {
   create: async (body: NewCustomer): Promise<CustomerCreated> => (await apiClient.post<CustomerCreated>('/agent/customers', body)).data,
 
   /** A traveller plans their own trip. Builds the plan with the optimizer, so it can take a while. */
-  requestTrip: async (body: TripRequestBody): Promise<TripRequestResult> =>
-    (await apiClient.post<TripRequestResult>('/trips/request', body, { timeout: 180_000 })).data,
+  requestTrip: async (body: TripRequestBody): Promise<TripRequestResult> => planned<TripRequestResult>('/trips/request', body),
 
   /** An agent plans a trip for one or more customers' families. */
   createTrip: async (body: AgentTripBody): Promise<AgentTripResult> =>
-    (await apiClient.post<AgentTripResult>('/trips/initialize-with-optimization', body, { timeout: 180_000 })).data,
+    planned<AgentTripResult>('/trips/initialize-with-optimization', body),
 };
 
 export interface CustomerDetail {
