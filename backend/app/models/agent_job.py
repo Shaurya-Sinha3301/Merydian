@@ -18,6 +18,7 @@ class JobType(str, enum.Enum):
     AGENT_TOOLS = "AGENT_TOOLS"
     AGENT_COMMUNICATION = "AGENT_COMMUNICATION"
     AGENT_FEEDBACK = "AGENT_FEEDBACK"
+    TRIP_INIT = "TRIP_INIT"  # build a new trip's first plan (app/services/trip_jobs.py)
 
 class AgentJobBase(SQLModel):
     job_type: JobType = Field(index=True)

@@ -178,6 +178,10 @@ def _run_job(job, beat):
                 body=(job.input_payload or {}).get("message", "")[:200],
                 link=f"/app/trip/{job.trip_id}/changes" if applied else f"/app/trip/{job.trip_id}/feedback",
                 data={"trip_id": job.trip_id, "applied": applied})})
+    elif job.job_type == JobType.TRIP_INIT:
+        from app.services import trip_jobs
+
+        result, announcements = trip_jobs.run(job)
     else:
         raise ValueError(f"Unsupported job type: {job.job_type}")
 

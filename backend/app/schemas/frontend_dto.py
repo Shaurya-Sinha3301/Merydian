@@ -49,6 +49,8 @@ class JobDTO(BaseModel):
     updated_at: str
     estimated_remaining_seconds: Optional[int] = None
     result_available: bool = False
+    # For a finished trip-creation job: the trip and option it produced
+    result: Optional[dict] = None
 
 # --- Explainability ---
 

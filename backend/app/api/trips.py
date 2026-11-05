@@ -9,9 +9,11 @@ Provides endpoints for:
 
 import logging
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Any, Optional, Annotated
+
+from app.models.agent_job import JobStatus
 from datetime import date
 
 from app.services.trip_service import TripService
@@ -332,6 +334,7 @@ async def initialize_trip(
 async def initialize_trip_with_optimization(
     request: InitializeTripWithOptiRequest,
     current_user: TokenPayload = Depends(get_current_agent),
+    prefer: Optional[str] = Header(default=None),
 ):
     """
     Initialize a trip with automatic optimizer run.
@@ -344,36 +347,36 @@ async def initialize_trip_with_optimization(
 
     The agent can then approve the option via `POST /agent/itinerary/approve`.
     """
-    try:
-        result = TripService.initialize_trip_with_optimization(
-            trip_name=request.trip_name,
-            destination=request.destination,
-            start_date=request.start_date,
-            end_date=request.end_date,
-            family_ids=request.family_ids,
-            num_travellers=request.num_travellers,
-        )
-        from app.core.db import engine as _engine
-        from app.services import notification_service as ns
-        from app.services.agency_service import agency_of, set_trip_agency
-        from sqlmodel import Session as _Session
+    # The solver never runs inside this request: a background job builds the plan (app/services/trip_jobs.py)
+    from app.core.db import engine as _engine
+    from app.services import trip_jobs
+    from app.services.agency_service import agency_of
+    from sqlmodel import Session as _Session
 
-        with _Session(_engine) as _s:
-            set_trip_agency(result["trip_id"], agency_of(_s, current_user.sub))
-        ns.notify_agents("decision.created", f"First plan ready: {request.trip_name}", "Waiting for approval", "/app/desk", {"trip_id": result.get("trip_id"), "option_id": result.get("option_id")})
+    with _Session(_engine) as _s:
+        agency = agency_of(_s, current_user.sub)
+    job = trip_jobs.start(
+        {"trip_name": request.trip_name, "destination": request.destination, "start_date": request.start_date,
+         "end_date": request.end_date, "family_ids": request.family_ids, "num_travellers": request.num_travellers},
+        current_user.sub, str(agency) if agency else None, kind="agent")
+    job = await trip_jobs.wait(job.id, trip_jobs.wait_seconds(prefer))
+    return _trip_job_response(job, lambda r: InitializeTripWithOptiResponse(**r))
 
-        return InitializeTripWithOptiResponse(**result)
 
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to initialize trip with optimization: {str(e)}",
-        )
+def _trip_job_response(job, build):
+    """Finished: the usual 201 body. Failed: 400 or 500 as before. Still running: 202 with the job to follow."""
+    from fastapi.responses import JSONResponse
+    from app.services import trip_jobs
+
+    if job.status == JobStatus.COMPLETED:
+        return build(dict(job.result_payload or {}))
+    if job.status in (JobStatus.FAILED, JobStatus.CANCELLED):
+        message = job.error_message or "We could not build that plan."
+        if message.startswith("ValueError: "):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message[len("ValueError: "):])
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to initialize trip with optimization: {message}")
+    body = trip_jobs.accepted(job)
+    return JSONResponse(body, status_code=status.HTTP_202_ACCEPTED, headers={"Location": body["poll"]})
 
 
 @router.get("/{trip_id}/summary", response_model=TripDetailResponse)
@@ -686,6 +689,7 @@ class TripRequestResponse(BaseModel):
 async def request_trip(
     body: TripRequest,
     current_user: Annotated[TokenPayload, Depends(get_current_user)],
+    prefer: Optional[str] = Header(default=None),
 ):
     """
     A traveller plans their own trip: saves the family's preferences, runs the optimizer and, when
@@ -727,57 +731,28 @@ async def request_trip(
     )
     FamilyService.update_preferences(family.id, prefs)
 
-    try:
-        result = TripService.initialize_trip_with_optimization(
-            trip_name=body.trip_name.strip(),
-            destination=body.destination,
-            start_date=body.start_date.isoformat(),
-            end_date=body.end_date.isoformat(),
-            family_ids=[family.family_code],
-            num_travellers=body.members,
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Trip request failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="We could not build that plan. Please try again.")
-
-    published = False
-    if settings.SELF_SERVE_AUTO_APPROVE:
-        try:
-            option = ItineraryOptionService.approve_option(option_id=UUID(result["option_id"]), agent_id=None)
-            details = option.details or {}
-            if details.get("itinerary"):
-                ItineraryService.publish_base_itinerary(
-                    trip_id=option.trip_id,
-                    family_ids=details.get("family_ids", [family.family_code]),
-                    itinerary_data=details["itinerary"],
-                    created_reason="First plan published automatically for the traveller's own request",
-                )
-                published = True
-        except Exception as e:
-            logger.error(f"Auto-publish failed for {result['trip_id']}: {e}", exc_info=True)
-
+    # The solver never runs inside this request: a background job builds (and, when allowed, publishes) the plan
     from app.core.db import engine as _engine
-    from app.services import notification_service as ns
-    from app.services.agency_service import agency_of, set_trip_agency
+    from app.services import trip_jobs
+    from app.services.agency_service import agency_of
     from sqlmodel import Session as _Session
 
     with _Session(_engine) as _s:
-        set_trip_agency(result["trip_id"], agency_of(_s, current_user.sub))
-    ns.notify_agents(
-        "plan.published" if published else "decision.created",
-        f"New trip: {body.trip_name.strip()}",
-        f"{body.members} travellers, {body.start_date} to {body.end_date}",
-        f"/app/trip/{result['trip_id']}",
-        {"trip_id": result["trip_id"], "published": published},
-    )
-    return TripRequestResponse(
-        trip_id=result["trip_id"],
-        option_id=result["option_id"],
-        published=published,
-        message="Your plan is ready." if published else "Your plan is with a travel agent for approval.",
-    )
+        agency = agency_of(_s, current_user.sub)
+    job = trip_jobs.start(
+        {"trip_name": body.trip_name.strip(), "destination": body.destination, "start_date": body.start_date.isoformat(),
+         "end_date": body.end_date.isoformat(), "family_ids": [family.family_code], "num_travellers": body.members},
+        current_user.sub, str(agency) if agency else None, kind="traveller",
+        auto_publish=bool(settings.SELF_SERVE_AUTO_APPROVE), family_code=family.family_code)
+    job = await trip_jobs.wait(job.id, trip_jobs.wait_seconds(prefer))
+
+    def build(r):
+        published = bool(r.get("published"))
+        return TripRequestResponse(
+            trip_id=r["trip_id"], option_id=r["option_id"], published=published,
+            message="Your plan is ready." if published else "Your plan is with a travel agent for approval.")
+
+    return _trip_job_response(job, build)
 
 
 

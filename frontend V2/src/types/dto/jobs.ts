@@ -8,4 +8,6 @@ export interface JobDTO {
   updated_at: string;
   estimated_remaining_seconds?: number;
   result_available: boolean;
+  /** For a finished trip-creation job: the trip and option it produced */
+  result?: Record<string, unknown> | null;
 }

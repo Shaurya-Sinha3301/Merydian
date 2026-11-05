@@ -68,6 +68,8 @@ async def get_job_status(
                 updated_at=agent_job.updated_at.isoformat() if agent_job.updated_at else "",
                 estimated_remaining_seconds=None,
                 result_available=result_available,
+                result=(agent_job.result_payload if status_str == "COMPLETED"
+                        and str(getattr(agent_job.job_type, "value", agent_job.job_type)) == "TRIP_INIT" else None),
             )
         
         # Determine stages and percentages based on event status and payload
