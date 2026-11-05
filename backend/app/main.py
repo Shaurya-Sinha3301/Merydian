@@ -69,6 +69,12 @@ async def global_exception_handler(request: Request, exc: Exception):
         ).dict()
     )
 
+# Requests carrying an Idempotency-Key are not repeated (see app/core/idempotency.py). Registered before the
+# rate limiter so the limiter wraps it and still counts repeats.
+from app.core import idempotency as _idempotency
+
+app.middleware("http")(_idempotency.middleware)
+
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     # Skip rate limiting for WebSocket upgrade requests

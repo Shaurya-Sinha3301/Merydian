@@ -253,6 +253,28 @@ class AgentJobService:
             return job
 
     @staticmethod
+    def find_recent_duplicate(trip_id: str, family_id: str, message: str, seconds: int = 30) -> Optional[AgentJob]:
+        """The same feedback for the same trip and family within a few seconds, still alive.
+
+        A second net for clients that send no Idempotency-Key: a double-click returns the first job
+        instead of starting a second replan. Exact text only; anything different is a new request.
+        """
+        from datetime import timedelta
+
+        cutoff = datetime.utcnow() - timedelta(seconds=seconds)
+        with Session(engine) as session:
+            return session.exec(
+                select(AgentJob).where(
+                    AgentJob.trip_id == trip_id,
+                    AgentJob.job_type == JobType.AGENT_FEEDBACK,
+                    AgentJob.created_at >= cutoff,
+                    AgentJob.status.notin_([JobStatus.FAILED, JobStatus.CANCELLED]),
+                    AgentJob.input_payload["family_id"].astext == str(family_id),
+                    AgentJob.input_payload["message"].astext == message,
+                ).order_by(AgentJob.created_at.desc())
+            ).first()
+
+    @staticmethod
     def get_job(job_id: uuid.UUID) -> Optional[AgentJob]:
         with Session(engine) as session:
             return session.get(AgentJob, job_id)

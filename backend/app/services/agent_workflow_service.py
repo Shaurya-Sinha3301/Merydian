@@ -50,6 +50,15 @@ class AgentWorkflowService:
         return job.id
         
     def enqueue_feedback_optimization(self, trip_id: str, family_id: str, message: str, agent_id: Optional[str] = None) -> Any:
+        # The same message sent twice in a few seconds (a double-click) follows the first job
+        recent = AgentJobService.find_recent_duplicate(trip_id, family_id, message)
+        if recent:
+            return {
+                "job_id": str(recent.id),
+                "status": recent.status.value if hasattr(recent.status, "value") else str(recent.status),
+                "message": "Already received. Following the same job.",
+            }
+
         job = AgentJobService.create_job(
             job_type=JobType.AGENT_FEEDBACK,
             trip_id=trip_id,
