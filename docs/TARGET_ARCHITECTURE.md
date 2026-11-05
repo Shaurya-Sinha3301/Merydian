@@ -2,7 +2,7 @@
 
 The system design we are building toward. It is made on engineering merit alone, with no hosting-cost compromises, and with over-engineering excluded. It includes every correction from the design review (`DESIGN_REVIEW_AND_FIXES.md`). The milestone-by-milestone work plan is in `ARCHITECTURE_PLAN.md`.
 
-No code. Nothing in this document has been built yet, except where it says so.
+No code. **Built so far: milestone 1 only** (controlled migrations, see `ARCHITECTURE_PLAN.md`). Everything else here is design.
 
 ---
 

@@ -2,7 +2,7 @@
 
 The milestone-by-milestone plan for reaching the system described in `TARGET_ARCHITECTURE.md`. The reasoning for each correction is in `DESIGN_REVIEW_AND_FIXES.md`.
 
-No code. **Nothing here has been built.** Estimates are rough, one person working, and are the least certain part of this document.
+No code. **Status: milestone 1 is built and checked (branch `arch/m1-migrations-baseline`, not yet deployed). Everything else in this plan is still design.** Estimates are rough, one person working, and are the least certain part of this document.
 
 ---
 
@@ -22,7 +22,7 @@ What exists today, so the plan starts from facts:
 
 - The API and a single worker run in one container. The API runs the solver **inside a web request** when a trip is created, which freezes its single event loop for 1 to 5 seconds.
 - The optimizer keeps its iteration chain in files on the container's disk. Customer reads already come from the database, with the file as a fallback.
-- Startup creates missing tables and stamps a migration marker. It cannot alter an existing table.
+- ~~Startup creates missing tables and stamps a migration marker. It cannot alter an existing table.~~ **Resolved by milestone 1.** Migrations are now the only way the schema changes.
 - Job claiming exists, with a three-minute lease on the worker's clock, but finishing a job does not check ownership.
 - A per-trip Redis lock, a family row lock and a unique rule on version numbers exist (the hardening change). Sign-in lockout exists.
 - A job is saved and then published in two separate steps.
@@ -60,7 +60,7 @@ Estimated total: about **18 to 22 working days.**
 
 ---
 
-## M1. Migrations baseline  (about 1.5 days)
+## M1. Migrations baseline  (about 1.5 days)  **BUILT, not yet deployed**
 
 **Goal:** every schema change from here on is a controlled, repeatable migration.
 
@@ -80,6 +80,25 @@ Estimated total: about **18 to 22 working days.**
 **Verification:** a fresh database from migrations equals the models. An old copy upgrades. A deliberate bad migration is caught by the check, not in production.
 
 **Risks:** the baseline must describe reality exactly, which the comparison check protects. If production holds rows that break a new rule, the migration must report them and stop.
+
+### What was built, and where it differs from the plan
+- **Two revisions, not one.** `0001` is the full 32-table baseline. `0002` adds the unique rule on itinerary version numbers. It is separate on purpose, so a database that never had the rule receives it as an ordinary change. If the rule already exists as a constraint, `0002` swaps it for the equivalent index the models declare. If duplicates exist, it stops and says how many.
+- **Adopting an old database.** A database stamped with either old revision, or holding tables but no version at all, is compared with the models. If it matches, it is stamped at `0001` and brought up to date without being rebuilt. If it differs, nothing is touched and the differences are listed.
+- **Direct connection.** Migrations use `MIGRATION_DATABASE_URI` if set. Otherwise the direct address is derived from a pooled Neon address (the same host without `-pooler`), else the normal address is used.
+- **Lock.** A database-wide advisory lock, waited on for up to three minutes, stops two processes migrating together.
+- **Stops on drift.** If the schema still differs from the models after migrating, the start-up stops. `MIGRATION_ALLOW_DRIFT=true` overrides it.
+- **Services that do not migrate wait.** The API and worker modes of the start script wait until the database is at the expected revision (`wait_for_schema.py`, 300 seconds by default).
+- **The pull-request check** is `backend/scripts/deploy/check_migrations.py`, with 7 checks: one head, a fresh build, no drift, undo and redo, adoption of an old database, no drift after adoption, and refusal of a database that really differs. It replaces the planned "upgrade a copy of the previous release's schema" check, which needs a stored snapshot that does not exist yet. The adoption simulation covers the same risk for the first release.
+
+### Two defects found while building it
+- `families` and `itineraries` point at each other, so a generated baseline could not create them in either order. The baseline adds one of the two links after both tables exist.
+- Undoing the baseline left the database's enum types behind, which made the next upgrade fail. The baseline now drops them.
+
+### Evidence
+The migration check passes all 7 checks. The 23 hardening checks pass on a database built only from migrations. Four bootstraps started at the same instant on an empty database produced one build and three waits, all exiting 0. A database holding duplicate version numbers was refused and left at `0001`.
+
+### Not yet verified
+The Docker image build, the full smoke test on the new start-up, and a run against the live Neon database. Do these before the first deploy.
 
 ---
 
@@ -318,5 +337,5 @@ Estimated total: about **18 to 22 working days.**
 | A late worker overwriting a result | Possible | Refused, and a drill proves it |
 | A cache flush causing lost work | Same Redis as the queue | Only speed is affected |
 | A double-click | Two jobs | One |
-| A schema change shipped without a manual step | Not possible | Routine |
+| A schema change shipped without a manual step | Not possible | Routine (built in milestone 1, to be confirmed on the live database) |
 | Time to notice no worker is running | When a user complains | Readiness shows it |

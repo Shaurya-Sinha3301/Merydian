@@ -287,4 +287,4 @@ Do not claim "zero message loss". The honest wording is: **at-least-once deliver
 
 1. **Webhooks:** decided. The feature is kept as an optional channel and not extended. Its delivery moves to the outbox (milestone 5).
 2. **Documents:** aligned. `TARGET_ARCHITECTURE.md` and `ARCHITECTURE_PLAN.md` are at version 2 and match this report.
-3. **Where to start:** not decided. The milestone plan begins with the migrations baseline (milestone 1), since every later step changes the schema. Nothing is built until you say so.
+3. **Where to start:** decided and done. Milestone 1 (the migrations baseline) is built, since every later step changes the schema. The next step in the plan is milestone 2, moving the optimizer's working state from files into the database.
