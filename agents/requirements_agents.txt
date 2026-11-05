@@ -4,7 +4,7 @@
 groq==1.7.0
 
 # Environment Variable Management
-python-dotenv==1.2.2
+python-dotenv==1.2.4
 
 # Schema Validation
 pydantic==2.13.4
