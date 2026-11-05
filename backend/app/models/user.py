@@ -39,6 +39,8 @@ class User(SQLModel, table=True):
     
     # Status
     is_active: bool = Field(default=True)
+    # "Sign out everywhere": access tokens issued before this moment are refused, even before they expire
+    tokens_valid_after: Optional[datetime] = Field(default=None)
     
     # Timestamps
     created_at: datetime = Field(default_factory=datetime.utcnow)

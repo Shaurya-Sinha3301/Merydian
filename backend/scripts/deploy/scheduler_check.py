@@ -86,6 +86,21 @@ gone = J.get_job(job.id)
 check("after the limit and the deadline it is failed", gone.status == JobStatus.FAILED and "never picked up" in (gone.error_message or ""),
       f"{republished(job.id)} re-publishes, {gone.status}")
 
+print("\n== A running job whose owner stopped renewing, with attempts left, is sent again for a takeover")
+orphan = J.create_job(JobType.AGENT_FEEDBACK, trip_id=f"sched-{uuid.uuid4().hex[:4]}", input_payload={"family_id": "X", "message": "orphan"})
+J.queue_job(orphan.id)
+J.claim_job(orphan.id, owner="crashed")
+Q.delete("optimizer")
+check("a healthy running job is left alone", scheduler.resume_abandoned_jobs() == 0)
+with Session(engine) as s:
+    s.execute(update(AgentJob).where(AgentJob.id == orphan.id).values(
+        lease_expires_at=func.timezone("utc", func.now()) - timedelta(seconds=5), updated_at=datetime.utcnow() - timedelta(minutes=5)))
+    s.commit()
+scheduler.resume_abandoned_jobs()
+check("once its lease runs out it is sent again", republished(orphan.id) == 1 and Q.llen("optimizer") == 1)
+check("and a worker that receives it takes it over with a higher fence", J.claim_job(orphan.id, owner="rescuer") == 2)
+Q.delete("optimizer")
+
 print("\n== A job whose worker died is ended")
 dead = J.create_job(JobType.AGENT_FEEDBACK, trip_id=f"sched-{uuid.uuid4().hex[:4]}", input_payload={"family_id": "X", "message": "dead"})
 J.queue_job(dead.id)

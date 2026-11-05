@@ -11,6 +11,8 @@ nothing breaks; repairs simply wait.
                                              (Redis lost it, or it was never delivered). Published again from
                                              the outbox; after REPUBLISH_LIMIT tries and the wait deadline it
                                              is failed with a clear reason.
+    resume abandoned jobs     every minute   RUNNING whose owner stopped renewing, with attempts left: sent again
+                                             so another worker takes it over (the original message may be gone).
     fail abandoned jobs       every minute   RUNNING whose owner stopped renewing a full lease ago and whose
                                              attempts are used up.
     release stuck outbox rows every minute   in progress for longer than the dispatcher could need.
@@ -87,6 +89,39 @@ def republish_lost_jobs() -> int:
     return changed + len(to_publish)
 
 
+def resume_abandoned_jobs() -> int:
+    """RUNNING jobs whose owner stopped renewing (its lease ran out) but with attempts left.
+
+    A worker that crashes leaves its message unacknowledged and Redis delivers it again. A worker whose task
+    failed for an outside reason (the database restarted under it) acknowledges the message, so nothing would
+    ever deliver it again: the lease allows a takeover, but someone must send the job. This sends it, and the
+    worker that receives it takes the job over with a higher fence.
+    """
+    from app.services import outbox_service
+
+    to_publish = []
+    with Session(engine) as s:
+        stale = s.execute(select(AgentJob).where(
+            AgentJob.status == JobStatus.RUNNING,
+            AgentJob.lease_expires_at < _DB_NOW,
+            AgentJob.attempt_count < AgentJob.max_attempts,
+            AgentJob.updated_at < _DB_NOW - LOST_AFTER,
+        ).limit(200)).scalars().all()
+        for job in stale:
+            n = s.execute(update(AgentJob).where(AgentJob.id == job.id, AgentJob.updated_at == job.updated_at)
+                          .values(updated_at=_DB_NOW)).rowcount
+            if not n:
+                continue
+            s.add(AgentJobEvent(job_id=job.id, event_type="JOB_REPUBLISHED", previous_status=job.status.value,
+                                new_status=job.status.value, event_payload={"reason": "owner stopped renewing", "fence": job.fence}))
+            to_publish.append(outbox_service.add(s, "publish_job", {"job_id": str(job.id)}).id)
+        s.commit()
+    outbox_service.try_now(to_publish)
+    if to_publish:
+        logger.warning("Re-sent %s running job(s) whose owner stopped renewing, for a takeover", len(to_publish))
+    return len(to_publish)
+
+
 def fail_abandoned_jobs() -> int:
     """RUNNING jobs whose owner stopped renewing a full lease ago, with no attempts left to take them over."""
     from app.core.config import settings
@@ -136,11 +171,14 @@ def remove_old_records() -> int:
     return n
 
 
+_MINUTE = int(os.getenv("SCHEDULER_SWEEP_SECONDS", "60"))
+
 SWEEPS: Dict[str, tuple] = {
     # name: (function, every N seconds)
-    "republish_lost_jobs": (republish_lost_jobs, 60),
-    "fail_abandoned_jobs": (fail_abandoned_jobs, 60),
-    "release_stuck_outbox": (release_stuck_outbox, 60),
+    "republish_lost_jobs": (republish_lost_jobs, _MINUTE),
+    "resume_abandoned_jobs": (resume_abandoned_jobs, _MINUTE),
+    "fail_abandoned_jobs": (fail_abandoned_jobs, _MINUTE),
+    "release_stuck_outbox": (release_stuck_outbox, _MINUTE),
     "expire_idempotency_keys": (expire_idempotency_keys, 3600),
     "remove_old_records": (remove_old_records, 86400),
 }

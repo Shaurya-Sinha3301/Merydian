@@ -33,6 +33,9 @@ Dependencies are pinned in `backend/requirements/*.txt`. The first build with un
 | `FRONTEND_URL` | The Vercel address, for example `https://merydian.vercel.app` (fill in after step 3) |
 | `BACKEND_CORS_ORIGINS` | `["https://merydian.vercel.app"]`. Any `*.vercel.app` address is also allowed by default |
 | `SMTP_*`, `TWILIO_*` | Optional. Leave empty and messages are recorded, not sent |
+| `APP_MODE` | `showcase` (set by `render.yaml`). Without it the default is `production`, which shuts the demo door. Check it is set in the dashboard |
+| `TRUSTED_PROXY_HOPS` | `1` (set by `render.yaml`): Render's proxy adds the visitor's address to `X-Forwarded-For`. See the check below |
+| `METRICS_TOKEN` | Optional. In showcase mode `/metrics` and `/ops` are open; set a token to require `Authorization: Bearer <token>` |
 
    `SECRET_KEY` and `DEMO_ADMIN_KEY` are generated for you. Leave `DEV_OUTBOX` and `WEBHOOK_ALLOW_PRIVATE` unset (off).
 3. Deploy. The first start builds the image (about 5 minutes), creates the tables and seeds the five demo trips (`SEED_ON_START=true`, safe to repeat).
@@ -88,3 +91,28 @@ It creates test accounts, so do not point it at a deployment people are using.
 | `/health/ready` says `redis: error` | The Key Value instance exists and the `REDIS_URL` link in `render.yaml` was created |
 | Feedback never finishes | The `GROQ_API_KEY`. `/health/ready` shows `llm_provider` |
 | Agent sign-up says the code is not valid | `AGENT_SIGNUP_CODE` is empty on Render, or differs from what you typed |
+
+## 8. Running the full architecture
+
+Render runs everything in one container (`all` mode: migrations, the API, a worker on every queue, and the
+scheduler), which is enough for a showcase. The same code runs as separate services:
+
+```bash
+docker compose up --build
+```
+
+That starts Postgres, the two Redis roles (`redis` never evicts; `redis-ephemeral` may), a one-shot `migrate`,
+two API copies on ports 8000 and 8001 (the API image, which has no solver), `worker-optimizer` and
+`worker-default` (the worker image), and the `scheduler`.
+
+Container modes: `api`, `worker-optimizer`, `worker-default`, `worker` (queues from `CELERY_QUEUES`),
+`scheduler`, `migrate`, `all`.
+
+## 9. After a deploy of the new backend
+
+1. `/health/ready` should show `schema: current`, at least one worker serving `optimizer`, and `llm_provider: configured`.
+2. `/ops` (showcase mode, or with the token) shows queues, workers, jobs, the outbox and error groups.
+3. Check the proxy setting once: from one network, send eleven wrong sign-ins quickly; the eleventh should get 429. From
+   another network at the same time, sign-in should still be allowed. If both are refused, `TRUSTED_PROXY_HOPS` is wrong
+   for Render's proxy chain.
+4. Run every check locally before merging: `python backend/scripts/deploy/drills.py --images` (see `DRILL_REPORT.md`).

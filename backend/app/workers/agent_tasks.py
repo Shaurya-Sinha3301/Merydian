@@ -273,6 +273,19 @@ def execute_agent_job_task(self, job_id_str: str):
         logger.warning(f"Job {job_id}: taken over by another worker while running; stopped and discarded")
         return None
     except Exception as e:
+        from sqlalchemy.exc import DBAPIError, InterfaceError, OperationalError
+
+        if isinstance(e, (OperationalError, InterfaceError)) or (isinstance(e, DBAPIError) and e.connection_invalidated):
+            # The database went away (a restart, a network blip). That is an outage, not a fault in this job:
+            # hand it back and try again shortly. If even that fails, the lease runs out and the scheduler
+            # sends the job again for a takeover.
+            logger.warning(f"Job {job_id} hit a database outage; handing it back for a retry: {e.__class__.__name__}")
+            try:
+                if fence is not None:
+                    AgentJobService.retry_job(job_id, reason="database unavailable", fence=fence)
+            except Exception:
+                pass
+            raise self.retry(countdown=15)
         from app.core import errors
 
         errors.record(e, job.correlation_id, f"job {job.job_type.value if hasattr(job.job_type, 'value') else job.job_type}")
