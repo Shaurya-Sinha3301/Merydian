@@ -71,8 +71,8 @@ jobs:
           done
       - name: Redis split (two instances started with their real settings)
         run: |
-          docker run -d --name q -p 6391:6379 redis:7-alpine redis-server --maxmemory 64mb --maxmemory-policy noeviction --appendonly yes
-          docker run -d --name e -p 6392:6379 redis:7-alpine redis-server --maxmemory 4mb --maxmemory-policy allkeys-lru --save "" --appendonly no
+          docker run -d --name redis-queue -p 6391:6379 redis:7-alpine redis-server --maxmemory 64mb --maxmemory-policy noeviction --appendonly yes
+          docker run -d --name redis-ephemeral -p 6392:6379 redis:7-alpine redis-server --maxmemory 4mb --maxmemory-policy allkeys-lru --save "" --appendonly no
           PGPASSWORD=ci-only-password psql -h localhost -U ci -d ci -c "CREATE DATABASE ci_redis"
           export SQLALCHEMY_DATABASE_URI=postgresql://ci:ci-only-password@localhost:5432/ci_redis
           python scripts/db_bootstrap.py
@@ -83,12 +83,20 @@ jobs:
           python scripts/deploy/stack.py --env APP_MODE=production --env DEMO_ENABLED=true --env DEV_OUTBOX=true --env TRUSTED_PROXY_HOPS=1 scripts/deploy/limits_check.py
           python scripts/deploy/stack.py --worker --env WEBHOOK_ALLOW_PRIVATE=true scripts/deploy/outbox_check.py
           python scripts/deploy/stack.py --worker scripts/deploy/nonblocking_check.py
-          python scripts/deploy/stack.py --worker scripts/deploy/observability_check.py
+          # Readiness needs a key that looks real (it rejects "placeholder" and the like). The drills test the
+          # system, not the model: with a fake key the model call fails and the replan falls back and completes.
+          python scripts/deploy/stack.py --worker --env GROQ_API_KEY=ci-fake-groq-key-0000 scripts/deploy/observability_check.py
+      - name: Plan cache (follows every change, newer-only writes, bursts, the cache Redis stopped and started)
+        run: |
+          docker run -d --name drill-redis-cache -p 6393:6379 redis:7-alpine redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru --save "" --appendonly no
+          STACK_CACHE_CONTAINER=drill-redis-cache python scripts/deploy/stack.py --worker --port 8051 \
+            --env REDIS_EPHEMERAL_URL=redis://localhost:6393/0 scripts/deploy/plan_cache_check.py
       - name: Resilience drills (database restart, an API copy dying, webhook guard, sign out everywhere)
         run: |
           docker run -d --name drill-pg -e POSTGRES_USER=drill -e POSTGRES_PASSWORD=drill-local-only -e POSTGRES_DB=drill -p 5433:5432 postgres:15-alpine
           until docker exec drill-pg pg_isready -q; do sleep 1; done
           STACK_DB_CONTAINER=drill-pg python scripts/deploy/stack.py --apis 2 --port 8041 --worker --scheduler \
+            --env GROQ_API_KEY=ci-fake-groq-key-0000 \
             --env JOB_LEASE_SECONDS=20 --env JOB_HEARTBEAT_SECONDS=5 --env SCHEDULER_SWEEP_SECONDS=10 \
             --env SCHEDULER_LOST_AFTER_SECONDS=10 --env SCHEDULER_TICK_SECONDS=3 \
             --db-server postgresql://drill:drill-local-only@localhost:5433/drill scripts/deploy/resilience_check.py
@@ -114,7 +122,7 @@ jobs:
           docker run -d --name app --network ci -p 8010:8000 \
             -e SQLALCHEMY_DATABASE_URI=postgresql://ci:ci-only-password@pg:5432/ci -e REDIS_URL=redis://rd:6379/0 \
             -e SECRET_KEY=ci-only-secret-key-0123456789abcdef -e APP_MODE=showcase -e SEED_ON_START=true \
-            -e AGENT_SIGNUP_CODE=ci-code -e GROQ_API_KEY=ci-placeholder-not-a-real-key -e CELERY_CONCURRENCY=1 \
+            -e AGENT_SIGNUP_CODE=ci-code -e GROQ_API_KEY=ci-fake-groq-key-0000 -e CELERY_CONCURRENCY=1 \
             -e BACKEND_CORS_ORIGINS='["https://example.vercel.app"]' merydian-worker:ci all
           for i in $(seq 1 90); do curl -fs localhost:8010/health/ready && break; sleep 2; done
           pip install requests
