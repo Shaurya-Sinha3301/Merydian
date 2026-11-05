@@ -143,6 +143,11 @@ def _deliver(row: OutboxMessage) -> None:
         from app.services import notification_service as ns
 
         ns.deliver_announcement(row.kind, p, eid)
+    elif row.kind == "refresh_plan_cache":
+        from app.services import plan_cache
+
+        # Reads the plan as it is now and keeps it only if newer than the cached one, so repeats are harmless
+        plan_cache.refresh(p["family_id"])
     else:
         raise ValueError(f"Unknown outbox kind: {row.kind}")
 

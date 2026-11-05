@@ -25,6 +25,12 @@ engine = create_engine(
     pool_pre_ping=True,  # Verify connections before using them
 )
 
+# Any change to a family's current plan raises its revision and queues a cache refresh in the same transaction
+from app.services import plan_cache as _plan_cache  # noqa: E402
+
+_plan_cache.install()
+
+
 def init_db():
     """
     Create all database tables.

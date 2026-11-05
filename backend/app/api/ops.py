@@ -97,6 +97,12 @@ def collect() -> List[Tuple[str, str, Dict[str, str], float]]:
         errors = s.execute(select(func.coalesce(func.sum(ErrorGroup.count), 0)).where(ErrorGroup.last_seen >= hour)).scalar()
         out.append(("merydian_errors_last_hour", "Unhandled errors in groups seen in the last hour", {}, float(errors)))
 
+    from app.services import plan_cache
+
+    for source in ("cache", "cache_after_wait", "postgres", "postgres_cache_down", "not_modified"):
+        out.append(("merydian_plan_reads_total", "Current-plan reads in this process, by where the answer came from",
+                    {"source": source}, float(plan_cache.reads.get(source, 0))))
+
     pool = engine.pool
     for name, fn in (("size", "size"), ("checked_out", "checkedout"), ("overflow", "overflow")):
         try:

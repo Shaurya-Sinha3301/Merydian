@@ -15,7 +15,7 @@ from typing import Dict, Optional, Tuple
 from fastapi import HTTPException, Request
 
 from app.core.client_ip import client_ip
-from app.core.redis import get_ephemeral_redis, get_queue_redis
+from app.core.redis import ephemeral_available, ephemeral_call, get_ephemeral_redis, get_queue_redis
 
 logger = logging.getLogger(__name__)
 
@@ -60,10 +60,18 @@ async def allow(key: str, limit: int, window: int, fallback: bool) -> bool:
     try:
         # Security limits (the ones with a fallback) count on the queue Redis, which never evicts; low-value
         # buckets count on the ephemeral one, where losing a count only resets a minute's window
-        redis = await (get_queue_redis() if fallback else get_ephemeral_redis())
-        n = await redis.incr(f"rate_limit:{key}")
+        if fallback:
+            redis = await get_queue_redis()
+            n = await redis.incr(f"rate_limit:{key}")
+            if n == 1:
+                await redis.expire(f"rate_limit:{key}", window)
+            return n <= limit
+        if not ephemeral_available():
+            return True  # the ephemeral instance failed moments ago: skip the count rather than stall the request
+        redis = await get_ephemeral_redis()
+        n = await ephemeral_call(redis.incr(f"rate_limit:{key}"))
         if n == 1:
-            await redis.expire(f"rate_limit:{key}", window)
+            await ephemeral_call(redis.expire(f"rate_limit:{key}", window))
         return n <= limit
     except Exception as exc:
         if fallback:

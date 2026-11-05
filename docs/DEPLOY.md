@@ -36,6 +36,7 @@ Dependencies are pinned in `backend/requirements/*.txt`. The first build with un
 | `APP_MODE` | `showcase` (set by `render.yaml`). Without it the default is `production`, which shuts the demo door. Check it is set in the dashboard |
 | `TRUSTED_PROXY_HOPS` | `1` (set by `render.yaml`): Render's proxy adds the visitor's address to `X-Forwarded-For`. See the check below |
 | `METRICS_TOKEN` | Optional. In showcase mode `/metrics` and `/ops` are open; set a token to require `Authorization: Bearer <token>` |
+| `PLAN_CACHE_TTL_SECONDS` | Optional, default `900`. How long an unread plan stays cached. Every change refreshes it at once, so this is not how stale it can get |
 
    `SECRET_KEY` and `DEMO_ADMIN_KEY` are generated for you. Leave `DEV_OUTBOX` and `WEBHOOK_ALLOW_PRIVATE` unset (off).
 3. Deploy. The first start builds the image (about 5 minutes), creates the tables and seeds the five demo trips (`SEED_ON_START=true`, safe to repeat).

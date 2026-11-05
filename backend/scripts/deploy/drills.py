@@ -44,6 +44,8 @@ DRILLS = [
     ("nonblocking", "The API never waits on a solve", ("stack", "nonblocking_check.py", ["--worker"])),
     ("observability", "Failures are visible: metrics, error groups, readiness with reasons, one id end to end",
      ("stack", "observability_check.py", ["--worker"])),
+    ("plan-cache", "The plan cache follows every change, never goes back to an older plan, absorbs bursts and survives being down",
+     ("cache",)),
     ("resilience", "Database restart, an API copy dying under a live stream, webhook address changed, sign out everywhere",
      ("resilience",)),
     ("images", "The split images: API has no solver, two queues, heartbeats, workers stopped and killed", ("images",)),
@@ -106,6 +108,17 @@ def drill(kind, server):
     if kind[0] == "stack":
         _, script, extra = kind
         return run([py, "scripts/deploy/stack.py", *extra, f"scripts/deploy/{script}"])
+    if kind[0] == "cache":
+        name = "drill-redis-cache"
+        docker("rm", "-f", name)
+        docker("run", "-d", "--name", name, "-p", "6393:6379", "redis:7-alpine", "redis-server", "--maxmemory", "64mb",
+               "--maxmemory-policy", "allkeys-lru", "--save", "", "--appendonly", "no")
+        time.sleep(2)
+        try:
+            return run([py, "scripts/deploy/stack.py", "--worker", "--port", "8051", "--env", "REDIS_EPHEMERAL_URL=redis://127.0.0.1:6393/0",
+                        "scripts/deploy/plan_cache_check.py"], dict(os.environ, STACK_CACHE_CONTAINER=name))
+        finally:
+            docker("rm", "-f", name)
     if kind[0] == "resilience":
         name, port, url = DRILL_PG
         docker("rm", "-f", name)

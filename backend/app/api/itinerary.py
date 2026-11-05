@@ -6,6 +6,7 @@ import uuid as uuid_lib
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Path
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 from app.core.dependencies import get_current_user, get_optional_user, get_agent_workflow_service, verify_trip_access
 from app.schemas.auth import TokenPayload
@@ -56,7 +57,8 @@ import json
 
 @router.get("/current", response_model=Dict[str, Any])
 async def get_current_itinerary(
-    current_user: TokenPayload = Depends(get_current_user)
+    current_user: TokenPayload = Depends(get_current_user),
+    if_none_match: Optional[str] = Header(default=None),
 ) -> Any:
     """
     Get the current active itinerary for the authenticated user's family.
@@ -71,37 +73,31 @@ async def get_current_itinerary(
 
         family_id = uuid_lib.UUID(current_user.family_id)
 
-        # Check Cache
-        redis = await get_ephemeral_redis()
-        cache_key = f"itinerary:current:{family_id}"
-        cached_data = await redis.get(cache_key)
+        # The cache follows Postgres (see app/services/plan_cache.py): refreshed on every change, never
+        # older than what it holds, and skipped when Redis is down
+        from app.services import plan_cache
 
-        if cached_data:
-            try:
-                return json.loads(cached_data)
-            except:
-                pass # Fallback to DB if cache corrupted
+        loaded = await plan_cache.read(family_id)
+        rev, body = loaded if loaded is not None else (0, plan_cache.NO_PLAN)
+        tag = plan_cache.etag(family_id, rev)
+        headers = {"ETag": tag, "Cache-Control": "private, no-cache"}
 
-        # Get current itinerary from database
-        itinerary_data = ItineraryService.get_current_itinerary(family_id)
+        # The browser already has this revision: no body
+        sent = [t.strip().removeprefix("W/") for t in (if_none_match or "").split(",")]
+        if tag in sent:
+            plan_cache._count("not_modified")
+            return Response(status_code=304, headers=headers)
 
-        if not itinerary_data:
+        if body == plan_cache.NO_PLAN:
             logger.info(f"No active itinerary found for {family_id}. Returning empty state.")
-
-            return {
+            return JSONResponse({
                 "status": "NO_ACTIVE_ITINERARY",
-                "trip_id": None, # We don't have trip_id in this context natively unless we look it up from the family, but the spec says "trip_id": "...", let's try to get it if we can, else null.
+                "trip_id": None,
                 "current_itinerary": None,
                 "message": "No itinerary has been generated yet."
-            }
+            }, headers=headers)
 
-        # Set Cache (expire in 60 seconds)
-        try:
-            await redis.setex(cache_key, 60, json.dumps(itinerary_data, default=str))
-        except Exception as e:
-            logger.error(f"Failed to cache itinerary: {e}")
-
-        return itinerary_data
+        return Response(content=body, media_type="application/json", headers=headers)
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid family ID: {str(e)}")

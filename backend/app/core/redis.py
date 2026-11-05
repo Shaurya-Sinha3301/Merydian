@@ -11,6 +11,8 @@ Two Redis roles, split by what happens when a key disappears.
 Each role has its own address (REDIS_QUEUE_URL, REDIS_EPHEMERAL_URL); either falls back to REDIS_URL, so
 one instance (set to never evict) still works for local runs and the single-container showcase.
 """
+import asyncio
+import time
 from typing import Dict, Optional
 
 import redis.asyncio as redis
@@ -53,6 +55,34 @@ async def get_queue_redis() -> Redis:
 
 async def get_ephemeral_redis() -> Redis:
     return RedisManager.client(ephemeral_url())
+
+
+# ---------------------------------------------------------------------------
+# The ephemeral instance is optional for every request. When a call to it fails, callers stop trying it
+# for a few seconds, so an outage costs one slow call per process every few seconds instead of a stall
+# on every request (a stopped instance behind a proxy can accept a connection and then never answer).
+# ---------------------------------------------------------------------------
+EPHEMERAL_TIMEOUT = 0.5  # seconds a request waits on the ephemeral instance before going without it
+EPHEMERAL_RETRY_AFTER = 5.0
+_ephemeral_down_until = 0.0
+
+
+def ephemeral_available() -> bool:
+    return time.monotonic() >= _ephemeral_down_until
+
+
+def ephemeral_failed() -> None:
+    global _ephemeral_down_until
+    _ephemeral_down_until = time.monotonic() + EPHEMERAL_RETRY_AFTER
+
+
+async def ephemeral_call(coro):
+    """Await a call on the ephemeral instance with a short time limit; a failure trips the breaker."""
+    try:
+        return await asyncio.wait_for(coro, EPHEMERAL_TIMEOUT)
+    except Exception:
+        ephemeral_failed()
+        raise
 
 
 # Older callers ask for "the" Redis: that is the queue instance

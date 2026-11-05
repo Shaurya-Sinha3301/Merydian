@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     JOB_WAIT_DEADLINE_SECONDS: int = 600
     # How long a trip-creation request waits (without blocking) for its plan before answering 202 Accepted
     TRIP_INIT_WAIT_SECONDS: float = 8
+    # How long a cached plan lives without being read or refreshed. Every change refreshes it at once, so this
+    # only bounds how long an unread plan takes up memory and how long a missed refresh could go unnoticed.
+    PLAN_CACHE_TTL_SECONDS: int = 900
     # Login protection: this many wrong passwords for one account within the window locks sign-in for the window.
     LOGIN_MAX_FAILURES: int = 5
     LOGIN_LOCK_SECONDS: int = 900

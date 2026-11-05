@@ -59,6 +59,9 @@ The full design is in [docs/TARGET_ARCHITECTURE.md](docs/TARGET_ARCHITECTURE.md)
   blocking and answers 202 if the plan takes longer.
 - **Redis split by what happens when a key disappears.** A queue instance that never evicts; an ephemeral one for
   cache and live notifications.
+- **A plan cache that follows Postgres.** Every change to a family's plan raises a revision and refreshes the cache
+  in the same transaction (through the outbox). Redis keeps a write only if it is newer, a missing entry is rebuilt
+  once, and an unchanged plan answers 304. If the cache is down, reads go to Postgres.
 - **Visible failures.** `/metrics`, `/ops` with grouped errors, and readiness that names what is wrong.
 
 ## Run it locally

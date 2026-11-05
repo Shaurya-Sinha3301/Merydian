@@ -360,6 +360,7 @@ Every milestone ends with a script under `backend/scripts/deploy/` that proves i
 | M10 | `scheduler_check.py` | Added a sweep the plan did not have: a running job whose lease expired, with attempts left, is sent again for a takeover. |
 | M11 | `observability_check.py` | Error tracking is built in (grouped by type and code location in `error_groups`) rather than an external service. |
 | M12 | `resilience_check.py`, `drills.py`, `.github/workflows/ci.yml`, `.github/dependabot.yml` | Session revocation: "sign out everywhere" now also refuses access tokens issued before it. |
+| M13 (added) | `plan_cache_check.py` | Not in the original plan. The plan read cache now follows Postgres: a plan revision (migration 0011) raised with every pointer change, a refresh written to the outbox in the same transaction by a session hook, newer-only writes in Redis, one rebuild per missing entry, ETag and 304, and a breaker that skips the ephemeral instance for a few seconds after a failure. |
 
 ### Defects found while building (each fixed, each now covered by a check)
 
@@ -371,6 +372,8 @@ Every milestone ends with a script under `backend/scripts/deploy/` that proves i
 - **The live Redis evicted keys under pressure**, which could have dropped queued jobs (M7).
 - **A database restart permanently failed the job that was running.** A lost connection is now treated as an outage: the job is handed back and retried, and the scheduler re-sends it if even that fails (M12).
 - **The smoke test only worked with one particular agent code** (found before M2).
+- **A new plan could stay hidden for up to a minute.** The old plan cache was never cleared when a version was saved, so readers got the previous plan until it expired (M13).
+- **A stopped cache Redis broke the plan page and slowed every request.** The plan read had no fallback and returned 500, and the rate limiter waited about two seconds on the dead instance for every request (M13).
 
 ### Not verified
 
