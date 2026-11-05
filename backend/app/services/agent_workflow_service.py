@@ -62,6 +62,8 @@ class AgentWorkflowService:
             trip_id=trip_id,
             created_by_user_id=uuid.UUID(agent_id) if agent_id else None,
             publish=True,
+            # One family's feedback on one trip is handled in the order it was sent
+            sequence_key=f"feedback:{trip_id}:{family_id}",
             input_payload={"family_id": family_id, "message": message}
         )
 

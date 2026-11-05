@@ -37,10 +37,12 @@ def check(label, cond, extra=""):
 
 
 def make_job(status, age_seconds=0, attempts=0):
+    """A job whose owner last reported in age_seconds ago (its lease ran from then)."""
     with Session(engine) as s:
+        then = datetime.utcnow() - timedelta(seconds=age_seconds)
         job = AgentJob(job_type=JobType.AGENT_FEEDBACK, status=status, attempt_count=attempts,
-                       updated_at=datetime.utcnow() - timedelta(seconds=age_seconds),
-                       created_at=datetime.utcnow() - timedelta(seconds=age_seconds))
+                       updated_at=then, created_at=then, fence=1 if status == JobStatus.RUNNING else 0,
+                       lease_expires_at=then + timedelta(seconds=settings.JOB_LEASE_SECONDS) if status == JobStatus.RUNNING else None)
         s.add(job)
         s.commit()
         return job.id
@@ -53,26 +55,26 @@ def status_of(job_id):
 # --- 1. jobs: one owner, and a dead worker's job is recovered or ended -------------------------
 print("\n== Jobs")
 j = make_job(JobStatus.QUEUED)
-check("a queued job can be claimed once", AgentJobService.claim_job(j) is True)
-check("a second claim of the same job is refused", AgentJobService.claim_job(j) is False)
+check("a queued job can be claimed once", AgentJobService.claim_job(j) is not None)
+check("a second claim of the same job is refused", AgentJobService.claim_job(j) is None)
 
 j = make_job(JobStatus.QUEUED)
 wins = []
 threads = [threading.Thread(target=lambda: wins.append(AgentJobService.claim_job(j))) for _ in range(12)]
 [t.start() for t in threads]
 [t.join() for t in threads]
-check("12 workers race for one job: exactly one wins", wins.count(True) == 1, f"{wins.count(True)} winner(s)")
+check("12 workers race for one job: exactly one wins", sum(w is not None for w in wins) == 1, f"{sum(w is not None for w in wins)} winner(s)")
 
 lease = settings.JOB_LEASE_SECONDS
 j = make_job(JobStatus.RUNNING, age_seconds=lease + 30, attempts=1)
-check("a job whose worker died (lease expired) is taken over", AgentJobService.claim_job(j) is True)
+check("a job whose worker died (lease expired) is taken over", AgentJobService.claim_job(j) is not None)
 check("the takeover counts as a new attempt", AgentJobService.get_job(j).attempt_count == 2)
 
 j = make_job(JobStatus.RUNNING, age_seconds=5, attempts=1)
-check("a healthy running job is NOT taken over", AgentJobService.claim_job(j) is False)
+check("a healthy running job is NOT taken over", AgentJobService.claim_job(j) is None)
 
 j = make_job(JobStatus.RUNNING, age_seconds=lease + 30, attempts=3)
-check("a job that used all attempts is not run again", AgentJobService.claim_job(j) is False)
+check("a job that used all attempts is not run again", AgentJobService.claim_job(j) is None)
 
 j = make_job(JobStatus.RUNNING, age_seconds=lease * 2 + 30, attempts=3)
 failed = AgentJobService.expire_if_stale(j)

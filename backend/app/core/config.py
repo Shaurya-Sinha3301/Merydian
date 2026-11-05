@@ -12,9 +12,12 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    # Background jobs: a RUNNING job with no update for this long is presumed abandoned by a dead worker.
-    # Must stay above Celery's hard task limit (150 s) so a healthy job is never taken over.
-    JOB_LEASE_SECONDS: int = 180
+    # Background jobs. An owner renews its lease every JOB_HEARTBEAT_SECONDS; a lease not renewed for
+    # JOB_LEASE_SECONDS lets another worker take the job over (with a higher fence, so the old owner can no
+    # longer write). A job waiting for its trip or for an earlier job gives up after JOB_WAIT_DEADLINE_SECONDS.
+    JOB_LEASE_SECONDS: int = 90
+    JOB_HEARTBEAT_SECONDS: int = 30
+    JOB_WAIT_DEADLINE_SECONDS: int = 600
     # Login protection: this many wrong passwords for one account within the window locks sign-in for the window.
     LOGIN_MAX_FAILURES: int = 5
     LOGIN_LOCK_SECONDS: int = 900
