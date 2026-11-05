@@ -54,7 +54,11 @@ jobs:
       - name: Compile every module
         run: python -m compileall -q app scripts migrations ../agents ../ml_or
       - name: Known vulnerabilities in pinned dependencies
-        run: pip-audit -r requirements/api.txt -r requirements/worker.txt
+        # One reviewed exception. CVE-2026-114605 is in dnspython's DNS wire-format parser
+        # (dns.name.from_wire_parser). dnspython is here only because email-validator requires it; the app never
+        # makes DNS lookups (no deliverability checks), so it never parses a DNS message. The fix (2.9.0) is
+        # not on PyPI yet; remove this ignore when Dependabot brings it in.
+        run: pip-audit -r requirements/api.txt -r requirements/worker.txt --ignore-vuln CVE-2026-114605
       - name: Migrations (one head, fresh build, undo and redo, adoption, refusal)
         run: python scripts/deploy/check_migrations.py
       - name: Database-level drills

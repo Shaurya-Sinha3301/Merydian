@@ -1,7 +1,6 @@
 from typing import Annotated, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
 from pydantic import ValidationError
 
 from app.core.config import settings

@@ -8,7 +8,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from uuid import UUID, uuid4
 
-from jose import jwt, JWTError
+import jwt
+from jwt import PyJWTError as JWTError
 from sqlmodel import Session, select
 
 from app.core.config import settings
@@ -48,7 +49,7 @@ class TokenManager:
         # Access token (short-lived)
         access_exp = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token_data = {
-            "sub": user_id,
+            "sub": str(user_id),
             "role": role,
             "family_id": family_id,
             "jti": access_jti,
@@ -65,7 +66,7 @@ class TokenManager:
         # Refresh token (long-lived)
         refresh_exp = now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         refresh_token_data = {
-            "sub": user_id,
+            "sub": str(user_id),
             "jti": refresh_jti,
             "type": "refresh",
             "exp": refresh_exp,

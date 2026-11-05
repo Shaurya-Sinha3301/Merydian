@@ -378,5 +378,5 @@ Every milestone ends with a script under `backend/scripts/deploy/` that proves i
 ### Not verified
 
 - The GitHub Actions workflow has been checked for syntax only; it has not run on GitHub yet.
-- `pip-audit` may report known issues in the pinned dependencies on its first run.
+- `pip-audit` failed on its first run on GitHub: python-jose 3.5.0 and its `ecdsa` dependency had advisories with no fixed version. python-jose was replaced with PyJWT (same HS256 tokens, so existing sign-ins stay valid). One advisory is ignored with a recorded reason: CVE-2026-114605 in dnspython's DNS message parser, which the app never reaches, and whose fix is not on PyPI yet.
 - None of M2 to M12 has run on the live Render and Neon services.
