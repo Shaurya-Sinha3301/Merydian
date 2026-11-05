@@ -273,6 +273,9 @@ def execute_agent_job_task(self, job_id_str: str):
         logger.warning(f"Job {job_id}: taken over by another worker while running; stopped and discarded")
         return None
     except Exception as e:
+        from app.core import errors
+
+        errors.record(e, job.correlation_id, f"job {job.job_type.value if hasattr(job.job_type, 'value') else job.job_type}")
         if fence is not None:
             AgentJobService.fail_job(job_id, error_message=str(e), error_type=type(e).__name__, fence=fence)
         raise

@@ -76,6 +76,8 @@ class Settings(BaseSettings):
     DEMO_ENABLED: bool = True
     # Number of proxies in front of the app that append to X-Forwarded-For (0 = no proxy, use the socket address)
     TRUSTED_PROXY_HOPS: int = 0
+    # Bearer token for /metrics, /ops and /ops/errors. Without one they are open in showcase mode and hidden in production.
+    METRICS_TOKEN: str = ""
     # Required (header X-Admin-Key) to reset demo data; reset is disabled when empty.
     DEMO_ADMIN_KEY: str = ""
     # Password for the seeded demo accounts; random per seed run when empty,

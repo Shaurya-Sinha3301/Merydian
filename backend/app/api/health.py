@@ -26,15 +26,30 @@ async def health_ready(response: Response, session: Session = Depends(get_sessio
         "llm_provider": "unknown",
         "travel_data_provider": "unknown"
     }
-    
+
     is_ready = True
-    
+
     # 1. Check Database
     try:
         session.exec(text("SELECT 1"))
         health_status["database"] = "connected"
     except Exception as e:
         health_status["database"] = f"error: {str(e)}"
+        is_ready = False
+
+    # 1b. Schema version: the code must not serve traffic against a schema it does not expect
+    try:
+        from sqlalchemy import text as _text
+        from scripts import migration_tools as _mt
+
+        have = session.exec(_text("SELECT version_num FROM alembic_version")).first()
+        have = have[0] if have else None
+        want = _mt.head_revisions()
+        health_status["schema"] = "current" if [have] == want else f"at {have}, code expects {', '.join(want)}"
+        if [have] != want:
+            is_ready = False
+    except Exception as e:
+        health_status["schema"] = f"error: {str(e)[:80]}"
         is_ready = False
 
     # 2. Check Redis
@@ -58,7 +73,7 @@ async def health_ready(response: Response, session: Session = Depends(get_sessio
             health_status["redis_ephemeral"] = "connected" if await (await get_ephemeral_redis()).ping() else "disconnected"
     except Exception as e:
         health_status["redis_ephemeral"] = f"degraded: {str(e)[:80]}"
-        
+
     # 3. Workers: every worker writes a heartbeat (app/workers/worker_heartbeat.py). Ready means at least one
     # worker is alive and one serves the optimizer queue, so plans will actually be built.
     try:
@@ -112,5 +127,5 @@ async def health_ready(response: Response, session: Session = Depends(get_sessio
     if not is_ready:
         health_status["status"] = "not_ready"
         response.status_code = 503
-        
+
     return health_status
