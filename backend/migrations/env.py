@@ -24,22 +24,21 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Overwrite sqlalchemy.url with env var
-db_url = os.getenv("SQLALCHEMY_DATABASE_URI")
-if db_url:
-    db_url = db_url.strip().strip("\"'")
-    # Name the driver (a bare "postgresql://" can default to psycopg 3 on newer SQLAlchemy)
-    if db_url.startswith("postgres://"):
-        db_url = "postgresql://" + db_url[len("postgres://"):]
-    if db_url.startswith("postgresql://"):
-        db_url = "postgresql+psycopg2://" + db_url[len("postgresql://"):]
-if db_url:
-    config.set_main_option("sqlalchemy.url", db_url)
+# Migrations connect directly to the database, not through a pooler (see app/core/db_url.py)
+from app.core.db_url import migration_uri
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-from app.models import User, Family, TripSession, Preference, Event, ItineraryOptionDB, BookingJob, HotelBooking, POIRequest, FamilyResponseMessage, DecisionLog
-# Import all other models here to ensure they are registered
+_primary = os.getenv("SQLALCHEMY_DATABASE_URI")
+if _primary:
+    config.set_main_option("sqlalchemy.url", migration_uri(_primary, os.getenv("MIGRATION_DATABASE_URI")).replace("%", "%%"))
+
+# Register every model so autogenerate and the drift check see the whole schema
+import importlib
+import pkgutil
+
+import app.models as _models_pkg
+
+for _mod in pkgutil.iter_modules(_models_pkg.__path__):
+    importlib.import_module(f"app.models.{_mod.name}")
 
 target_metadata = SQLModel.metadata
 
@@ -88,7 +87,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, target_metadata=target_metadata, compare_type=True
         )
 
         with context.begin_transaction():

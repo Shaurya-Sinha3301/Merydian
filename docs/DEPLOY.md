@@ -15,7 +15,10 @@ Dependencies are pinned in `backend/requirements/*.txt`. The first build with un
 
 1. Create a project and a database. Copy the **pooled** connection string.
 2. Make sure it ends with `?sslmode=require`. This is your `SQLALCHEMY_DATABASE_URI`.
-3. You do not create tables by hand. The container creates and updates them on every start (`scripts/db_bootstrap.py`).
+3. You do not create tables by hand. On every start the container runs the migrations (`scripts/db_bootstrap.py`) over a **direct** connection, behind a database lock so two containers starting together cannot migrate at once.
+   - The pooled string you set as `SQLALCHEMY_DATABASE_URI` is used by the app. For migrations the direct address is derived from it automatically (the same host without `-pooler`). To set it yourself, add `MIGRATION_DATABASE_URI`.
+   - A database created by the older "create any missing tables" start-up is adopted, not rebuilt, if it matches the models. If it does not match, the start stops and lists the differences instead of guessing.
+   - Schema changes are now migrations only. `python backend/scripts/deploy/check_migrations.py` proves an empty database, an undo-and-redo, and an old database all end up matching the models.
 
 ## 2. Render (backend)
 

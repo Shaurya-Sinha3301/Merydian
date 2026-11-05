@@ -9,7 +9,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel, Column
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Index
 from sqlalchemy.dialects.postgresql import JSONB
 
 
@@ -24,7 +24,7 @@ class Itinerary(SQLModel, table=True):
     """
     __tablename__ = "itineraries"
     # One family can never hold two itineraries with the same version number
-    __table_args__ = (UniqueConstraint("family_id", "version", name="uq_itineraries_family_version"),)
+    __table_args__ = (Index("uq_itineraries_family_version", "family_id", "version", unique=True),)
     
     # Primary Key
     id: UUID = Field(default_factory=uuid4, primary_key=True)

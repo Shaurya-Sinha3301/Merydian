@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # Refresh tokens valid for 7 days
 
     # DATABASE
+    # Direct (non-pooled) address used only by migrations. Left empty, it is derived from a pooled address
+    # or falls back to SQLALCHEMY_DATABASE_URI.
+    MIGRATION_DATABASE_URI: str = ""
     SQLALCHEMY_DATABASE_URI: str
     DB_ECHO: bool = False
 
@@ -104,17 +107,12 @@ class Settings(BaseSettings):
     @field_validator("SQLALCHEMY_DATABASE_URI")
     @classmethod
     def _normalize_db_uri(cls, v: str) -> str:
-        # A value pasted from a provider's snippet often keeps its surrounding quotes.
-        v = v.strip().strip("\"'")
-        # Hosted Postgres providers often hand out the legacy "postgres://" scheme,
-        # which SQLAlchemy 1.4+ rejects.
-        if v.startswith("postgres://"):
-            v = "postgresql://" + v[len("postgres://"):]
-        # Name the driver. Newer SQLAlchemy releases default a bare "postgresql://" to psycopg 3,
-        # which this project does not install; psycopg2 is the one in requirements.
-        if v.startswith("postgresql://"):
-            v = "postgresql+psycopg2://" + v[len("postgresql://"):]
-        return v
+        # Quotes pasted from a provider's snippet, the legacy "postgres://" scheme, and the explicit
+        # psycopg2 driver (a bare "postgresql://" defaults to psycopg 3 on newer SQLAlchemy) are all
+        # handled in one place.
+        from app.core.db_url import normalize
+
+        return normalize(v)
 
     class Config:
         case_sensitive = True
