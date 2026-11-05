@@ -62,6 +62,13 @@ except Exception:
     echo "✅  Redis is ready."
 }
 
+# ── Wait until the database is at the schema this code expects ───────────────
+# Services that do not migrate must not start against an older schema.
+wait_for_schema() {
+    echo "⏳  Waiting for the database schema …"
+    python scripts/wait_for_schema.py "${SCHEMA_WAIT_SECONDS:-300}" || exit 1
+}
+
 case "$MODE" in
 
     # ── Run Alembic migrations then exit (used as init-container) ────────────
@@ -75,6 +82,7 @@ case "$MODE" in
     # ── Start FastAPI application ─────────────────────────────────────────────
     api)
         wait_for_postgres
+        wait_for_schema
         wait_for_redis
         echo "🚀  Starting FastAPI (uvicorn) …"
         exec uvicorn app.main:app \
@@ -87,6 +95,7 @@ case "$MODE" in
     # ── Start Celery worker (handles: booking jobs, agent tasks, events) ──────
     worker)
         wait_for_postgres
+        wait_for_schema
         wait_for_redis
         echo "⚙️   Starting Celery worker …"
         exec celery -A app.core.celery_app:celery_app worker \

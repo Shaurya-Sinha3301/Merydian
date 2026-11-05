@@ -1,6 +1,7 @@
 import uuid
 import logging
 
+from app.core import locks
 from celery.exceptions import Retry
 
 from app.workers.celery_app import celery_app
@@ -99,6 +100,18 @@ def execute_agent_job_task(self, job_id_str: str):
         logger.warning(f"Job {job_id} already in terminal state {job.status}. Skipping.")
         return
         
+    # One plan at a time per trip: a second job for the same trip waits and tries again shortly,
+    # so two replans never start from the same old plan and overwrite each other.
+    # The hold expires on its own (just above Celery's hard limit), so a crash cannot block a trip.
+    lock_name = f"trip:{job.trip_id}" if job.trip_id else None
+    lock_token = None
+    if lock_name:
+        lock_token = locks.acquire(lock_name, 170)
+        if lock_token is None:
+            logger.info(f"Trip {job.trip_id} is being replanned by another job; job {job_id} will retry shortly.")
+            clear_log_context()
+            raise self.retry(countdown=8, max_retries=30)
+
     try:
         if not AgentJobService.claim_job(job_id):
             logger.warning(f"Failed to claim job {job_id}. Another worker may be processing it.")
@@ -259,4 +272,6 @@ def execute_agent_job_task(self, job_id_str: str):
             AgentJobService.fail_job(job_id, error_message=str(e), error_type=type(e).__name__)
         raise
     finally:
+        if lock_token:
+            locks.release(lock_name, lock_token)
         clear_log_context()

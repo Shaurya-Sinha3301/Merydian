@@ -79,27 +79,80 @@ class AgentJobService:
 
     @staticmethod
     def claim_job(job_id: uuid.UUID) -> bool:
+        """Take ownership of a job. Exactly one worker can win, even if several are handed the same job.
+
+        A job is claimable when it is QUEUED, or when it is RUNNING but its lease has run out
+        (no update for JOB_LEASE_SECONDS), which means the worker that held it died. A taken-over
+        job counts as another attempt, and one that has used up its attempts is failed instead.
+        """
+        from datetime import timedelta
         from sqlmodel import update
+        from sqlalchemy import and_, or_
+        from app.core.config import settings
+
         with Session(engine) as session:
-            # Atomic update
+            now = datetime.utcnow()
+            lease_cutoff = now - timedelta(seconds=settings.JOB_LEASE_SECONDS)
             stmt = update(AgentJob).where(
                 AgentJob.id == job_id,
-                AgentJob.status == JobStatus.QUEUED
-            ).values(status=JobStatus.RUNNING, started_at=datetime.utcnow(), updated_at=datetime.utcnow())
+                or_(
+                    AgentJob.status == JobStatus.QUEUED,
+                    and_(
+                        AgentJob.status == JobStatus.RUNNING,
+                        AgentJob.updated_at < lease_cutoff,
+                        AgentJob.attempt_count < AgentJob.max_attempts,
+                    ),
+                ),
+            ).values(status=JobStatus.RUNNING, started_at=now, updated_at=now)
             result = session.exec(stmt)
-            
+
             if result.rowcount > 0:
                 job = session.get(AgentJob, job_id)
                 job.attempt_count += 1
                 AgentJobService._create_event(
-                    session, job.id, "JOB_STARTED", previous_status=JobStatus.QUEUED.value, 
+                    session, job.id, "JOB_STARTED", previous_status=JobStatus.QUEUED.value,
                     new_status=JobStatus.RUNNING.value, payload={"attempt": job.attempt_count}
                 )
                 session.commit()
                 return True
-                
+
             session.commit()
             return False
+
+    @staticmethod
+    def expire_if_stale(job_id: uuid.UUID) -> Optional[AgentJob]:
+        """Fail a job that is clearly never going to finish, so nobody waits on it forever.
+
+        RUNNING with no update for twice the lease: the worker died and no replacement took over.
+        QUEUED or CREATED for ten minutes: the message was lost before any worker saw it.
+        Returns the failed job, or None if the job is fine.
+        """
+        from datetime import timedelta
+        from sqlmodel import update
+        from app.core.config import settings
+
+        with Session(engine) as session:
+            job = session.get(AgentJob, job_id)
+            if not job:
+                return None
+            age = (datetime.utcnow() - job.updated_at).total_seconds()
+            if job.status == JobStatus.RUNNING and age > settings.JOB_LEASE_SECONDS * 2:
+                reason = "The worker handling this request stopped unexpectedly."
+            elif job.status in (JobStatus.QUEUED, JobStatus.CREATED) and age > 600:
+                reason = "This request was never picked up by a worker."
+            else:
+                return None
+            prev = job.status
+            stmt = update(AgentJob).where(AgentJob.id == job_id, AgentJob.status == prev, AgentJob.updated_at == job.updated_at).values(
+                status=JobStatus.FAILED, error_message=reason, error_type="JobAbandoned",
+                completed_at=datetime.utcnow(), updated_at=datetime.utcnow())
+            if session.exec(stmt).rowcount == 0:
+                return None  # someone else moved it on in the meantime
+            AgentJobService._create_event(session, job_id, "JOB_FAILED", previous_status=prev.value,
+                                          new_status=JobStatus.FAILED.value, payload={"error_message": reason})
+            session.commit()
+            logger.error(f"AgentJob {job_id} expired as stale ({prev.value}, {int(age)} s): {reason}")
+        return AgentJobService.get_job(job_id)
 
     @staticmethod
     def complete_job(job_id: uuid.UUID, result_payload: Optional[Dict[str, Any]] = None) -> AgentJob:

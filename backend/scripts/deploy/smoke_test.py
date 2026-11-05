@@ -93,7 +93,7 @@ for _ in range(60):
     time.sleep(0.1)
 check("customer receives the live notification", bool(got), f"{round((got[0] - a0) * 1000)} ms" if got else "")
 check("customer reads the timeline", requests.get(f"{API}/itinerary/{t['trip_id']}/timeline", headers=CH).status_code == 200)
-check("another agency cannot read it", requests.get(f"{API}/trips/{t['trip_id']}/history", headers={"Authorization": f"Bearer {requests.post(f'{API}/auth/signup', json={'email': f'sb_{s}@agency.com', 'password': 'password123', 'full_name': 'Other', 'agent_code': 'smoke-agency-code', 'agency_name': f'Other {s}'}).json()['access_token']}"}).status_code == 404)
+check("another agency cannot read it", requests.get(f"{API}/trips/{t['trip_id']}/history", headers={"Authorization": f"Bearer {requests.post(f'{API}/auth/signup', json={'email': f'sb_{s}@agency.com', 'password': 'password123', 'full_name': 'Other', 'agent_code': CODE, 'agency_name': f'Other {s}'}).json()['access_token']}"}).status_code == 404)
 
 # --- feedback through Celery, the language model and the optimizer
 r = requests.post(f"{API}/itinerary/feedback/agent", headers=CH, json={"message": "We have a small child and get tired quickly. Please keep the days shorter."})

@@ -12,9 +12,18 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # Background jobs: a RUNNING job with no update for this long is presumed abandoned by a dead worker.
+    # Must stay above Celery's hard task limit (150 s) so a healthy job is never taken over.
+    JOB_LEASE_SECONDS: int = 180
+    # Login protection: this many wrong passwords for one account within the window locks sign-in for the window.
+    LOGIN_MAX_FAILURES: int = 5
+    LOGIN_LOCK_SECONDS: int = 900
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # Refresh tokens valid for 7 days
 
     # DATABASE
+    # Direct (non-pooled) address used only by migrations. Left empty, it is derived from a pooled address
+    # or falls back to SQLALCHEMY_DATABASE_URI.
+    MIGRATION_DATABASE_URI: str = ""
     SQLALCHEMY_DATABASE_URI: str
     DB_ECHO: bool = False
 
@@ -98,17 +107,12 @@ class Settings(BaseSettings):
     @field_validator("SQLALCHEMY_DATABASE_URI")
     @classmethod
     def _normalize_db_uri(cls, v: str) -> str:
-        # A value pasted from a provider's snippet often keeps its surrounding quotes.
-        v = v.strip().strip("\"'")
-        # Hosted Postgres providers often hand out the legacy "postgres://" scheme,
-        # which SQLAlchemy 1.4+ rejects.
-        if v.startswith("postgres://"):
-            v = "postgresql://" + v[len("postgres://"):]
-        # Name the driver. Newer SQLAlchemy releases default a bare "postgresql://" to psycopg 3,
-        # which this project does not install; psycopg2 is the one in requirements.
-        if v.startswith("postgresql://"):
-            v = "postgresql+psycopg2://" + v[len("postgresql://"):]
-        return v
+        # Quotes pasted from a provider's snippet, the legacy "postgres://" scheme, and the explicit
+        # psycopg2 driver (a bare "postgresql://" defaults to psycopg 3 on newer SQLAlchemy) are all
+        # handled in one place.
+        from app.core.db_url import normalize
+
+        return normalize(v)
 
     class Config:
         case_sensitive = True

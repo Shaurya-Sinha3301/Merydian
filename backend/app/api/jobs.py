@@ -25,6 +25,8 @@ async def get_job_status(
             agent_job = AgentJobService.get_job(job_uuid)
             if not agent_job:
                 raise HTTPException(status_code=404, detail="Job not found")
+            # A job whose worker died is ended here, so the person waiting is told instead of left spinning
+            agent_job = AgentJobService.expire_if_stale(job_uuid) or agent_job
 
             status_str = agent_job.status.value if hasattr(agent_job.status, "value") else str(agent_job.status)
             stage_map = {
