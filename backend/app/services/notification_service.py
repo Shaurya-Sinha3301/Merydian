@@ -1,8 +1,11 @@
 """
 Notifications and webhooks.
 
-`notify_*` writes one Notification row per recipient (the live stream and the bell read these) and,
-for notices addressed to agents, also hands the event to every matching webhook endpoint.
+`notify_*` records an announcement in the transactional outbox and returns; delivery happens straight away
+(fast path) or, if that fails, from the dispatcher, with retries. Delivery writes one Notification row per
+recipient (the live stream and the bell read these), sends any email or SMS, and for notices addressed to
+agents hands the event to every matching webhook endpoint. Each announcement carries a stable event id, so
+a repeated delivery is recognised: no duplicate notification, email or webhook.
 """
 
 import hashlib
@@ -78,26 +81,80 @@ def notify_users(
     link: Optional[str] = None,
     data: Optional[Dict[str, Any]] = None,
 ) -> int:
-    ids = list(dict.fromkeys(user_ids))
+    ids = [str(u) for u in dict.fromkeys(user_ids)]
     if not ids:
         return 0
-    try:
-        with Session(engine) as session:
-            rows = [Notification(user_id=uid, type=type, title=title[:200], body=body[:1000], link=link, data=data or {}) for uid in ids]
-            for r in rows:
-                session.add(r)
-            session.commit()
-            for r in rows:
-                session.refresh(r)
-            made = [(r.user_id, r.id) for r in rows]
-        _push(made)
-        from app.services import message_service
+    return _enqueue("notify_users", {"user_ids": ids, **_content(type, title, body, link, data)})
 
-        message_service.fan_out(ids, type, title, body, link)
-        return len(ids)
+
+def notify_agents(type: str, title: str, body: str = "", link: Optional[str] = None, data: Optional[Dict[str, Any]] = None) -> int:
+    """Tell every agent responsible for the trip, then send the event to their webhook endpoints."""
+    return _enqueue("notify_agents", _content(type, title, body, link, data))
+
+
+def notify_trip_travellers(trip_id: str, type: str, title: str, body: str = "", link: Optional[str] = None, data: Optional[Dict[str, Any]] = None) -> int:
+    return _enqueue("notify_trip_travellers", {"trip_id": trip_id, **_content(type, title, body, link, data)})
+
+
+def announcement(kind: str, **payload: Any) -> Dict[str, Any]:
+    """The outbox payload for an announcement, for callers that write it inside their own transaction."""
+    content = _content(payload.pop("type"), payload.pop("title"), payload.pop("body", ""), payload.pop("link", None), payload.pop("data", None))
+    return {**payload, **content}
+
+
+def _content(type: str, title: str, body: str, link: Optional[str], data: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    return {"type": type, "title": title[:200], "body": (body or "")[:1000], "link": link, "data": json.loads(json.dumps(data or {}, default=str))}
+
+
+def _enqueue(kind: str, payload: Dict[str, Any]) -> int:
+    from app.services import outbox_service
+
+    try:
+        outbox_service.enqueue(kind, payload)
+        return 1
     except Exception as e:  # a notice must never break the action that caused it
-        logger.error(f"Could not store notification {type}: {e}", exc_info=True)
+        logger.error(f"Could not record announcement {payload.get('type')}: {e}", exc_info=True)
         return 0
+
+
+def deliver_announcement(kind: str, p: Dict[str, Any], event_id: str) -> None:
+    """Run by the outbox. Raises on failure so the outbox retries; safe to run twice for one event."""
+    if kind == "notify_users":
+        ids = [UUID(u) for u in p.get("user_ids", [])]
+    elif kind == "notify_trip_travellers":
+        ids = users_for_trip(p["trip_id"])
+    elif kind == "notify_agents":
+        from app.services.agency_service import agents_for_trip
+
+        ids = agents_for_trip((p.get("data") or {}).get("trip_id"))
+    else:
+        raise ValueError(f"Not an announcement: {kind}")
+    _store_and_push(ids, p["type"], p["title"], p.get("body", ""), p.get("link"), p.get("data") or {}, event_id)
+    if kind == "notify_agents":
+        dispatch_event(p["type"], p["title"], p.get("body", ""), p.get("link"), p.get("data") or {}, event_id=event_id, sync=True)
+
+
+def _store_and_push(ids: List[UUID], type: str, title: str, body: str, link: Optional[str], data: Dict[str, Any], event_id: str) -> None:
+    ids = list(dict.fromkeys(ids))
+    if not ids:
+        return
+    from sqlalchemy.dialects.postgresql import insert
+
+    with Session(engine) as session:
+        made = session.execute(
+            insert(Notification).values([
+                {"user_id": uid, "type": type, "title": title, "body": body, "link": link, "data": data,
+                 "event_id": event_id, "created_at": datetime.utcnow()} for uid in ids
+            ]).on_conflict_do_nothing(constraint="uq_notifications_user_event").returning(Notification.user_id, Notification.id)
+        ).all()
+        session.commit()
+    made = [(row[0], row[1]) for row in made]
+    if not made:
+        return  # every recipient already had this announcement: a repeat delivery
+    _push(made)
+    from app.services import message_service
+
+    message_service.fan_out([uid for uid, _ in made], type, title, body, link)
 
 
 def _push(made: List[Any]) -> None:
@@ -110,29 +167,6 @@ def _push(made: List[Any]) -> None:
             r.publish(f"notif:{uid}", str(nid))
     except Exception as e:
         logger.warning(f"Live push skipped: {e}")
-
-
-def notify_agents(type: str, title: str, body: str = "", link: Optional[str] = None, data: Optional[Dict[str, Any]] = None) -> int:
-    """Tell every agent, then send the event to their webhook endpoints."""
-    try:
-        from app.services.agency_service import agents_for_trip
-
-        ids = agents_for_trip((data or {}).get("trip_id"))
-    except Exception as e:
-        logger.error(f"Could not list agents: {e}")
-        return 0
-    n = notify_users(ids, type, title, body, link, data)
-    dispatch_event(type, title, body, link, data or {})
-    return n
-
-
-def notify_trip_travellers(trip_id: str, type: str, title: str, body: str = "", link: Optional[str] = None, data: Optional[Dict[str, Any]] = None) -> int:
-    try:
-        ids = users_for_trip(trip_id)
-    except Exception as e:
-        logger.error(f"Could not find travellers for {trip_id}: {e}")
-        return 0
-    return notify_users(ids, type, title, body, link, data)
 
 
 # ---------------------------------------------------------------------------
@@ -176,8 +210,13 @@ def _body_for(format: str, event_type: str, title: str, body: str, link: Optiona
     }
 
 
-def deliver(endpoint_id: UUID, event_type: str, title: str, body: str, link: Optional[str], data: Dict[str, Any]) -> WebhookDelivery:
-    """Send one event, retrying twice on failure, and record every attempt as one delivery row."""
+def deliver(endpoint_id: UUID, event_type: str, title: str, body: str, link: Optional[str], data: Dict[str, Any],
+            event_id: Optional[str] = None) -> WebhookDelivery:
+    """Send one event, retrying twice on failure, and record every attempt as one delivery row.
+
+    The address is checked again here, at the moment of sending, and redirects are never followed, so an
+    endpoint cannot be pointed at an internal address after it was registered.
+    """
     with Session(engine) as session:
         ep = session.get(WebhookEndpoint, endpoint_id)
         if not ep:
@@ -201,6 +240,7 @@ def deliver(endpoint_id: UUID, event_type: str, title: str, body: str, link: Opt
                         "Content-Type": "application/json",
                         "User-Agent": "Merydian-Webhooks/1",
                         "X-Merydian-Event": event_type,
+                        "X-Merydian-Event-Id": event_id or "",
                         "X-Merydian-Timestamp": ts,
                         "X-Merydian-Signature": sign(secret, ts, raw),
                     },
@@ -218,7 +258,8 @@ def deliver(endpoint_id: UUID, event_type: str, title: str, body: str, link: Opt
             time.sleep(1.5 * attempt)
 
     with Session(engine) as session:
-        row = WebhookDelivery(endpoint_id=endpoint_id, event_type=event_type, payload=payload, ok=ok, status_code=code, error=error, attempts=max(1, attempts), duration_ms=ms)
+        row = WebhookDelivery(endpoint_id=endpoint_id, event_type=event_type, payload=payload, ok=ok, status_code=code, error=error,
+                              attempts=max(1, attempts), duration_ms=ms, event_id=event_id)
         session.add(row)
         ep = session.get(WebhookEndpoint, endpoint_id)
         if ep:
@@ -230,8 +271,13 @@ def deliver(endpoint_id: UUID, event_type: str, title: str, body: str, link: Opt
         return row
 
 
-def dispatch_event(event_type: str, title: str, body: str, link: Optional[str], data: Dict[str, Any]) -> None:
-    """Hand the event to every active endpoint that subscribes to it. Runs in the background."""
+def dispatch_event(event_type: str, title: str, body: str, link: Optional[str], data: Dict[str, Any],
+                   event_id: Optional[str] = None, sync: bool = False) -> None:
+    """Hand the event to every active endpoint that subscribes to it.
+
+    From the outbox (sync=True) each endpoint is called in turn, and one that already received this
+    event_id is skipped, so a repeated delivery never calls an endpoint twice.
+    """
     try:
         from app.services.agency_service import agency_of, trip_agency
 
@@ -242,11 +288,20 @@ def dispatch_event(event_type: str, title: str, body: str, link: Optional[str], 
                 e.id for e in endpoints
                 if (not e.events or event_type in e.events) and agency_of(session, e.owner_id) == event_agency
             ]
+            if event_id and targets:
+                done = set(session.exec(select(WebhookDelivery.endpoint_id).where(
+                    WebhookDelivery.event_id == event_id, WebhookDelivery.endpoint_id.in_(targets))).all())  # type: ignore[attr-defined]
+                targets = [t for t in targets if t not in done]
     except Exception as e:
         logger.error(f"Could not list webhook endpoints: {e}")
+        if sync:
+            raise
         return
     for endpoint_id in targets:
-        threading.Thread(target=_safe_deliver, args=(endpoint_id, event_type, title, body, link, data), daemon=True).start()
+        if sync:
+            _safe_deliver(endpoint_id, event_type, title, body, link, data, event_id)
+        else:
+            threading.Thread(target=_safe_deliver, args=(endpoint_id, event_type, title, body, link, data, event_id), daemon=True).start()
 
 
 def _safe_deliver(*args: Any) -> None:

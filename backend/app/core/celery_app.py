@@ -40,3 +40,18 @@ celery_app.conf.task_acks_late = True
 # so a job lost to a crash would sit idle. Keep it above task_time_limit so live tasks are not repeated.
 celery_app.conf.broker_transport_options = {"visibility_timeout": 200}
 celery_app.conf.task_reject_on_worker_lost = True
+
+
+# The outbox dispatcher runs inside the worker: it publishes jobs and delivers announcements that were
+# recorded in the database but not delivered straight away (see app/services/outbox_service.py).
+from celery.signals import worker_ready  # noqa: E402
+
+
+@worker_ready.connect
+def _start_outbox_dispatcher(**_kwargs):
+    import os
+
+    if os.getenv("OUTBOX_DISPATCHER", "true").lower() != "false":
+        from app.services import outbox_service
+
+        outbox_service.start_dispatcher(float(os.getenv("OUTBOX_POLL_SECONDS", "1")))

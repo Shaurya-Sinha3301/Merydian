@@ -284,14 +284,13 @@ async def submit_feedback(
         db_event = EventService.create_event(
             event_data=event_create,
             user_id=user_id,
-            family_id=family_id
+            family_id=family_id,
+            process=True,
         )
 
         logger.info(f"Created feedback event: {db_event.id} for POI {feedback.node_id}")
 
         # Trigger agentic processing async
-        from app.worker import process_event_task
-        process_event_task.delay(str(db_event.id))
 
         # Determine feedback sentiment for response message
         if feedback.rating <= 2:

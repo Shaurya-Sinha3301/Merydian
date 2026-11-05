@@ -6,9 +6,9 @@ from app.models.agent_job import JobType
 from app.services.agent_job_service import AgentJobService
 
 from app.agent_runtime import (
-    AgentRuntime, 
-    ToolsAgentRequest, 
-    CommunicationAgentRequest, 
+    AgentRuntime,
+    ToolsAgentRequest,
+    CommunicationAgentRequest,
     FeedbackOptimizationRequest
 )
 
@@ -26,11 +26,10 @@ class AgentWorkflowService:
             job_type=JobType.AGENT_TOOLS,
             trip_id=trip_id,
             itinerary_id=option_id,
+            publish=True,
             input_payload={"event_id": event_id, "details": details}
         )
-        
-        from app.task_queue.dispatcher import TaskDispatcher
-        TaskDispatcher.enqueue_agent_job(job.id)
+
         return job.id
 
     def enqueue_communication_agent(self, option_id: str, event_id: str, trip_id: str, agent_id: Optional[str] = None) -> uuid.UUID:
@@ -42,13 +41,12 @@ class AgentWorkflowService:
             trip_id=trip_id,
             itinerary_id=option_id,
             created_by_user_id=uuid.UUID(agent_id) if agent_id else None,
+            publish=True,
             input_payload={"event_id": event_id}
         )
-        
-        from app.task_queue.dispatcher import TaskDispatcher
-        TaskDispatcher.enqueue_agent_job(job.id)
+
         return job.id
-        
+
     def enqueue_feedback_optimization(self, trip_id: str, family_id: str, message: str, agent_id: Optional[str] = None) -> Any:
         # The same message sent twice in a few seconds (a double-click) follows the first job
         recent = AgentJobService.find_recent_duplicate(trip_id, family_id, message)
@@ -63,12 +61,11 @@ class AgentWorkflowService:
             job_type=JobType.AGENT_FEEDBACK,
             trip_id=trip_id,
             created_by_user_id=uuid.UUID(agent_id) if agent_id else None,
+            publish=True,
             input_payload={"family_id": family_id, "message": message}
         )
-        
-        from app.task_queue.dispatcher import TaskDispatcher
-        TaskDispatcher.enqueue_agent_job(job.id)
-        
+
+
         # Return standard async response
         return {
             "job_id": str(job.id),
