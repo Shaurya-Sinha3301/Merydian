@@ -7,7 +7,7 @@ groq==1.7.0
 python-dotenv==1.2.2
 
 # Schema Validation
-pydantic==2.13.4
+pydantic==2.14.2
 
 # Existing project dependencies (if not already installed)
 # Add any additional dependencies needed for optimizer integration
