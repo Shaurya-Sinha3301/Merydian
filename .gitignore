@@ -43,7 +43,16 @@ backend/Api_credentials.pdf
 .env
 .env.*
 !.env.example
-!.env.test
+
+# Scratch output and one-off scripts that used to sit at the repo root
+/tree_*.txt
+/frontend_tree*.txt
+/py_tree.json
+/schemas.json
+/patch.py
+/scratch_test.py
+/full_report_generator.txt
+/*.zip
 
 # Runtime output; optimizer state lives in the database
 backend/trip_sessions/
