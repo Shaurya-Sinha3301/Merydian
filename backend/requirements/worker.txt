@@ -3,4 +3,4 @@
 -r api.txt
 groq==1.7.0
 google-generativeai==0.8.6
-ortools==9.12.4544
+ortools==9.15.6755
