@@ -79,7 +79,8 @@ async def broken():
     raise ConnectionError("redis is down (simulated)")
 
 
-rate_limit.get_redis = broken
+rate_limit.get_queue_redis = broken
+rate_limit.get_ephemeral_redis = broken
 key = f"/api/v1/auth/login:{ip()}"
 results = [asyncio.run(rate_limit.allow(key, 10, 60, True)) for _ in range(12)]
 check("sign-in still limits, using the in-memory fallback", results[:10] == [True] * 10 and results[10:] == [False, False])

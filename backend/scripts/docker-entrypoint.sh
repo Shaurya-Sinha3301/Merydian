@@ -46,11 +46,11 @@ except Exception as e:
 
 # ── Wait for Redis ────────────────────────────────────────────────────────────
 wait_for_redis() {
-    echo "⏳  Waiting for Redis at $CELERY_BROKER_URL …"
+    echo "⏳  Waiting for the queue Redis …"
     until python -c "
 import redis, os, sys
 try:
-    r = redis.from_url(os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0'))
+    r = redis.from_url(os.environ.get('CELERY_BROKER_URL') or os.environ.get('REDIS_QUEUE_URL') or os.environ.get('REDIS_URL') or 'redis://redis:6379/0')
     r.ping()
     sys.exit(0)
 except Exception:

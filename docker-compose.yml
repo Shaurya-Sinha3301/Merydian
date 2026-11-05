@@ -32,9 +32,10 @@ x-backend-env:
   TBO_AIR_PASSWORD: "${TBO_AIR_PASSWORD}"
 
   # ── Redis / Celery ───────────────────────────────────────────────────────────
-  CELERY_BROKER_URL: "redis://redis:6379/0"
-  CELERY_RESULT_BACKEND: "redis://redis:6379/1"
+  # Two Redis roles (backend/app/core/redis.py): the queue never evicts, the ephemeral one may
   REDIS_URL: "redis://redis:6379/0"
+  REDIS_QUEUE_URL: "redis://redis:6379/0"
+  REDIS_EPHEMERAL_URL: "redis://redis-ephemeral:6379/0"
 
   # ── ML Optimizer paths (inside container) ───────────────────────────────────
   ML_OPTIMIZER_BASE_DATA: "/app/ml_or/data"
@@ -67,12 +68,28 @@ services:
     image: redis:7-alpine
     container_name: meiliai_redis
     restart: unless-stopped
+    # The queue role: broker, locks, security counters, heartbeats. Never evicts (a full instance refuses
+    # writes loudly instead of dropping queued work); append-only file synced once a second.
     command: >
-      redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 1 --loglevel warning
+      redis-server --maxmemory 256mb --maxmemory-policy noeviction --appendonly yes --appendfsync everysec --loglevel warning
     volumes:
       - redis_data:/data
     ports:
       - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # The ephemeral role: read cache, low-value rate limits, live-notification pub/sub. No persistence, and it
+  # evicts the least recently used keys when full, which only costs speed.
+  redis-ephemeral:
+    image: redis:7-alpine
+    container_name: meiliai_redis_ephemeral
+    restart: unless-stopped
+    command: >
+      redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru --save "" --appendonly no --loglevel warning
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s

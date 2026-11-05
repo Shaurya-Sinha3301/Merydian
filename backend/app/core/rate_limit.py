@@ -15,7 +15,7 @@ from typing import Dict, Optional, Tuple
 from fastapi import HTTPException, Request
 
 from app.core.client_ip import client_ip
-from app.core.redis import get_redis
+from app.core.redis import get_ephemeral_redis, get_queue_redis
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,9 @@ _memory = _MemoryCounter()
 async def allow(key: str, limit: int, window: int, fallback: bool) -> bool:
     """Count one request against key. True if it is within the limit."""
     try:
-        redis = await get_redis()
+        # Security limits (the ones with a fallback) count on the queue Redis, which never evicts; low-value
+        # buckets count on the ephemeral one, where losing a count only resets a minute's window
+        redis = await (get_queue_redis() if fallback else get_ephemeral_redis())
         n = await redis.incr(f"rate_limit:{key}")
         if n == 1:
             await redis.expire(f"rate_limit:{key}", window)

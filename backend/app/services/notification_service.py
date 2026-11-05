@@ -162,7 +162,9 @@ def _push(made: List[Any]) -> None:
     try:
         import redis
 
-        r = redis.from_url(settings.REDIS_URL, socket_connect_timeout=1, socket_timeout=1)
+        from app.core.redis import ephemeral_url
+
+        r = redis.from_url(ephemeral_url(), socket_connect_timeout=1, socket_timeout=1)
         for uid, nid in made:
             r.publish(f"notif:{uid}", str(nid))
     except Exception as e:

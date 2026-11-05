@@ -49,6 +49,15 @@ async def health_ready(response: Response, session: Session = Depends(get_sessio
     except Exception as e:
         health_status["redis"] = f"error: {str(e)}"
         is_ready = False
+
+    # 2b. The ephemeral Redis (cache, live pub/sub). Losing it costs speed, not correctness, so it is
+    # reported but does not make the service unready.
+    try:
+        from app.core.redis import ephemeral_url, get_ephemeral_redis, queue_url
+        if ephemeral_url() != queue_url():
+            health_status["redis_ephemeral"] = "connected" if await (await get_ephemeral_redis()).ping() else "disconnected"
+    except Exception as e:
+        health_status["redis_ephemeral"] = f"degraded: {str(e)[:80]}"
         
     # 3. Check Celery
     try:

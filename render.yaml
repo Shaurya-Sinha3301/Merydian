@@ -82,5 +82,7 @@ services:
   - type: keyvalue
     name: meridian-redis
     plan: free
-    maxmemoryPolicy: allkeys-lru
+    # One instance plays both Redis roles here (backend/app/core/redis.py), so it must never evict: an
+    # evicting instance could drop queued jobs or sign-in lockout counts. Every non-queue key has an expiry.
+    maxmemoryPolicy: noeviction
     ipAllowList: []               # internal connections only

@@ -60,9 +60,14 @@ class Settings(BaseSettings):
     TBO_AIR_PASSWORD: str = ""
 
     # CELERY / REDIS
-    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
+    # The broker lives on the queue Redis unless set explicitly. Celery results are not stored: job state
+    # lives in Postgres, so CELERY_RESULT_BACKEND is ignored.
+    CELERY_BROKER_URL: str = ""
+    CELERY_RESULT_BACKEND: str = ""
     REDIS_URL: str = "redis://localhost:6379/0"
+    # Split Redis roles (see app/core/redis.py); each falls back to REDIS_URL
+    REDIS_QUEUE_URL: str = ""
+    REDIS_EPHEMERAL_URL: str = ""
 
     # PUBLIC DEMO SANDBOX
     # "showcase" opens the demo door and lets DEV_OUTBOX work; "production" shuts both whatever their own

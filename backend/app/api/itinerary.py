@@ -51,7 +51,7 @@ class FeedbackResponse(BaseModel):
     message: str
     event_created: EventResponse
 
-from app.core.redis import get_redis
+from app.core.redis import get_ephemeral_redis, get_redis
 import json
 
 @router.get("/current", response_model=Dict[str, Any])
@@ -72,7 +72,7 @@ async def get_current_itinerary(
         family_id = uuid_lib.UUID(current_user.family_id)
 
         # Check Cache
-        redis = await get_redis()
+        redis = await get_ephemeral_redis()
         cache_key = f"itinerary:current:{family_id}"
         cached_data = await redis.get(cache_key)
 

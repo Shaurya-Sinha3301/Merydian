@@ -28,7 +28,10 @@ _client: Optional[redis.Redis] = None
 def _redis() -> redis.Redis:
     global _client
     if _client is None:
-        _client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"), decode_responses=True)
+        from app.core.redis import queue_url
+
+        # Locks live on the queue Redis, which never evicts: an evicted lock would let two holders in
+        _client = redis.from_url(queue_url(), decode_responses=True)
     return _client
 
 

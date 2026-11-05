@@ -1,12 +1,15 @@
 from celery import Celery
 from app.core.config import settings
+from app.core.redis import queue_url as _queue_url
 
 # Single Celery app shared by every task module (booking/event/notification
 # tasks in app.worker and the agent job tasks in app.workers.agent_tasks).
 celery_app = Celery(
     "meiliai_worker",
-    broker=settings.CELERY_BROKER_URL,
-    backend=settings.CELERY_RESULT_BACKEND,
+    # The broker is on the queue Redis. No result backend: job state is in Postgres, and storing results in
+    # Redis only added keys to expire and a second place for the two to disagree.
+    broker=settings.CELERY_BROKER_URL or _queue_url(),
+    backend=None,
     include=["app.worker", "app.workers.agent_tasks"],
 )
 
@@ -36,6 +39,7 @@ celery_app.conf.worker_prefetch_multiplier = 1
 celery_app.conf.task_soft_time_limit = 120
 celery_app.conf.task_time_limit = 150
 celery_app.conf.task_acks_late = True
+celery_app.conf.task_ignore_result = True
 # Redis re-delivers a task its worker never acknowledged after this long. The default is one hour,
 # so a job lost to a crash would sit idle. Keep it above task_time_limit so live tasks are not repeated.
 celery_app.conf.broker_transport_options = {"visibility_timeout": 200}

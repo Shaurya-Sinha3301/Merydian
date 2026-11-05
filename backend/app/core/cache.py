@@ -3,7 +3,7 @@ import logging
 from functools import wraps
 from typing import Callable, Optional, Any
 from fastapi import Request, Response
-from app.core.redis import RedisManager
+from app.core.redis import get_ephemeral_redis
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ def cache(expire: int = 60, key_prefix: str = ""):
 
             # Check cache
             try:
-                redis = await RedisManager.get_redis()
+                redis = await get_ephemeral_redis()
                 cached_data = await redis.get(cache_key)
                 if cached_data:
                     logger.debug(f"Cache hit for {cache_key}")
