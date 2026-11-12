@@ -6,7 +6,7 @@
 #                    the agents and the reference data. Runs the workers, and the single-container showcase
 #                    mode ("all") that Render uses.
 
-FROM python:3.11-slim AS base
+FROM python:3.15-slim AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
