@@ -37,7 +37,16 @@ def _dotenv() -> dict:
 def _admin(db_server: str):
     import psycopg2
 
-    con = psycopg2.connect(urlunsplit(urlsplit(db_server)._replace(path="/postgres")))
+    # A fresh Postgres container restarts once after its first-time setup, so retry briefly.
+    url = urlunsplit(urlsplit(db_server)._replace(path="/postgres"))
+    for attempt in range(30):
+        try:
+            con = psycopg2.connect(url, connect_timeout=5)
+            break
+        except psycopg2.OperationalError:
+            if attempt == 29:
+                raise
+            time.sleep(1)
     con.autocommit = True
     return con
 

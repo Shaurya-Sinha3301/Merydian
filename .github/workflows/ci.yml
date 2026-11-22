@@ -94,7 +94,7 @@ jobs:
       - name: Resilience drills (database restart, an API copy dying, webhook guard, sign out everywhere)
         run: |
           docker run -d --name drill-pg -e POSTGRES_USER=drill -e POSTGRES_PASSWORD=drill-local-only -e POSTGRES_DB=drill -p 5433:5432 postgres:15-alpine
-          until docker exec drill-pg pg_isready -q; do sleep 1; done
+          until docker exec drill-pg pg_isready -q -h 127.0.0.1; do sleep 1; done
           STACK_DB_CONTAINER=drill-pg python scripts/deploy/stack.py --apis 2 --port 8041 --worker --scheduler \
             --env GROQ_API_KEY=ci-fake-groq-key-0000 \
             --env JOB_LEASE_SECONDS=20 --env JOB_HEARTBEAT_SECONDS=5 --env SCHEDULER_SWEEP_SECONDS=10 \
@@ -118,7 +118,7 @@ jobs:
           docker network create ci
           docker run -d --name pg --network ci -e POSTGRES_USER=ci -e POSTGRES_PASSWORD=ci-only-password -e POSTGRES_DB=ci postgres:15-alpine
           docker run -d --name rd --network ci redis:7-alpine redis-server --maxmemory-policy noeviction
-          until docker exec pg pg_isready -q; do sleep 1; done
+          until docker exec pg pg_isready -q -h 127.0.0.1; do sleep 1; done
           docker run -d --name app --network ci -p 8010:8000 \
             -e SQLALCHEMY_DATABASE_URI=postgresql://ci:ci-only-password@pg:5432/ci -e REDIS_URL=redis://rd:6379/0 \
             -e SECRET_KEY=ci-only-secret-key-0123456789abcdef -e APP_MODE=showcase -e SEED_ON_START=true \
